@@ -1,0 +1,222 @@
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1e9dc;
+  cursor: default;
+  overflow: hidden;
+}
+
+/* the paper slides away in a few drawings */
+.leaving {
+  animation: slideAway 0.7s steps(7) forwards;
+}
+
+@keyframes slideAway {
+  0% {
+    transform: none;
+  }
+  25% {
+    transform: translateY(2%) rotate(-0.5deg);
+  }
+  100% {
+    transform: translateY(-110%) rotate(3deg);
+  }
+}
+
+.art {
+  position: relative;
+  width: min(100vw, calc(100vh * 2816 / 1536));
+}
+
+.paper {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+.ball {
+  position: absolute;
+  transform-origin: 50% 88%;
+  animation: wobble 2.4s steps(1) infinite;
+  filter: url(#boil);
+}
+
+/* capture wobble, drawn on "threes": each pose is held for a moment */
+@keyframes wobble {
+  0%,
+  45%,
+  100% {
+    transform: rotate(0);
+  }
+  8% {
+    transform: rotate(-20deg);
+  }
+  16% {
+    transform: rotate(16deg);
+  }
+  24% {
+    transform: rotate(-10deg);
+  }
+  32% {
+    transform: rotate(6deg);
+  }
+  38% {
+    transform: rotate(-2deg);
+  }
+}
+
+.caught {
+  animation: caught 0.6s steps(6);
+}
+
+@keyframes caught {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    transform: translateY(-18%) scale(1.08) rotate(-8deg);
+  }
+  60% {
+    transform: translateY(0) scale(0.94, 1.04);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.stars {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.stars span {
+  position: absolute;
+  color: #e8a13a;
+  font-size: clamp(18px, 2.4vw, 34px);
+  text-shadow: 0 0 10px rgba(255, 200, 90, 0.8);
+  opacity: 0;
+  animation: star 0.9s steps(6) forwards;
+  animation-delay: calc(var(--i) * 90ms + 0.25s);
+}
+
+.stars span:nth-child(1) {
+  --x: -90px;
+  --y: -50px;
+}
+
+.stars span:nth-child(2) {
+  --x: 0px;
+  --y: -90px;
+}
+
+.stars span:nth-child(3) {
+  --x: 90px;
+  --y: -50px;
+}
+
+@keyframes star {
+  0% {
+    transform: translate(-50%, 0) scale(0.3);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--x)), var(--y)) scale(1.2) rotate(90deg);
+    opacity: 0;
+  }
+}
+
+.bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 72%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  padding: 0 16px;
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 4px;
+  width: min(380px, 80vw);
+  padding: 5px;
+  border: 3px solid #c9502f;
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.7);
+}
+
+.bar span {
+  height: 14px;
+  border-radius: 3px;
+  background: rgba(201, 80, 47, 0.12);
+  transition: background 0.2s steps(2);
+}
+
+.bar .on {
+  background: #e0673d;
+}
+
+.tip {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: 22px;
+  color: #8a5a4a;
+  animation: tipIn 0.3s steps(3);
+}
+
+@keyframes tipIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.start {
+  padding: 12px 22px;
+  border: 3px solid #c9502f;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #fff6e8;
+  color: #c9502f;
+  font-family: var(--font-press), monospace;
+  font-size: 14px;
+  box-shadow: 5px 6px 0 rgba(201, 80, 47, 0.35);
+  animation: pulse 1.2s steps(2) infinite;
+  transition: transform 0.15s steps(2);
+}
+
+.start:hover {
+  transform: translate(-2px, -3px) rotate(-1deg);
+}
+
+@keyframes pulse {
+  50% {
+    background: #ffe7c7;
+  }
+}
+
+.small {
+  margin: 0;
+  font-size: 18px;
+  color: #a07a68;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ball {
+    animation: none;
+    filter: none;
+  }
+}

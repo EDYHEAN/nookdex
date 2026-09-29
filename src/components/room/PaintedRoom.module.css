@@ -1,0 +1,498 @@
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #2a2236;
+}
+
+/* covered by a binder or the OS: freeze, so the blurred backdrop is computed once */
+.paused * {
+  animation-play-state: paused !important;
+}
+
+.scene {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* moved every frame by the parallax: keep it on its own GPU layer */
+  will-change: translate;
+}
+
+.layer > button {
+  pointer-events: auto;
+}
+
+.plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+}
+
+.sprite {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+/* ---------- 12 fps painted animations ---------- */
+
+.rain {
+  position: absolute;
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+}
+
+.steam {
+  position: absolute;
+  filter: url(#boil-soft);
+  animation: steamRise 2.2s steps(6) infinite;
+}
+
+@keyframes steamRise {
+  50% {
+    translate: 2px -6px;
+    opacity: 0.8;
+  }
+}
+
+.lava {
+  position: absolute;
+  filter: url(#boil);
+  opacity: 0.95;
+}
+
+.clock {
+  position: absolute;
+  overflow: visible;
+  filter: url(#boil);
+}
+
+.catSleep {
+  transform-origin: 50% 100%;
+  filter: url(#boil);
+  animation: breathe 3.2s steps(2) infinite;
+}
+
+@keyframes breathe {
+  50% {
+    transform: scale(1.012, 1.03);
+  }
+}
+
+.catAwake {
+  filter: url(#boil);
+  transform-origin: 50% 100%;
+  animation: popUp 0.3s steps(3);
+}
+
+@keyframes popUp {
+  from {
+    transform: scale(0.94, 0.9);
+  }
+}
+
+.zzz {
+  position: absolute;
+  font-family: var(--font-press), monospace;
+  font-size: 30px;
+  color: #fff8ea;
+  text-shadow:
+    3px 3px 0 #4a3a52,
+    0 0 12px rgba(255, 240, 200, 0.6);
+  pointer-events: none;
+  animation: zzz 3s steps(8) infinite;
+}
+
+@keyframes zzz {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(40px, -90px) scale(1.4) rotate(12deg);
+  }
+}
+
+.hearts,
+.notes {
+  position: absolute;
+  pointer-events: none;
+}
+
+.hearts i,
+.notes i {
+  position: absolute;
+  font-style: normal;
+  font-size: 46px;
+  text-shadow: 3px 3px 0 rgba(60, 30, 50, 0.5);
+  animation: floatUp 1.6s steps(10) forwards;
+}
+
+.hearts i {
+  color: #ff7aa8;
+}
+
+.notes i {
+  color: #fff3c4;
+  animation: floatUp 2.4s steps(12) infinite;
+}
+
+.hearts i:nth-child(2),
+.notes i:nth-child(2) {
+  left: 50px;
+  animation-delay: 0.25s;
+}
+
+.hearts i:nth-child(3),
+.notes i:nth-child(3) {
+  left: -40px;
+  animation-delay: 0.5s;
+}
+
+.notes i:nth-child(2) {
+  animation-delay: 0.8s;
+}
+
+.notes i:nth-child(3) {
+  animation-delay: 1.6s;
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(20px, -140px) scale(1.2) rotate(-10deg);
+  }
+}
+
+/* ---------- binders ---------- */
+
+.binder {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transform-origin: 50% 100%;
+  /* stop-motion feel: the binder moves in 3 drawings */
+  transition:
+    transform 0.2s steps(3),
+    filter 0.2s steps(2);
+}
+
+.binder > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Binders never leave their spot (that would show what is painted behind them):
+   they light up and swell a little, which only ever covers their own place. */
+.binder:hover,
+.binder:focus-visible {
+  transform: scale(1.03);
+  filter: brightness(1.12) saturate(1.1) drop-shadow(0 0 10px rgba(255, 214, 140, 0.85));
+  z-index: 2;
+  outline: none;
+}
+
+.label {
+  position: absolute;
+  overflow: hidden;
+  container-type: size;
+}
+
+.label > img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 90cqh;
+  height: 86cqw;
+  object-fit: contain;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  mix-blend-mode: multiply;
+}
+
+.progress {
+  position: absolute;
+  right: 3px;
+  bottom: 6px;
+  top: 6px;
+  width: 5px;
+  background: rgba(60, 40, 50, 0.18);
+  display: flex;
+  align-items: flex-end;
+}
+
+.progress span {
+  display: block;
+  width: 100%;
+  background: #6fbf5a;
+}
+
+.placeholder > img {
+  filter: saturate(0.8);
+}
+
+.placeholder .label > img {
+  opacity: 0.75;
+  filter: grayscale(0.3);
+}
+
+.out {
+  opacity: 0;
+  transform: scale(1.08);
+  transition:
+    transform 0.2s steps(3),
+    opacity 0.2s steps(3);
+  pointer-events: none;
+}
+
+.returning {
+  animation: putBack 0.45s steps(5);
+}
+
+@keyframes putBack {
+  0% {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* empty binder: a little "nope" pulse, still without leaving its place */
+.shake {
+  animation: nope 0.42s steps(6);
+}
+
+@keyframes nope {
+  0%,
+  100% {
+    transform: scale(1.03);
+  }
+  30% {
+    transform: scale(1.06, 1.01);
+    filter: brightness(0.85) saturate(0.6);
+  }
+  60% {
+    transform: scale(1.01, 1.05);
+  }
+}
+
+/* ---------- hotspots ---------- */
+
+.hotspot {
+  position: absolute;
+  border: 0;
+  padding: 0;
+  border-radius: 30px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.hotspot:focus-visible {
+  outline: 6px dashed rgba(255, 211, 90, 0.8);
+}
+
+/* ---------- light (local glows, plain alpha blending: cheap to composite) ---------- */
+
+.glow {
+  position: absolute;
+  pointer-events: none;
+  will-change: opacity;
+  transition: opacity 0.35s steps(4);
+}
+
+.crt {
+  background: radial-gradient(closest-side, rgba(120, 255, 190, 0.13), transparent);
+  animation: crt 4s steps(2) infinite;
+}
+
+@keyframes crt {
+  50% {
+    opacity: 0.75;
+  }
+}
+
+.lampPool {
+  background: radial-gradient(closest-side, rgba(255, 205, 130, 0.16), transparent);
+}
+
+.bulb {
+  background: radial-gradient(closest-side, rgba(255, 238, 195, 0.55), transparent);
+  animation: lampFlicker 5s steps(1) infinite;
+}
+
+@keyframes lampFlicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  63% {
+    opacity: 0.8;
+  }
+  65% {
+    opacity: 1;
+  }
+}
+
+/* lamp switched off: the warm pool fades into a blue night */
+.night {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: opacity;
+  transition: opacity 0.35s steps(4);
+  background:
+    radial-gradient(ellipse 900px 600px at 2150px 1050px, rgba(24, 20, 66, 0.5), rgba(24, 20, 66, 0.34) 70%),
+    rgba(24, 20, 66, 0.12);
+}
+
+.off {
+  opacity: 0 !important;
+  animation: none;
+}
+
+.dust {
+  position: absolute;
+  left: 1650px;
+  top: 760px;
+  width: 1000px;
+  height: 600px;
+  pointer-events: none;
+}
+
+.chair {
+  filter: brightness(0.92);
+}
+
+.vignette {
+  position: absolute;
+  inset: -40px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 58%, rgba(30, 16, 40, 0.45) 100%);
+}
+
+/* ---------- tooltip (screen space) ---------- */
+
+.tip {
+  position: fixed;
+  z-index: 20;
+  transform: translate(-50%, calc(-100% - 10px));
+  pointer-events: none;
+  padding: 6px 12px 8px;
+  background: #fff6e6;
+  color: #3a2a2e;
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 2px #3a2a2e,
+    4px 5px 0 2px rgba(40, 20, 40, 0.35);
+  font-family: var(--font-vt), monospace;
+  font-size: 22px;
+  line-height: 20px;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: tipIn 0.18s steps(3);
+}
+
+.tip strong {
+  font-weight: normal;
+  color: #b8452f;
+}
+
+.tip span {
+  font-size: 19px;
+  color: #6b5560;
+}
+
+.tipBelow {
+  transform: translate(-50%, 10px);
+  animation-name: tipInBelow;
+}
+
+@keyframes tipInBelow {
+  from {
+    transform: translate(-50%, 2px) scale(0.7);
+    opacity: 0;
+  }
+}
+
+@keyframes tipIn {
+  from {
+    transform: translate(-50%, calc(-100% - 2px)) scale(0.7);
+    opacity: 0;
+  }
+}
+
+/* ---------- phone header ---------- */
+
+.header {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 5;
+  padding: 18px 172px 0 18px;
+}
+
+.header h1 {
+  margin: 0;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 16px;
+  color: #ffd35a;
+  text-shadow: 3px 3px 0 #2d4ab0;
+}
+
+.header h1 span {
+  color: #efe3c8;
+}
+
+.header p {
+  margin: 8px 0 0;
+  font-size: 20px;
+  color: #cdbdf0;
+}
+
+.header b {
+  font-weight: normal;
+  color: #ffd35a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catSleep,
+  .steam,
+  .zzz {
+    animation: none;
+  }
+}

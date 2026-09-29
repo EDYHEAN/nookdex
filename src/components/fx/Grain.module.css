@@ -1,0 +1,25 @@
+.wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.grain {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(100% + 256px);
+  height: calc(100% + 256px);
+  background-size: 256px 256px;
+  will-change: transform;
+}
+
+.flicker {
+  position: absolute;
+  inset: 0;
+  background: #1a1024;
+  opacity: 0;
+  will-change: opacity;
+}

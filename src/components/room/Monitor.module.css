@@ -1,0 +1,168 @@
+.screen {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background: radial-gradient(ellipse at 50% 45%, rgba(16, 48, 42, 0.8), rgba(5, 16, 12, 0.88) 85%);
+  overflow: hidden;
+  font-family: var(--font-vt), monospace;
+  color: #8dffc0;
+  text-align: left;
+}
+
+.inner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 104px;
+  transform-origin: 0 0;
+}
+
+.content {
+  position: absolute;
+  inset: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 10px;
+  line-height: 10px;
+  text-shadow:
+    0 0 2px rgba(141, 255, 192, 0.8),
+    0 0 5px rgba(141, 255, 192, 0.35);
+}
+
+.content p {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.title {
+  font-size: 8px;
+  color: #ffd35a;
+  text-shadow: 0 0 3px rgba(255, 211, 90, 0.7);
+}
+
+.big {
+  font-size: 15px;
+  line-height: 13px;
+  color: #eafff2;
+}
+
+.bar {
+  height: 4px;
+  background: rgba(141, 255, 192, 0.18);
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: #9dff7a;
+  box-shadow: 0 0 3px #9dff7a;
+}
+
+.money {
+  color: #ffd35a;
+}
+
+/* the "OUVRIR" key: a little retro UI button with a double pixel frame */
+.cta {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 3px 2px;
+  color: #06120e;
+  background: linear-gradient(#b8ffd9, #6ee8a6);
+  text-shadow: none;
+  box-shadow:
+    0 0 0 1px #06120e,
+    0 0 0 2px #8dffc0,
+    0 2px 0 2px #2f8a5c,
+    0 0 6px 2px rgba(141, 255, 192, 0.45);
+  transition:
+    transform 0.12s steps(2),
+    box-shadow 0.12s steps(2);
+}
+
+.ctaArrow {
+  font-size: 7px;
+  animation: nudge 0.9s steps(2) infinite;
+}
+
+.ctaText {
+  letter-spacing: 1px;
+}
+
+.ctaKey {
+  margin-left: auto;
+  padding: 0 2px;
+  font-size: 7px;
+  line-height: 8px;
+  color: #8dffc0;
+  background: #06120e;
+}
+
+@keyframes nudge {
+  50% {
+    transform: translateX(2px);
+  }
+}
+
+.screen:hover .cta {
+  background: linear-gradient(#fff2b0, #ffd35a);
+  box-shadow:
+    0 0 0 1px #06120e,
+    0 0 0 2px #ffd35a,
+    0 2px 0 2px #a8801e,
+    0 0 8px 3px rgba(255, 211, 90, 0.55);
+  transform: translateY(-1px);
+}
+
+.screen:hover .ctaKey {
+  color: #ffd35a;
+}
+
+.screen:active .cta {
+  transform: translateY(2px);
+  box-shadow:
+    0 0 0 1px #06120e,
+    0 0 0 2px #ffd35a;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 2px),
+    radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.scan::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: linear-gradient(transparent, rgba(141, 255, 192, 0.08), transparent);
+  animation: roll 5s linear infinite;
+}
+
+@keyframes roll {
+  from {
+    top: -10px;
+  }
+  to {
+    top: 100%;
+  }
+}
+
+.screen:hover .content {
+  filter: brightness(1.2);
+}

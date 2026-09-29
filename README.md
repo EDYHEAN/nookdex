@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PokéPocket
 
-## Getting Started
+Ta collection de cartes Pokémon TCG, rangée dans des classeurs sur un bureau peint façon film d'animation (animations en « low fps », grain de pellicule).
 
-First, run the development server:
+- Chaque extension = un classeur sur l'étagère. Clic : il sort, s'ouvre, et on tourne les pages.
+- Cartes grises = manquantes. Clic sur une carte grise = tu l'as. Clic sur une carte possédée = sa fiche
+  (variante normale / reverse / holo, état Cardmarket, doublons, prix d'achat — 0 € si opening).
+- L'écran du PC ouvre **PokéPocket OS** : tableau de bord, wishlist, doublons, recherche, sauvegarde (export/import JSON).
+- Prix Cardmarket (prix bas + tendance) via [TCGdex](https://tcgdex.dev), totaux par classeur.
+- Sauvegarde 100 % locale (localStorage) pour l'instant.
+
+## Lancer
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Ajouter / mettre à jour une extension
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Les données (cartes FR, images, prix) sont figées dans `src/data/sets/<id>.json` :
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run fetch-set swsh12 swsh12tg   # set principal + sous-sets (Trainer Gallery…)
+```
 
-## Learn More
+Puis branche le JSON sur le bon classeur dans `src/lib/binders.ts` (`set: null` = classeur placeholder).
+Relancer la commande rafraîchit aussi les prix.
 
-To learn more about Next.js, take a look at the following resources:
+## Où est quoi
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Dossier | Rôle |
+| --- | --- |
+| `src/components/room/` | Le bureau peint : calques, classeurs, animations 12 fps (`sceneAnim.ts`) |
+| `src/components/fx/` | Grain de pellicule et « boil » (trait qui frémit façon dessin animé) |
+| `src/components/binder/` | Le classeur : ouverture, pages qui tournent, cartes, fiche |
+| `src/components/computer/` | PokéPocket OS (l'écran du PC en plein écran) |
+| `src/lib/sound.ts` | Tous les sons, synthétisés en WebAudio (+ radio lofi) |
+| `src/lib/store.ts` | Collection (zustand + localStorage) |
+| `src/lib/price.ts` | Calculs de prix / stats |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+En dev, raccourcis d'URL : `?skip` (passe le loader), `?open=swsh12` (ouvre un classeur), `?os` (ouvre le PC), `?demo` (remplit une collection de test).
 
-## Deploy on Vercel
+## Visuels
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Les images sources (Gemini) sont dans `img/`. Le script découpe la scène en calques (fond, chat, chaise, 14 classeurs, tête de lampe…) par différence entre la scène maître et ses éditions :
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build-scene   # -> public/scene/*.webp + src/data/scene.json
+```
+
+Prompts pour générer les visuels avec Gemini : [docs/prompts-gemini.md](docs/prompts-gemini.md).
