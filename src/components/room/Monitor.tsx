@@ -3,23 +3,29 @@
 import { useMemo, type CSSProperties } from "react";
 import { BINDERS } from "@/lib/binders";
 import { formatEur, setStats } from "@/lib/price";
+import { quadMatrix } from "@/lib/scene";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import styles from "./Monitor.module.css";
 
 interface Props {
   style: CSSProperties;
+  /** glass corners relative to the button (TL, TR, BR, BL) */
+  quad: [number, number][];
   onOpen: (rect: DOMRect) => void;
   onHover: () => void;
   onLeave: () => void;
 }
 
 /** Glanceable summary on the desk CRT; the full OS opens on click. */
-export function Monitor({ style, onOpen, onHover, onLeave }: Props) {
+export function Monitor({ style, quad, onOpen, onHover, onLeave }: Props) {
   const collection = useStore((s) => s.collection);
-  // The layout is drawn for a 104px wide screen and scaled to the painted one.
-  const k = (Number(style.width) || 104) / 104;
-  const innerH = (Number(style.height) || 68) / k;
+  // The layout is drawn flat on a 104px wide screen, then projected onto the painted glass.
+  const innerW = 104;
+  const glassW = (quad[1][0] - quad[0][0] + quad[2][0] - quad[3][0]) / 2;
+  const glassH = (quad[3][1] - quad[0][1] + quad[2][1] - quad[1][1]) / 2;
+  const innerH = Math.round((innerW * glassH) / glassW);
+  const matrix = useMemo(() => quadMatrix(innerW, innerH, quad), [innerH, quad]);
 
   const t = useMemo(() => {
     let owned = 0, total = 0, trend = 0;
@@ -45,7 +51,7 @@ export function Monitor({ style, onOpen, onHover, onLeave }: Props) {
       }}
       aria-label="Ouvrir PokéPocket OS"
     >
-      <div className={styles.inner} style={{ height: innerH, transform: `scale(${k})` }}>
+      <div className={styles.inner} style={{ width: innerW, height: innerH, transform: matrix }}>
         <div className={styles.content}>
           <p className={styles.title}>POKEPOCKET OS</p>
           <p className={styles.big}>
@@ -61,8 +67,8 @@ export function Monitor({ style, onOpen, onHover, onLeave }: Props) {
             <span className={styles.ctaKey}>OS</span>
           </p>
         </div>
+        <div className={styles.scan} />
       </div>
-      <div className={styles.scan} />
     </button>
   );
 }

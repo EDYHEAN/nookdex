@@ -408,6 +408,8 @@ const SHELVES = [
 /* ---------------- fixed spots used by the code ---------------- */
 Object.assign(meta, {
   screen: { x: 1076, y: 788, w: 272, h: 218, r: 26 },
+  // corners of the CRT glass (TL, TR, BR, BL): the screen content is projected onto them
+  screenQuad: [[1083, 792], [1340, 788], [1345, 998], [1085, 1008]],
   radio: { x: 480, y: 935, w: 385, h: 285 },
   lava: { x: 870, y: 790, w: 125, h: 300 },
   lampHit: { x: 2110, y: 660, w: 270, h: 240 },

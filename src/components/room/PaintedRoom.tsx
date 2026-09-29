@@ -35,6 +35,7 @@ const { width: W, height: H } = SCENE;
 const FOCUS = { x: 1735, w: 850 };
 const HEADER = 92;
 const ANIM_FPS = 12;
+const SCREEN_QUAD = SCENE.screenQuad.map(([x, y]) => [x - SCENE.screen.x, y - SCENE.screen.y] as [number, number]);
 
 function useCamera(compact: boolean) {
   const vp = useViewport();
@@ -202,7 +203,8 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer }:
           <Clock />
 
           <Monitor
-            style={{ ...place(SCENE.screen), borderRadius: SCENE.screen.r }}
+            style={place(SCENE.screen)}
+            quad={SCREEN_QUAD}
             onHover={() => {
               sfx.hover();
               showTip(SCENE.screen.x + SCENE.screen.w / 2, SCENE.screen.y - 20, "PokéPocket OS", "wishlist, doublons, recherche…");
