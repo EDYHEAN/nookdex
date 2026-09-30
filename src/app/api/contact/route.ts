@@ -3,7 +3,7 @@ import { SITE_NAME } from "@/lib/site";
 // Same setup as MyFrenchTool: Brevo's transactional API, key in the Vercel env (BREVO_API_KEY).
 // The sender must be a sender verified in Brevo; the address that receives the messages never reaches the browser.
 const TO = process.env.CONTACT_TO || "johan.trigeard@gmail.com";
-const FROM = process.env.CONTACT_FROM || "johan@myfrenchtool.com";
+const FROM = process.env.CONTACT_FROM || "contact@nookdex.com";
 
 const TOPICS = ["Question", "Bug", "Idée", "Supprimer mon compte / mes données"];
 

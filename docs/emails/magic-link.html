@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light only" />
+    <title>Ton lien pour entrer au bureau</title>
+  </head>
+  <!-- NookDex: the night desk behind, a paper note taped on it (same look as the welcome card). Inline styles only: e-mail clients drop <style>. -->
+  <body style="margin:0;padding:0;background:#221c36;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#221c36;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
+            <!-- tape -->
+            <tr>
+              <td align="center" style="padding:0;line-height:0;">
+                <div style="width:110px;height:22px;margin:0 auto -11px;background:#f3d98f;opacity:0.9;"></div>
+              </td>
+            </tr>
+            <tr>
+              <td style="background:#fdf8f1;border:3px solid #2b2230;border-radius:8px;padding:28px 28px 26px;font-family:'Courier New',Courier,monospace;color:#2b2230;">
+                <img src="https://nookdex.com/email/logo.jpg" width="300" alt="NookDex" style="display:block;width:100%;max-width:300px;height:auto;margin:0 auto 18px;border:0;" />
+                <h1 style="margin:0 0 14px;font-size:22px;line-height:1.3;font-weight:bold;color:#2b2230;">Ton lien pour entrer au bureau</h1>
+                <p style="margin:0 0 22px;font-size:16px;line-height:1.5;">Salut ! Clique sur le bouton pour te connecter à NookDex et retrouver ta collection, là où tu l'as laissée. Le lien marche une seule fois et expire dans une heure.</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px;">
+                  <tr>
+                    <td style="background:#ffd35a;border:3px solid #2b2230;border-radius:6px;box-shadow:5px 5px 0 #2b2230;">
+                      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 22px;font-family:'Courier New',Courier,monospace;font-size:16px;font-weight:bold;color:#2b2230;text-decoration:none;">Entrer au bureau ▶</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:0 0 6px;font-size:13px;line-height:1.5;color:#6f6068;">Le bouton ne marche pas ? Copie ce lien dans ton navigateur :</p>
+                <p style="margin:0 0 20px;font-size:12px;line-height:1.4;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#a8701a;">{{ .ConfirmationURL }}</a></p>
+                <p style="margin:0;padding-top:14px;border-top:2px dashed #dccdb0;font-size:13px;line-height:1.5;color:#6f6068;">Tu n'as rien demandé ? Ignore simplement ce message, personne ne peut entrer sans ce lien.</p>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:18px 8px 0;font-family:'Courier New',Courier,monospace;font-size:12px;line-height:1.5;color:#a79fbd;">
+                NookDex · ta collection de cartes Pokémon rangée sur ton bureau<br />
+                <a href="https://nookdex.com" style="color:#ffd35a;">nookdex.com</a> ·
+                <a href="https://nookdex.com/confidentialite" style="color:#a79fbd;">vie privée</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
