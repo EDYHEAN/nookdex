@@ -84,13 +84,13 @@ export default function Privacy() {
       <p>Tes données ne sont jamais vendues. Elles passent uniquement par les prestataires techniques nécessaires au site :</p>
       <ul>
         <li>
-          <a href="https://supabase.com/privacy">Supabase</a> : comptes et sauvegardes (base de données et connexion) ;
+          <a href="https://supabase.com/privacy">Supabase</a> : comptes, sauvegardes et messages du formulaire de contact (base de données et connexion) ;
         </li>
         <li>
           <a href="https://vercel.com/legal/privacy-policy">Vercel</a> : hébergement du site et statistiques de visite anonymes ;
         </li>
         <li>
-          <a href="https://formsubmit.co/privacy.pdf">FormSubmit</a> : transmission des messages du formulaire de contact par e-mail ;
+          <a href="https://formsubmit.co/privacy.pdf">FormSubmit</a> : copie par e-mail des messages du formulaire de contact ;
         </li>
         <li>Google : uniquement si tu choisis la connexion avec Google.</li>
       </ul>
