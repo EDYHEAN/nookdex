@@ -7,7 +7,7 @@
   "code": "30TH",
   "logo": "https://assets.tcgdex.net/fr/me/30th/logo",
   "releaseDate": "2026-09-16",
-  "total": 191,
+  "total": 188,
   "subs": [
    "30th-c"
   ]
@@ -79,17 +79,6 @@
   "subs": []
  },
  {
-  "id": "sv10.5b",
-  "serie": "sv",
-  "serieName": "Écarlate et Violet",
-  "name": "Foudre Noire",
-  "code": "BLK",
-  "logo": "https://assets.tcgdex.net/fr/sv/sv10.5b/logo",
-  "releaseDate": "2025-07-17",
-  "total": 172,
-  "subs": []
- },
- {
   "id": "sv10.5w",
   "serie": "sv",
   "serieName": "Écarlate et Violet",
@@ -98,6 +87,17 @@
   "logo": "https://assets.tcgdex.net/fr/sv/sv10.5w/logo",
   "releaseDate": "2025-07-17",
   "total": 173,
+  "subs": []
+ },
+ {
+  "id": "sv10.5b",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Foudre Noire",
+  "code": "BLK",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv10.5b/logo",
+  "releaseDate": "2025-07-17",
+  "total": 172,
   "subs": []
  },
  {
