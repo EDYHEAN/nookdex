@@ -1,0 +1,48 @@
+# Chaque matin : les prix Cardmarket du jour (via TCGdex) pour toutes les extensions du catalogue.
+# Si des prix ont bougé, le robot fait un commit sur main, et Vercel remet le site en ligne tout seul.
+# Lancement à la main : onglet « Actions » du repo > « Prix Cardmarket du jour » > « Run workflow ».
+name: Prix Cardmarket du jour
+
+on:
+  schedule:
+    # tous les jours à 11 h UTC (13 h en été, 12 h en hiver) : TCGdex a mis ses prix à jour vers 10 h UTC
+    - cron: "0 11 * * *"
+  workflow_dispatch: # le bouton « Run workflow »
+
+permissions:
+  contents: write # le robot a le droit de pousser le commit des prix
+
+concurrency:
+  group: prix
+  cancel-in-progress: false
+
+jobs:
+  prix:
+    name: Télécharger les prix
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # le script n'utilise que Node : pas besoin de npm install
+      - name: Télécharger les prix de toutes les extensions
+        run: node scripts/fetch-set.mjs --force
+
+      - name: Enregistrer les prix s'ils ont changé
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/sets src/data/catalog.json
+          if git diff --cached --quiet; then
+            echo "Aucun prix n'a bougé aujourd'hui."
+            exit 0
+          fi
+          git commit -m "Prix Cardmarket du $(date -u +%d/%m/%Y)"
+          git push
+          echo "Prix enregistrés : Vercel remet le site en ligne."

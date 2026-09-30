@@ -10,7 +10,10 @@
   padding: 0;
   border: 0;
   border-radius: 4.5%;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(150, 115, 90, 0.12);
+  box-shadow:
+  inset 0 0 0 1px rgba(43, 34, 48, 0.12),
+  inset 0 1.5cqw 3cqw rgba(90, 60, 45, 0.18);
   cursor: pointer;
 }
 
@@ -42,13 +45,15 @@
 /* ---------- missing ---------- */
 
 .missing .img {
-  filter: grayscale(1) brightness(0.42) contrast(0.85);
-  opacity: 0.55;
+  filter: grayscale(1) sepia(0.35) contrast(0.8) brightness(1.1);
+  opacity: 0.32;
+  mix-blend-mode: multiply;
 }
 
 .missing:hover .img {
-  filter: grayscale(0.55) brightness(0.78);
-  opacity: 0.95;
+  filter: grayscale(0.35) sepia(0.15);
+  opacity: 0.9;
+  mix-blend-mode: normal;
 }
 
 .missing .pocket:hover .lift {
@@ -73,8 +78,8 @@
   font-family: var(--font-press), monospace;
   font-weight: normal;
   font-size: 11cqw;
-  color: rgba(239, 227, 200, 0.6);
-  text-shadow: 0.6cqw 0.6cqw 0 #150f1f;
+  color: rgba(43, 34, 48, 0.55);
+  text-shadow: 0.5cqw 0.5cqw 0 rgba(244, 236, 220, 0.9);
 }
 
 .missing:hover .ghost {
@@ -86,18 +91,18 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 18cqw 5cqw 5cqw;
+  padding: 16cqw 5cqw 5cqw;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1cqw;
   border-radius: 0 0 4.5% 4.5%;
-  background: linear-gradient(transparent, rgba(12, 7, 24, 0.95) 45%);
+  background: linear-gradient(transparent, rgba(244, 236, 220, 0.97) 42%);
   opacity: 0;
   transform: translateY(6%);
   transition:
-    opacity 0.2s,
-    transform 0.2s;
+  opacity 0.2s,
+  transform 0.2s;
   pointer-events: none;
   font-family: var(--font-vt), monospace;
   text-align: center;
@@ -107,18 +112,18 @@
 .hint b {
   font-weight: normal;
   font-size: 11cqw;
-  color: #efe3c8;
+  color: var(--ink);
 }
 
 .hint span {
   font-size: 11cqw;
-  color: #ffd35a;
+  color: var(--ink-gold);
 }
 
 .hint em {
   font-style: normal;
   font-size: 9cqw;
-  color: #9dff7a;
+  color: var(--ink-green);
   animation: blink 1s steps(1) infinite;
 }
 
@@ -142,9 +147,9 @@
   height: 15cqw;
   padding: 0;
   border-radius: 50%;
-  border: 0.8cqw solid #efe3c8;
-  background: #150f1f;
-  color: #efe3c8;
+  border: 0.8cqw solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--font-press), monospace;
   font-size: 6cqw;
   line-height: 1;
@@ -152,9 +157,9 @@
   opacity: 0;
   transform: scale(0.6);
   transition:
-    opacity 0.15s,
-    transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1),
-    background 0.15s;
+  opacity 0.15s,
+  transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1),
+  background 0.15s;
 }
 
 .slot:hover .peek {
@@ -164,7 +169,7 @@
 
 .peek:hover {
   background: #ffd35a;
-  color: #150f1f;
+  color: var(--ink);
 }
 
 /* ---------- owned ---------- */
@@ -175,7 +180,7 @@
 
 .owned .pocket:hover .lift {
   transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(1.05);
-  box-shadow: 0 2.5cqw 6cqw rgba(0, 0, 0, 0.55);
+  box-shadow: 0 2.5cqw 6cqw rgba(60, 35, 30, 0.45);
 }
 
 .owned[data-tier="rare"] .lift {
@@ -239,8 +244,9 @@
   align-items: center;
   gap: 2cqw;
   padding: 1.5cqw 3cqw;
-  background: #150f1f;
-  box-shadow: 0 0 0 0.7cqw rgba(239, 227, 200, 0.5);
+  border-radius: 1.5cqw;
+  background: var(--paper);
+  box-shadow: 0 0 0 0.7cqw var(--ink);
   pointer-events: none;
 }
 
@@ -248,8 +254,8 @@
   width: 5cqw;
   height: 5cqw;
   transform: rotate(45deg);
-  opacity: 0.22;
-  box-shadow: 0 0 0 0.5cqw rgba(255, 255, 255, 0.3);
+  opacity: 0.25;
+  box-shadow: 0 0 0 0.5cqw var(--ink);
 }
 
 .gemOn {
@@ -272,7 +278,7 @@
   font-family: var(--font-press), monospace;
   font-size: 5.5cqw;
   line-height: 1;
-  color: #ffd35a;
+  color: var(--ink-gold);
 }
 
 /* ---------- plastic sleeve ---------- */
@@ -282,10 +288,10 @@
   inset: -3.5%;
   border-radius: 6%;
   pointer-events: none;
-  background: linear-gradient(125deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 28%, rgba(255, 255, 255, 0) 72%, rgba(255, 255, 255, 0.07) 100%);
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 26%, rgba(255, 255, 255, 0) 74%, rgba(255, 255, 255, 0.25) 100%);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
-    inset 0 1.2cqw 0 rgba(255, 255, 255, 0.1);
+  inset 0 0 0 1px rgba(43, 34, 48, 0.14),
+  inset 0 1.2cqw 0 rgba(255, 255, 255, 0.35);
 }
 
 /* ---------- add animation ---------- */
@@ -365,8 +371,8 @@
   white-space: nowrap;
   font-family: var(--font-press), monospace;
   text-shadow:
-    0.8cqw 0.8cqw 0 #150f1f,
-    -0.4cqw -0.4cqw 0 #150f1f;
+  0.8cqw 0.8cqw 0 var(--ink),
+  -0.4cqw -0.4cqw 0 var(--ink);
 }
 
 .gain {
@@ -452,23 +458,21 @@
   max-width: 92%;
   padding: 0.6cqw 3cqw;
   border-radius: 2cqw;
-  background: rgba(21, 15, 31, 0.82);
-  color: #ffd35a;
+  background: var(--paper);
+  box-shadow: 0 0 0 0.6cqw var(--ink);
+  color: var(--ink);
   font-family: var(--font-vt), monospace;
   font-size: 10cqw;
   line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  pointer-events: none;
-  z-index: 2;
 }
 
 /* ---------- empty pocket (free binder) ---------- */
 
 .empty .pocket {
-  background: rgba(255, 255, 255, 0.05);
-  outline: 0.8cqw dashed rgba(239, 227, 200, 0.28);
+  background: rgba(150, 115, 90, 0.08);
+  outline: 0.8cqw dashed rgba(43, 34, 48, 0.3);
   outline-offset: -3cqw;
 }
 
@@ -483,23 +487,23 @@
 .emptyPlus {
   font-family: var(--font-press), monospace;
   font-size: 18cqw;
-  color: rgba(239, 227, 200, 0.35);
+  color: rgba(43, 34, 48, 0.3);
   transition:
-    color 0.15s,
-    transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+  color 0.15s,
+  transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
 }
 
 .emptyHint {
   font-family: var(--font-vt), monospace;
   font-size: 11cqw;
-  color: rgba(239, 227, 200, 0.4);
+  color: var(--ink-soft);
   opacity: 0;
   transition: opacity 0.15s;
 }
 
 .empty .pocket:hover .emptyPlus,
 .empty .pocket:focus-visible .emptyPlus {
-  color: #ffd35a;
+  color: var(--ink-gold);
   transform: scale(1.3) rotate(90deg);
 }
 

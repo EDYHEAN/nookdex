@@ -1,7 +1,8 @@
 .stage {
   position: fixed;
   inset: 0;
-  overflow: hidden;
+  /* clip, not hidden: a focused hotspot near the edge must not scroll the room */
+  overflow: clip;
   background: #2a2236;
 }
 
@@ -53,6 +54,7 @@
   position: absolute;
   mask-size: 100% 100%;
   -webkit-mask-size: 100% 100%;
+  transition: opacity 0.8s steps(8);
 }
 
 .steam {
@@ -467,10 +469,10 @@
   inset: 0;
   pointer-events: none;
   will-change: opacity;
-  transition: opacity 0.35s steps(4);
-  background:
-    radial-gradient(ellipse 900px 600px at 2150px 1050px, rgba(24, 20, 66, 0.5), rgba(24, 20, 66, 0.34) 70%),
-    rgba(24, 20, 66, 0.12);
+  /* the lamp dies in a few drawings, like the rest of the room */
+  transition: opacity 0.6s steps(6);
+  background-size: 100% 100%;
+  mix-blend-mode: multiply;
 }
 
 .off {
@@ -489,6 +491,12 @@
 
 .chair {
   filter: brightness(0.92);
+  transition: filter 0.6s steps(6);
+}
+
+/* the chair is in front of the night light map (its own parallax layer): same moonlight tint */
+.chairNight {
+  filter: brightness(0.55) saturate(0.7) hue-rotate(-12deg);
 }
 
 .vignette {
@@ -559,14 +567,16 @@
   right: 0;
   top: 0;
   z-index: 5;
-  padding: 18px 172px 0 18px;
+  padding: 18px 18px 0;
 }
 
 .header h1 {
   margin: 0;
+  /* next to the 4 corner buttons */
+  max-width: calc(100% - 206px);
   font-family: var(--font-press), monospace;
   font-weight: normal;
-  font-size: 16px;
+  font-size: clamp(12px, 3.6vw, 16px);
   color: #ffd35a;
   text-shadow: 3px 3px 0 #2d4ab0;
 }
@@ -576,7 +586,8 @@
 }
 
 .header p {
-  margin: 8px 0 0;
+  /* under the corner buttons, full width */
+  margin: 22px 0 0;
   font-size: 20px;
   color: #cdbdf0;
 }
@@ -592,4 +603,86 @@
   .zzz {
     animation: none;
   }
+}
+
+/* ---------- day / night ---------- */
+
+/* the sunny room fades in over the rainy night, in a few drawings */
+.dayPlate {
+  transition: opacity 0.8s steps(8);
+}
+
+/* the sky behind the glass */
+.sky {
+  position: absolute;
+  overflow: hidden;
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+  pointer-events: none;
+}
+
+.skyMove {
+  position: absolute;
+  inset: -40px;
+}
+
+.skyLayer {
+  position: absolute;
+  inset: 0;
+  background-size: auto 100%;
+  background-position: 30% 50%;
+  /* the clouds drift by, very slowly */
+  animation: skyDrift 180s linear infinite alternate;
+  filter: blur(0.6px);
+  transition: opacity 0.8s steps(8);
+}
+
+@keyframes skyDrift {
+  to {
+    background-position: 70% 50%;
+  }
+}
+
+/* the glass itself: a cold sheen at night, warm sunny haze by day */
+.skyGlass {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(170deg, rgba(160, 180, 255, 0.18), rgba(40, 40, 90, 0.25));
+  transition: background 0.8s steps(8);
+}
+
+.skyGlassDay {
+  background:
+    radial-gradient(ellipse at 70% 10%, rgba(255, 236, 190, 0.55), transparent 60%),
+    linear-gradient(170deg, rgba(255, 214, 150, 0.28), rgba(255, 170, 110, 0.22));
+}
+
+/* lava lamp, CRT and desk lamp glows: fainter in daylight */
+.lights {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.8s steps(8);
+}
+
+.daylight {
+  opacity: 0.45;
+}
+
+.sunDust {
+  position: absolute;
+  left: 800px;
+  top: 150px;
+  width: 1300px;
+  height: 800px;
+  pointer-events: none;
+  /* only inside the band of light going from the window down to the right */
+  mask-image: linear-gradient(118deg, transparent 12%, #000 30%, #000 62%, transparent 82%);
+  -webkit-mask-image: linear-gradient(118deg, transparent 12%, #000 30%, #000 62%, transparent 82%);
+  mix-blend-mode: screen;
+  transition: opacity 0.8s steps(8);
+}
+
+.chairDay {
+  filter: brightness(1.12) sepia(0.2) saturate(1.1);
 }

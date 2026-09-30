@@ -184,6 +184,17 @@ export const sfx = {
     tone({ freq: 1800, dur: 0.015, vol: 0.05 });
     tone({ freq: 60, type: "sine", dur: 0.08, vol: 0.1, delay: 0.01 });
   },
+  /** day: a rising chime with birds; night: a falling one with a soft owl hoot */
+  dayNight(day: boolean) {
+    const notes = day ? [0, 4, 7, 12] : [12, 7, 4, 0];
+    notes.forEach((n, i) => tone({ freq: semi(523, n), type: "triangle", dur: 0.22, vol: 0.07, delay: i * 0.07 }));
+    if (day) {
+      for (let i = 0; i < 3; i++) tone({ freq: 2600, to: 3400, type: "sine", dur: 0.06, vol: 0.03, delay: 0.35 + i * 0.1 });
+    } else {
+      tone({ freq: 420, to: 380, type: "sine", dur: 0.25, vol: 0.06, delay: 0.4 });
+      tone({ freq: 400, to: 360, type: "sine", dur: 0.35, vol: 0.06, delay: 0.7 });
+    }
+  },
   purr() {
     for (let i = 0; i < 18; i++) noise({ dur: 0.05, vol: 0.14, type: "lowpass", freq: 220, delay: i * 0.045 + Math.floor(i / 6) * 0.12 });
     tone({ freq: 700, to: 1100, type: "sine", dur: 0.25, vol: 0.05, delay: 1.1 });

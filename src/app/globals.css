@@ -4,6 +4,24 @@
   box-sizing: border-box;
 }
 
+/* Paper & ink: the binder, the card sheet and the leaflets are painted paper, like the room. */
+:root {
+  --paper: #f4ecdc;
+  --paper-2: #e9dcc3;
+  --paper-3: #dccdb0;
+  --ink: #2b2230;
+  --ink-soft: #6f6068;
+  --ink-gold: #a8701a;
+  --ink-green: #3f8a4f;
+  --ink-red: #b8433d;
+  /* paper grain (fractal noise) */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .22 0 0 0 0 .18 0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* watercolor washes: warm lamp light on one corner, cool shadow on the other */
+  --paper-wash:
+    radial-gradient(ellipse at 18% 12%, rgba(255, 206, 150, 0.32), transparent 55%),
+    radial-gradient(ellipse at 88% 92%, rgba(160, 150, 205, 0.22), transparent 60%);
+}
+
 html,
 body {
   margin: 0;

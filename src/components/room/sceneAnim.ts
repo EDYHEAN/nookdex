@@ -152,3 +152,33 @@ export function drawDust(c: Ctx, t: number, lampOn: boolean) {
   }
   c.globalAlpha = 1;
 }
+
+/* ---------------- dust in the afternoon sunbeams (canvas at half resolution) ---------------- */
+
+const sunMotes = Array.from({ length: 70 }, () => ({
+  x: Math.random() * 650,
+  y: Math.random() * 400,
+  vx: 0.15 + Math.random() * 0.35,
+  vy: -0.05 - Math.random() * 0.18,
+  r: 0.8 + Math.random() * 1.6,
+  p: Math.random() * Math.PI * 2,
+}));
+
+/** Specks of dust drifting up and to the right, catching the light as they turn. */
+export function drawSunDust(c: Ctx, t: number) {
+  const { width: w, height: h } = c.canvas;
+  c.clearRect(0, 0, w, h);
+  c.fillStyle = "#fff4d6";
+  for (const m of sunMotes) {
+    m.x += m.vx + Math.sin(t / 1500 + m.p) * 0.3;
+    m.y += m.vy + Math.cos(t / 1900 + m.p) * 0.12;
+    if (m.x > w + 4) m.x = -4;
+    if (m.y < -4) m.y = h + 4;
+    const tw = (Math.sin(t / 520 + m.p * 3) + 1) / 2;
+    c.globalAlpha = 0.25 + tw * 0.6;
+    c.beginPath();
+    c.arc(m.x, m.y, m.r * (0.7 + tw * 0.5), 0, Math.PI * 2);
+    c.fill();
+  }
+  c.globalAlpha = 1;
+}

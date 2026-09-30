@@ -7,7 +7,7 @@
   justify-content: center;
   gap: clamp(24px, 5vw, 72px);
   padding: 24px 80px;
-  background: rgba(8, 4, 16, 0.82);
+  background: radial-gradient(ellipse at 50% 45%, rgba(60, 40, 44, 0.6), rgba(24, 15, 20, 0.88));
   backdrop-filter: blur(6px);
 }
 
@@ -74,13 +74,13 @@
   height: 80px;
   border: 0;
   background: transparent;
-  color: rgba(239, 227, 200, 0.5);
+  color: rgba(244, 236, 220, 0.55);
   font-family: var(--font-press), monospace;
   font-size: 28px;
   cursor: pointer;
   transition:
-    color 0.15s,
-    transform 0.15s;
+  color 0.15s,
+  transform 0.15s;
 }
 
 .nav:hover {
@@ -110,13 +110,15 @@
   width: min(400px, 40vw);
   max-height: 88vh;
   overflow-y: auto;
-  padding: 22px 24px 20px;
-  background: #150f1f;
+  padding: 26px 24px 20px;
+  border-radius: 6px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
   box-shadow:
-    0 0 0 3px #efe3c8,
-    0 0 0 6px #150f1f,
-    10px 10px 0 6px rgba(0, 0, 0, 0.45);
-  color: #efe3c8;
+  0 0 0 3px var(--ink),
+  8px 10px 0 3px rgba(20, 12, 20, 0.45),
+  0 30px 70px rgba(0, 0, 0, 0.45);
+  color: var(--ink);
   font-size: 20px;
   line-height: 1.1;
   scrollbar-width: thin;
@@ -126,24 +128,24 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border: 0;
-  background: transparent;
-  color: #cdbdf0;
-  font-size: 20px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 16px;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
 }
 
 .close:hover {
-  color: #ffd35a;
-  transform: rotate(90deg);
+  transform: rotate(90deg) scale(1.08);
 }
 
 .kicker {
   margin: 0;
-  color: #cdbdf0;
+  color: var(--ink-soft);
   font-size: 18px;
 }
 
@@ -153,14 +155,15 @@
   font-weight: normal;
   font-size: 17px;
   line-height: 1.5;
-  color: #fff;
-  text-shadow: 3px 3px 0 #2d2350;
+  color: var(--ink);
+  text-shadow: 2px 2px 0 rgba(43, 34, 48, 0.12);
 }
 
 .prices {
   padding: 10px 12px;
-  background: #0d0917;
-  box-shadow: inset 0 0 0 1px rgba(239, 227, 200, 0.18);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 0 0 1.5px rgba(43, 34, 48, 0.2);
 }
 
 .priceHead,
@@ -173,9 +176,9 @@
 
 .priceHead {
   font-size: 15px;
-  color: #8a7fae;
+  color: var(--ink-soft);
   padding-bottom: 4px;
-  border-bottom: 1px dashed rgba(239, 227, 200, 0.2);
+  border-bottom: 1px dashed rgba(43, 34, 48, 0.25);
 }
 
 .priceHead span:not(:first-child),
@@ -194,7 +197,7 @@
 }
 
 .trend {
-  color: #ffd35a;
+  color: var(--ink-gold);
 }
 
 .gem {
@@ -227,11 +230,11 @@
   margin: 0 0 10px;
   font-weight: normal;
   font-size: 20px;
-  color: #cdbdf0;
+  color: var(--ink-soft);
 }
 
 .copies h3 span {
-  color: #ffd35a;
+  color: var(--ink-gold);
 }
 
 .copy {
@@ -240,7 +243,7 @@
   align-items: center;
   gap: 10px 12px;
   padding: 8px 0;
-  border-bottom: 1px dashed rgba(239, 227, 200, 0.12);
+  border-bottom: 1px dashed rgba(43, 34, 48, 0.18);
 }
 
 .token {
@@ -249,14 +252,13 @@
   gap: 7px;
   min-width: 108px;
   padding: 5px 10px 6px;
-  border: 0;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
   cursor: pointer;
   font-size: 19px;
   line-height: 1;
-  color: #150f1f;
-  box-shadow:
-    0 0 0 2px #150f1f,
-    3px 3px 0 2px rgba(0, 0, 0, 0.5);
+  color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
   transition: filter 0.15s;
 }
 
@@ -285,7 +287,7 @@
 }
 
 .token .gem {
-  box-shadow: 0 0 0 1px #150f1f;
+  box-shadow: 0 0 0 1px var(--ink);
 }
 
 @keyframes shimmer {
@@ -304,8 +306,8 @@
   font-family: var(--font-press), monospace;
   font-size: 12px;
   cursor: pointer;
-  text-shadow: 0 0 6px var(--c);
-  box-shadow: inset 0 0 8px color-mix(in srgb, var(--c) 35%, transparent);
+  mix-blend-mode: multiply;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 35%, transparent);
 }
 
 .qty {
@@ -318,18 +320,19 @@
 .qty button {
   width: 28px;
   height: 28px;
-  border: 0;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
   cursor: pointer;
-  background: #2d2350;
-  color: #efe3c8;
+  background: var(--paper);
+  color: var(--ink);
   font-size: 20px;
   line-height: 1;
-  box-shadow: 0 0 0 2px #efe3c8;
+  box-shadow: 2px 2px 0 var(--ink);
   transition: transform 0.1s;
 }
 
 .qty button:hover {
-  background: #4a3a80;
+  background: #ffe7a8;
 }
 
 .qty button:active {
@@ -343,27 +346,28 @@
   font-family: var(--font-press), monospace;
   font-weight: normal;
   font-size: 14px;
-  color: #ffd35a;
+  color: var(--ink-gold);
 }
 
 .addCopy {
   width: 100%;
   margin-top: 10px;
   padding: 7px;
-  border: 2px dashed rgba(239, 227, 200, 0.35);
+  border: 2px dashed rgba(43, 34, 48, 0.4);
+  border-radius: 4px;
   background: transparent;
   cursor: pointer;
   font-size: 19px;
-  color: #cdbdf0;
+  color: var(--ink-soft);
   transition:
-    border-color 0.15s,
-    color 0.15s,
-    transform 0.15s;
+  border-color 0.15s,
+  color 0.15s,
+  transform 0.15s;
 }
 
 .addCopy:hover {
-  border-color: #9dff7a;
-  color: #9dff7a;
+  border-color: var(--ink-green);
+  color: var(--ink-green);
   transform: translateY(-2px);
 }
 
@@ -376,26 +380,27 @@
 
 .value div {
   padding: 6px 8px;
-  background: #0d0917;
-  box-shadow: inset 0 0 0 1px rgba(239, 227, 200, 0.14);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 0 0 1.5px rgba(43, 34, 48, 0.16);
 }
 
 .value dt {
   font-size: 15px;
-  color: #8a7fae;
+  color: var(--ink-soft);
 }
 
 .value dd {
   margin: 2px 0 0;
-  color: #ffd35a;
+  color: var(--ink-gold);
 }
 
 .value .up {
-  color: #9dff7a;
+  color: var(--ink-green);
 }
 
 .value .down {
-  color: #ff7a7f;
+  color: var(--ink-red);
 }
 
 /* ---------- purchase price tag ---------- */
@@ -409,7 +414,7 @@
 
 .paidLabel {
   font-size: 16px;
-  color: #8a7fae;
+  color: var(--ink-soft);
 }
 
 .tag {
@@ -417,8 +422,8 @@
   padding: 3px 12px 4px 18px;
   border: 0;
   cursor: pointer;
-  background: #efe3c8;
-  color: #150f1f;
+  background: #e6c98f;
+  color: var(--ink);
   font-size: 18px;
   line-height: 1;
   clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%);
@@ -434,7 +439,7 @@
   height: 5px;
   margin-top: -2.5px;
   border-radius: 50%;
-  background: #150f1f;
+  background: var(--paper);
 }
 
 .tag:hover {
@@ -442,8 +447,8 @@
 }
 
 .tagEmpty {
-  background: #3a2f5c;
-  color: #cdbdf0;
+  background: var(--paper-3);
+  color: var(--ink-soft);
 }
 
 @keyframes swing {
@@ -459,57 +464,100 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #9dff7a;
+  color: var(--ink-green);
 }
 
 .paidEdit input {
   width: 84px;
   padding: 3px 6px;
   border: 0;
+  border-radius: 3px;
   outline: 0;
-  background: #231b38;
-  box-shadow: inset 0 0 0 2px #9dff7a;
-  color: #9dff7a;
+  background: #fffaf0;
+  box-shadow: inset 0 0 0 2px var(--ink-green);
+  color: var(--ink);
   font: inherit;
   text-align: right;
 }
 
-.gift {
-  margin-left: auto;
-  width: 34px;
-  height: 28px;
+/* bought / pulled from a booster: two paper chips */
+.origin {
+  display: flex;
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.origin button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 4px;
   border: 0;
-  cursor: pointer;
   background: transparent;
-  font-size: 18px;
-  filter: grayscale(1) opacity(0.5);
-  transition:
-    filter 0.15s,
-    transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+  color: var(--ink-soft);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s;
 }
 
-.gift:hover {
-  filter: none;
-  transform: rotate(-8deg) scale(1.15);
+.origin button + button {
+  border-left: 2px solid var(--ink);
 }
 
-.giftOn {
-  filter: none;
-  transform: scale(1.1);
+.origin button:hover:not(.originOn) {
+  background: rgba(255, 211, 90, 0.25);
+}
+
+.origin .originOn {
+  background: var(--paper-2);
+  color: var(--ink);
+  cursor: default;
+}
+
+/* a tiny booster pack, crimped at both ends */
+.pack {
+  width: 10px;
+  height: 15px;
+  fill: #b9b3bd;
+  stroke: var(--ink);
+  stroke-width: 1.2;
+}
+
+.pack circle {
+  fill: #fff;
+}
+
+/* pulled from a booster: the pack turns foil and shimmers */
+.booster.originOn {
+  background: linear-gradient(110deg, #ffe7a8, #ffd6ef, #d6f4ff, #ffe7a8);
+  background-size: 200% 100%;
+  animation: shimmer 2.6s linear infinite;
+}
+
+.booster.originOn .pack {
+  fill: #e0b24a;
+  animation: packPop 0.35s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+@keyframes packPop {
+  from {
+    transform: scale(0.4) rotate(-20deg);
+  }
 }
 
 .gotIt {
   width: 100%;
   padding: 14px;
-  border: 0;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
   cursor: pointer;
   background: #ffd35a;
-  color: #150f1f;
+  color: var(--ink);
   font-family: var(--font-press), monospace;
   font-size: 15px;
-  box-shadow:
-    0 0 0 3px #150f1f,
-    6px 6px 0 3px rgba(0, 0, 0, 0.5);
+  box-shadow: 5px 5px 0 var(--ink);
   animation: wiggle 2.2s ease-in-out infinite;
   transition: transform 0.12s;
 }
@@ -540,7 +588,7 @@
 .hint {
   margin: 12px 0 0;
   font-size: 17px;
-  color: #8a7fae;
+  color: var(--ink-soft);
 }
 
 .footer {
@@ -553,7 +601,7 @@
 }
 
 .footer a {
-  color: #6ae6ff;
+  color: #2f6f9f;
   text-decoration: none;
   font-size: 18px;
 }
@@ -567,10 +615,11 @@
   overflow: hidden;
   padding: 6px 12px;
   border: 0;
+  border-radius: 4px;
   cursor: pointer;
   background: transparent;
-  box-shadow: inset 0 0 0 2px #d8434b;
-  color: #ff8a8f;
+  box-shadow: inset 0 0 0 2px var(--ink-red);
+  color: var(--ink-red);
   font-size: 17px;
   user-select: none;
   touch-action: none;
@@ -579,7 +628,7 @@
 .holdFill {
   position: absolute;
   inset: 0;
-  background: #d8434b;
+  background: rgba(184, 67, 61, 0.35);
   transform: scaleX(0);
   transform-origin: left;
 }
@@ -594,7 +643,7 @@
 }
 
 .holding {
-  color: #fff;
+  color: var(--ink);
   animation: shake 0.15s infinite;
 }
 
@@ -638,6 +687,5 @@
 .place {
   flex-basis: 100%;
   font-size: 16px;
-  color: #ffd35a;
-  opacity: 0.85;
+  color: var(--ink-gold);
 }

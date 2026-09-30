@@ -86,3 +86,39 @@
   font-size: 10px;
   color: #8dffc0;
 }
+
+/* day / night: a little sun or moon that rolls in when switched */
+.sunMoon {
+  color: #ffd35a;
+}
+
+.sun,
+.moon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  animation: rollIn 0.4s steps(4);
+}
+
+.sun {
+  background: #ffd35a;
+  box-shadow:
+    0 0 0 3px #150f1f,
+    0 -9px 0 -6px #ffd35a,
+    0 9px 0 -6px #ffd35a,
+    9px 0 0 -6px #ffd35a,
+    -9px 0 0 -6px #ffd35a,
+    0 0 10px 2px rgba(255, 211, 90, 0.6);
+}
+
+.moon {
+  background: transparent;
+  box-shadow: inset -6px -2px 0 0 #cdbdf0;
+}
+
+@keyframes rollIn {
+  from {
+    transform: rotate(-120deg) scale(0.4);
+    opacity: 0;
+  }
+}

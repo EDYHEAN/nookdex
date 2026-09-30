@@ -240,14 +240,15 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
 
 /* ------------------------------------------------------------------ */
 
+/** Stamp inks, from mint (blue) to poor (dark red): dark enough to read on paper. */
 const CONDITION_COLORS: Record<Condition, string> = {
-  MT: "#6ae6ff",
-  NM: "#9dff7a",
-  EX: "#d4ff5a",
-  GD: "#ffd35a",
-  LP: "#ffab4a",
-  PL: "#ff7a5a",
-  PO: "#d8434b",
+  MT: "#2c85a8",
+  NM: "#3f8a4f",
+  EX: "#6e8a1f",
+  GD: "#a8801a",
+  LP: "#c0661d",
+  PL: "#b8433d",
+  PO: "#862838",
 };
 
 interface CopyRowProps {
@@ -318,10 +319,14 @@ function CopyRow({ index, copy, place, canCycleVariant, onVariant, onCondition, 
   );
 }
 
-/** What this copy cost. The gift button means "pulled it from a booster" (0 €). */
+/**
+ * Where this copy comes from: bought (then its price, "? €" until filled in) or pulled from a booster (0 €).
+ * Two explicit choices, the price tag only shows for a bought copy.
+ */
 function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number | null) => void }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
+  const pulled = paid === 0;
 
   const open = () => {
     sfx.pop();
@@ -340,50 +345,75 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
 
   return (
     <div className={styles.paidRow}>
-      <span className={styles.paidLabel}>payé</span>
-      {editing ? (
-        <span className={styles.paidEdit}>
-          <input
-            autoFocus
-            inputMode="decimal"
-            value={draft}
-            placeholder="0,00"
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commit}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-              if (e.key === "Escape") {
-                e.stopPropagation();
-                setEditing(false);
-              }
-            }}
-          />
-          €
-        </span>
-      ) : (
-        <motion.button
-          key={String(paid)}
-          className={`${styles.tag} ${paid == null ? styles.tagEmpty : ""}`}
-          initial={{ rotate: -14, scale: 0.8 }}
-          animate={{ rotate: 0, scale: 1 }}
-          transition={{ type: "spring", stiffness: 420, damping: 9 }}
-          onClick={open}
-          title="Clic : saisir le prix d'achat"
+      <span className={styles.paidLabel}>obtenue</span>
+      <div className={styles.origin} role="radiogroup" aria-label="Comment tu as eu cet exemplaire">
+        <button
+          role="radio"
+          aria-checked={!pulled}
+          className={!pulled ? styles.originOn : ""}
+          onClick={() => {
+            if (!pulled) return;
+            onChange(null);
+            open();
+          }}
+          onPointerEnter={sfx.hover}
+          title="Achetée ou échangée : note son prix"
         >
-          {paid == null ? "? €" : paid === 0 ? "opening" : formatEur(paid)}
-        </motion.button>
-      )}
-      <button
-        className={`${styles.gift} ${paid === 0 ? styles.giftOn : ""}`}
-        onClick={() => {
-          sfx.pop();
-          onChange(paid === 0 ? null : 0);
-        }}
-        aria-pressed={paid === 0}
-        title="Tirée d'un booster (0 €)"
-      >
-        🎁
-      </button>
+          achetée
+        </button>
+        <button
+          role="radio"
+          aria-checked={pulled}
+          className={`${styles.booster} ${pulled ? styles.originOn : ""}`}
+          onClick={() => {
+            if (pulled) return;
+            sfx.add(0, "rare");
+            setEditing(false);
+            onChange(0);
+          }}
+          onPointerEnter={sfx.hover}
+          title="Tirée d'un booster : elle ne t'a rien coûté (0 €)"
+        >
+          <svg className={styles.pack} viewBox="0 0 14 20" aria-hidden>
+            <path d="M1 3 L2.5 1 L4 3 L5.5 1 L7 3 L8.5 1 L10 3 L11.5 1 L13 3 V17 L11.5 19 L10 17 L8.5 19 L7 17 L5.5 19 L4 17 L2.5 19 L1 17 Z" />
+            <circle cx="7" cy="10" r="3" />
+          </svg>
+          en booster
+        </button>
+      </div>
+      {!pulled &&
+        (editing ? (
+          <span className={styles.paidEdit}>
+            <input
+              autoFocus
+              inputMode="decimal"
+              value={draft}
+              placeholder="0,00"
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commit}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                if (e.key === "Escape") {
+                  e.stopPropagation();
+                  setEditing(false);
+                }
+              }}
+            />
+            €
+          </span>
+        ) : (
+          <motion.button
+            key={String(paid)}
+            className={`${styles.tag} ${paid == null ? styles.tagEmpty : ""}`}
+            initial={{ rotate: -14, scale: 0.8 }}
+            animate={{ rotate: 0, scale: 1 }}
+            transition={{ type: "spring", stiffness: 420, damping: 9 }}
+            onClick={open}
+            title="Clic : saisir le prix payé"
+          >
+            {paid == null ? "? €" : formatEur(paid)}
+          </motion.button>
+        ))}
     </div>
   );
 }

@@ -10,7 +10,7 @@ import { useStore } from "@/lib/store";
 import type { BinderDef } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { useViewport } from "@/lib/useViewport";
-import { LAVA_THEMES, drawDust, drawLava, drawRain } from "./sceneAnim";
+import { LAVA_THEMES, drawDust, drawLava, drawRain, drawSunDust } from "./sceneAnim";
 import { Monitor } from "./Monitor";
 import { ShelfBinder, binderLabel, binderSize } from "./ShelfBinder";
 import styles from "./PaintedRoom.module.css";
@@ -66,6 +66,8 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   const lampOn = useStore((s) => s.lampOn);
   const ambient = useStore((s) => s.ambient);
   const toggleLamp = useStore((s) => s.toggleLamp);
+  const daytime = useStore((s) => s.daytime);
+  const toggleDaytime = useStore((s) => s.toggleDaytime);
   const setAmbient = useStore((s) => s.setAmbient);
   const collection = useStore((s) => s.collection);
   const userBinders = useStore((s) => s.binders);
@@ -78,11 +80,15 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   const rain = useRef<HTMLCanvasElement>(null);
   const lava = useRef<HTMLCanvasElement>(null);
   const dust = useRef<HTMLCanvasElement>(null);
+  const sunDust = useRef<HTMLCanvasElement>(null);
+  const sky = useRef<HTMLDivElement>(null);
   const lavaTheme = useRef(0);
   const lampRef = useRef(lampOn);
+  const dayRef = useRef(daytime);
   useEffect(() => {
     lampRef.current = lampOn;
-  }, [lampOn]);
+    dayRef.current = daytime;
+  }, [lampOn, daytime]);
 
   const [tip, setTip] = useState<Tip | null>(null);
   const [pulling, setPulling] = useState<string | null>(null);
@@ -131,6 +137,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
     const rc = rain.current?.getContext("2d");
     const lc = lava.current?.getContext("2d");
     const dc = dust.current?.getContext("2d");
+    const sc = sunDust.current?.getContext("2d");
     let raf = 0;
     let last = 0;
     let weave = { x: 0, y: 0 };
@@ -141,12 +148,17 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
       if (t - last >= 1000 / ANIM_FPS) {
         last = t;
         if (!reduced) weave = { x: (Math.random() - 0.5) * 0.9, y: (Math.random() - 0.5) * 0.9 };
-        if (rc) drawRain(rc, t);
+        // rain only at night, dust in the sunbeams only by day
+        if (rc && !dayRef.current) drawRain(rc, t);
         if (lc) drawLava(lc, t, LAVA_THEMES[lavaTheme.current], SCENE.lavaRows);
         if (dc) drawDust(dc, t, lampRef.current);
+        if (sc && dayRef.current) drawSunDust(sc, t);
       }
       const wt = `${(-cur.x * 16 + weave.x).toFixed(1)}px ${(-cur.y * 9 + weave.y).toFixed(1)}px`;
       if (world.current && world.current.style.translate !== wt) world.current.style.translate = wt;
+      // the sky is far away: it moves less than the room behind the glass
+      const st = `${(cur.x * 11).toFixed(1)}px ${(cur.y * 6).toFixed(1)}px`;
+      if (sky.current && sky.current.style.translate !== st) sky.current.style.translate = st;
       const ft = `${(-cur.x * 46 + weave.x).toFixed(1)}px ${(-cur.y * 18 + weave.y).toFixed(1)}px`;
       if (fore.current && fore.current.style.translate !== ft) fore.current.style.translate = ft;
     };
@@ -205,6 +217,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   const place = (r: { x: number; y: number; w: number; h: number }) => ({ left: r.x, top: r.y, width: r.w, height: r.h });
   const lavaBox = SCENE.lavaBox;
   const lavaMask = `url(${sceneImg("lava-mask.png")})`;
+  const windowMask = `url(${sceneImg("window-mask.png")})`;
   const glow = (r: { x: number; y: number; w: number; h: number }, pad: number) => ({ left: r.x - pad, top: r.y - pad, width: r.w + pad * 2, height: r.h + pad * 2 });
   const theme = LAVA_THEMES[lavaIdx];
 
@@ -217,26 +230,45 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
       <div className={styles.scene} style={sceneStyle}>
         <div ref={world} className={styles.layer}>
           <img className={styles.plate} src={sceneImg("plate.webp")} alt="" draggable={false} />
+          {/* the same room on a sunny afternoon, faded in over the rainy night */}
+          <img className={`${styles.plate} ${styles.dayPlate} ${daytime ? "" : styles.off}`} src={sceneImg("day.webp")} alt="" draggable={false} />
+
+          {/* the sky behind the glass: night city in the rain, or sunny afternoon */}
+          <div className={styles.sky} style={{ ...place(SCENE.window), maskImage: windowMask, WebkitMaskImage: windowMask }}>
+            <div ref={sky} className={styles.skyMove}>
+              <div className={styles.skyLayer} style={{ backgroundImage: `url(${sceneImg("sky.webp")})` }} />
+              <div
+                className={`${styles.skyLayer} ${styles.skyDay} ${daytime ? "" : styles.off}`}
+                style={{ backgroundImage: `url(${sceneImg("sky-day.webp")})` }}
+              />
+            </div>
+            <div className={`${styles.skyGlass} ${daytime ? styles.skyGlassDay : ""}`} />
+          </div>
 
           {/* rain running down the window */}
           <canvas
             ref={rain}
-            className={styles.rain}
+            className={`${styles.rain} ${daytime ? styles.off : ""}`}
             width={Math.round(SCENE.window.w / 2)}
             height={Math.round(SCENE.window.h / 2)}
-            style={{ ...place(SCENE.window), maskImage: `url(${sceneImg("window-mask.png")})`, WebkitMaskImage: `url(${sceneImg("window-mask.png")})` }}
+            style={{ ...place(SCENE.window), maskImage: windowMask, WebkitMaskImage: windowMask }}
           />
 
-          {/* steam: the painted wisp, boiling like a hand-drawn loop */}
-          <div
-            className={styles.steam}
-            style={{
-              ...place(SCENE.steam),
-              backgroundImage: `url(${sceneImg("plate.webp")})`,
-              backgroundSize: `${W}px ${H}px`,
-              backgroundPosition: `${-SCENE.steam.x}px ${-SCENE.steam.y}px`,
-            }}
-          />
+          {/* steam: the painted wisp, boiling like a hand-drawn loop. One per backdrop, each fading with its
+              own room, so the switch never shows a patch of the other one. */}
+          {(["plate.webp", "day.webp"] as const).map((file) => (
+            <div key={file} className={`${styles.dayPlate} ${(file === "day.webp") === daytime ? "" : styles.off}`}>
+              <div
+                className={styles.steam}
+                style={{
+                  ...place(SCENE.steam),
+                  backgroundImage: `url(${sceneImg(file)})`,
+                  backgroundSize: `${W}px ${H}px`,
+                  backgroundPosition: `${-SCENE.steam.x}px ${-SCENE.steam.y}px`,
+                }}
+              />
+            </div>
+          ))}
 
           {/* lava lamp: blobs drawn in code inside the painted glass */}
           <canvas
@@ -349,6 +381,13 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
 
           {/* the lamp head passes in front of the lower binders */}
           <img className={styles.sprite} src={sceneImg("lamp-head.webp")} style={place(SCENE.lamp)} alt="" draggable={false} />
+          <img
+            className={`${styles.sprite} ${styles.dayPlate} ${daytime ? "" : styles.off}`}
+            src={sceneImg("lamp-head-day.webp")}
+            style={place(SCENE.lamp)}
+            alt=""
+            draggable={false}
+          />
 
           {/* cat */}
           <img
@@ -382,18 +421,42 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             </span>
           )}
 
-          {/* light */}
-          <div className={styles.glow} style={{ ...glow(lavaBox, 110), background: `radial-gradient(closest-side, ${theme.glow}, transparent)` }} />
-          <div className={`${styles.glow} ${styles.crt}`} style={glow(SCENE.screen, 120)} />
-          <div className={`${styles.glow} ${styles.lampPool} ${lampOn ? "" : styles.off}`} style={{ left: 1650, top: 850, width: 1000, height: 500 }} />
+          {/* lamp off: the room's light as Gemini painted it at night, laid over everything painted so far */}
           <div
-            className={`${styles.glow} ${styles.bulb} ${lampOn ? "" : styles.off}`}
-            style={{ left: SCENE.bulb.x - 110, top: SCENE.bulb.y - 110, width: 220, height: 220 }}
+            className={`${styles.night} ${lampOn || daytime ? styles.off : ""}`}
+            style={{ backgroundImage: `url(${sceneImg("night-light.webp")})` }}
           />
-          <div className={`${styles.night} ${lampOn ? styles.off : ""}`} />
+
+          {/* light (softer in daylight) */}
+          <div className={`${styles.lights} ${daytime ? styles.daylight : ""}`}>
+            <div className={styles.glow} style={{ ...glow(lavaBox, 110), background: `radial-gradient(closest-side, ${theme.glow}, transparent)` }} />
+            <div className={`${styles.glow} ${styles.crt}`} style={glow(SCENE.screen, 120)} />
+            <div className={`${styles.glow} ${styles.lampPool} ${lampOn ? "" : styles.off}`} style={{ left: 1650, top: 850, width: 1000, height: 500 }} />
+            <div
+              className={`${styles.glow} ${styles.bulb} ${lampOn ? "" : styles.off}`}
+              style={{ left: SCENE.bulb.x - 110, top: SCENE.bulb.y - 110, width: 220, height: 220 }}
+            />
+          </div>
           <canvas ref={dust} className={styles.dust} width={500} height={300} />
+          {/* dust floating in the sunbeams */}
+          <canvas ref={sunDust} className={`${styles.sunDust} ${daytime ? "" : styles.off}`} width={650} height={400} />
 
           {/* hotspots */}
+          <button
+            className={styles.hotspot}
+            style={place(SCENE.window)}
+            aria-label={daytime ? "Fenêtre : passer à la nuit" : "Fenêtre : passer au jour"}
+            onPointerEnter={() => {
+              sfx.hover();
+              showTip(SCENE.window.x + SCENE.window.w / 2, SCENE.window.y + 40, "Fenêtre", daytime ? "clic : attendre la nuit" : "clic : faire lever le soleil");
+            }}
+            onPointerLeave={() => setTip(null)}
+            onClick={() => {
+              sfx.dayNight(!daytime);
+              toggleDaytime();
+              showTip(SCENE.window.x + SCENE.window.w / 2, SCENE.window.y + 40, "Fenêtre", !daytime ? "grand soleil ☀" : "pluie de nuit ☾");
+            }}
+          />
           <button
             className={styles.hotspot}
             style={place(SCENE.radio)}
@@ -408,7 +471,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
               if (ambient) stopAmbient();
               else startAmbient();
               setAmbient(!ambient);
-              showTip(SCENE.radio.x + SCENE.radio.w / 2, SCENE.radio.y, !ambient ? "Radio lofi ♪" : "Radio", !ambient ? "pluie & beats" : "silence…");
+              showTip(SCENE.radio.x + SCENE.radio.w / 2, SCENE.radio.y, !ambient ? "Radio lofi ♪" : "Radio", !ambient ? (daytime ? "soleil & beats" : "pluie & beats") : "silence…");
             }}
           />
           <button
@@ -440,7 +503,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             onClick={() => {
               sfx.lamp();
               toggleLamp();
-              showTip(SCENE.lampHit.x + SCENE.lampHit.w / 2, SCENE.lampHit.y, "Lampe", !lampOn ? "ahh, la lumière" : "mode nuit");
+              showTip(SCENE.lampHit.x + SCENE.lampHit.w / 2, SCENE.lampHit.y, "Lampe", !lampOn ? "ahh, la lumière" : daytime ? "le soleil suffit" : "au clair de lune");
             }}
           />
           <button
@@ -464,7 +527,13 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
 
         {/* foreground: the chair, closest to us */}
         <div ref={fore} className={styles.layer}>
-          <img className={`${styles.sprite} ${styles.chair}`} src={sceneImg("chair.webp")} style={place(SCENE.chair)} alt="" draggable={false} />
+          <img
+            className={`${styles.sprite} ${styles.chair} ${daytime ? styles.chairDay : lampOn ? "" : styles.chairNight}`}
+            src={sceneImg("chair.webp")}
+            style={place(SCENE.chair)}
+            alt=""
+            draggable={false}
+          />
         </div>
         <div className={styles.vignette} />
       </div>

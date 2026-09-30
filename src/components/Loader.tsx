@@ -29,6 +29,11 @@ function assetsToPreload() {
     sceneImg("cat-sleep.webp"),
     sceneImg("cat-awake.webp"),
     sceneImg("lamp-head.webp"),
+    sceneImg("lamp-head-day.webp"),
+    sceneImg("day.webp"),
+    sceneImg("sky.webp"),
+    sceneImg("sky-day.webp"),
+    sceneImg("night-light.webp"),
   ];
   for (const b of shelfBinders(binders)) {
     if (b.logo) urls.push(`${b.logo}.png`);

@@ -36,6 +36,8 @@ export function App() {
   const sound = useStore((s) => s.sound);
   const ambient = useStore((s) => s.ambient);
   const toggleSound = useStore((s) => s.toggleSound);
+  const daytime = useStore((s) => s.daytime);
+  const toggleDaytime = useStore((s) => s.toggleDaytime);
   const setAmbient = useStore((s) => s.setAmbient);
 
   useEffect(() => setMuted(!sound), [sound]);
@@ -154,8 +156,9 @@ export function App() {
         )}
       </AnimatePresence>
 
+      {/* while a binder, the OS or a menu covers the room, only the sound button stays (their own buttons go there) */}
       <div className={styles.corner}>
-        {compact && (
+        {compact && !busy && (
           <>
             <button
               className={styles.iconBtn}
@@ -182,6 +185,19 @@ export function App() {
               ♪
             </button>
           </>
+        )}
+        {!busy && (
+          <button
+            className={`${styles.iconBtn} ${styles.sunMoon}`}
+            onClick={() => {
+              sfx.dayNight(!daytime);
+              toggleDaytime();
+            }}
+            aria-label={daytime ? "Passer à la nuit" : "Passer au jour"}
+            title={daytime ? "Passer à la nuit" : "Passer au jour"}
+          >
+            <span key={String(daytime)} className={daytime ? styles.sun : styles.moon} />
+          </button>
         )}
         <button
           className={`${styles.iconBtn} ${sound ? styles.on : ""}`}
