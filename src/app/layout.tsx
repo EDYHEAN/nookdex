@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Press_Start_2P, VT323 } from "next/font/google";
 import "./globals.css";
@@ -17,7 +18,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="fr" className={`${vt.variable} ${press.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        {/* Vercel Web Analytics: visitors and page views, no cookies */}
+        <Analytics />
+      </body>
     </html>
   );
 }

@@ -11,6 +11,7 @@
     "build-scene": "node scripts/build-scene.mjs"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "motion": "^13.4.6",
     "next": "16.3.7",
     "react": "19.2.8",
