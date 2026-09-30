@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/cloud";
-import { CONTACT_ENDPOINT, SITE_NAME } from "@/lib/site";
 import styles from "./LegalPage.module.css";
 
 const TOPICS = ["Question", "Bug", "Idée", "Supprimer mon compte / mes données"];
@@ -14,39 +12,32 @@ export function ContactForm() {
 
   const send = async (form: HTMLFormElement) => {
     const data = new FormData(form);
-    if (data.get("_honey")) return; // robots fill the hidden field
     setState("sending");
     setReason(null);
-    const msg = {
-      email: String(data.get("email") ?? "").trim(),
-      topic: String(data.get("topic") ?? ""),
-      message: String(data.get("message") ?? "").trim(),
-    };
-
-    // 1. Kept in the Supabase table "contact_messages" (read from the dashboard): the message is never lost.
-    const { error } = await supabase.from("contact_messages").insert(msg);
-    if (error) {
-      console.warn("[contact]", error);
-      setReason(error.message);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: data.get("email"),
+          topic: data.get("topic"),
+          message: data.get("message"),
+          honeypot: data.get("_honey"),
+        }),
+      });
+      const json = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+      if (!res.ok || !json?.ok) {
+        setReason(json?.error ?? `erreur ${res.status}`);
+        setState("error");
+        return;
+      }
+      setState("sent");
+      form.reset();
+    } catch (e) {
+      console.warn("[contact]", e);
+      setReason("serveur injoignable");
       setState("error");
-      return;
     }
-    setState("sent");
-    form.reset();
-
-    // 2. Also forwarded by e-mail when FormSubmit answers (best effort: the message is already saved).
-    fetch(CONTACT_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({
-        email: msg.email,
-        sujet: msg.topic,
-        message: msg.message,
-        _subject: `${SITE_NAME} · ${msg.topic}`,
-        _replyto: msg.email,
-        _template: "box",
-      }),
-    }).catch((e) => console.warn("[contact] e-mail copy", e));
   };
 
   if (state === "sent") return <p className={styles.notice}>Message envoyé, merci ! Réponse par e-mail dès que possible.</p>;
