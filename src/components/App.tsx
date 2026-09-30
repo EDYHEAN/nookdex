@@ -238,8 +238,10 @@ export function App() {
       {/* Sign in (or play offline, warned), then a nickname, then a first binder. */}
       {entered &&
         cloud.ready &&
+        // While the online save is looked up, nothing pops: a returning player would see the card flash, then close.
+        cloud.status !== "loading" &&
         !devBypass &&
-        ((!cloud.email && !offline) || cloud.status === "loading" || !profile || (welcome && !userBinders.length)) && (
+        ((!cloud.email && !offline) || !profile || (welcome && !userBinders.length)) && (
           <Welcome onPick={addBinder} onDone={() => setWelcome(false)} />
         )}
       {!entered && <Loader onEnter={() => setEntered(true)} />}
