@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Terms() {
   return (
-    <LegalPage title="Conditions d'utilisation" updated="30 septembre 2026">
+    <LegalPage path="/conditions" title="Conditions d'utilisation" updated="30 septembre 2026">
       <p>{SITE_NAME} est gratuit. En l&apos;utilisant, tu acceptes ces quelques règles.</p>
 
       <h2>Le service</h2>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "motion/react";
 import { useEffect } from "react";
 import { ABOUT } from "@/data/about";
@@ -69,7 +70,17 @@ export function AboutBook({ onClose }: { onClose: () => void }) {
           ))}
         </div>
         <nav className={styles.links}>
-          <a href="/confidentialite">Confidentialité</a> · <a href="/conditions">Conditions d&apos;utilisation</a> · <a href="/contact">Contact</a>
+          <Link href="/confidentialite" onClick={onClose}>
+            Confidentialité
+          </Link>{" "}
+          ·{" "}
+          <Link href="/conditions" onClick={onClose}>
+            Conditions d&apos;utilisation
+          </Link>{" "}
+          ·{" "}
+          <Link href="/contact" onClick={onClose}>
+            Contact
+          </Link>
         </nav>
       </motion.article>
     </motion.div>

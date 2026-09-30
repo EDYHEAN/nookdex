@@ -404,6 +404,7 @@ function Search({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => voi
 }
 
 function Save({ say }: { say: (m: string) => void }) {
+  const email = useCloud((c) => c.email);
   const collection = useStore((s) => s.collection);
   const profile = useStore((s) => s.profile);
   const importBackup = useStore((s) => s.importBackup);
@@ -448,8 +449,15 @@ function Save({ say }: { say: (m: string) => void }) {
             Joueur <b>{profile.name}</b>.{" "}
           </>
         )}
-        Ta collection (<b>{cards}</b> cartes, <b>{copies}</b> exemplaires) est enregistrée <b>dans ce navigateur</b>. Sans compte, exporte-la de temps en
-        temps : si tu vides les données du site, elle part avec.
+        Ta collection (<b>{cards}</b> cartes, <b>{copies}</b> exemplaires){" "}
+        {email ? (
+          <>est sauvegardée sur ton compte. Tu peux aussi en garder une copie en fichier.</>
+        ) : (
+          <>
+            est enregistrée <b>uniquement dans ce navigateur</b>. Sans compte, exporte-la de temps en temps : si tu vides les données du site, elle
+            part avec.
+          </>
+        )}
       </p>
       <div className={styles.saveActions}>
         <button className={styles.btnBig} onClick={exportFile}>

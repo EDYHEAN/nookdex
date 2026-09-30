@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ClientApp } from "@/components/ClientApp";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
 export default function Home() {
@@ -14,11 +13,10 @@ export default function Home() {
           possèdes, suis la valeur de ta collection avec les prix Cardmarket mis à jour chaque jour, et partage ta liste de recherche.
         </p>
         <nav>
-          <Link href="/confidentialite">Règles de confidentialité</Link> · <Link href="/conditions">Conditions d&apos;utilisation</Link> ·{" "}
+          <Link href="/a-propos">À propos</Link> · <Link href="/confidentialite">Règles de confidentialité</Link> · <Link href="/conditions">Conditions d&apos;utilisation</Link> ·{" "}
           <Link href="/contact">Contact</Link>
         </nav>
       </div>
-      <ClientApp />
     </>
   );
 }

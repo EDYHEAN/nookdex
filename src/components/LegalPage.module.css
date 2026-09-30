@@ -1,37 +1,151 @@
-/* The body never scrolls (the room fills the screen): this page scrolls on its own. */
-.page {
+/* Over the room, above the welcome card and the loader: blurred desk behind, like the "À propos" notebook. */
+.backdrop {
   position: fixed;
   inset: 0;
-  overflow-y: auto;
-  padding: 48px 16px 64px;
-  color: var(--ink);
-  background: var(--paper-wash), var(--paper-grain), var(--paper);
-  font-family: var(--font-vt), monospace;
-  font-size: 22px;
-  line-height: 1.35;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: 56px 16px 16px;
+  background: rgba(24, 16, 36, 0.6);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  animation: fade 0.25s ease-out;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px) rotate(1.5deg);
+  }
+}
+
+/* a notebook with a leather cover edge, ruled paper inside (same as the "À propos" notebook in the room) */
+.book {
+  position: relative;
+  width: min(820px, 100%);
+  height: 100%;
+  max-height: calc(100dvh - 72px);
+  border-radius: 6px 12px 12px 6px;
+  background: #6b3f2a;
+  box-shadow:
+    -14px 0 0 #6b3f2a,
+    -14px 0 0 3px var(--ink),
+    0 0 0 3px var(--ink),
+    10px 12px 0 3px rgba(20, 12, 28, 0.45),
+    0 30px 80px rgba(0, 0, 0, 0.5);
+  animation: rise 0.35s cubic-bezier(0.34, 1.4, 0.5, 1);
 }
 
 .sheet {
-  max-width: 760px;
-  margin: 0 auto;
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  padding: 34px 40px 36px 60px;
+  border-radius: 6px 12px 12px 6px;
+  background-color: var(--paper);
+  background-image:
+    var(--paper-grain),
+    var(--paper-wash),
+    linear-gradient(90deg, transparent 40px, rgba(200, 80, 80, 0.35) 40px 42px, transparent 42px),
+    repeating-linear-gradient(transparent 0 31px, rgba(80, 110, 160, 0.16) 31px 32px);
+  background-attachment: local;
+  color: var(--ink);
+  font-family: var(--font-vt), monospace;
+  font-size: 22px;
+  line-height: 32px;
 }
 
-.back {
-  color: var(--ink-gold);
+/* bookmarks sticking out of the top of the notebook */
+.tabs {
+  position: absolute;
+  bottom: 100%;
+  left: 24px;
+  right: 60px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs a {
+  flex: none;
+  padding: 6px 12px 10px;
+  margin-bottom: -4px;
+  border: 3px solid var(--ink);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  background: var(--paper-3);
+  color: var(--ink-soft);
+  font-family: var(--font-vt), monospace;
+  font-size: 19px;
+  line-height: 1;
+  text-decoration: none;
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.tabs a:hover {
+  transform: translateY(-3px);
+}
+
+.tabs .tabOn {
+  background: #ffd35a;
+  color: var(--ink);
+  transform: translateY(-4px);
+}
+
+.close {
+  position: absolute;
+  z-index: 1;
+  top: 12px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 16px;
+  text-decoration: none;
+  transition: transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.close:hover {
+  transform: rotate(90deg) scale(1.08);
 }
 
 .sheet h1 {
-  margin: 24px 0 4px;
+  margin: 0 48px 16px 0;
   font-family: var(--font-press), monospace;
-  font-size: 22px;
-  line-height: 1.5;
+  font-weight: normal;
+  font-size: clamp(15px, 3vw, 20px);
+  line-height: 32px;
 }
 
 .sheet h2 {
-  margin: 32px 0 8px;
-  font-family: var(--font-press), monospace;
-  font-size: 14px;
-  line-height: 1.6;
+  margin: 32px 0 0;
+  font-family: var(--font-vt), monospace;
+  font-weight: normal;
+  font-size: 1.1em;
+  color: var(--ink-red);
+}
+
+.sheet p,
+.sheet ul {
+  margin: 0 0 16px;
+}
+
+.sheet ul {
+  padding-left: 1.1em;
+}
+
+.sheet a {
   color: var(--ink-gold);
 }
 
@@ -39,12 +153,34 @@
   color: var(--ink-soft);
 }
 
-.sheet a {
-  color: var(--ink-gold);
+.back {
+  margin-top: 32px !important;
 }
 
-.sheet ul {
-  padding-left: 1.2em;
+@media (max-width: 560px) {
+  .backdrop {
+    padding: 52px 10px 10px 22px;
+  }
+
+  .sheet {
+    padding: 28px 16px 28px 34px;
+    font-size: 20px;
+    background-image:
+      var(--paper-grain),
+      var(--paper-wash),
+      linear-gradient(90deg, transparent 22px, rgba(200, 80, 80, 0.35) 22px 24px, transparent 24px),
+      repeating-linear-gradient(transparent 0 31px, rgba(80, 110, 160, 0.16) 31px 32px);
+  }
+
+  .tabs {
+    left: 6px;
+    right: 50px;
+  }
+
+  .tabs a {
+    font-size: 17px;
+    padding: 6px 8px 10px;
+  }
 }
 
 .form {
@@ -62,11 +198,11 @@
 
 .form :is(input, select, textarea) {
   width: 100%;
-  padding: 8px 12px;
+  padding: 4px 12px;
   font: inherit;
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.55);
-  border: 2px solid var(--ink);
+  background: #fffaf0;
+  border: 3px solid var(--ink);
   border-radius: 0;
 }
 
@@ -76,12 +212,15 @@
 
 .form button {
   align-self: flex-start;
-  padding: 10px 22px 12px;
-  font: inherit;
-  color: var(--paper);
-  background: var(--ink);
-  border: 0;
+  padding: 10px 22px;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
   cursor: pointer;
+  box-shadow: 4px 4px 0 var(--ink);
 }
 
 .form button:disabled {
@@ -98,4 +237,17 @@
 .honey {
   position: absolute;
   left: -9999px;
+}
+
+.sheet .cta {
+  display: inline-block;
+  padding: 8px 20px;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  text-decoration: none;
+  box-shadow: 4px 4px 0 var(--ink);
 }
