@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { pocketsOf, shelfBinders } from "@/lib/binders";
 import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
-import { resolveConflict, signIn, signOut, useCloud } from "@/lib/cloud";
+import { resolveConflict, signIn, signInWithGoogle, signOut, useCloud } from "@/lib/cloud";
 import { VARIANT_LABEL, copiesTotals, formatEur, setStats, unitPrice } from "@/lib/price";
 import { OS_NAME, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
@@ -580,6 +580,22 @@ function Account({ say }: { say: (m: string) => void }) {
             </label>
             <button className={styles.btnBig} disabled={busy}>
               {busy ? "envoi…" : "Recevoir un lien"}
+            </button>
+            <span className={styles.muted}>ou</span>
+            <button
+              type="button"
+              className={styles.btnBig}
+              onClick={() => {
+                sfx.click();
+                void signInWithGoogle().then((error) => {
+                  if (!error) return;
+                  sfx.locked();
+                  say("connexion Google impossible");
+                  console.warn("[cloud] google", error);
+                });
+              }}
+            >
+              G Continuer avec Google
             </button>
           </form>
         )}
