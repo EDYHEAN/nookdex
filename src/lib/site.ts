@@ -15,3 +15,6 @@ export const NAME_PARTS = ["Nook", "Dex"] as const;
 export const OS_NAME = `${SITE_NAME.toUpperCase()} OS`;
 export const SITE_DESCRIPTION =
   "Range ta collection de cartes Pokémon dans des classeurs, sur un petit bureau peint à la main : suivi de tes extensions, prix Cardmarket, wishlist et doublons.";
+
+/** Where players write for their data (privacy page, terms). */
+export const CONTACT_EMAIL = "contact@nookdex.com";
