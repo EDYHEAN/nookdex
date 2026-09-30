@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/LegalPage";
-import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
+import Link from "next/link";
+import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Conditions d'utilisation · ${SITE_NAME}`,
@@ -38,7 +39,7 @@ export default function Terms() {
 
       <h2>Contact</h2>
       <p>
-        Une question ? <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+        Une question ? Écris-nous via le <Link href="/contact">formulaire de contact</Link>.
       </p>
     </LegalPage>
   );

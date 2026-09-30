@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/LegalPage";
-import { CONTACT_EMAIL, SITE_DOMAIN, SITE_NAME } from "@/lib/site";
+import Link from "next/link";
+import { SITE_DOMAIN, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Confidentialité · ${SITE_NAME}`,
@@ -38,10 +39,16 @@ export default function Privacy() {
         sans suivi d&apos;une visite à l&apos;autre.
       </p>
 
+      <h2>Formulaire de contact</h2>
+      <p>
+        Les messages envoyés depuis le formulaire (ton e-mail et ton message) passent par <a href="https://formsubmit.co/privacy.pdf">FormSubmit</a>{" "}
+        qui nous les transmet par e-mail. Ils ne servent qu&apos;à te répondre.
+      </p>
+
       <h2>Tes droits</h2>
       <p>
-        Tu peux à tout moment demander une copie de tes données ou la suppression de ton compte et de ta sauvegarde en écrivant à{" "}
-        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Ta collection peut aussi être exportée à tout moment depuis NookDex OS → Sauvegarde.
+        Tu peux à tout moment demander une copie de tes données ou la suppression de ton compte et de ta sauvegarde via le{" "}
+        <Link href="/contact">formulaire de contact</Link>. Ta collection peut aussi être exportée à tout moment depuis NookDex OS → Sauvegarde.
       </p>
     </LegalPage>
   );
