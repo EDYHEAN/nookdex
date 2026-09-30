@@ -15,10 +15,3 @@ export const NAME_PARTS = ["Nook", "Dex"] as const;
 export const OS_NAME = `${SITE_NAME.toUpperCase()} OS`;
 export const SITE_DESCRIPTION =
   "Range ta collection de cartes Pokémon dans des classeurs, sur un petit bureau peint à la main : suivi de tes extensions, prix Cardmarket, wishlist et doublons.";
-
-/**
- * The contact form saves each message in Supabase (table contact_messages), then also posts it here:
- * FormSubmit forwards it by e-mail, no account needed.
- * After the first message, FormSubmit mails a random alias: put it in place of the address to hide it.
- */
-export const CONTACT_ENDPOINT = "https://formsubmit.co/ajax/johan.trigeard@gmail.com";
