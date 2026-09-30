@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BINDERS } from "@/lib/binders";
+import { shelfBinders } from "@/lib/binders";
+import { loadSets, neededSets, useSets } from "@/lib/catalog";
 import { SCENE, sceneImg } from "@/lib/scene";
 import { sfx } from "@/lib/sound";
+import { useStore } from "@/lib/store";
 import styles from "./Loader.module.css";
 
 const TIPS = [
@@ -17,19 +19,20 @@ const TIPS = [
 
 const MIN_MS = 1800;
 
-/** Fonts, the painted room layers, set logos and the first pages of cards. */
+/** Fonts, the painted room layers, set logos and the first pages of cards (once the sets are downloaded). */
 function assetsToPreload() {
+  const { binders } = useStore.getState();
+  const { sets } = useSets.getState();
   const urls = [
     sceneImg("plate.webp"),
     sceneImg("chair.webp"),
     sceneImg("cat-sleep.webp"),
     sceneImg("cat-awake.webp"),
     sceneImg("lamp-head.webp"),
-    ...SCENE.binders.map((b) => sceneImg(b.file)),
   ];
-  for (const b of BINDERS) {
-    urls.push(`${b.logo}.png`);
-    b.set?.cards.slice(0, 18).forEach((c) => urls.push(`${c.img}/low.webp`));
+  for (const b of shelfBinders(binders)) {
+    if (b.logo) urls.push(`${b.logo}.png`);
+    if (b.setId) sets[b.setId]?.cards.slice(0, 18).forEach((c) => urls.push(`${c.img}/low.webp`));
   }
   return urls;
 }
@@ -46,23 +49,28 @@ export function Loader({ onEnter }: { onEnter: () => void }) {
   useEffect(() => {
     let alive = true;
     const started = performance.now();
-    const urls = assetsToPreload();
-    const total = urls.length + 1;
+    let total = 2;
     let done = 0;
     const tick = () => alive && setProgress(++done / total);
+    const preload = (src: string) =>
+      new Promise<void>((resolve) => {
+        const img = new Image();
+        img.onload = img.onerror = () => {
+          tick();
+          resolve();
+        };
+        img.src = src;
+      });
+    const { binders, collection } = useStore.getState();
     const jobs: Promise<unknown>[] = [
       document.fonts.ready.then(tick),
-      ...urls.map(
-        (src) =>
-          new Promise<void>((resolve) => {
-            const img = new Image();
-            img.onload = img.onerror = () => {
-              tick();
-              resolve();
-            };
-            img.src = src;
-          }),
-      ),
+      // the cards of the player's binders first, then their pictures
+      loadSets(neededSets(binders, collection)).then(() => {
+        tick();
+        const urls = assetsToPreload();
+        total += urls.length;
+        return Promise.all(urls.map(preload));
+      }),
     ];
     // Never block the user more than a few seconds on a slow network.
     const timeout = new Promise((r) => setTimeout(r, 7000));

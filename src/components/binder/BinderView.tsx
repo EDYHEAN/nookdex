@@ -1,16 +1,19 @@
 "use client";
 
-import { animate, motion, useMotionValue, useTransform } from "motion/react";
+import { AnimatePresence, animate, motion, useMotionValue, useTransform } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { cardTier, formatEur, setStats, unitPrice, type Tier } from "@/lib/price";
+import { PER_PAGE, freeHomes, freePageCount, pocketsOf, type Pocket } from "@/lib/binders";
+import { loadSet, setIdOfCard, useSets } from "@/lib/catalog";
+import { cardTier, copiesTotals, formatEur, setStats, unitPrice, type Tier } from "@/lib/price";
 import { sfx } from "@/lib/sound";
-import { useStore } from "@/lib/store";
+import { looseCopies, useStore } from "@/lib/store";
 import type { BinderDef, CardData } from "@/lib/types";
 import { isCompact, useViewport } from "@/lib/useViewport";
-import { CardSlot, type AddResult } from "./CardSlot";
+import { CardPicker } from "./CardPicker";
+import { CardSlot, EmptyPocket, LoadingPocket, type AddResult } from "./CardSlot";
 import { Celebration } from "./Celebration";
 import { Inspector } from "./Inspector";
-import { StatsPage } from "./StatsPage";
+import { StatsPage, type BinderSummary } from "./StatsPage";
 import styles from "./Binder.module.css";
 
 type Face = { type: "cover" } | { type: "stats" } | { type: "page"; index: number } | { type: "blank" } | null;
@@ -24,13 +27,16 @@ interface Props {
   /** Card to show once the binder is open (from the PC search / wishlist). */
   focusCardId?: string | null;
   onClosed: () => void;
+  /** Called instead of onClosed once the binder was taken off the shelf. */
+  onRemoved: () => void;
 }
 
 const ASPECT = 0.74; // page width / height for a 3x3 pocket page
-const PER_PAGE = 9;
 
-export function BinderView({ binder, focusCardId, onClosed }: Props) {
-  const set = binder.set!;
+export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) {
+  const free = binder.kind === "free";
+  const set = useSets((s) => (binder.setId ? s.sets[binder.setId] : undefined));
+  const cardData = useSets((s) => s.cards);
   const vp = useViewport();
   const single = isCompact(vp);
   const titleH = single ? 64 : 58;
@@ -44,11 +50,46 @@ export function BinderView({ binder, focusCardId, onClosed }: Props) {
     return { pageW: Math.round(pw), pageH: Math.round(ph), gap: single ? 0 : Math.round(pw * 0.08) };
   }, [vp.w, vp.h, single, titleH, navH]);
 
+  const collection = useStore((s) => s.collection);
+  const userBinders = useStore((s) => s.binders);
+  const addCard = useStore((s) => s.addCard);
+  const placeCard = useStore((s) => s.placeCard);
+
+  // A free binder's pockets hold the copies slipped in them.
+  const pockets = useMemo(() => (free ? pocketsOf(binder.id, collection) : null), [free, binder.id, collection]);
+
   const pages = useMemo(() => {
-    const out: CardData[][] = [];
-    for (let i = 0; i < set.cards.length; i += PER_PAGE) out.push(set.cards.slice(i, i + PER_PAGE));
+    const out: Pocket[][] = [];
+    if (pockets) {
+      const n = freePageCount(pockets);
+      for (let pg = 0; pg < n; pg++) {
+        out.push(
+          Array.from({ length: PER_PAGE }, (_, k) => {
+            const index = pg * PER_PAGE + k;
+            const cardId = pockets.get(index)?.cardId ?? null;
+            return { index, cardId, card: cardId ? (cardData[cardId] ?? null) : null };
+          }),
+        );
+      }
+      return out;
+    }
+    const cards = set?.cards ?? [];
+    for (let i = 0; i < cards.length; i += PER_PAGE)
+      out.push(cards.slice(i, i + PER_PAGE).map((card, k) => ({ index: i + k, cardId: card.id, card })));
     return out;
-  }, [set]);
+  }, [pockets, set, cardData]);
+
+  // Cards slipped in a free binder from a set that isn't downloaded yet.
+  useEffect(() => {
+    if (!pockets) return;
+    for (const { cardId } of pockets.values()) {
+      const id = setIdOfCard(cardId);
+      if (!cardData[cardId] && id) void loadSet(id).catch(() => {});
+    }
+  }, [pockets, cardData]);
+
+  /** Cards you can page through in the inspector, in binder order. */
+  const browsable = useMemo(() => pages.flat().filter((p): p is Pocket & { card: CardData } => !!p.card), [pages]);
 
   const leaves = useMemo<LeafDef[]>(() => {
     if (single) {
@@ -73,15 +114,27 @@ export function BinderView({ binder, focusCardId, onClosed }: Props) {
   const fRef = useRef(0);
   const [fast, setFast] = useState(false);
   const [phase, setPhase] = useState<"enter" | "open" | "closing">("enter");
-  const [inspect, setInspect] = useState<string | null>(null);
+  /** pocket index of the card shown in the inspector */
+  const [inspect, setInspect] = useState<number | null>(null);
+  /** empty pocket being filled (free binder) */
+  const [picking, setPicking] = useState<number | null>(null);
   const [party, setParty] = useState<{ id: number; card: CardData } | null>(null);
   const [leaving, setLeaving] = useState(false);
-  const [focused, setFocused] = useState<string | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const [focused, setFocused] = useState<number | null>(null);
   const riffleTimer = useRef<number | null>(null);
 
-  const collection = useStore((s) => s.collection);
-  const addCard = useStore((s) => s.addCard);
-  const stats = useMemo(() => setStats(set, collection), [set, collection]);
+  const summary = useMemo<BinderSummary>(() => {
+    if (set) {
+      const st = setStats(set, collection);
+      return { ...st, count: `${st.owned}/${st.total}`, pricesUpdated: set.pricesUpdated };
+    }
+    const items = [...(pockets?.values() ?? [])].flatMap(({ cardId, copy }) =>
+      cardData[cardId] ? [{ card: cardData[cardId], copies: [copy] }] : [],
+    );
+    const t = copiesTotals(items);
+    return { ...t, owned: t.cards, total: t.cards, masterOwned: 0, masterTotal: 0, count: String(t.cards), pricesUpdated: null };
+  }, [set, pockets, collection, cardData]);
 
   const go = useCallback((next: number, quick = false) => {
     fRef.current = next;
@@ -135,10 +188,16 @@ export function BinderView({ binder, focusCardId, onClosed }: Props) {
     if (phase !== "open") return;
     if (riffleTimer.current) clearInterval(riffleTimer.current);
     setInspect(null);
+    setPicking(null);
     setPhase("closing");
     sfx.drop();
     setLeaving(true);
   }, [phase]);
+
+  const remove = useCallback(() => {
+    setRemoving(true);
+    close();
+  }, [close]);
 
 
   const next = useCallback(() => {
@@ -164,30 +223,30 @@ export function BinderView({ binder, focusCardId, onClosed }: Props) {
   useEffect(() => {
     if (phase !== "open" || !focusCardId || focusDone.current) return;
     focusDone.current = true;
-    const i = set.cards.findIndex((c) => c.id === focusCardId);
+    const i = pages.flat().find((p) => p.cardId === focusCardId)?.index ?? -1;
     if (i < 0) return;
     const t1 = setTimeout(() => {
       jumpToPage(Math.floor(i / PER_PAGE), true);
-      setFocused(focusCardId);
+      setFocused(i);
     }, 450);
     const t2 = setTimeout(() => setFocused(null), 4500);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [phase, focusCardId, set, jumpToPage]);
+  }, [phase, focusCardId, pages, jumpToPage]);
 
   // keyboard + wheel
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (inspect) return;
+      if (inspect != null || picking != null) return;
       if (e.key === "ArrowRight") next();
       else if (e.key === "ArrowLeft") prev();
       else if (e.key === "Escape") close();
     };
     let lastWheel = 0;
     const onWheel = (e: WheelEvent) => {
-      if (inspect) return;
+      if (inspect != null || picking != null) return;
       const now = performance.now();
       if (now - lastWheel < 380 || Math.abs(e.deltaY) < 8) return;
       lastWheel = now;
@@ -200,7 +259,7 @@ export function BinderView({ binder, focusCardId, onClosed }: Props) {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("wheel", onWheel);
     };
-  }, [next, prev, close, inspect]);
+  }, [next, prev, close, inspect, picking]);
 
   // swipe
   const swipe = useRef<{ x: number; y: number } | null>(null);
@@ -219,21 +278,51 @@ export function BinderView({ binder, focusCardId, onClosed }: Props) {
   };
 
   const combo = useRef({ n: 0, t: 0 });
+  /** Sound, combo and party of a card going in the binder. */
+  const cheer = useCallback((card: CardData): AddResult => {
+    const now = performance.now();
+    const c = combo.current;
+    c.n = now - c.t < 2500 ? c.n + 1 : 0;
+    c.t = now;
+    const tier: Tier = cardTier(card);
+    sfx.add(c.n, tier);
+    if (tier === "legend") setParty({ id: now, card });
+    return { combo: c.n + 1, gain: unitPrice(card, card.variants[0], "trend"), tier };
+  }, []);
   const onAdd = useCallback(
     (card: CardData): AddResult => {
-      const now = performance.now();
-      const c = combo.current;
-      c.n = now - c.t < 2500 ? c.n + 1 : 0;
-      c.t = now;
-      const variant = card.variants[0];
-      addCard(card.id, variant);
-      const tier: Tier = cardTier(card);
-      sfx.add(c.n, tier);
-      if (tier === "legend") setParty({ id: now, card });
-      return { combo: c.n + 1, gain: unitPrice(card, variant, "trend"), tier };
+      addCard(card.id, card.variants[0]);
+      return cheer(card);
     },
-    [addCard],
+    [addCard, cheer],
   );
+
+  // Free binder: slip the card picked in the search into the pocket.
+  const onPlace = useCallback(
+    async (cardId: string) => {
+      if (picking == null) return;
+      const setId = setIdOfCard(cardId);
+      if (!setId) throw new Error("unknown set");
+      const card = (await loadSet(setId)).cards.find((c) => c.id === cardId);
+      if (!card) throw new Error("unknown card");
+      const pocket = picking;
+      placeCard(binder.id, pocket, cardId, card.variants[0]);
+      cheer(card);
+      setPicking(null);
+      setFocused(pocket);
+      setTimeout(() => setFocused((f) => (f === pocket ? null : f)), 1600);
+    },
+    [picking, placeCard, binder.id, cheer],
+  );
+
+  /** "dans Fourre-tout" on a set card that is only kept in free binders */
+  const tagOf = (cardId: string) => {
+    if (free) return undefined;
+    const copies = collection[cardId];
+    if (!copies?.length || looseCopies(copies).length) return undefined;
+    const homes = freeHomes(copies, userBinders);
+    return homes.length ? `dans ${homes[0].name}` : undefined;
+  };
 
   // geometry
   const spreadW = single ? pageW : pageW * 2 + gap;
@@ -253,26 +342,42 @@ export function BinderView({ binder, focusCardId, onClosed }: Props) {
   const renderFace = (face: Face, side: "front" | "back", leafIndex: number): ReactNode => {
     if (!face) return null;
     const near = Math.abs(leafIndex - f) <= 2 || (leafIndex === 0 && f <= 2);
-    if (face.type === "cover") return <Cover binder={binder} owned={stats.owned} total={stats.total} />;
+    if (face.type === "cover") return <Cover binder={binder} name={set?.name ?? binder.name} count={summary.count} />;
     if (face.type === "stats")
-      return <StatsPage binder={binder} stats={stats} pages={pages} collection={collection} onJump={jumpToPage} />;
+      return (
+        <StatsPage
+          binder={binder}
+          title={set?.name ?? binder.name}
+          stats={summary}
+          pages={pages}
+          collection={collection}
+          onJump={jumpToPage}
+          onRemove={remove}
+        />
+      );
     if (face.type === "blank") return <div className={styles.sheet} />;
-    const cards = pages[face.index];
     return (
       <div className={styles.sheet} data-side={side}>
         <div className={styles.grid}>
           {near &&
-            cards.map((card) => (
-              <CardSlot
-                key={card.id}
-                card={card}
-                copies={collection[card.id]}
-                cardWidth={pageW * 0.28}
-                focused={focused === card.id}
-                onAdd={onAdd}
-                onInspect={setInspect}
-              />
-            ))}
+            pages[face.index].map((p) =>
+              p.card ? (
+                <CardSlot
+                  key={p.index}
+                  card={p.card}
+                  copies={collection[p.card.id]}
+                  cardWidth={pageW * 0.28}
+                  focused={focused === p.index}
+                  onAdd={onAdd}
+                  onInspect={() => setInspect(p.index)}
+                  tag={tagOf(p.card.id)}
+                />
+              ) : p.cardId ? (
+                <LoadingPocket key={p.index} />
+              ) : (
+                <EmptyPocket key={p.index} index={p.index} onPick={setPicking} />
+              ),
+            )}
         </div>
         <span className={styles.pageNum}>{face.index + 1}</span>
       </div>
@@ -286,7 +391,7 @@ export function BinderView({ binder, focusCardId, onClosed }: Props) {
   else if (f > leaves.length - 1) pageLabel = `page ${pages.length} / ${pages.length}`;
   else pageLabel = `pages ${2 * (f - 1)}–${Math.min(2 * (f - 1) + 1, pages.length)} / ${pages.length}`;
 
-  const inspectIndex = inspect ? set.cards.findIndex((c) => c.id === inspect) : -1;
+  const inspectIndex = inspect == null ? -1 : browsable.findIndex((p) => p.index === inspect);
 
   return (
     <motion.div
@@ -306,9 +411,9 @@ export function BinderView({ binder, focusCardId, onClosed }: Props) {
         transition={{ type: "spring", stiffness: 260, damping: 22 }}
       >
         <div className={styles.titleText}>
-          <h1>{set.name}</h1>
+          <h1>{set?.name ?? binder.name}</h1>
           <p>
-            {stats.owned}/{stats.total} cartes · <b>{formatEur(stats.trend)}</b>
+            {summary.count} cartes · <b>{formatEur(summary.trend)}</b>
           </p>
         </div>
         <button className={styles.pixelBtn} onClick={close} onPointerEnter={sfx.hover}>
@@ -332,7 +437,9 @@ export function BinderView({ binder, focusCardId, onClosed }: Props) {
               }
         }
         onAnimationComplete={() => {
-          if (leaving) onClosed();
+          if (!leaving) return;
+          if (removing) onRemoved();
+          else onClosed();
         }}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
@@ -401,21 +508,26 @@ export function BinderView({ binder, focusCardId, onClosed }: Props) {
         </button>
       </motion.nav>
 
-      {inspect && inspectIndex >= 0 && (
+      {inspectIndex >= 0 && (
         <Inspector
           key={inspect}
-          card={set.cards[inspectIndex]}
+          card={browsable[inspectIndex].card}
+          binderId={free ? binder.id : null}
           onClose={() => setInspect(null)}
           onNavigate={(d) => {
             const n = inspectIndex + d;
-            if (n >= 0 && n < set.cards.length) {
+            if (n >= 0 && n < browsable.length) {
               sfx.riffle();
-              setInspect(set.cards[n].id);
+              setInspect(browsable[n].index);
             }
           }}
           onAdd={onAdd}
         />
       )}
+
+      <AnimatePresence>
+        {picking != null && <CardPicker key="pick" pocket={picking} onPick={onPlace} onClose={() => setPicking(null)} />}
+      </AnimatePresence>
 
       {party && <Celebration key={party.id} card={party.card} onDone={() => setParty(null)} />}
     </motion.div>
@@ -493,8 +605,8 @@ function Leaf({ index, total, flipped, fast, single, left, pivot, width, color, 
   );
 }
 
-function Cover({ binder, owned, total }: { binder: BinderDef; owned: number; total: number }) {
-  const set = binder.set!;
+function Cover({ binder, name, count }: { binder: BinderDef; name: string; count: string }) {
+  const free = binder.kind === "free";
   return (
     <div className={styles.cover} style={{ background: binder.color, color: binder.ink }}>
       <div className={styles.coverStitch} style={{ borderColor: binder.dark }} />
@@ -502,11 +614,13 @@ function Cover({ binder, owned, total }: { binder: BinderDef; owned: number; tot
         <span className={styles.coverCode} style={{ background: binder.dark, color: binder.color }}>
           {binder.code}
         </span>
-        <img className={styles.coverLogo} src={`${binder.logo}.png`} alt={set.name} draggable={false} />
-        <p className={styles.coverName}>{set.name}</p>
-        <p className={styles.coverCount}>
-          {owned} / {total}
-        </p>
+        {binder.logo ? (
+          <img className={styles.coverLogo} src={`${binder.logo}.png`} alt={name} draggable={false} />
+        ) : (
+          <p className={styles.coverTitle}>{name}</p>
+        )}
+        <p className={styles.coverName}>{free ? "classeur libre" : name}</p>
+        <p className={styles.coverCount}>{free ? `${count} carte${count === "1" ? "" : "s"}` : count.replace("/", " / ")}</p>
       </div>
       <span className={styles.coverBrand}>PokéPocket</span>
     </div>

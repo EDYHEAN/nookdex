@@ -20,6 +20,8 @@ interface Props {
   focused: boolean;
   onAdd: (card: CardData) => AddResult;
   onInspect: (id: string) => void;
+  /** Owned but kept elsewhere, ex: "dans Fourre-tout" */
+  tag?: string;
 }
 
 const BURST_COLORS: Record<Tier, string[]> = {
@@ -36,7 +38,7 @@ interface Fx {
   bits: { dx: number; dy: number; r: number; c: string; s: number }[];
 }
 
-export const CardSlot = memo(function CardSlot({ card, copies, cardWidth, focused, onAdd, onInspect }: Props) {
+export const CardSlot = memo(function CardSlot({ card, copies, cardWidth, focused, onAdd, onInspect, tag }: Props) {
   const owned = !!copies?.length;
   const [fx, setFx] = useState<Fx | null>(null);
   const lift = useRef<HTMLSpanElement>(null);
@@ -153,6 +155,12 @@ export const CardSlot = memo(function CardSlot({ card, copies, cardWidth, focuse
         </div>
       )}
 
+      {tag && (
+        <span className={styles.tag} title={`Cette carte est rangée ${tag}`}>
+          {tag}
+        </span>
+      )}
+
       <span className={styles.sleeve} />
 
       {fx && (
@@ -178,3 +186,40 @@ export const CardSlot = memo(function CardSlot({ card, copies, cardWidth, focuse
     </div>
   );
 });
+
+/** An empty pocket of a free binder: slip any card in it. */
+export function EmptyPocket({ index, onPick }: { index: number; onPick: (pocket: number) => void }) {
+  return (
+    <div className={`${styles.slot} ${styles.empty}`}>
+      <button
+        className={styles.pocket}
+        onClick={() => {
+          sfx.pop();
+          onPick(index);
+        }}
+        onPointerEnter={sfx.hover}
+        aria-label={`Pochette ${(index % 9) + 1} : ranger une carte`}
+      >
+        <span className={styles.lift}>
+          <span className={styles.emptyPlus}>+</span>
+          <span className={styles.emptyHint}>ranger une carte</span>
+        </span>
+      </button>
+      <span className={styles.sleeve} />
+    </div>
+  );
+}
+
+/** A pocket whose card is still on its way from the server. */
+export function LoadingPocket() {
+  return (
+    <div className={`${styles.slot} ${styles.empty}`}>
+      <span className={styles.pocket}>
+        <span className={styles.lift}>
+          <span className={styles.emptyHint}>…</span>
+        </span>
+      </span>
+      <span className={styles.sleeve} />
+    </div>
+  );
+}

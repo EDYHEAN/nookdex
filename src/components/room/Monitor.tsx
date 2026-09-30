@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo, type CSSProperties } from "react";
-import { BINDERS } from "@/lib/binders";
-import { formatEur, setStats } from "@/lib/price";
+import { formatEur } from "@/lib/price";
 import { quadMatrix } from "@/lib/scene";
 import { sfx } from "@/lib/sound";
-import { useStore } from "@/lib/store";
+import { useTotals } from "@/lib/useTotals";
 import styles from "./Monitor.module.css";
 
 interface Props {
@@ -19,7 +18,6 @@ interface Props {
 
 /** Glanceable summary on the desk CRT; the full OS opens on click. */
 export function Monitor({ style, quad, onOpen, onHover, onLeave }: Props) {
-  const collection = useStore((s) => s.collection);
   // The layout is drawn flat on a 104px wide screen, then projected onto the painted glass.
   const innerW = 104;
   const glassW = (quad[1][0] - quad[0][0] + quad[2][0] - quad[3][0]) / 2;
@@ -27,17 +25,11 @@ export function Monitor({ style, quad, onOpen, onHover, onLeave }: Props) {
   const innerH = Math.round((innerW * glassH) / glassW);
   const matrix = useMemo(() => quadMatrix(innerW, innerH, quad), [innerH, quad]);
 
-  const t = useMemo(() => {
-    let owned = 0, total = 0, trend = 0;
-    for (const b of BINDERS) {
-      if (!b.set) continue;
-      const s = setStats(b.set, collection);
-      owned += s.owned;
-      total += s.total;
-      trend += s.trend;
-    }
-    return { owned, total, trend, pct: total ? Math.round((owned / total) * 100) : 0 };
-  }, [collection]);
+  const totals = useTotals();
+  // Only free binders so far: count the cards instead of a set progress.
+  const t = totals.total
+    ? { big: `${totals.owned}/${totals.total}`, pct: Math.round((totals.owned / totals.total) * 100), trend: totals.trend }
+    : { big: `${totals.cards}`, pct: 0, trend: totals.trend };
 
   return (
     <button
@@ -55,7 +47,7 @@ export function Monitor({ style, quad, onOpen, onHover, onLeave }: Props) {
         <div className={styles.content}>
           <p className={styles.title}>POKEPOCKET OS</p>
           <p className={styles.big}>
-            {t.owned}/{t.total}
+            {t.big}
           </p>
           <p className={styles.bar}>
             <span style={{ width: `${t.pct}%` }} />

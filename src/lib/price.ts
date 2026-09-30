@@ -84,3 +84,45 @@ export const VARIANT_LABEL: Record<Variant, string> = {
   reverse: "Reverse",
   holo: "Holo",
 };
+
+export interface Totals {
+  /** Progress over the set binders */
+  owned: number;
+  total: number;
+  /** Every card owned, wherever it is kept */
+  cards: number;
+  copies: number;
+  low: number;
+  trend: number;
+  spent: number;
+  spentTrend: number;
+}
+
+/** Value of a list of copies (each counted once, even if its card sits in two binders). */
+export function copiesTotals(items: { card: CardData; copies: Copy[] }[]): Omit<Totals, "owned" | "total"> {
+  const t = { cards: 0, copies: 0, low: 0, trend: 0, spent: 0, spentTrend: 0 };
+  for (const { card, copies } of items) {
+    if (!copies.length) continue;
+    t.cards++;
+    t.low += copiesValue(card, copies, "low");
+    t.trend += copiesValue(card, copies, "trend");
+    for (const c of copies) {
+      t.copies += c.qty;
+      if (c.paid == null) continue;
+      t.spent += c.paid * c.qty;
+      t.spentTrend += unitPrice(card, c.variant, "trend") * c.qty;
+    }
+  }
+  return t;
+}
+
+export function collectionTotals(collection: Record<string, Copy[]>, cards: Record<string, CardData>, sets: SetData[]): Totals {
+  let owned = 0;
+  let total = 0;
+  for (const set of sets) {
+    total += set.cards.length;
+    owned += set.cards.filter((c) => collection[c.id]?.length).length;
+  }
+  const items = Object.entries(collection).flatMap(([id, copies]) => (cards[id] ? [{ card: cards[id], copies }] : []));
+  return { owned, total, ...copiesTotals(items) };
+}

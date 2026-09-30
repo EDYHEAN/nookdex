@@ -1,0 +1,191 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(24, 16, 36, 0.55);
+  backdrop-filter: blur(6px) saturate(0.8);
+  -webkit-backdrop-filter: blur(6px) saturate(0.8);
+  overflow-y: auto;
+}
+
+/* a note pinned on the desk */
+.card {
+  --paper: #f3ead9;
+  --ink: #2b2230;
+  --ink-soft: #6b5d66;
+  position: relative;
+  width: min(460px, 100%);
+  padding: 30px 28px 24px;
+  background:
+    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.55), transparent 45%),
+    var(--paper);
+  color: var(--ink);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    8px 10px 0 3px rgba(20, 12, 28, 0.45),
+    0 30px 80px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-vt), monospace;
+  font-size: 20px;
+}
+
+/* the tape holding it */
+.card::before {
+  content: "";
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  width: 110px;
+  height: 28px;
+  translate: -50% 0;
+  rotate: -3deg;
+  background: rgba(255, 226, 150, 0.75);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.brand {
+  margin: 0;
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  color: #d9534f;
+}
+
+.brand span {
+  color: var(--ink);
+}
+
+.card h1 {
+  margin: 10px 0 18px;
+  font-family: var(--font-press), monospace;
+  font-size: clamp(15px, 4vw, 19px);
+  line-height: 1.4;
+}
+
+.switch {
+  display: flex;
+  padding: 4px;
+  gap: 4px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: #e8dcc4;
+}
+
+.switch button {
+  flex: 1;
+  padding: 8px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s steps(2),
+    transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.switch button:hover {
+  transform: translateY(-1px);
+}
+
+.switch .on {
+  background: #ffd35a;
+  color: var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field span {
+  color: var(--ink-soft);
+}
+
+.field input {
+  padding: 10px 14px;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  background: #fffaf0;
+  color: var(--ink);
+  font: inherit;
+  font-size: 30px;
+  box-shadow: inset 3px 3px 0 rgba(43, 34, 48, 0.12);
+  outline: none;
+}
+
+.field input:focus {
+  box-shadow:
+    inset 3px 3px 0 rgba(43, 34, 48, 0.12),
+    0 0 0 4px #ffd35a;
+}
+
+.text {
+  margin: 0;
+  line-height: 1.15;
+}
+
+.note {
+  margin: 0;
+  padding: 6px 10px;
+  border-left: 4px solid #3c8a55;
+  background: rgba(157, 214, 192, 0.35);
+  animation: pop 0.25s steps(3);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+.go {
+  padding: 14px 18px;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 5px 5px 0 var(--ink);
+  transition:
+    transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1),
+    box-shadow 0.15s;
+}
+
+.go:hover {
+  transform: translate(-2px, -3px);
+  box-shadow: 7px 8px 0 var(--ink);
+}
+
+.go:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.small {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 17px;
+  line-height: 1.1;
+}
+
+.pickerWrap {
+  display: grid;
+  place-items: center;
+  width: 100%;
+}

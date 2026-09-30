@@ -169,146 +169,115 @@ const meta = { width: W, height: H };
   paste(plate, noChair.data, await blur(inBox(threshold(await blur(region, 8), 20), box), 4));
 }
 
-/* ---------------- lamp head, which sits in front of the binders ---------------- */
-const lampBox = { x: 2090, y: 640, w: 330, h: 170 };
-const lampMask = (() => {
-  const m = new Uint8Array(W * H);
-  for (let y = lampBox.y; y < lampBox.y + lampBox.h; y++)
-    for (let x = lampBox.x; x < lampBox.x + lampBox.w; x++) {
-      const p = y * W + x;
-      const i = p * 3;
-      const d = scene.data;
-      const same =
-        Math.abs(d[i] - noBinders.data[i]) + Math.abs(d[i + 1] - noBinders.data[i + 1]) + Math.abs(d[i + 2] - noBinders.data[i + 2]) < 70;
-      const orange = d[i] > d[i + 1] * 1.12 && d[i] > d[i + 2] * 1.35 && d[i] > 120;
-      const ink = lum(d, i) < 75;
-      // the lamp head + its arm (nothing above the arm on the right side)
-      const inShape = !(x > 2330 && y < 725);
-      if (same && inShape && (orange || ink)) m[p] = 255;
-    }
-  return m;
-})();
+/* ---------------- shelves: empty on the plate, the binders are drawn by the code ---------------- */
 
-/* ---------------- binders ---------------- */
-const SHELVES = [
-  { y: 22, h: 366, xs: [1768, 1861, 1951, 2042, 2133, 2226, 2400] },
-  { y: 432, h: 342, xs: [1790, 1880, 1965, 2050, 2140, 2228, 2318, 2410, 2562] },
+/**
+ * Where binders stand. Each shelf row: the spines' left edges, and the lines their tops and bottoms follow
+ * (measured on the painted binders and on the shelf edge: they converge to a vanishing point far on the left).
+ * Each place is a quad [TL, TR, BR, BL] the code projects its binder onto, plus its bounding box.
+ */
+const ROWS = [
+  // top shelf, up to the Pokéball: above the eye, it rises to the right
+  { xs: [1766, 1859, 1949, 2040, 2131, 2224, 2319], top: (x) => 103 - 0.12 * (x - 1766), bottom: (x) => 395 - 0.0617 * (x - 1766) },
+  // bottom shelf, up to the books (the lamp passes in front)
+  { xs: [1788, 1878, 1963, 2048, 2138, 2226, 2316], top: (x) => 484 - 0.034 * (x - 1788), bottom: () => 776 },
 ];
-{
-  const all = { x: 1760, y: 20, w: 810, h: 760 };
-  const diff = await clean(diffMask(scene, noBinders, 60, all), { close: 5, grow: 0.35 });
-  const cleanLamp = threshold(await blur(lampMask, 1.2), 90);
+const SLOTS = ROWS.flatMap(({ xs, top, bottom }) =>
+  xs.slice(0, -1).map((x0, i) => {
+    const x1 = xs[i + 1];
+    const quad = [
+      [x0, top(x0)],
+      [x1, top(x1)],
+      [x1, bottom(x1)],
+      [x0, bottom(x0)],
+    ].map(([x, y]) => [x, Math.round(y * 10) / 10]);
+    const y = Math.floor(Math.min(quad[0][1], quad[1][1]));
+    const h = Math.ceil(Math.max(quad[2][1], quad[3][1])) - y;
+    return { x: x0, y, w: x1 - x0, h, quad };
+  }),
+);
 
-  // Behind the last binder, the "empty" edit invented extra books: borrow the bare wall just left of it.
-  const fixed = Buffer.from(noBinders.data);
-  for (let y = 432; y < 768; y++)
-    for (let x = 2395; x < 2565; x++) {
-      const p = (y * W + x) * 3;
-      const q = (y * W + (x - 170)) * 3;
-      fixed[p] = noBinders.data[q];
-      fixed[p + 1] = noBinders.data[q + 1];
-      fixed[p + 2] = noBinders.data[q + 2];
-    }
+/** Around the whole desk lamp (head, arm, foot), generous: the "no binders" edit redrew it a few px off. */
+const LAMP = [
+  [2112, 745], [2170, 680], [2230, 648], [2300, 648], [2335, 690], [2372, 702], [2380, 740],
+  [2540, 842], [2562, 878], [2545, 915], [2505, 1060], [2490, 1120], [2525, 1150], [2520, 1205],
+  [2420, 1215], [2318, 1200], [2312, 1140], [2380, 1120], [2400, 1070], [2470, 905], [2330, 812],
+  [2312, 895], [2220, 895], [2150, 870], [2110, 820],
+];
 
-  meta.binders = [];
-  const holes = new Uint8Array(W * H);
-  for (const [s, shelf] of SHELVES.entries()) {
-    for (let k = 0; k < shelf.xs.length - 1; k++) {
-      const box = { x: shelf.xs[k], y: shelf.y, w: shelf.xs[k + 1] - shelf.xs[k], h: shelf.h };
-      // Solid silhouette: in every column, from the first to the last "changed" pixel.
-      // (a silver binder is close to the wall color, so the raw difference has holes)
-      const tops = [], bots = [];
-      for (let x = box.x; x < box.x + box.w; x++) {
-        let t = -1, b = -1;
-        for (let y = box.y; y < box.y + box.h; y++) {
-          if (diff[y * W + x] || cleanLamp[y * W + x]) {
-            if (t < 0) t = y;
-            b = y;
-          }
-        }
-        tops.push(t);
-        bots.push(b);
-      }
-      const med = (arr, i) => {
-        const v = arr.slice(Math.max(0, i - 4), i + 5).filter((n) => n >= 0).sort((a, b) => a - b);
-        return v.length ? v[v.length >> 1] : -1;
-      };
-      const region = new Uint8Array(W * H);
-      for (let i = 0; i < box.w; i++) {
-        const t = med(tops, i), b = med(bots, i);
-        if (t < 0) continue;
-        for (let y = t; y <= b; y++) region[y * W + box.x + i] = 255;
-      }
-      // The part hidden by the lamp stays out of the sprite: the lamp is drawn on top anyway.
-      const alpha = await blur(region.map((v, i) => (cleanLamp[i] ? 0 : v)), 1.2);
-      const rect = await sprite(`binder-${s}-${k}`, scene.data, alpha);
-      for (let y = box.y; y < box.y + box.h; y++) for (let x = box.x; x < box.x + box.w; x++) holes[y * W + x] = 255;
-
-      // average spine color (mid tones only)
-      let R = 0, G = 0, B = 0, n = 0;
-      for (let y = box.y; y < box.y + box.h; y++)
-        for (let x = box.x; x < box.x + box.w; x++) {
-          const q = y * W + x;
-          if (!region[q] || cleanLamp[q]) continue;
-          const l = lum(scene.data, q * 3);
-          if (l < 70 || l > 200) continue;
-          R += scene.data[q * 3];
-          G += scene.data[q * 3 + 1];
-          B += scene.data[q * 3 + 2];
-          n++;
-        }
-      const spineLum = 0.299 * (R / n) + 0.587 * (G / n) + 0.114 * (B / n);
-
-      // label: the cream rectangle, clearly lighter than the spine, found by row / column projections
-      const light = (x, y) => {
-        const q = y * W + x;
-        if (!region[q] || cleanLamp[q]) return false;
-        const i = q * 3;
-        const d = scene.data;
-        return lum(d, i) > Math.max(165, spineLum + 28) && Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]) < 60;
-      };
-      const longestRun = (counts, min) => {
-        let best = [0, -1], start = -1;
-        counts.forEach((c, i) => {
-          if (c >= min && start < 0) start = i;
-          if ((c < min || i === counts.length - 1) && start >= 0) {
-            const end = c >= min ? i : i - 1;
-            if (end - start > best[1] - best[0]) best = [start, end];
-            start = -1;
-          }
-        });
-        return best;
-      };
-      const rows = [];
-      for (let y = box.y; y < box.y + box.h; y++) {
-        let c = 0;
-        for (let x = box.x; x < box.x + box.w; x++) if (light(x, y)) c++;
-        rows.push(c);
-      }
-      const [r0, r1] = longestRun(rows, Math.max(...rows) * 0.6);
-      const cols = [];
-      for (let x = box.x; x < box.x + box.w; x++) {
-        let c = 0;
-        for (let y = box.y + r0; y <= box.y + r1; y++) if (light(x, y)) c++;
-        cols.push(c);
-      }
-      const [c0, c1] = longestRun(cols, (r1 - r0 + 1) * 0.6);
-      const label = { x: box.x + c0, y: box.y + r0, w: c1 - c0 + 1, h: r1 - r0 + 1 };
-
-      meta.binders.push({
-        shelf: s,
-        index: k,
-        file: `binder-${s}-${k}.webp`,
-        rect,
-        label,
-        color: hex(R / n, G / n, B / n),
-      });
-    }
+function inPolygon(x, y, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
   }
-  // empty shelves on the plate, lamp stays
-  const holeAlpha = await blur(holes.map((v, i) => (cleanLamp[i] ? 0 : v)), 2);
-  paste(plate, fixed, holeAlpha);
-  meta.lamp = await sprite("lamp-head", scene.data, await blur(cleanLamp, 0.8));
+  return inside;
+}
+
+/** Fills the holes of a 0/255 mask inside a box (whatever the border of the box can't reach). */
+function fillHoles(m, box) {
+  const seen = new Uint8Array(W * H);
+  const stack = [];
+  const push = (x, y) => {
+    if (x < box.x || y < box.y || x >= box.x + box.w || y >= box.y + box.h) return;
+    const p = y * W + x;
+    if (m[p] || seen[p]) return;
+    seen[p] = 1;
+    stack.push(p);
+  };
+  for (let x = box.x; x < box.x + box.w; x++) {
+    push(x, box.y);
+    push(x, box.y + box.h - 1);
+  }
+  for (let y = box.y; y < box.y + box.h; y++) {
+    push(box.x, y);
+    push(box.x + box.w - 1, y);
+  }
+  while (stack.length) {
+    const p = stack.pop();
+    const x = p % W, y = (p / W) | 0;
+    push(x + 1, y);
+    push(x - 1, y);
+    push(x, y + 1);
+    push(x, y - 1);
+  }
+  const out = Buffer.from(m);
+  for (let y = box.y; y < box.y + box.h; y++) for (let x = box.x; x < box.x + box.w; x++) if (!seen[y * W + x]) out[y * W + x] = 255;
+  return new Uint8Array(out);
+}
+
+{
+  // The "no binders" edit on the shelves and on the whole lamp, so nothing is half one image, half the other.
+  const area = new Uint8Array(W * H);
+  for (let y = 12; y < 828; y++) for (let x = 1672; x < 2600; x++) area[y * W + x] = 255;
+  for (let y = 630; y < 1230; y++) for (let x = 2090; x < 2580; x++) if (inPolygon(x, y, LAMP)) area[y * W + x] = 255;
+  paste(plate, noBinders.data, await blur(area, 4));
+
+  // The lamp head, its cord and upper arm pass in front of the bottom binders: cut them out on color.
+  const box = { x: 2100, y: 640, w: 460, h: 260 };
+  const m = new Uint8Array(W * H);
+  const d = noBinders.data;
+  for (let y = box.y; y < box.y + box.h; y++)
+    for (let x = box.x; x < box.x + box.w; x++) {
+      if (!inPolygon(x, y, LAMP)) continue;
+      if (x > 2346 && y < 779) continue; // a book behind the arm, where a binder stands
+      const i = (y * W + x) * 3;
+      const orange = d[i] > d[i + 1] * 1.12 && d[i] > d[i + 2] * 1.35 && d[i] > 110;
+      const ink = lum(d, i) < 95;
+      if (orange || ink) m[y * W + x] = 255;
+    }
+  // close the small gaps (highlights, vents), fill the bulb, keep the lamp only
+  let lamp = threshold(await blur(m, 1.2), 70);
+  const filled = fillHoles(lamp, box);
+  // ...but not the bit of wall seen through the loop of the cord (warm grey, where the bulb is yellow)
+  for (let p = 0; p < W * H; p++) {
+    if (!filled[p] || lamp[p]) continue;
+    const i = p * 3;
+    if (d[i + 1] - d[i + 2] < 22) filled[p] = 0;
+  }
+  lamp = largestComponent(filled);
+  meta.lamp = await sprite("lamp-head", noBinders.data, await blur(lamp, 0.6));
+  meta.slots = SLOTS;
 }
 
 /* ---------------- lava lamp: empty glass on the plate ---------------- */
@@ -481,6 +450,6 @@ await sharp(`${SRC}/sky.jpg`).resize(1600).webp({ quality: 80 }).toFile(`${OUT}/
 }
 
 await writeFile("src/data/scene.json", JSON.stringify(meta, null, 1));
-console.log("binders:", meta.binders.map((b) => `${b.shelf}-${b.index} ${b.color} label ${b.label.w}x${b.label.h}`).join("\n  "));
+console.log("binder slots:", meta.slots.length);
 console.log("logo letters:", meta.logo.letters.length, meta.logo.letters.map((l) => `${l.x0}-${l.x1}`).join(" "));
 console.log("cat", meta.catSleep, "awake", meta.catAwake, "chair", meta.chair, "lamp", meta.lamp);

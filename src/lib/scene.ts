@@ -14,7 +14,8 @@ interface SceneData {
   catAwake: Rect;
   chair: Rect;
   lamp: Rect;
-  binders: { shelf: number; index: number; file: string; rect: Rect; label: Rect; color: string }[];
+  /** where binders stand on the shelves, top shelf then bottom shelf: bounding box + spine corners (TL, TR, BR, BL) */
+  slots: (Rect & { quad: [number, number][] })[];
   lavaBox: Rect;
   /** inside of the lava lamp glass, row by row: [x0, x1] relative to lavaBox */
   lavaRows: number[][];
@@ -36,10 +37,6 @@ export const SCENE = raw as unknown as SceneData;
 
 export const sceneImg = (file: string) => `/scene/${file}`;
 
-export const binderSlot = (slot: string) => {
-  const [s, i] = slot.split("-").map(Number);
-  return SCENE.binders.find((b) => b.shelf === s && b.index === i)!;
-};
 
 /**
  * CSS matrix3d that maps a w x h box (origin top-left) onto a quad

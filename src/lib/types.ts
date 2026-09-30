@@ -40,20 +40,47 @@ export interface Copy {
   /** What this copy cost, in €. 0 = pulled from a booster, null = not filled in. */
   paid: number | null;
   addedAt: number;
+  /** Sits in a pocket of a free binder. Absent = it lives in its own set's binder. */
+  at?: { binder: string; pocket: number };
 }
 
+/** A set offered in the "new binder" menu (src/data/catalog.json, made by `npm run fetch-set`). */
+export interface CatalogSet {
+  id: string;
+  serie: string;
+  serieName: string;
+  name: string;
+  /** French code, ex: EB12, EV04, ME02 */
+  code: string;
+  /** TCGdex logo, without extension */
+  logo: string | null;
+  releaseDate: string | null;
+  total: number;
+  /** Sub-sets merged into this binder (Trainer Gallery…) */
+  subs: string[];
+}
+
+/** A binder the player put on their shelf (shelf order). */
+export type UserBinder = ({ kind: "set"; setId: string } | { kind: "free"; name: string }) & {
+  id: string;
+  /** Cover color; missing on saves from before colors could be picked */
+  color?: string;
+};
+
+/** A binder as drawn in the room and opened on screen. */
 export interface BinderDef {
   id: string;
+  kind: "set" | "free";
   code: string;
   name: string;
-  /** Cover / spine colors */
+  /** Cover color, a darker shade of it, and the text color that reads on it */
   color: string;
   dark: string;
   ink: string;
-  /** Set logo (TCGdex, without extension) */
-  logo: string;
-  /** Painted binder in the room ("shelf-index") */
-  slot: string;
-  /** null = placeholder binder, not filled yet */
-  set: SetData | null;
+  /** Set logo (TCGdex, without extension); null for a free binder */
+  logo: string | null;
+  /** Place on the shelves (index in SCENE.slots) */
+  slot: number;
+  /** Set binders only */
+  setId: string | null;
 }

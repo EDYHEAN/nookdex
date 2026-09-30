@@ -310,6 +310,18 @@
   object-fit: contain;
 }
 
+.freeIcon {
+  width: 90px;
+  text-align: center;
+  font-size: 26px;
+  color: #ffd35a;
+}
+
+.freeTag {
+  font-size: 0.85em;
+  opacity: 0.55;
+}
+
 .bar {
   height: 14px;
   background: rgba(141, 255, 192, 0.12);

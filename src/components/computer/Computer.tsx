@@ -2,11 +2,13 @@
 
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BINDERS } from "@/lib/binders";
-import { VARIANT_LABEL, formatEur, setStats, unitPrice } from "@/lib/price";
+import { pocketsOf, shelfBinders } from "@/lib/binders";
+import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
+import { VARIANT_LABEL, copiesTotals, formatEur, setStats, unitPrice } from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import { isBackup, makeBackup, useStore } from "@/lib/store";
-import type { BinderDef, CardData, Copy } from "@/lib/types";
+import type { CardData, Copy, SetData } from "@/lib/types";
+import { useTotals } from "@/lib/useTotals";
 import styles from "./Computer.module.css";
 
 type Tab = "home" | "wish" | "dupes" | "search" | "save";
@@ -28,23 +30,40 @@ interface Props {
 
 interface Entry {
   card: CardData;
-  binder: BinderDef;
+  set: SetData;
   copies: Copy[] | undefined;
+  /** part of a set binder (counts in the wishlist) */
+  tracked: boolean;
 }
 
-const cardLabel = (e: Entry) =>
-  /^\d+$/.test(e.card.num) && e.binder.set?.official ? `${e.card.num}/${e.binder.set.official}` : e.card.num;
+const cardLabel = (e: Entry) => (/^\d+$/.test(e.card.num) && e.set.official ? `${e.card.num}/${e.set.official}` : e.card.num);
 
 export function Computer({ origin, onClose, onGoToCard }: Props) {
   const collection = useStore((s) => s.collection);
+  const binders = useStore((s) => s.binders);
+  const sets = useSets((s) => s.sets);
+  const cards = useSets((s) => s.cards);
   const [tab, setTab] = useState<Tab>("home");
   const [toast, setToast] = useState<string | null>(null);
 
-  const filled = useMemo(() => BINDERS.filter((b) => b.set), []);
-  const entries = useMemo<Entry[]>(
-    () => filled.flatMap((b) => b.set!.cards.map((card) => ({ card, binder: b, copies: collection[card.id] }))),
-    [filled, collection],
-  );
+  // Every card of the set binders, plus every card owned elsewhere (free binders).
+  const entries = useMemo<Entry[]>(() => {
+    const out: Entry[] = [];
+    const seen = new Set<string>();
+    for (const b of binders) {
+      const set = b.kind === "set" ? sets[b.setId] : undefined;
+      set?.cards.forEach((card) => {
+        seen.add(card.id);
+        out.push({ card, set, copies: collection[card.id], tracked: true });
+      });
+    }
+    for (const [id, copies] of Object.entries(collection)) {
+      const set = sets[setIdOfCard(id) ?? ""];
+      if (seen.has(id) || !cards[id] || !set) continue;
+      out.push({ card: cards[id], set, copies, tracked: false });
+    }
+    return out;
+  }, [binders, sets, cards, collection]);
 
   const say = (msg: string) => {
     setToast(msg);
@@ -125,7 +144,7 @@ export function Computer({ origin, onClose, onGoToCard }: Props) {
               </nav>
 
               <main key={tab} className={styles.panel} role="tabpanel">
-                {tab === "home" && <Home entries={entries} filled={filled} collection={collection} onGo={onGoToCard} />}
+                {tab === "home" && <Home entries={entries} onGo={onGoToCard} />}
                 {tab === "wish" && <Wishlist entries={entries} onGo={onGoToCard} onCopy={copy} />}
                 {tab === "dupes" && <Dupes entries={entries} onGo={onGoToCard} onCopy={copy} />}
                 {tab === "search" && <Search entries={entries} onGo={onGoToCard} />}
@@ -152,29 +171,25 @@ function Clock() {
 
 /* ------------------------------------------------------------------ */
 
-function Home({
-  entries,
-  filled,
-  collection,
-  onGo,
-}: {
-  entries: Entry[];
-  filled: BinderDef[];
-  collection: Record<string, Copy[]>;
-  onGo: (id: string) => void;
-}) {
-  const perSet = filled.map((b) => ({ b, s: setStats(b.set!, collection) }));
-  const t = perSet.reduce(
-    (a, { s }) => ({
-      owned: a.owned + s.owned,
-      total: a.total + s.total,
-      trend: a.trend + s.trend,
-      low: a.low + s.low,
-      spent: a.spent + s.spent,
-      spentTrend: a.spentTrend + s.spentTrend,
-    }),
-    { owned: 0, total: 0, trend: 0, low: 0, spent: 0, spentTrend: 0 },
-  );
+function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void }) {
+  const collection = useStore((s) => s.collection);
+  const userBinders = useStore((s) => s.binders);
+  const profile = useStore((s) => s.profile);
+  const sets = useSets((s) => s.sets);
+  const cards = useSets((s) => s.cards);
+  const t = useTotals();
+  const rows = shelfBinders(userBinders).map((b) => {
+    const set = b.setId ? sets[b.setId] : undefined;
+    if (set) {
+      const s = setStats(set, collection);
+      return { b, pct: s.total ? s.owned / s.total : 0, count: `${s.owned}/${s.total}`, trend: s.trend };
+    }
+    const items = [...pocketsOf(b.id, collection).values()].flatMap(({ cardId, copy }) =>
+      cards[cardId] ? [{ card: cards[cardId], copies: [copy] }] : [],
+    );
+    const s = copiesTotals(items);
+    return { b, pct: null, count: `${s.cards} carte${s.cards > 1 ? "s" : ""}`, trend: s.trend };
+  });
   const gain = t.spentTrend - t.spent;
   const recent = entries
     .flatMap((e) => (e.copies ?? []).map((c) => ({ e, c })))
@@ -184,7 +199,11 @@ function Home({
   return (
     <div className={styles.home}>
       <div className={styles.tiles}>
-        <Tile label="Cartes" value={`${t.owned}/${t.total}`} sub={`${t.total ? Math.round((t.owned / t.total) * 100) : 0}% · il en manque ${t.total - t.owned}`} big />
+        {t.total ? (
+          <Tile label="Cartes" value={`${t.owned}/${t.total}`} sub={`${Math.round((t.owned / t.total) * 100)}% · il en manque ${t.total - t.owned}`} big />
+        ) : (
+          <Tile label="Cartes" value={String(t.cards)} sub={`${t.copies} exemplaires`} big />
+        )}
         <Tile label="Valeur (tendance)" value={formatEur(t.trend)} sub={`prix bas ${formatEur(t.low)}`} accent="yellow" />
         <Tile label="Dépensé" value={formatEur(t.spent)} sub="sur les cartes avec un prix d'achat" />
         <Tile
@@ -196,21 +215,23 @@ function Home({
       </div>
 
       <section>
-        <h2>Classeurs</h2>
-        {perSet.map(({ b, s }) => (
+        <h2>{profile ? `Classeurs de ${profile.name}` : "Classeurs"}</h2>
+        {rows.map(({ b, pct, count, trend }) => (
           <div key={b.id} className={styles.setRow}>
-            <img src={`${b.logo}.png`} alt="" />
+            {b.logo ? <img src={`${b.logo}.png`} alt="" /> : <span className={styles.freeIcon}>✎</span>}
             <span className={styles.setName}>{b.name}</span>
-            <span className={styles.bar} aria-label={`${s.owned} sur ${s.total}`}>
-              <span style={{ width: `${(s.owned / s.total) * 100}%` }} />
-            </span>
-            <span className={styles.num}>
-              {s.owned}/{s.total}
-            </span>
-            <span className={styles.money}>{formatEur(s.trend)}</span>
+            {pct != null ? (
+              <span className={styles.bar} aria-label={count}>
+                <span style={{ width: `${pct * 100}%` }} />
+              </span>
+            ) : (
+              <span className={styles.freeTag}>classeur libre</span>
+            )}
+            <span className={styles.num}>{count}</span>
+            <span className={styles.money}>{formatEur(trend)}</span>
           </div>
         ))}
-        <p className={styles.muted}>{BINDERS.length - filled.length} classeurs attendent encore leurs cartes.</p>
+        {!rows.length && <p className={styles.muted}>Aucun classeur : clique sur le + de l&apos;étagère.</p>}
       </section>
 
       <section>
@@ -261,13 +282,13 @@ function CardRow({ e, right, onGo, extra }: { e: Entry; right: string; onGo: (id
 
 function Wishlist({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string) => void; onCopy: (t: string, m: string) => void }) {
   const [sort, setSort] = useState<"price" | "num">("price");
-  const missing = entries.filter((e) => !e.copies?.length);
+  const missing = entries.filter((e) => e.tracked && !e.copies?.length);
   const price = (e: Entry) => unitPrice(e.card, e.card.variants[0], "trend");
   const list = sort === "price" ? [...missing].sort((a, b) => price(b) - price(a)) : missing;
   const total = missing.reduce((n, e) => n + price(e), 0);
 
   const text = () =>
-    [`Je recherche (${missing.length} cartes) :`, ...list.map((e) => `- ${e.binder.name} ${cardLabel(e)} ${e.card.name}`)].join("\n");
+    [`Je recherche (${missing.length} cartes) :`, ...list.map((e) => `- ${e.set.name} ${cardLabel(e)} ${e.card.name}`)].join("\n");
 
   return (
     <div className={styles.listTab}>
@@ -311,7 +332,7 @@ function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string)
   const detail = (e: Entry) =>
     (e.copies ?? []).map((c) => `${c.qty}× ${VARIANT_LABEL[c.variant]} ${c.condition}`).join(" · ");
   const text = () =>
-    [`À échanger (${dupes.length} cartes) :`, ...dupes.map((d) => `- ${d.e.binder.name} ${cardLabel(d.e)} ${d.e.card.name} ×${d.extra} (${detail(d.e)})`)].join(
+    [`À échanger (${dupes.length} cartes) :`, ...dupes.map((d) => `- ${d.e.set.name} ${cardLabel(d.e)} ${d.e.card.name} ×${d.extra} (${detail(d.e)})`)].join(
       "\n",
     );
 
@@ -382,6 +403,7 @@ function Search({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => voi
 
 function Save({ say }: { say: (m: string) => void }) {
   const collection = useStore((s) => s.collection);
+  const profile = useStore((s) => s.profile);
   const importBackup = useStore((s) => s.importBackup);
   const resetCollection = useStore((s) => s.resetCollection);
   const file = useRef<HTMLInputElement>(null);
@@ -390,7 +412,7 @@ function Save({ say }: { say: (m: string) => void }) {
   const copies = Object.values(collection).reduce((n, cs) => n + cs.reduce((m, c) => m + c.qty, 0), 0);
 
   const exportFile = () => {
-    const blob = new Blob([JSON.stringify(makeBackup(collection), null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(makeBackup(useStore.getState()), null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `pokepocket-${new Date().toISOString().slice(0, 10)}.json`;
@@ -405,6 +427,8 @@ function Save({ say }: { say: (m: string) => void }) {
       const data = JSON.parse(await f.text());
       if (!isBackup(data)) throw new Error("bad file");
       importBackup(data);
+      const s = useStore.getState();
+      await loadSets(neededSets(s.binders, s.collection));
       sfx.add(0, "rare");
       say(`${Object.keys(data.collection).length} cartes importées !`);
     } catch {
@@ -416,6 +440,11 @@ function Save({ say }: { say: (m: string) => void }) {
   return (
     <div className={styles.save}>
       <p>
+        {profile && (
+          <>
+            Compte <b>{profile.name}</b> (local).{" "}
+          </>
+        )}
         Ta collection (<b>{cards}</b> cartes, <b>{copies}</b> exemplaires) est enregistrée <b>dans ce navigateur</b>. Exporte-la de temps en temps : si
         tu vides les données du site, elle part avec.
       </p>

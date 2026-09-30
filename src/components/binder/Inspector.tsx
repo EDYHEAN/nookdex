@@ -11,15 +11,27 @@ import styles from "./Inspector.module.css";
 
 interface Props {
   card: CardData;
+  /** Free binder the card is looked at from; null = its set binder */
+  binderId: string | null;
   onClose: () => void;
   onNavigate: (delta: number) => void;
   onAdd: (card: CardData) => AddResult;
 }
 
-export function Inspector({ card, onClose, onNavigate, onAdd }: Props) {
+export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props) {
   const copies = useStore((s) => s.collection[card.id]);
+  const binders = useStore((s) => s.binders);
   const { addCopy, updateCopy, removeCopy, removeCard } = useStore.getState();
   const owned = !!copies?.length;
+  const keptHere = copies?.some((c) => (c.at?.binder ?? null) === binderId);
+  /** Where each copy is kept, when it's not this binder */
+  const placeOf = (copy: Copy) => {
+    const here = (copy.at?.binder ?? null) === binderId;
+    if (here) return undefined;
+    if (!copy.at) return "dans son classeur";
+    const b = binders.find((x) => x.id === copy.at!.binder);
+    return b?.kind === "free" ? `dans ${b.name}` : undefined;
+  };
   const cardRef = useRef<HTMLDivElement>(null);
   const hasFoil = copies?.some((c) => c.variant !== "normal") || card.variants.every((v) => v !== "normal");
 
@@ -144,6 +156,7 @@ export function Inspector({ card, onClose, onNavigate, onAdd }: Props) {
                 key={copy.id}
                 index={i}
                 copy={copy}
+                place={placeOf(copy)}
                 canCycleVariant={card.variants.length > 1}
                 onVariant={() => {
                   sfx.pop();
@@ -211,11 +224,11 @@ export function Inspector({ card, onClose, onNavigate, onAdd }: Props) {
           >
             Voir sur Cardmarket ↗
           </a>
-          {owned && (
+          {keptHere && (
             <HoldButton
               onConfirm={() => {
                 sfx.remove();
-                removeCard(card.id);
+                removeCard(card.id, binderId);
               }}
             />
           )}
@@ -240,6 +253,8 @@ const CONDITION_COLORS: Record<Condition, string> = {
 interface CopyRowProps {
   index: number;
   copy: Copy;
+  /** "dans Fourre-tout" when kept in another binder */
+  place?: string;
   canCycleVariant: boolean;
   onVariant: () => void;
   onCondition: (dir: 1 | -1) => void;
@@ -247,7 +262,7 @@ interface CopyRowProps {
   onPaid: (price: number | null) => void;
 }
 
-function CopyRow({ index, copy, canCycleVariant, onVariant, onCondition, onQty, onPaid }: CopyRowProps) {
+function CopyRow({ index, copy, place, canCycleVariant, onVariant, onCondition, onQty, onPaid }: CopyRowProps) {
   return (
     <motion.div
       className={styles.copy}
@@ -298,6 +313,7 @@ function CopyRow({ index, copy, canCycleVariant, onVariant, onCondition, onQty, 
         </button>
       </div>
       <PaidTag paid={copy.paid} onChange={onPaid} />
+      {place && <span className={styles.place}>📍 {place}</span>}
     </motion.div>
   );
 }

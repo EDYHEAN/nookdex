@@ -203,22 +203,31 @@
     filter 0.2s steps(2);
 }
 
-.binder > img {
+/* drawn binder: the svg is larger than the spine (side cover, shadow) and hangs to the right */
+.binder svg {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  left: 0;
+  top: 0;
+  overflow: visible;
   pointer-events: none;
 }
 
-/* Binders never leave their spot (that would show what is painted behind them):
-   they light up and swell a little, which only ever covers their own place. */
+/* hovered: pulled up a little from the shelf, as if a finger hooked it.
+   Only the drawing moves: the hit area stays in place, so the pointer never slips off it. */
+.binder > div {
+  transition: translate 0.2s steps(3);
+}
+
 .binder:hover,
 .binder:focus-visible {
-  transform: scale(1.03);
   filter: brightness(1.12) saturate(1.1) drop-shadow(0 0 10px rgba(255, 214, 140, 0.85));
   z-index: 2;
   outline: none;
+}
+
+.binder:hover > div,
+.binder:focus-visible > div {
+  translate: 0 -14px;
 }
 
 .label {
@@ -238,6 +247,76 @@
   mix-blend-mode: multiply;
 }
 
+/* free binder (or a set without logo): its name hand-written on the label */
+.labelText {
+  position: absolute;
+  inset: 4% 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--font-vt), monospace;
+  font-size: min(70cqw, 13cqh);
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  mix-blend-mode: multiply;
+  rotate: 180deg;
+}
+
+/* ---------- empty place: pencil sketch of a binder + a "+" ---------- */
+
+.addSlot {
+  animation: sketchIn 0.4s steps(4);
+}
+
+.addSketch {
+  position: absolute;
+  inset: 0;
+  filter: url(#boil-soft);
+  opacity: 0.6;
+  transition: opacity 0.2s steps(2);
+}
+
+.addPlus {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  translate: -50% -50%;
+  font-family: var(--font-press), monospace;
+  font-size: 72px;
+  color: #fff4dc;
+  -webkit-text-stroke: 3px #4a3448;
+  paint-order: stroke fill;
+  text-shadow:
+    5px 5px 0 rgba(60, 40, 60, 0.45),
+    0 0 22px rgba(255, 214, 140, 0.9);
+  animation: plusBob 1.6s steps(4) infinite;
+}
+
+.addSlot:hover .addSketch,
+.addSlot:focus-visible .addSketch {
+  opacity: 0.95;
+}
+
+.addSlot:hover .addPlus {
+  animation-duration: 0.5s;
+}
+
+@keyframes plusBob {
+  50% {
+    transform: translateY(-8px) rotate(-6deg);
+  }
+}
+
+@keyframes sketchIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
 .progress {
   position: absolute;
   right: 3px;
@@ -255,40 +334,36 @@
   background: #6fbf5a;
 }
 
-.placeholder > img {
-  filter: saturate(0.8);
-}
-
-.placeholder .label > img {
-  opacity: 0.75;
-  filter: grayscale(0.3);
-}
-
+/* taken out: slides up off the shelf */
 .out {
   opacity: 0;
-  transform: scale(1.08);
+  transform: translateY(-90px) rotate(-3deg);
   transition:
     transform 0.2s steps(3),
     opacity 0.2s steps(3);
   pointer-events: none;
 }
 
+/* put back (or just added): drops into its place */
 .returning {
-  animation: putBack 0.45s steps(5);
+  animation: putBack 0.5s steps(6);
 }
 
 @keyframes putBack {
   0% {
     opacity: 0;
-    transform: scale(1.08);
+    transform: translateY(-110px) rotate(-4deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(6px) scaleY(0.97);
   }
   100% {
-    opacity: 1;
     transform: none;
   }
 }
 
-/* empty binder: a little "nope" pulse, still without leaving its place */
+/* couldn't open: a little rattle in place */
 .shake {
   animation: nope 0.42s steps(6);
 }
@@ -296,14 +371,14 @@
 @keyframes nope {
   0%,
   100% {
-    transform: scale(1.03);
+    transform: none;
   }
   30% {
-    transform: scale(1.06, 1.01);
+    transform: translateY(4px) rotate(-2deg);
     filter: brightness(0.85) saturate(0.6);
   }
   60% {
-    transform: scale(1.01, 1.05);
+    transform: translateY(2px) rotate(2deg);
   }
 }
 

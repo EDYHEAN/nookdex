@@ -1,0 +1,458 @@
+[
+ {
+  "id": "30th",
+  "serie": "me",
+  "serieName": "Méga-Évolution",
+  "name": "30ᵉ Anniversaire",
+  "code": "30TH",
+  "logo": null,
+  "releaseDate": "2026-09-16",
+  "total": 191,
+  "subs": [
+   "30th-c"
+  ]
+ },
+ {
+  "id": "me05",
+  "serie": "me",
+  "serieName": "Méga-Évolution",
+  "name": "Nuit Noire",
+  "code": "ME05",
+  "logo": "https://assets.tcgdex.net/fr/me/me05/logo",
+  "releaseDate": "2026-07-17",
+  "total": 120,
+  "subs": []
+ },
+ {
+  "id": "me04",
+  "serie": "me",
+  "serieName": "Méga-Évolution",
+  "name": "Chaos Ascendant",
+  "code": "ME04",
+  "logo": "https://assets.tcgdex.net/fr/me/me04/logo",
+  "releaseDate": "2026-05-22",
+  "total": 122,
+  "subs": []
+ },
+ {
+  "id": "me03",
+  "serie": "me",
+  "serieName": "Méga-Évolution",
+  "name": "Équilibre Parfait",
+  "code": "ME03",
+  "logo": "https://assets.tcgdex.net/fr/me/me03/logo",
+  "releaseDate": "2026-03-27",
+  "total": 124,
+  "subs": []
+ },
+ {
+  "id": "me02.5",
+  "serie": "me",
+  "serieName": "Méga-Évolution",
+  "name": "Héros Transcendants",
+  "code": "ME2.5",
+  "logo": "https://assets.tcgdex.net/fr/me/me02.5/logo",
+  "releaseDate": "2026-01-30",
+  "total": 295,
+  "subs": []
+ },
+ {
+  "id": "me02",
+  "serie": "me",
+  "serieName": "Méga-Évolution",
+  "name": "Flammes Fantasmagoriques",
+  "code": "ME02",
+  "logo": "https://assets.tcgdex.net/fr/me/me02/logo",
+  "releaseDate": "2025-11-14",
+  "total": 130,
+  "subs": []
+ },
+ {
+  "id": "me01",
+  "serie": "me",
+  "serieName": "Méga-Évolution",
+  "name": "Méga-Évolution",
+  "code": "ME01",
+  "logo": "https://assets.tcgdex.net/fr/me/me01/logo",
+  "releaseDate": "2025-09-26",
+  "total": 188,
+  "subs": []
+ },
+ {
+  "id": "sv10.5b",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Foudre Noire",
+  "code": "BLK",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv10.5b/logo",
+  "releaseDate": "2025-07-17",
+  "total": 172,
+  "subs": []
+ },
+ {
+  "id": "sv10.5w",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Flamme Blanche",
+  "code": "WHT",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv10.5w/logo",
+  "releaseDate": "2025-07-17",
+  "total": 173,
+  "subs": []
+ },
+ {
+  "id": "sv10",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Rivalités Destinées",
+  "code": "EV10",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv10/logo",
+  "releaseDate": "2025-05-30",
+  "total": 244,
+  "subs": []
+ },
+ {
+  "id": "sv09",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Aventures Ensemble",
+  "code": "EV09",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv09/logo",
+  "releaseDate": "2025-03-28",
+  "total": 190,
+  "subs": []
+ },
+ {
+  "id": "sv08.5",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Évolutions Prismatiques",
+  "code": "EV8.5",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv08.5/logo",
+  "releaseDate": "2025-01-17",
+  "total": 180,
+  "subs": []
+ },
+ {
+  "id": "sv08",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Étincelles Déferlantes",
+  "code": "EV08",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv08/logo",
+  "releaseDate": "2024-11-08",
+  "total": 252,
+  "subs": []
+ },
+ {
+  "id": "sv07",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Couronne Stellaire",
+  "code": "EV07",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv07/logo",
+  "releaseDate": "2024-09-13",
+  "total": 175,
+  "subs": []
+ },
+ {
+  "id": "sv06.5",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Fable Nébuleuse",
+  "code": "EV6.5",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv06.5/logo",
+  "releaseDate": "2024-08-02",
+  "total": 99,
+  "subs": []
+ },
+ {
+  "id": "sv06",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Mascarade Crépusculaire",
+  "code": "EV06",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv06/logo",
+  "releaseDate": "2024-05-24",
+  "total": 226,
+  "subs": []
+ },
+ {
+  "id": "sv05",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Forces Temporelles",
+  "code": "EV05",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv05/logo",
+  "releaseDate": "2024-03-22",
+  "total": 218,
+  "subs": []
+ },
+ {
+  "id": "sv04.5",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Destinées de Paldea",
+  "code": "EV4.5",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv04.5/logo",
+  "releaseDate": "2024-01-26",
+  "total": 245,
+  "subs": []
+ },
+ {
+  "id": "sv04",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Faille Paradoxe",
+  "code": "EV04",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv04/logo",
+  "releaseDate": "2023-11-03",
+  "total": 266,
+  "subs": []
+ },
+ {
+  "id": "sv03.5",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "151",
+  "code": "MEW",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv03.5/logo",
+  "releaseDate": "2023-09-22",
+  "total": 207,
+  "subs": []
+ },
+ {
+  "id": "sv03",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Flammes Obsidiennes",
+  "code": "EV03",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv03/logo",
+  "releaseDate": "2023-08-11",
+  "total": 230,
+  "subs": []
+ },
+ {
+  "id": "sv02",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Évolutions à Paldea",
+  "code": "EV02",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv02/logo",
+  "releaseDate": "2023-06-09",
+  "total": 279,
+  "subs": []
+ },
+ {
+  "id": "sv01",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Écarlate et Violet",
+  "code": "EV01",
+  "logo": "https://assets.tcgdex.net/fr/sv/sv01/logo",
+  "releaseDate": "2023-03-31",
+  "total": 258,
+  "subs": []
+ },
+ {
+  "id": "swsh12.5",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Zénith Suprême",
+  "code": "EB12.5",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh12.5/logo",
+  "releaseDate": "2023-01-20",
+  "total": 230,
+  "subs": [
+   "swsh12.5gg"
+  ]
+ },
+ {
+  "id": "swsh12",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Tempête Argentée",
+  "code": "EB12",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh12/logo",
+  "releaseDate": "2022-11-11",
+  "total": 245,
+  "subs": [
+   "swsh12tg"
+  ]
+ },
+ {
+  "id": "swsh11",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Origine Perdue",
+  "code": "EB11",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh11/logo",
+  "releaseDate": "2022-09-09",
+  "total": 247,
+  "subs": [
+   "swsh11tg"
+  ]
+ },
+ {
+  "id": "swsh10.5",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Pokémon GO",
+  "code": "PGO",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh10.5/logo",
+  "releaseDate": "2022-07-01",
+  "total": 88,
+  "subs": []
+ },
+ {
+  "id": "swsh10",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Astres Radieux",
+  "code": "EB10",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh10/logo",
+  "releaseDate": "2022-05-27",
+  "total": 246,
+  "subs": [
+   "swsh10tg"
+  ]
+ },
+ {
+  "id": "swsh9",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Stars Étincelantes",
+  "code": "EB09",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh9/logo",
+  "releaseDate": "2022-02-25",
+  "total": 216,
+  "subs": [
+   "swsh9tg"
+  ]
+ },
+ {
+  "id": "swsh8",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Poing de Fusion",
+  "code": "EB08",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh8/logo",
+  "releaseDate": "2021-11-12",
+  "total": 284,
+  "subs": []
+ },
+ {
+  "id": "cel25",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Célébrations",
+  "code": "CEL25",
+  "logo": "https://assets.tcgdex.net/fr/swsh/cel25/logo",
+  "releaseDate": "2021-10-08",
+  "total": 24,
+  "subs": [
+   "cel25cc"
+  ]
+ },
+ {
+  "id": "swsh7",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Évolution Céleste",
+  "code": "EB07",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh7/logo",
+  "releaseDate": "2021-08-27",
+  "total": 237,
+  "subs": []
+ },
+ {
+  "id": "swsh6",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Règne de Glace",
+  "code": "EB06",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh6/logo",
+  "releaseDate": "2021-06-18",
+  "total": 233,
+  "subs": []
+ },
+ {
+  "id": "swsh5",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Styles de combat",
+  "code": "EB05",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh5/logo",
+  "releaseDate": "2021-03-19",
+  "total": 183,
+  "subs": []
+ },
+ {
+  "id": "swsh4.5",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Destinées Radieuses",
+  "code": "EB4.5",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh4.5/logo",
+  "releaseDate": "2021-02-19",
+  "total": 195,
+  "subs": [
+   "swsh4.5sv"
+  ]
+ },
+ {
+  "id": "swsh4",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Voltage Éclatant",
+  "code": "EB04",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh4/logo",
+  "releaseDate": "2020-11-13",
+  "total": 203,
+  "subs": []
+ },
+ {
+  "id": "swsh3.5",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "La Voie du Maître",
+  "code": "EB3.5",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh3.5/logo",
+  "releaseDate": "2020-09-25",
+  "total": 80,
+  "subs": []
+ },
+ {
+  "id": "swsh3",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Ténèbres Embrasées",
+  "code": "EB03",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh3/logo",
+  "releaseDate": "2020-08-14",
+  "total": 201,
+  "subs": []
+ },
+ {
+  "id": "swsh2",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Clash des Rebelles",
+  "code": "EB02",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh2/logo",
+  "releaseDate": "2020-05-01",
+  "total": 209,
+  "subs": []
+ },
+ {
+  "id": "swsh1",
+  "serie": "swsh",
+  "serieName": "Épée et Bouclier",
+  "name": "Épée et Bouclier",
+  "code": "EB01",
+  "logo": "https://assets.tcgdex.net/fr/swsh/swsh1/logo",
+  "releaseDate": "2020-02-07",
+  "total": 216,
+  "subs": []
+ }
+]

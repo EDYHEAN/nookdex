@@ -633,3 +633,11 @@
     top: 22vh;
   }
 }
+
+/* where a copy is kept, when it's another binder */
+.place {
+  flex-basis: 100%;
+  font-size: 16px;
+  color: #ffd35a;
+  opacity: 0.85;
+}

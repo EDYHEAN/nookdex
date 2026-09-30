@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BINDERS } from "@/lib/binders";
-import { formatEur, setStats } from "@/lib/price";
-import { SCENE, binderSlot, sceneImg } from "@/lib/scene";
+import { MAX_BINDERS, pocketsOf, shelfBinders } from "@/lib/binders";
+import { catalogSet, loadSet, useSets } from "@/lib/catalog";
+import { copiesTotals, formatEur, setStats } from "@/lib/price";
+import { SCENE, sceneImg } from "@/lib/scene";
 import { sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import type { BinderDef } from "@/lib/types";
+import { useTotals } from "@/lib/useTotals";
 import { useViewport } from "@/lib/useViewport";
 import { LAVA_THEMES, drawDust, drawLava, drawRain } from "./sceneAnim";
 import { Monitor } from "./Monitor";
+import { ShelfBinder, binderLabel, binderSize } from "./ShelfBinder";
 import styles from "./PaintedRoom.module.css";
 
 interface Props {
@@ -19,6 +22,8 @@ interface Props {
   paused: boolean;
   onOpen: (binder: BinderDef) => void;
   onOpenComputer: (rect: DOMRect) => void;
+  /** the "+" at the end of the shelf */
+  onAddBinder: () => void;
 }
 
 interface Tip {
@@ -35,6 +40,12 @@ const { width: W, height: H } = SCENE;
 const FOCUS = { x: 1735, w: 850 };
 const HEADER = 92;
 const ANIM_FPS = 12;
+/** A binder shows its side cover when nothing stands on its right: end of a shelf, or of the row. */
+const rowEnd = (i: number) => {
+  const a = SCENE.slots[i];
+  const b = SCENE.slots[i + 1];
+  return !b || Math.abs(b.y - a.y) > 100;
+};
 const SCREEN_QUAD = SCENE.screenQuad.map(([x, y]) => [x - SCENE.screen.x, y - SCENE.screen.y] as [number, number]);
 
 function useCamera(compact: boolean) {
@@ -50,13 +61,17 @@ function useCamera(compact: boolean) {
   }, [vp.w, vp.h, compact]);
 }
 
-export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer }: Props) {
+export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder }: Props) {
   const cam = useCamera(compact);
   const lampOn = useStore((s) => s.lampOn);
   const ambient = useStore((s) => s.ambient);
   const toggleLamp = useStore((s) => s.toggleLamp);
   const setAmbient = useStore((s) => s.setAmbient);
   const collection = useStore((s) => s.collection);
+  const userBinders = useStore((s) => s.binders);
+  const binders = useMemo(() => shelfBinders(userBinders), [userBinders]);
+  const sets = useSets((s) => s.sets);
+  const cards = useSets((s) => s.cards);
 
   const world = useRef<HTMLDivElement>(null);
   const fore = useRef<HTMLDivElement>(null);
@@ -76,6 +91,25 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer }:
   const [petting, setPetting] = useState(0);
   const [lavaIdx, setLavaIdx] = useState(0);
   const prevOpen = useRef<string | null>(null);
+  const prevIds = useRef<string[] | null>(null);
+
+  // A binder that was just added slides onto the shelf.
+  useEffect(() => {
+    const ids = binders.map((b) => b.id);
+    const before = prevIds.current;
+    prevIds.current = ids;
+    const fresh = before && ids.find((id) => !before.includes(id));
+    if (!fresh) return;
+    const t0 = setTimeout(() => {
+      setReturning(fresh);
+      sfx.shelfIn();
+    }, 250);
+    const t1 = setTimeout(() => setReturning((r) => (r === fresh ? null : r)), 1100);
+    return () => {
+      clearTimeout(t0);
+      clearTimeout(t1);
+    };
+  }, [binders]);
 
   // The binder that was just put back slides into the shelf.
   useEffect(() => {
@@ -139,20 +173,41 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer }:
     else setTip({ ...p, title, sub });
   };
 
-  const clickBinder = (b: BinderDef) => {
-    if (!b.set) {
-      sfx.locked();
-      setShaking(b.id);
-      setTip((t) => (t ? { ...t, sub: "Bientôt dans ta collec…" } : t));
-      setTimeout(() => setShaking(null), 450);
-      return;
-    }
+  const clickBinder = async (b: BinderDef) => {
     if (openId || pulling) return;
+    if (b.setId && !sets[b.setId]) {
+      setTip((t) => (t ? { ...t, sub: "on sort les cartes…" } : t));
+      try {
+        await loadSet(b.setId);
+      } catch {
+        sfx.locked();
+        setShaking(b.id);
+        setTip((t) => (t ? { ...t, sub: "pas de réseau ? réessaie" } : t));
+        setTimeout(() => setShaking(null), 450);
+        return;
+      }
+    }
     sfx.shelfOut();
     setPulling(b.id);
     setTip(null);
     setTimeout(() => onOpen(b), 200);
   };
+
+  /** "112/245 cartes · 38 €" on a set binder, "12 cartes · 20 €" on a free one */
+  const summary = (b: BinderDef) => {
+    if (b.setId) {
+      const set = sets[b.setId];
+      if (!set) return { sub: `${b.code} · ${catalogTotal(b)} cartes`, pct: null };
+      const st = setStats(set, collection);
+      return { sub: `${st.owned}/${st.total} cartes · ${formatEur(st.trend)}`, pct: st.total ? st.owned / st.total : 0 };
+    }
+    const items = [...pocketsOf(b.id, collection).values()].flatMap(({ cardId, copy }) => (cards[cardId] ? [{ card: cards[cardId], copies: [copy] }] : []));
+    const t = copiesTotals(items);
+    return { sub: t.cards ? `${t.cards} carte${t.cards > 1 ? "s" : ""} · ${formatEur(t.trend)}` : "classeur libre · vide", pct: null };
+  };
+  const plusSlot = binders.length < MAX_BINDERS ? SCENE.slots[binders.length] : null;
+  /** the binder on its left shows its side cover over part of the sketch */
+  const besideBinder = binders.length > 0 && !rowEnd(binders.length - 1);
 
   const sceneStyle = { width: W, height: H, transform: `translate(${cam.x}px, ${cam.y}px) scale(${cam.k})` };
   const place = (r: { x: number; y: number; w: number; h: number }) => ({ left: r.x, top: r.y, width: r.w, height: r.h });
@@ -216,52 +271,86 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer }:
             }}
           />
 
-          {/* binders, painted on the shelves, with the set logo on their label */}
-          {BINDERS.map((b) => {
-            const slot = binderSlot(b.slot);
+          {/* a free place on the shelf: a pencil sketch of a binder, to add one (behind the side of its neighbour) */}
+          {plusSlot && (
+            <button
+              key={`plus-${binders.length}`}
+              className={`${styles.binder} ${styles.addSlot}`}
+              style={place(plusSlot)}
+              aria-label="Ajouter un classeur"
+              onPointerEnter={() => {
+                sfx.hover();
+                showTip(
+                  plusSlot.x + plusSlot.w / 2,
+                  plusSlot.y - 8,
+                  "Nouveau classeur",
+                  binders.length ? "une extension ou un classeur libre" : "choisis ton premier classeur",
+                  plusSlot.y + plusSlot.h + 10,
+                );
+              }}
+              onPointerLeave={() => setTip(null)}
+              onClick={() => {
+                sfx.pop();
+                setTip(null);
+                onAddBinder();
+              }}
+            >
+              <span className={styles.addSketch}>
+                <ShelfBinder slot={plusSlot} sketch />
+              </span>
+              <span className={styles.addPlus} style={besideBinder ? { left: "75%" } : undefined}>
+                +
+              </span>
+            </button>
+          )}
+
+          {/* binders standing on the shelves, with the set logo on their label */}
+          {binders.map((b) => {
+            const slot = SCENE.slots[b.slot];
             const i = binderIndex++;
-            const stats = b.set ? setStats(b.set, collection) : null;
+            const sum = summary(b);
             const cls = [
               styles.binder,
-              !b.set && styles.placeholder,
               (pulling === b.id || openId === b.id) && styles.out,
               returning === b.id && styles.returning,
               shaking === b.id && styles.shake,
             ]
               .filter(Boolean)
               .join(" ");
-            const label = slot.label;
+            const size = binderSize(slot);
+            const label = binderLabel(size.w, size.h);
             return (
               <button
                 key={b.id}
                 className={cls}
-                style={place(slot.rect)}
+                style={place(slot)}
                 aria-label={b.name}
                 onPointerEnter={() => {
                   sfx.spine(i);
-                  showTip(
-                    slot.rect.x + slot.rect.w / 2,
-                    slot.rect.y - 8,
-                    b.name,
-                    stats ? `${stats.owned}/${stats.total} cartes · ${formatEur(stats.trend)}` : `${b.code} · classeur vide`,
-                    slot.rect.y + slot.rect.h + 10,
-                  );
+                  showTip(slot.x + slot.w / 2, slot.y - 8, b.name, sum.sub, slot.y + slot.h + 10);
                 }}
                 onPointerLeave={() => setTip(null)}
                 onClick={() => clickBinder(b)}
               >
-                <img src={sceneImg(slot.file)} alt="" draggable={false} />
-                <span
-                  className={styles.label}
-                  style={{ left: label.x - slot.rect.x, top: label.y - slot.rect.y, width: label.w, height: label.h }}
-                >
-                  <img src={`${b.logo}.png`} alt="" draggable={false} />
-                  {stats && (
-                    <span className={styles.progress}>
-                      <span style={{ height: `${(stats.owned / stats.total) * 100}%` }} />
-                    </span>
-                  )}
-                </span>
+                <ShelfBinder slot={slot} color={b.color} last={rowEnd(b.slot) || b.slot === binders.length - 1}>
+                  <span
+                    className={styles.label}
+                    style={{ left: label.x, top: label.y, width: label.w, height: label.h }}
+                  >
+                    {b.logo ? (
+                      <img src={`${b.logo}.png`} alt="" draggable={false} />
+                    ) : (
+                      <span className={styles.labelText} style={{ color: b.kind === "free" ? "#2b2230" : b.ink }}>
+                        {b.kind === "free" ? b.name : b.code}
+                      </span>
+                    )}
+                    {sum.pct != null && (
+                      <span className={styles.progress}>
+                        <span style={{ height: `${sum.pct * 100}%` }} />
+                      </span>
+                    )}
+                  </span>
+                </ShelfBinder>
               </button>
             );
           })}
@@ -428,26 +517,17 @@ function Clock() {
 }
 
 function CompactHeader() {
-  const collection = useStore((s) => s.collection);
-  const t = useMemo(() => {
-    let owned = 0, total = 0, trend = 0;
-    for (const b of BINDERS) {
-      if (!b.set) continue;
-      const s = setStats(b.set, collection);
-      owned += s.owned;
-      total += s.total;
-      trend += s.trend;
-    }
-    return { owned, total, trend };
-  }, [collection]);
+  const t = useTotals();
   return (
     <header className={styles.header}>
       <h1>
         Poké<span>Pocket</span>
       </h1>
       <p>
-        {t.owned}/{t.total} cartes · <b>{formatEur(t.trend)}</b>
+        {t.total ? `${t.owned}/${t.total}` : t.cards} cartes · <b>{formatEur(t.trend)}</b>
       </p>
     </header>
   );
 }
+
+const catalogTotal = (b: BinderDef) => (b.setId ? (catalogSet(b.setId)?.total ?? "?") : 0);

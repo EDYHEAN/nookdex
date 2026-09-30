@@ -1,11 +1,11 @@
 "use client";
 
-import { AnimatePresence } from "motion/react";
-import { useEffect, useState } from "react";
-import { BINDERS, binderOfCard } from "@/lib/binders";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useMemo, useState } from "react";
+import { shelfBinders } from "@/lib/binders";
+import { loadSet, setIdOfCard } from "@/lib/catalog";
 import { setMuted, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { useStore } from "@/lib/store";
-import type { BinderDef } from "@/lib/types";
 import { isCompact, useViewport } from "@/lib/useViewport";
 import { BinderView } from "./binder/BinderView";
 import { Computer } from "./computer/Computer";
@@ -13,10 +13,12 @@ import { Loader } from "./Loader";
 import { BoilFilter } from "./fx/Boil";
 import { Grain } from "./fx/Grain";
 import { PaintedRoom } from "./room/PaintedRoom";
+import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
+import { Welcome } from "./shelf/Welcome";
 import styles from "./App.module.css";
 
 interface Open {
-  binder: BinderDef;
+  binderId: string;
   focusCardId?: string;
 }
 
@@ -25,7 +27,12 @@ export function App() {
   const compact = isCompact(vp);
   const [open, setOpen] = useState<Open | null>(null);
   const [computer, setComputer] = useState<{ x: number; y: number } | null>(null);
+  const [adding, setAdding] = useState(false);
   const [entered, setEntered] = useState(false);
+  const profile = useStore((s) => s.profile);
+  const userBinders = useStore((s) => s.binders);
+  const binders = useMemo(() => shelfBinders(userBinders), [userBinders]);
+  const [welcome, setWelcome] = useState(() => !useStore.getState().profile);
   const sound = useStore((s) => s.sound);
   const ambient = useStore((s) => s.ambient);
   const toggleSound = useStore((s) => s.toggleSound);
@@ -37,51 +44,114 @@ export function App() {
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const q = new URLSearchParams(window.location.search);
-    if (q.has("demo") && !Object.keys(useStore.getState().collection).length) {
+    const demo = async () => {
+      if (!useStore.getState().binders.length) useStore.getState().addBinder({ kind: "set", setId: "swsh12" });
+      if (Object.keys(useStore.getState().collection).length) return;
+      const set = await loadSet("swsh12");
       const { addCard, addCopy, updateCopy } = useStore.getState();
-      BINDERS.forEach((b) =>
-        b.set?.cards.forEach((c, i) => {
-          if ((i * 7) % 10 < 6) addCard(c.id, c.variants[0]);
-          if (i % 9 === 0 && c.variants[1]) addCopy(c.id, c.variants[1]);
-          const copy = useStore.getState().collection[c.id]?.[0];
-          if (copy && i % 4 === 0) updateCopy(c.id, copy.id, { paid: i % 8 === 0 ? 0 : Math.round((c.price.trend ?? 0) * 80) / 100 });
-        }),
-      );
-    }
-    const t = setTimeout(() => {
+      set.cards.forEach((c, i) => {
+        if ((i * 7) % 10 < 6) addCard(c.id, c.variants[0]);
+        if (i % 9 === 0 && c.variants[1]) addCopy(c.id, c.variants[1]);
+        const copy = useStore.getState().collection[c.id]?.[0];
+        if (copy && i % 4 === 0) updateCopy(c.id, copy.id, { paid: i % 8 === 0 ? 0 : Math.round((c.price.trend ?? 0) * 80) / 100 });
+      });
+    };
+    const t = setTimeout(async () => {
+      if ((q.has("demo") || q.has("skip") || q.has("open") || q.has("os")) && !useStore.getState().profile) {
+        useStore.getState().createProfile("Dev");
+        setWelcome(false);
+      }
+      if (q.has("demo")) await demo();
       if (q.has("skip") || q.has("open") || q.has("os")) setEntered(true);
-      const b = BINDERS.find((x) => x.id === q.get("open"));
-      if (b) setOpen({ binder: b });
+      const want = q.get("open");
+      const b = want ? shelfBinders(useStore.getState().binders).find((x) => x.setId === want || x.id === want) : undefined;
+      if (b) {
+        if (b.setId) await loadSet(b.setId);
+        setOpen({ binderId: b.id });
+      }
       if (q.has("os")) setComputer({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
     }, 50);
     return () => clearTimeout(t);
   }, []);
 
-  const goToCard = (cardId: string) => {
-    const binder = binderOfCard(cardId);
-    if (!binder) return;
+  /** Opens the binder holding the card: its set binder if on the shelf, else a free binder it was slipped in. */
+  const goToCard = async (cardId: string) => {
+    const { collection } = useStore.getState();
+    const setId = setIdOfCard(cardId);
+    const home =
+      binders.find((b) => b.setId && b.setId === setId) ??
+      binders.find((b) => collection[cardId]?.some((c) => c.at?.binder === b.id));
+    if (!home) return;
+    if (home.setId) await loadSet(home.setId);
     sfx.shelfOut();
     setComputer(null);
-    setTimeout(() => setOpen({ binder, focusCardId: cardId }), 350);
+    setTimeout(() => setOpen({ binderId: home.id, focusCardId: cardId }), 350);
   };
 
-  const openId = open?.binder.id ?? null;
+  /** A new binder: download its cards, then put it on the shelf. */
+  const addBinder = async (choice: BinderChoice) => {
+    if (choice.kind === "set") await loadSet(choice.setId);
+    useStore.getState().addBinder(choice);
+  };
+
+  const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
+  const busy = !!openBinder || !!computer || adding;
 
   return (
     <>
-      <BoilFilter paused={!!open || !!computer} />
+      <BoilFilter paused={!!openBinder || !!computer} />
       <PaintedRoom
-        openId={openId}
+        openId={openBinder?.id ?? null}
         compact={compact}
-        paused={!!open || !!computer}
-        onOpen={(binder) => setOpen({ binder })}
+        paused={busy}
+        onOpen={(binder) => setOpen({ binderId: binder.id })}
         onOpenComputer={(r) => setComputer({ x: r.left + r.width / 2, y: r.top + r.height / 2 })}
+        onAddBinder={() => setAdding(true)}
       />
 
-      {open && <BinderView key={open.binder.id} binder={open.binder} focusCardId={open.focusCardId} onClosed={() => setOpen(null)} />}
+      {openBinder && (
+        <BinderView
+          key={openBinder.id}
+          binder={openBinder}
+          focusCardId={open?.focusCardId}
+          onClosed={() => setOpen(null)}
+          onRemoved={() => {
+            setOpen(null);
+            useStore.getState().removeBinder(openBinder.id);
+          }}
+        />
+      )}
 
       <AnimatePresence>
         {computer && <Computer key="os" origin={computer} onClose={() => setComputer(null)} onGoToCard={goToCard} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {adding && (
+          <motion.div
+            key="add"
+            className={styles.modal}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setAdding(false);
+            }}
+          >
+            <BinderPicker
+              title="Nouveau classeur"
+              subtitle={`Il prendra la place libre de l'étagère (${binders.length + 1}/14).`}
+              onPick={async (choice) => {
+                await addBinder(choice);
+                setAdding(false);
+              }}
+              onClose={() => {
+                sfx.click();
+                setAdding(false);
+              }}
+            />
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <div className={styles.corner}>
@@ -126,6 +196,7 @@ export function App() {
         </button>
       </div>
 
+      {entered && (welcome || !profile) && <Welcome onPick={addBinder} onDone={() => setWelcome(false)} />}
       {!entered && <Loader onEnter={() => setEntered(true)} />}
       <Grain />
     </>

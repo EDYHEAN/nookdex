@@ -1,0 +1,353 @@
+/* A sheet of the shop's leaflet: warm paper, ink, pixel type. */
+.sheet {
+  --paper: #f3ead9;
+  --paper-2: #e8dcc4;
+  --ink: #2b2230;
+  --ink-soft: #6b5d66;
+  --accent: #d9534f;
+  position: relative;
+  width: min(920px, calc(100vw - 32px));
+  max-height: min(720px, calc(100dvh - 40px));
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.5), transparent 40%),
+    var(--paper);
+  color: var(--ink);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    8px 10px 0 3px rgba(20, 12, 28, 0.45),
+    0 30px 80px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-vt), monospace;
+  font-size: 20px;
+  overflow: hidden;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 10px;
+}
+
+.head h2 {
+  margin: 0;
+  font-family: var(--font-press), monospace;
+  font-size: clamp(14px, 2.4vw, 20px);
+  line-height: 1.4;
+}
+
+.head p {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+}
+
+.close {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.close:hover {
+  transform: rotate(90deg) scale(1.08);
+}
+
+/* ---------- series tabs: binder dividers ---------- */
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 3px solid var(--ink);
+  flex: none;
+}
+
+.tab {
+  flex: none;
+  padding: 10px 14px 8px;
+  border: 3px solid var(--ink);
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  font: inherit;
+  cursor: pointer;
+  translate: 0 6px;
+  transition:
+    translate 0.15s steps(2),
+    background 0.15s steps(2);
+}
+
+.tab:hover {
+  translate: 0 2px;
+}
+
+.tabOn {
+  background: #ffd35a;
+  color: var(--ink);
+  translate: 0 0;
+}
+
+.tabFree.tabOn {
+  background: #9dd6c0;
+}
+
+/* ---------- sets ---------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+  padding: 18px 20px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.set {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 10px 10px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: #fffaf0;
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition:
+    transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1),
+    box-shadow 0.15s;
+}
+
+.set:not(:disabled):hover,
+.set:not(:disabled):focus-visible {
+  transform: translate(-2px, -4px) rotate(-1deg);
+  box-shadow: 7px 9px 0 var(--ink);
+  outline: none;
+}
+
+.set:not(:disabled):active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.set:disabled {
+  cursor: default;
+}
+
+.logo {
+  height: 64px;
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.logo b {
+  font-family: var(--font-press), monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.setName {
+  font-size: 21px;
+  line-height: 1;
+}
+
+.meta {
+  color: var(--ink-soft);
+  font-size: 17px;
+}
+
+.meta kbd {
+  font: inherit;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.have {
+  opacity: 0.55;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.loading {
+  animation: jiggle 0.4s steps(2) infinite;
+}
+
+@keyframes jiggle {
+  50% {
+    transform: rotate(1.5deg) translateY(-2px);
+  }
+}
+
+.stamp {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  translate: -50% -50%;
+  rotate: -8deg;
+  padding: 2px 10px;
+  border: 3px solid #3c8a55;
+  border-radius: 4px;
+  color: #3c8a55;
+  background: rgba(255, 250, 240, 0.85);
+  font-size: 19px;
+  white-space: nowrap;
+  animation: stampIn 0.25s steps(3);
+}
+
+.stampRed {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@keyframes stampIn {
+  from {
+    scale: 1.8;
+    opacity: 0;
+  }
+}
+
+/* ---------- free binder ---------- */
+
+.free {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px 24px 28px;
+  overflow-y: auto;
+}
+
+.freeIntro {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.nameField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 460px;
+}
+
+.nameField span {
+  color: var(--ink-soft);
+}
+
+.nameField input {
+  padding: 10px 14px;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  background: #fffaf0;
+  color: var(--ink);
+  font: inherit;
+  font-size: 30px;
+  box-shadow: inset 3px 3px 0 rgba(43, 34, 48, 0.12);
+  outline: none;
+}
+
+.nameField input:focus {
+  background: #fffdf6;
+  box-shadow:
+    inset 3px 3px 0 rgba(43, 34, 48, 0.12),
+    0 0 0 4px #ffd35a;
+}
+
+.ideas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.idea {
+  padding: 4px 12px;
+  border: 2px dashed var(--ink-soft);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.idea:hover {
+  transform: translateY(-2px) rotate(-2deg);
+}
+
+.ideaOn {
+  border-style: solid;
+  border-color: var(--ink);
+  background: #9dd6c0;
+}
+
+.create {
+  align-self: flex-start;
+  padding: 14px 22px;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 5px 5px 0 var(--ink);
+  transition:
+    transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1),
+    box-shadow 0.15s;
+}
+
+.create:hover {
+  transform: translate(-2px, -3px);
+  box-shadow: 7px 8px 0 var(--ink);
+}
+
+.create:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.error {
+  margin: 0;
+  color: var(--accent);
+}
+
+@media (max-width: 560px) {
+  .sheet {
+    font-size: 18px;
+  }
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 14px 14px 20px;
+  }
+  .logo {
+    height: 48px;
+  }
+  .setName {
+    font-size: 18px;
+  }
+}

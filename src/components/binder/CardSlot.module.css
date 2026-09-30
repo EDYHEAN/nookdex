@@ -441,3 +441,73 @@
     opacity: 0.4;
   }
 }
+
+/* ---------- kept in another binder ---------- */
+
+.tag {
+  position: absolute;
+  left: 50%;
+  bottom: 5%;
+  translate: -50% 0;
+  max-width: 92%;
+  padding: 0.6cqw 3cqw;
+  border-radius: 2cqw;
+  background: rgba(21, 15, 31, 0.82);
+  color: #ffd35a;
+  font-family: var(--font-vt), monospace;
+  font-size: 10cqw;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ---------- empty pocket (free binder) ---------- */
+
+.empty .pocket {
+  background: rgba(255, 255, 255, 0.05);
+  outline: 0.8cqw dashed rgba(239, 227, 200, 0.28);
+  outline-offset: -3cqw;
+}
+
+.empty .lift {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3cqw;
+}
+
+.emptyPlus {
+  font-family: var(--font-press), monospace;
+  font-size: 18cqw;
+  color: rgba(239, 227, 200, 0.35);
+  transition:
+    color 0.15s,
+    transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.emptyHint {
+  font-family: var(--font-vt), monospace;
+  font-size: 11cqw;
+  color: rgba(239, 227, 200, 0.4);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.empty .pocket:hover .emptyPlus,
+.empty .pocket:focus-visible .emptyPlus {
+  color: #ffd35a;
+  transform: scale(1.3) rotate(90deg);
+}
+
+.empty .pocket:hover .emptyHint,
+.empty .pocket:focus-visible .emptyHint {
+  opacity: 1;
+}
+
+.empty .pocket:active .lift {
+  transform: scale(0.94);
+}
