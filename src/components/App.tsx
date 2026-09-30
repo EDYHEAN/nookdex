@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { shelfBinders } from "@/lib/binders";
-import { loadSet, setIdOfCard } from "@/lib/catalog";
+import { loadSet, loadSets, neededSets, setIdOfCard } from "@/lib/catalog";
 import { returningFromSignIn, startCloud, useCloud } from "@/lib/cloud";
 import { setMuted, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { OS_NAME } from "@/lib/site";
@@ -32,7 +32,8 @@ export function App() {
   const [computer, setComputer] = useState<{ x: number; y: number } | null>(null);
   const [adding, setAdding] = useState(false);
   const [about, setAbout] = useState(false);
-  const [entered, setEntered] = useState(false);
+  // Back from Google or the e-mail link: the player already went in, no loader again.
+  const [entered, setEntered] = useState(returningFromSignIn);
   const profile = useStore((s) => s.profile);
   const cloud = useCloud();
   const offline = useStore((s) => s.offline);
@@ -53,6 +54,13 @@ export function App() {
   useEffect(() => setMuted(!sound), [sound]);
 
   useEffect(startCloud, []);
+
+  // No loader after signing in: the cards of the binders load in the background instead.
+  useEffect(() => {
+    if (!returningFromSignIn) return;
+    const { binders, collection } = useStore.getState();
+    void loadSets(neededSets(binders, collection));
+  }, []);
 
   // Dev-only shortcuts for screenshots: ?skip  ?open=swsh12  ?demo  ?os
   useEffect(() => {
@@ -234,7 +242,7 @@ export function App() {
         ((!cloud.email && !offline) || cloud.status === "loading" || !profile || (welcome && !userBinders.length)) && (
           <Welcome onPick={addBinder} onDone={() => setWelcome(false)} />
         )}
-      {!entered && <Loader autoEnter={returningFromSignIn} onEnter={() => setEntered(true)} />}
+      {!entered && <Loader onEnter={() => setEntered(true)} />}
       <Grain />
     </>
   );

@@ -9,7 +9,7 @@ import { type Backup, isBackup, makeBackup, useStore } from "./store";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://xwqhucccldraieyiycvt.supabase.co";
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_Fn4KmAAhKl7crl-R_ZCHWw_OkFukB2i";
 
-/** Back from Google or the e-mail link (read before the client consumes the URL): the loader lets the player in by itself. */
+/** Back from Google or the e-mail link (read before the client consumes the URL): no loader again. */
 export const returningFromSignIn =
   typeof window !== "undefined" && /[#&?](access_token|code|error_description)=/.test(window.location.hash + window.location.search);
 
@@ -27,11 +27,13 @@ interface CloudState {
   /** The save found online when both it and this browser changed since the last sync. */
   conflict: Backup | null;
   savedAt: number | null;
+  /** Why the last read or save failed (shown in NookDex OS). */
+  error: string | null;
   /** Bumped when the online save replaced the local one (the welcome screen can go). */
   restored: number;
 }
 
-export const useCloud = create<CloudState>(() => ({ ready: false, email: null, firstName: null, status: "off", conflict: null, savedAt: null, restored: 0 }));
+export const useCloud = create<CloudState>(() => ({ ready: false, email: null, firstName: null, status: "off", conflict: null, savedAt: null, error: null, restored: 0 }));
 
 type Synced = Pick<Backup, "profile" | "binders" | "collection">;
 
@@ -81,11 +83,11 @@ async function push() {
   if (user?.id !== u.id) return;
   if (error) {
     console.warn("[cloud] save failed", error);
-    useCloud.setState({ status: "error" });
+    useCloud.setState({ status: "error", error: error.message });
     return;
   }
   writeBase(u.id, fp);
-  useCloud.setState({ status: "synced", savedAt: Date.now() });
+  useCloud.setState({ status: "synced", savedAt: Date.now(), error: null });
 }
 
 async function applyRemote(remote: Backup) {
@@ -105,7 +107,7 @@ async function pull() {
   if (user?.id !== u.id) return;
   if (error) {
     console.warn("[cloud] load failed", error);
-    useCloud.setState({ status: "error" });
+    useCloud.setState({ status: "error", error: error.message });
     return;
   }
   const remote = isBackup(data?.data) ? (data.data as Backup) : null;
@@ -118,7 +120,7 @@ async function pull() {
 
   if (remoteFp === localFp) {
     writeBase(u.id, localFp);
-    useCloud.setState({ status: "synced", conflict: null });
+    useCloud.setState({ status: "synced", conflict: null, error: null });
   } else if (localEmpty || localFp === base) await applyRemote(remote);
   else if (remoteFp === base) await push();
   else useCloud.setState({ status: "conflict", conflict: remote });
