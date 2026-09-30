@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { shelfBinders } from "@/lib/binders";
 import { loadSet, setIdOfCard } from "@/lib/catalog";
-import { startCloud, useCloud } from "@/lib/cloud";
+import { returningFromSignIn, startCloud, useCloud } from "@/lib/cloud";
 import { setMuted, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
@@ -234,7 +234,7 @@ export function App() {
         ((!cloud.email && !offline) || cloud.status === "loading" || !profile || (welcome && !userBinders.length)) && (
           <Welcome onPick={addBinder} onDone={() => setWelcome(false)} />
         )}
-      {!entered && <Loader onEnter={() => setEntered(true)} />}
+      {!entered && <Loader autoEnter={returningFromSignIn} onEnter={() => setEntered(true)} />}
       <Grain />
     </>
   );
