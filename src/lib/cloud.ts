@@ -9,6 +9,10 @@ import { type Backup, isBackup, makeBackup, useStore } from "./store";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://xwqhucccldraieyiycvt.supabase.co";
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_Fn4KmAAhKl7crl-R_ZCHWw_OkFukB2i";
 
+/** Back from Google or the e-mail link (read before the client consumes the URL): the loader lets the player in by itself. */
+export const returningFromSignIn =
+  typeof window !== "undefined" && /[#&?](access_token|code|error_description)=/.test(window.location.hash + window.location.search);
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export type CloudStatus = "off" | "loading" | "synced" | "saving" | "error" | "conflict";

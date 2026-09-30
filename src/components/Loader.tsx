@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { shelfBinders } from "@/lib/binders";
 import { loadSets, neededSets, useSets } from "@/lib/catalog";
 import { SCENE, sceneImg } from "@/lib/scene";
@@ -46,11 +46,17 @@ function assetsToPreload() {
 const L = SCENE.logo;
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 
-export function Loader({ onEnter }: { onEnter: () => void }) {
+/** autoEnter: goes in by itself once loaded (the player already clicked, e.g. back from signing in). */
+export function Loader({ onEnter, autoEnter = false }: { onEnter: () => void; autoEnter?: boolean }) {
   const [progress, setProgress] = useState(0);
   const [ready, setReady] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [tip, setTip] = useState(() => Math.floor(Math.random() * TIPS.length));
+  const goInAlone = useEffectEvent(() => {
+    if (!autoEnter) return;
+    setLeaving(true);
+    setTimeout(onEnter, 700);
+  });
 
   useEffect(() => {
     let alive = true;
@@ -86,6 +92,7 @@ export function Loader({ onEnter }: { onEnter: () => void }) {
         if (!alive) return;
         setProgress(1);
         setReady(true);
+        goInAlone();
       }, wait);
     });
     return () => {
