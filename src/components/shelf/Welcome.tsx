@@ -1,15 +1,15 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { loadSets, neededSets } from "@/lib/catalog";
+import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { NAME_PARTS, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { isBackup, useStore } from "@/lib/store";
 import { BinderPicker, type BinderChoice } from "./BinderPicker";
 import styles from "./Welcome.module.css";
-
-type Step = "hello" | "binder";
 
 interface Props {
   /** Adds the first binder (loads its cards first). */
@@ -18,32 +18,75 @@ interface Props {
 }
 
 /**
- * First visit: create a (local) account, then pick a first binder.
- * The account is only a name for now: the collection stays in this browser until online accounts land.
+ * The way in: 1. sign in (e-mail link or Google), the save lives online → 2. nickname → 3. first binder.
+ * Playing without an account is allowed after a warning: no online save, the player exports it by hand.
+ * A player coming back on a new device gets their save from the cloud, and App closes this screen on its own.
  */
 export function Welcome({ onPick, onDone }: Props) {
   const profile = useStore((s) => s.profile);
   const binders = useStore((s) => s.binders);
-  const [step, setStep] = useState<Step>(profile ? "binder" : "hello");
-  const [mode, setMode] = useState<"new" | "back">("new");
-  const [name, setName] = useState("");
+  const { email, firstName, status } = useCloud();
+  const offline = useStore((s) => s.offline);
+  const step = (!email && !offline) || status === "loading" ? "account" : !profile ? "hello" : "binder";
+  /** "Play without an account" asks once more, with what it costs. */
+  const [warn, setWarn] = useState(false);
+  /** null = untouched: suggests the first name Google gave */
+  const [name, setName] = useState<string | null>(null);
+  const [address, setAddress] = useState("");
+  const [sent, setSent] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [shake, setShake] = useState(0);
   const [note, setNote] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const file = useRef<HTMLInputElement>(null);
+  const nickname = name ?? firstName?.slice(0, 20) ?? "";
 
   useEffect(() => {
-    if (step === "hello" && mode === "new") input.current?.focus();
-  }, [step, mode]);
+    if (step === "hello") input.current?.focus();
+  }, [step]);
 
   const finish = () => {
     setLeaving(true);
     setTimeout(onDone, 380);
   };
 
+  const sendLink = async () => {
+    const to = address.trim();
+    if (!/^\S+@\S+\.\S+$/.test(to)) {
+      sfx.locked();
+      setShake((k) => k + 1);
+      return;
+    }
+    setBusy(true);
+    const error = await signIn(to);
+    setBusy(false);
+    if (error) {
+      sfx.locked();
+      setNote("L'envoi a échoué, réessaie dans un moment.");
+      console.warn("[cloud] sign in", error);
+      return;
+    }
+    sfx.pop();
+    setNote(null);
+    setSent(to);
+  };
+
+  const google = async () => {
+    sfx.click();
+    setBusy(true);
+    const error = await signInWithGoogle();
+    // On success the page leaves for Google: only an error comes back here.
+    if (error) {
+      setBusy(false);
+      sfx.locked();
+      setNote("Connexion Google impossible pour le moment.");
+      console.warn("[cloud] google", error);
+    }
+  };
+
   const signUp = () => {
-    const n = name.trim();
+    const n = nickname.trim();
     if (n.length < 2) {
       sfx.locked();
       setShake((k) => k + 1);
@@ -54,9 +97,9 @@ export function Welcome({ onPick, onDone }: Props) {
     useStore.getState().createProfile(n);
     // Saves from before accounts already have their binders.
     if (useStore.getState().binders.length) finish();
-    else setStep("binder");
   };
 
+  /** A file exported before accounts: loaded here, it goes online once signed in. */
   const importFile = async (f: File) => {
     try {
       const data = JSON.parse(await f.text());
@@ -65,17 +108,29 @@ export function Welcome({ onPick, onDone }: Props) {
       const s = useStore.getState();
       await loadSets(neededSets(s.binders, s.collection));
       sfx.add(1, "rare");
-      if (s.profile) {
-        finish();
-        return;
-      }
-      setMode("new");
-      setNote(`${Object.keys(data.collection).length} cartes récupérées ! Il ne manque que ton pseudo.`);
+      setNote(`${Object.keys(data.collection).length} cartes récupérées ! Connecte-toi pour les sauvegarder en ligne.`);
     } catch {
       sfx.locked();
       setNote(`Ce fichier n'est pas une sauvegarde ${SITE_NAME}.`);
     }
   };
+
+  const card = (key: string, children: React.ReactNode) => (
+    <motion.section
+      key={key}
+      className={styles.card}
+      initial={{ y: -60, rotate: -3, opacity: 0 }}
+      animate={{ y: 0, rotate: 0, opacity: 1 }}
+      exit={{ y: 40, rotate: 2, opacity: 0, transition: { duration: 0.2 } }}
+      transition={{ type: "spring", stiffness: 240, damping: 20 }}
+    >
+      <p className={styles.brand}>
+        {NAME_PARTS[0]}
+        <span>{NAME_PARTS[1]}</span>
+      </p>
+      {children}
+    </motion.section>
+  );
 
   return (
     <motion.div
@@ -85,47 +140,147 @@ export function Welcome({ onPick, onDone }: Props) {
       transition={{ duration: 0.35 }}
     >
       <AnimatePresence mode="wait">
-        {step === "hello" ? (
-          <motion.section
-            key="hello"
-            className={styles.card}
-            initial={{ y: -60, rotate: -3, opacity: 0 }}
-            animate={{ y: 0, rotate: 0, opacity: 1 }}
-            exit={{ y: 40, rotate: 2, opacity: 0, transition: { duration: 0.2 } }}
-            transition={{ type: "spring", stiffness: 240, damping: 20 }}
-          >
-            <p className={styles.brand}>
-              {NAME_PARTS[0]}
-              <span>{NAME_PARTS[1]}</span>
-            </p>
-            <h1>Bienvenue au bureau !</h1>
+        {step === "account" &&
+          card(
+            "account",
+            <>
+              <h1>Bienvenue au bureau !</h1>
+              <p className={styles.steps}>
+                <b>1. Connexion</b> · 2. Pseudo · 3. Premier classeur
+              </p>
+              {warn && !email ? (
+                <div className={styles.form}>
+                  <p className={styles.warn}>
+                    Sans compte, ta collec reste <b>uniquement dans ce navigateur</b> : pas de sauvegarde en ligne, pas de synchro entre tes
+                    appareils. Si tu vides les données du site ou changes d&apos;appareil, elle est perdue.
+                  </p>
+                  <p className={styles.text}>
+                    Pense à l&apos;exporter de temps en temps depuis le PC du bureau (<b>NookDex OS → Sauvegarde</b>). Tu pourras aussi créer ton
+                    compte plus tard, au même endroit, sans rien perdre.
+                  </p>
+                  <button
+                    className={styles.go}
+                    onClick={() => {
+                      sfx.click();
+                      useStore.getState().setOffline(true);
+                    }}
+                    onPointerEnter={sfx.hover}
+                  >
+                    Jouer sans compte ▶
+                  </button>
+                  <button
+                    className={styles.linkBtn}
+                    onClick={() => {
+                      sfx.click();
+                      setWarn(false);
+                    }}
+                  >
+                    ← finalement, je me connecte
+                  </button>
+                </div>
+              ) : email ? (
+                <div className={styles.form}>
+                  <p className={styles.text}>
+                    Connecté avec <b>{email}</b>. On cherche ta collection…
+                  </p>
+                </div>
+              ) : sent ? (
+                <div className={styles.form}>
+                  <p className={styles.note}>
+                    Lien envoyé à <b>{sent}</b> ! Ouvre l&apos;e-mail sur cet appareil et clique sur le lien pour entrer.
+                  </p>
+                  <button
+                    className={styles.linkBtn}
+                    onClick={() => {
+                      sfx.click();
+                      setSent(null);
+                    }}
+                  >
+                    changer d&apos;adresse
+                  </button>
+                </div>
+              ) : (
+                <div className={styles.form}>
+                  <button className={styles.go} disabled={busy} onClick={() => void google()} onPointerEnter={sfx.hover}>
+                    G&nbsp;&nbsp;Continuer avec Google
+                  </button>
+                  <p className={styles.or}>ou avec ton e-mail</p>
+                  <form
+                    className={styles.inline}
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void sendLink();
+                    }}
+                  >
+                    <motion.input
+                      key={shake}
+                      type="email"
+                      value={address}
+                      placeholder="sacha@bourg-palette.fr"
+                      autoComplete="email"
+                      aria-label="Adresse e-mail"
+                      className={styles.email}
+                      animate={shake ? { x: [0, -10, 9, -6, 4, 0] } : undefined}
+                      transition={{ duration: 0.35 }}
+                      onChange={(e) => setAddress(e.target.value)}
+                    />
+                    <button type="submit" className={styles.go} disabled={busy} onPointerEnter={sfx.hover}>
+                      ▶
+                    </button>
+                  </form>
+                  <p className={styles.small}>
+                    On t&apos;envoie un lien pour entrer, sans mot de passe. <Link href="/a-propos">C&apos;est quoi {SITE_NAME} ?</Link> ·{" "}
+                    <Link href="/confidentialite">Confidentialité</Link>
+                  </p>
+                  {note && <p className={styles.note}>{note}</p>}
+                  <p className={styles.small}>
+                    Ta collec est sauvegardée sur ton compte et te suit sur tous tes appareils. Tu as un fichier de sauvegarde ?{" "}
+                    <button
+                      className={styles.linkBtn}
+                      onClick={() => {
+                        sfx.click();
+                        file.current?.click();
+                      }}
+                    >
+                      Importe-le
+                    </button>{" "}
+                    puis connecte-toi. Ou{" "}
+                    <button
+                      className={styles.linkBtn}
+                      onClick={() => {
+                        sfx.click();
+                        setNote(null);
+                        setWarn(true);
+                      }}
+                    >
+                      jouer sans compte
+                    </button>
+                    .
+                  </p>
+                  <input
+                    ref={file}
+                    type="file"
+                    accept="application/json,.json"
+                    hidden
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) void importFile(f);
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
+              )}
+            </>,
+          )}
 
-            <div className={styles.switch} role="tablist">
-              {(
-                [
-                  ["new", "Nouveau compte"],
-                  ["back", "J'ai déjà une collec"],
-                ] as const
-              ).map(([id, label]) => (
-                <button
-                  key={id}
-                  role="tab"
-                  aria-selected={mode === id}
-                  className={mode === id ? styles.on : ""}
-                  onClick={() => {
-                    if (mode === id) return;
-                    sfx.click();
-                    setMode(id);
-                    setNote(null);
-                  }}
-                  onPointerEnter={sfx.hover}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {mode === "new" ? (
+        {step === "hello" &&
+          card(
+            "hello",
+            <>
+              <h1>Comment on t&apos;appelle ?</h1>
+              <p className={styles.steps}>
+                1. Connexion · <b>2. Pseudo</b> · 3. Premier classeur
+              </p>
               <form
                 className={styles.form}
                 onSubmit={(e) => {
@@ -138,7 +293,7 @@ export function Welcome({ onPick, onDone }: Props) {
                   <motion.input
                     key={shake}
                     ref={input}
-                    value={name}
+                    value={nickname}
                     maxLength={20}
                     placeholder="Sacha"
                     autoComplete="nickname"
@@ -152,45 +307,24 @@ export function Welcome({ onPick, onDone }: Props) {
                 </label>
                 {note && <p className={styles.note}>{note}</p>}
                 <button type="submit" className={styles.go} onPointerEnter={sfx.hover}>
-                  {binders.length ? "Retrouver mon bureau ▶" : "Créer mon compte ▶"}
+                  {binders.length ? "Retrouver mon bureau ▶" : "C'est parti ▶"}
                 </button>
                 <p className={styles.small}>
-                  Pour l&apos;instant ta collec reste sur cet appareil. Les comptes en ligne (et la synchro entre appareils) arrivent
-                  bientôt.
+                  {email ? (
+                    <>
+                      Connecté avec <b>{email}</b> : ta collec est sauvegardée en ligne.
+                    </>
+                  ) : (
+                    <>
+                      Sans compte : ta collec reste dans ce navigateur. Exporte-la depuis <b>NookDex OS → Sauvegarde</b>.
+                    </>
+                  )}
                 </p>
               </form>
-            ) : (
-              <div className={styles.form}>
-                <p className={styles.text}>
-                  Les comptes en ligne n&apos;existent pas encore : ta collec est gardée dans le navigateur où tu l&apos;as créée. Tu changes
-                  d&apos;appareil ? Exporte ta sauvegarde depuis le PC du bureau (onglet <b>Sauvegarde</b>), puis importe-la ici.
-                </p>
-                {note && <p className={styles.note}>{note}</p>}
-                <button
-                  className={styles.go}
-                  onClick={() => {
-                    sfx.click();
-                    file.current?.click();
-                  }}
-                  onPointerEnter={sfx.hover}
-                >
-                  ⬆ Importer ma sauvegarde
-                </button>
-                <input
-                  ref={file}
-                  type="file"
-                  accept="application/json,.json"
-                  hidden
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) void importFile(f);
-                    e.target.value = "";
-                  }}
-                />
-              </div>
-            )}
-          </motion.section>
-        ) : (
+            </>,
+          )}
+
+        {step === "binder" && (
           <motion.div key="binder" className={styles.pickerWrap} exit={{ opacity: 0, y: 40, transition: { duration: 0.25 } }}>
             <BinderPicker
               title={`${profile?.name ?? "Dresseur"}, choisis ton premier classeur`}

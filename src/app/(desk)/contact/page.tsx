@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Contact() {
   return (
-    <LegalPage title="Contact">
+    <LegalPage path="/contact" title="Contact">
       <p>Une question, un bug, une idée, ou la suppression de ton compte ? Laisse un message, on te répond par e-mail.</p>
       <ContactForm />
     </LegalPage>

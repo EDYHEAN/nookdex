@@ -60,6 +60,8 @@ function bindersFromCollection(collection: Record<string, Copy[]>): UserBinder[]
 
 interface State {
   profile: Profile | null;
+  /** Chose to play without an account (warned: no online save, export by hand). */
+  offline: boolean;
   binders: UserBinder[];
   collection: Record<string, Copy[]>;
   sound: boolean;
@@ -68,6 +70,7 @@ interface State {
   /** sunny afternoon or rainy night, set by the window */
   daytime: boolean;
   createProfile: (name: string) => void;
+  setOffline: (on: boolean) => void;
   /** Puts a new binder at the end of the shelf, returns its id. */
   addBinder: (b: { kind: "set"; setId: string } | { kind: "free"; name: string }) => string;
   setBinderColor: (id: string, color: string) => void;
@@ -104,6 +107,7 @@ export const useStore = create<State>()(
   persist(
     (set, get) => ({
       profile: null,
+      offline: false,
       binders: [],
       collection: {},
       sound: true,
@@ -111,6 +115,7 @@ export const useStore = create<State>()(
       lampOn: true,
       daytime: true,
       createProfile: (name) => set({ profile: { name: name.trim(), since: Date.now() } }),
+      setOffline: (on) => set({ offline: on }),
       addBinder: (b) => {
         const id = uid();
         if (get().binders.length >= MAX_BINDERS) return id;
@@ -170,7 +175,7 @@ export const useStore = create<State>()(
       version: 3,
       storage: createJSONStorage(() => localStorage),
       // Ambient music never auto-starts on reload (browsers block autoplay anyway).
-      partialize: (s) => ({ profile: s.profile, binders: s.binders, collection: s.collection, sound: s.sound, lampOn: s.lampOn, daytime: s.daytime }),
+      partialize: (s) => ({ profile: s.profile, offline: s.offline, binders: s.binders, collection: s.collection, sound: s.sound, lampOn: s.lampOn, daytime: s.daytime }),
       migrate: (persisted, version) => {
         const s = persisted as { collection?: Record<string, Copy[]>; binders?: UserBinder[] } & Record<string, unknown>;
         if (version < 2) {

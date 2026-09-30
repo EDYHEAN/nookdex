@@ -34,6 +34,12 @@ export function App() {
   const [about, setAbout] = useState(false);
   const [entered, setEntered] = useState(false);
   const profile = useStore((s) => s.profile);
+  const cloud = useCloud();
+  const offline = useStore((s) => s.offline);
+  // Dev screenshots (?skip ?open ?os ?demo) skip the sign-in.
+  const [devBypass] = useState(
+    () => process.env.NODE_ENV !== "production" && /[?&](skip|open|os|demo)\b/.test(window.location.search),
+  );
   const userBinders = useStore((s) => s.binders);
   const binders = useMemo(() => shelfBinders(userBinders), [userBinders]);
   const [welcome, setWelcome] = useState(() => !useStore.getState().profile);
@@ -46,13 +52,7 @@ export function App() {
 
   useEffect(() => setMuted(!sound), [sound]);
 
-  // Online account: when its save replaces this browser's, the welcome screen has nothing left to ask.
-  useEffect(() => {
-    startCloud();
-    return useCloud.subscribe((c, prev) => {
-      if (c.restored !== prev.restored && useStore.getState().profile) setWelcome(false);
-    });
-  }, []);
+  useEffect(startCloud, []);
 
   // Dev-only shortcuts for screenshots: ?skip  ?open=swsh12  ?demo  ?os
   useEffect(() => {
@@ -227,7 +227,13 @@ export function App() {
         </button>
       </div>
 
-      {entered && (welcome || !profile) && <Welcome onPick={addBinder} onDone={() => setWelcome(false)} />}
+      {/* Sign in (or play offline, warned), then a nickname, then a first binder. */}
+      {entered &&
+        cloud.ready &&
+        !devBypass &&
+        ((!cloud.email && !offline) || cloud.status === "loading" || !profile || (welcome && !userBinders.length)) && (
+          <Welcome onPick={addBinder} onDone={() => setWelcome(false)} />
+        )}
       {!entered && <Loader onEnter={() => setEntered(true)} />}
       <Grain />
     </>

@@ -14,7 +14,11 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 export type CloudStatus = "off" | "loading" | "synced" | "saving" | "error" | "conflict";
 
 interface CloudState {
+  /** The stored session was read: until then nobody knows if the player is signed in. */
+  ready: boolean;
   email: string | null;
+  /** First name given by Google, to suggest a nickname. */
+  firstName: string | null;
   status: CloudStatus;
   /** The save found online when both it and this browser changed since the last sync. */
   conflict: Backup | null;
@@ -23,7 +27,7 @@ interface CloudState {
   restored: number;
 }
 
-export const useCloud = create<CloudState>(() => ({ email: null, status: "off", conflict: null, savedAt: null, restored: 0 }));
+export const useCloud = create<CloudState>(() => ({ ready: false, email: null, firstName: null, status: "off", conflict: null, savedAt: null, restored: 0 }));
 
 type Synced = Pick<Backup, "profile" | "binders" | "collection">;
 
@@ -155,11 +159,14 @@ export function startCloud() {
 
   supabase.auth.onAuthStateChange((_event, session) => {
     const next = session?.user ?? null;
+    if (!useCloud.getState().ready) useCloud.setState({ ready: true });
     if (next?.id === user?.id) return;
     user = next;
     clearTimeout(timer);
     pending = false;
-    useCloud.setState({ email: next?.email ?? null, status: next ? "loading" : "off", conflict: null, savedAt: null });
+    const meta = next?.user_metadata as { full_name?: string; name?: string } | undefined;
+    const firstName = (meta?.full_name ?? meta?.name ?? "").trim().split(/\s+/)[0] || null;
+    useCloud.setState({ email: next?.email ?? null, firstName, status: next ? "loading" : "off", conflict: null, savedAt: null });
     // Supabase calls from inside this callback deadlock: run them just after.
     if (next) setTimeout(() => void pull(), 0);
   });
