@@ -524,12 +524,12 @@ const CLOUD_LABEL = {
   loading: "chargement…",
   synced: "à jour ✓",
   saving: "enregistrement…",
-  error: "hors ligne, nouvel essai au prochain changement",
+  error: "⚠ sauvegarde en ligne impossible",
   conflict: "deux versions différentes",
 } as const;
 
 function Account({ say }: { say: (m: string) => void }) {
-  const { email, status, conflict } = useCloud();
+  const { email, status, conflict, error } = useCloud();
   const [address, setAddress] = useState("");
   const [sent, setSent] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -615,6 +615,11 @@ function Account({ say }: { say: (m: string) => void }) {
       <p>
         Connecté : <b>{email}</b> · <span className={styles.muted}>{CLOUD_LABEL[status]}</span>
       </p>
+      {status === "error" && (
+        <p className={styles.muted}>
+          Ta collec reste dans ce navigateur, on réessaie au prochain changement. Détail : {error ?? "serveur injoignable"}
+        </p>
+      )}
       {status === "conflict" && conflict && (
         <>
           <p>

@@ -12,3 +12,7 @@ create policy "own save: read"   on public.saves for select using (auth.uid() = 
 create policy "own save: insert" on public.saves for insert with check (auth.uid() = user_id);
 create policy "own save: update" on public.saves for update using (auth.uid() = user_id);
 create policy "own save: delete" on public.saves for delete using (auth.uid() = user_id);
+
+-- Projects where new tables are not exposed to the API automatically: let signed-in players reach their row.
+grant select, insert, update, delete on table public.saves to authenticated;
+notify pgrst, 'reload schema';

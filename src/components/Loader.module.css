@@ -5,7 +5,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f1e9dc;
+  /* the white of the painted paper, so the picture melts into the screen */
+  background: #fdf2e8;
   cursor: default;
   overflow: hidden;
 }
@@ -37,6 +38,9 @@
   width: 100%;
   height: auto;
   user-select: none;
+  /* soft edges: no visible border of the picture on tall or wide screens */
+  mask-image: radial-gradient(closest-side, #000 72%, transparent);
+  -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent);
 }
 
 .ball {
