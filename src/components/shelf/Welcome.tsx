@@ -13,7 +13,7 @@ import styles from "./Welcome.module.css";
 
 interface Props {
   /** Adds the first binder (loads its cards first). */
-  onPick: (choice: BinderChoice) => Promise<void>;
+  onPick: (choice: BinderChoice) => Promise<unknown>;
   onDone: () => void;
 }
 
@@ -293,6 +293,7 @@ export function Welcome({ onPick, onDone }: Props) {
                   <motion.input
                     key={shake}
                     ref={input}
+                    autoFocus
                     value={nickname}
                     maxLength={20}
                     placeholder="Sacha"

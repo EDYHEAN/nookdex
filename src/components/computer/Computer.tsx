@@ -13,7 +13,7 @@ import type { CardData, Copy, SetData } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import styles from "./Computer.module.css";
 
-type Tab = "home" | "wish" | "dupes" | "search" | "save";
+export type Tab = "home" | "wish" | "dupes" | "search" | "save";
 
 const TABS: { id: Tab; label: string; hint: string }[] = [
   { id: "home", label: "Accueil", hint: "ta collec en un coup d'œil" },
@@ -28,6 +28,8 @@ interface Props {
   origin: { x: number; y: number };
   onClose: () => void;
   onGoToCard: (cardId: string) => void;
+  /** Tab to show (the onboarding tour points at one): follows the prop when it changes. */
+  initialTab?: Tab;
 }
 
 interface Entry {
@@ -40,12 +42,17 @@ interface Entry {
 
 const cardLabel = (e: Entry) => (/^\d+$/.test(e.card.num) && e.set.official ? `${e.card.num}/${e.set.official}` : e.card.num);
 
-export function Computer({ origin, onClose, onGoToCard }: Props) {
+export function Computer({ origin, onClose, onGoToCard, initialTab = "home" }: Props) {
   const collection = useStore((s) => s.collection);
   const binders = useStore((s) => s.binders);
   const sets = useSets((s) => s.sets);
   const cards = useSets((s) => s.cards);
-  const [tab, setTab] = useState<Tab>("home");
+  const [tab, setTab] = useState<Tab>(initialTab);
+  const [asked, setAsked] = useState(initialTab);
+  if (asked !== initialTab) {
+    setAsked(initialTab);
+    setTab(initialTab);
+  }
   const [toast, setToast] = useState<string | null>(null);
 
   // Every card of the set binders, plus every card owned elsewhere (free binders).

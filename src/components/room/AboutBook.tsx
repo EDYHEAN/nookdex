@@ -8,7 +8,8 @@ import { sfx } from "@/lib/sound";
 import styles from "./AboutBook.module.css";
 
 /** The notebook taken from the shelf: it rises, opens, and reads like a handwritten journal. */
-export function AboutBook({ onClose }: { onClose: () => void }) {
+/** onTour: replays the onboarding tour. */
+export function AboutBook({ onClose, onTour }: { onClose: () => void; onTour: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -70,6 +71,10 @@ export function AboutBook({ onClose }: { onClose: () => void }) {
           ))}
         </div>
         <nav className={styles.links}>
+          <button className={styles.linkBtn} onClick={onTour}>
+            Revoir la visite
+          </button>{" "}
+          ·{" "}
           <Link href="/confidentialite" onClick={onClose}>
             Confidentialité
           </Link>{" "}

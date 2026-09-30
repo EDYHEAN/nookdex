@@ -98,8 +98,18 @@
   color: var(--ink-soft);
 }
 
-.links a {
+.links a,
+.linkBtn {
   color: var(--ink-gold);
+}
+
+.linkBtn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .signature {
