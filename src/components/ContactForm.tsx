@@ -8,11 +8,14 @@ const TOPICS = ["Question", "Bug", "Idée", "Supprimer mon compte / mes données
 
 export function ContactForm() {
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  /** What FormSubmit answered when it refused (e.g. the form still waits for its activation e-mail). */
+  const [reason, setReason] = useState<string | null>(null);
 
   const send = async (form: HTMLFormElement) => {
     const data = new FormData(form);
     if (data.get("_honey")) return; // robots fill the hidden field
     setState("sending");
+    setReason(null);
     try {
       const res = await fetch(CONTACT_ENDPOINT, {
         method: "POST",
@@ -26,8 +29,11 @@ export function ContactForm() {
           _template: "box",
         }),
       });
-      const json = (await res.json().catch(() => null)) as { success?: string | boolean } | null;
-      if (!res.ok || String(json?.success) !== "true") throw new Error(`contact: ${res.status}`);
+      const json = (await res.json().catch(() => null)) as { success?: string | boolean; message?: string } | null;
+      if (!res.ok || String(json?.success) !== "true") {
+        setReason(json?.message ?? `erreur ${res.status}`);
+        throw new Error(`contact: ${res.status} ${json?.message ?? ""}`);
+      }
       setState("sent");
       form.reset();
     } catch (e) {
@@ -64,7 +70,17 @@ export function ContactForm() {
       </label>
       <input name="_honey" type="text" tabIndex={-1} autoComplete="off" className={styles.honey} aria-hidden />
       <button disabled={state === "sending"}>{state === "sending" ? "Envoi…" : "Envoyer"}</button>
-      {state === "error" && <p className={styles.notice}>L&apos;envoi a échoué. Réessaie dans un moment.</p>}
+      {state === "error" && (
+        <p className={styles.notice}>
+          L&apos;envoi a échoué. Réessaie dans un moment.
+          {reason && (
+            <>
+              <br />
+              <small>Détail : {reason}</small>
+            </>
+          )}
+        </p>
+      )}
     </form>
   );
 }
