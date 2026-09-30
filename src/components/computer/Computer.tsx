@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { pocketsOf, shelfBinders } from "@/lib/binders";
 import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
+import { resolveConflict, signIn, signInWithGoogle, signOut, useCloud } from "@/lib/cloud";
 import { VARIANT_LABEL, copiesTotals, formatEur, setStats, unitPrice } from "@/lib/price";
 import { OS_NAME, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
@@ -19,7 +20,7 @@ const TABS: { id: Tab; label: string; hint: string }[] = [
   { id: "wish", label: "Wishlist", hint: "les cartes qui te manquent" },
   { id: "dupes", label: "Doublons", hint: "ce que tu peux échanger" },
   { id: "search", label: "Recherche", hint: "trouver une carte" },
-  { id: "save", label: "Sauvegarde", hint: "exporter / importer" },
+  { id: "save", label: "Sauvegarde", hint: "compte / exporter" },
 ];
 
 interface Props {
@@ -440,14 +441,15 @@ function Save({ say }: { say: (m: string) => void }) {
 
   return (
     <div className={styles.save}>
+      <Account say={say} />
       <p>
         {profile && (
           <>
-            Compte <b>{profile.name}</b> (local).{" "}
+            Joueur <b>{profile.name}</b>.{" "}
           </>
         )}
-        Ta collection (<b>{cards}</b> cartes, <b>{copies}</b> exemplaires) est enregistrée <b>dans ce navigateur</b>. Exporte-la de temps en temps : si
-        tu vides les données du site, elle part avec.
+        Ta collection (<b>{cards}</b> cartes, <b>{copies}</b> exemplaires) est enregistrée <b>dans ce navigateur</b>. Sans compte, exporte-la de temps en
+        temps : si tu vides les données du site, elle part avec.
       </p>
       <div className={styles.saveActions}>
         <button className={styles.btnBig} onClick={exportFile}>
@@ -504,6 +506,133 @@ function Save({ say }: { say: (m: string) => void }) {
             Remettre la collection à zéro…
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+const CLOUD_LABEL = {
+  off: "",
+  loading: "chargement…",
+  synced: "à jour ✓",
+  saving: "enregistrement…",
+  error: "hors ligne, nouvel essai au prochain changement",
+  conflict: "deux versions différentes",
+} as const;
+
+function Account({ say }: { say: (m: string) => void }) {
+  const { email, status, conflict } = useCloud();
+  const [address, setAddress] = useState("");
+  const [sent, setSent] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const send = async () => {
+    const to = address.trim();
+    if (!/^\S+@\S+\.\S+$/.test(to)) {
+      sfx.locked();
+      say("adresse e-mail invalide");
+      return;
+    }
+    setBusy(true);
+    const error = await signIn(to);
+    setBusy(false);
+    if (error) {
+      sfx.locked();
+      say("envoi impossible, réessaie dans un moment");
+      console.warn("[cloud] sign in", error);
+      return;
+    }
+    sfx.pop();
+    setSent(to);
+  };
+
+  if (!email)
+    return (
+      <div className={styles.account}>
+        <p>
+          <b>Compte en ligne</b> : retrouve ta collection sur tous tes appareils.
+        </p>
+        {sent ? (
+          <p>
+            Lien de connexion envoyé à <b>{sent}</b>. Ouvre-le sur cet appareil.{" "}
+            <button className={styles.linkBtn} onClick={() => setSent(null)}>
+              changer d&apos;adresse
+            </button>
+          </p>
+        ) : (
+          <form
+            className={styles.accountForm}
+            onSubmit={(e) => {
+              e.preventDefault();
+              void send();
+            }}
+          >
+            <label className={styles.searchBox}>
+              <span>@</span>
+              <input
+                type="email"
+                value={address}
+                placeholder="ton e-mail"
+                autoComplete="email"
+                onChange={(e) => setAddress(e.target.value)}
+                aria-label="Adresse e-mail"
+              />
+            </label>
+            <button className={styles.btnBig} disabled={busy}>
+              {busy ? "envoi…" : "Recevoir un lien"}
+            </button>
+            <span className={styles.muted}>ou</span>
+            <button
+              type="button"
+              className={styles.btnBig}
+              onClick={() => {
+                sfx.click();
+                void signInWithGoogle().then((error) => {
+                  if (!error) return;
+                  sfx.locked();
+                  say("connexion Google impossible");
+                  console.warn("[cloud] google", error);
+                });
+              }}
+            >
+              G Continuer avec Google
+            </button>
+          </form>
+        )}
+      </div>
+    );
+
+  return (
+    <div className={styles.account}>
+      <p>
+        Connecté : <b>{email}</b> · <span className={styles.muted}>{CLOUD_LABEL[status]}</span>
+      </p>
+      {status === "conflict" && conflict && (
+        <>
+          <p>
+            Ce navigateur et ton compte ont chacun changé. Laquelle garder ? En ligne : <b>{Object.keys(conflict.collection).length}</b> cartes, ici :{" "}
+            <b>{Object.keys(useStore.getState().collection).length}</b> cartes.
+          </p>
+          <div className={styles.saveActions}>
+            <button className={styles.btnBig} onClick={() => void resolveConflict("cloud").then(() => say("collection en ligne récupérée"))}>
+              ☁ Garder celle en ligne
+            </button>
+            <button className={styles.btnBig} onClick={() => void resolveConflict("local").then(() => say("collection envoyée en ligne"))}>
+              💻 Garder celle d&apos;ici
+            </button>
+          </div>
+        </>
+      )}
+      <div className={styles.saveActions}>
+        <button
+          className={styles.btnBig}
+          onClick={() => {
+            sfx.click();
+            void signOut().then(() => say("déconnecté, la collection reste dans ce navigateur"));
+          }}
+        >
+          Se déconnecter
+        </button>
       </div>
     </div>
   );

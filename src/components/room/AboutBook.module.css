@@ -92,6 +92,16 @@
   margin: 0 0 32px;
 }
 
+.links {
+  margin-top: 8px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.links a {
+  color: var(--ink-gold);
+}
+
 .signature {
   text-align: right;
   font-style: italic;

@@ -7,7 +7,7 @@ Ta collection de cartes Pokémon TCG, rangée dans des classeurs sur un bureau p
   (variante normale / reverse / holo, état Cardmarket, doublons, prix d'achat — 0 € si opening).
 - L'écran du PC ouvre **NookDex OS** : tableau de bord, wishlist, doublons, recherche, sauvegarde (export/import JSON).
 - Prix Cardmarket (prix bas + tendance) via [TCGdex](https://tcgdex.dev), totaux par classeur.
-- Sauvegarde 100 % locale (localStorage) pour l'instant.
+- Sauvegarde locale (localStorage), et compte en ligne optionnel (Supabase, lien magique par e-mail) pour la retrouver sur tous ses appareils.
 
 ## Lancer
 
@@ -37,6 +37,7 @@ Relancer la commande rafraîchit aussi les prix.
 | `src/components/computer/` | NookDex OS (l'écran du PC en plein écran) |
 | `src/lib/sound.ts` | Tous les sons, synthétisés en WebAudio (+ radio lofi) |
 | `src/lib/store.ts` | Collection (zustand + localStorage) |
+| `src/lib/cloud.ts` | Compte en ligne et synchro Supabase (table : [docs/supabase.sql](docs/supabase.sql)) |
 | `src/lib/price.ts` | Calculs de prix / stats |
 
 En dev, raccourcis d'URL : `?skip` (passe le loader), `?open=swsh12` (ouvre un classeur), `?os` (ouvre le PC), `?demo` (remplit une collection de test).

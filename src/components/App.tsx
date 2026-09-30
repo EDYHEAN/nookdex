@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { shelfBinders } from "@/lib/binders";
 import { loadSet, setIdOfCard } from "@/lib/catalog";
+import { startCloud, useCloud } from "@/lib/cloud";
 import { setMuted, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
@@ -44,6 +45,14 @@ export function App() {
   const setAmbient = useStore((s) => s.setAmbient);
 
   useEffect(() => setMuted(!sound), [sound]);
+
+  // Online account: when its save replaces this browser's, the welcome screen has nothing left to ask.
+  useEffect(() => {
+    startCloud();
+    return useCloud.subscribe((c, prev) => {
+      if (c.restored !== prev.restored && useStore.getState().profile) setWelcome(false);
+    });
+  }, []);
 
   // Dev-only shortcuts for screenshots: ?skip  ?open=swsh12  ?demo  ?os
   useEffect(() => {
