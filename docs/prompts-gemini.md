@@ -1,4 +1,4 @@
-# Prompts Gemini — visuels PokéPocket (style film d'animation peint)
+# Prompts Gemini — visuels NookDex (style film d'animation peint)
 
 Cible : un **photogramme de film d'animation japonais dessiné à la main** (réf. les décors d'Arrietty, Chihiro, Kiki).
 Ce qui fait ce style, et que le prompt doit imposer :

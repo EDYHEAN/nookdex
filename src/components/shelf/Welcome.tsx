@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { loadSets, neededSets } from "@/lib/catalog";
+import { NAME_PARTS, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { isBackup, useStore } from "@/lib/store";
 import { BinderPicker, type BinderChoice } from "./BinderPicker";
@@ -72,7 +73,7 @@ export function Welcome({ onPick, onDone }: Props) {
       setNote(`${Object.keys(data.collection).length} cartes récupérées ! Il ne manque que ton pseudo.`);
     } catch {
       sfx.locked();
-      setNote("Ce fichier n'est pas une sauvegarde PokéPocket.");
+      setNote(`Ce fichier n'est pas une sauvegarde ${SITE_NAME}.`);
     }
   };
 
@@ -94,7 +95,8 @@ export function Welcome({ onPick, onDone }: Props) {
             transition={{ type: "spring", stiffness: 240, damping: 20 }}
           >
             <p className={styles.brand}>
-              Poké<span>Pocket</span>
+              {NAME_PARTS[0]}
+              <span>{NAME_PARTS[1]}</span>
             </p>
             <h1>Bienvenue au bureau !</h1>
 

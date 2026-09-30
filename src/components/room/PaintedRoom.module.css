@@ -511,7 +511,9 @@
 .tip {
   position: fixed;
   z-index: 20;
-  transform: translate(-50%, calc(-100% - 10px));
+  /* centered on its spot, but never past the edges of the screen */
+  translate: clamp(calc(12px - var(--x)), -50%, calc(100vw - var(--x) - 12px - 100%));
+  transform: translateY(calc(-100% - 10px));
   pointer-events: none;
   padding: 6px 12px 8px;
   background: #fff6e6;
@@ -541,20 +543,20 @@
 }
 
 .tipBelow {
-  transform: translate(-50%, 10px);
+  transform: translateY(10px);
   animation-name: tipInBelow;
 }
 
 @keyframes tipInBelow {
   from {
-    transform: translate(-50%, 2px) scale(0.7);
+    transform: translateY(2px) scale(0.7);
     opacity: 0;
   }
 }
 
 @keyframes tipIn {
   from {
-    transform: translate(-50%, calc(-100% - 2px)) scale(0.7);
+    transform: translateY(calc(-100% - 2px)) scale(0.7);
     opacity: 0;
   }
 }
@@ -685,4 +687,15 @@
 
 .chairDay {
   filter: brightness(1.12) sepia(0.2) saturate(1.1);
+}
+
+/* the notebook among the books: a warm glow when hovered, like a lamp shining on it */
+.bookSpot {
+  border-radius: 20px;
+  transition: background 0.2s steps(2);
+}
+
+.bookSpot:hover,
+.bookSpot:focus-visible {
+  background: radial-gradient(closest-side, rgba(255, 226, 160, 0.3), transparent);
 }

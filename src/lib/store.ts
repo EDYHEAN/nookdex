@@ -37,7 +37,8 @@ export interface Profile {
 }
 
 export interface Backup {
-  app: "pokepocket";
+  /** "pokepocket" on saves made before the rename */
+  app: "nookdex" | "pokepocket";
   version: 2 | 3;
   exportedAt: string;
   profile?: Profile | null;
@@ -164,6 +165,7 @@ export const useStore = create<State>()(
       toggleDaytime: () => set((s) => ({ daytime: !s.daytime })),
     }),
     {
+      // storage key from the PokéPocket days: kept, so nobody loses their collection
       name: "pokepocket:v1",
       version: 3,
       storage: createJSONStorage(() => localStorage),
@@ -193,12 +195,12 @@ export const useStore = create<State>()(
 );
 
 export function makeBackup(s: Pick<State, "profile" | "binders" | "collection">): Backup {
-  return { app: "pokepocket", version: 3, exportedAt: new Date().toISOString(), profile: s.profile, binders: s.binders, collection: s.collection };
+  return { app: "nookdex", version: 3, exportedAt: new Date().toISOString(), profile: s.profile, binders: s.binders, collection: s.collection };
 }
 
 export function isBackup(x: unknown): x is Backup {
   const b = x as Backup;
-  return !!b && b.app === "pokepocket" && typeof b.collection === "object" && b.collection !== null;
+  return !!b && (b.app === "nookdex" || b.app === "pokepocket") && typeof b.collection === "object" && b.collection !== null;
 }
 
 /** Copies of a card kept in its own set binder (not slipped in a free binder). */

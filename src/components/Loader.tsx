@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { shelfBinders } from "@/lib/binders";
 import { loadSets, neededSets, useSets } from "@/lib/catalog";
 import { SCENE, sceneImg } from "@/lib/scene";
+import { SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import styles from "./Loader.module.css";
@@ -121,7 +122,7 @@ export function Loader({ onEnter }: { onEnter: () => void }) {
   return (
     <div className={`${styles.loader} ${leaving ? styles.leaving : ""}`} onClick={enter}>
       <div className={styles.art} style={{ aspectRatio: `${L.width} / ${L.height}` }}>
-        <img className={styles.paper} src={sceneImg("logo-paper.webp")} alt="PokéPocket" draggable={false} />
+        <img className={styles.paper} src={sceneImg("logo-paper.webp")} alt={SITE_NAME} draggable={false} />
         <img
           className={`${styles.ball} ${ready ? styles.caught : ""}`}
           src={sceneImg("logo-ball.webp")}

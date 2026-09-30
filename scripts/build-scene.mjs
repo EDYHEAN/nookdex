@@ -495,7 +495,7 @@ await sharp(`${SRC}/sky-day.jpg`).resize(1600).webp({ quality: 80 }).toFile(`${O
   const img = sharp(`${SRC}/logo.jpg`);
   const { width: LW, height: LH } = await img.metadata();
   const logo = await img.removeAlpha().raw().toBuffer();
-  const ball = { x: 1571, y: 851, r: 116 };
+  const ball = { x: 857, y: 823, r: 154 };
   const out = { width: LW, height: LH, ball };
 
   // ball cut-out

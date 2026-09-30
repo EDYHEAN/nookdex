@@ -6,6 +6,7 @@ import { PER_PAGE, freeHomes, freePageCount, pocketsOf, type Pocket } from "@/li
 import { loadSet, setIdOfCard, useSets } from "@/lib/catalog";
 import { cardTier, copiesTotals, formatEur, setStats, unitPrice, type Tier } from "@/lib/price";
 import { sortCards } from "@/lib/rarity";
+import { SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { looseCopies, useStore } from "@/lib/store";
 import type { BinderDef, CardData } from "@/lib/types";
@@ -649,7 +650,7 @@ function Cover({ binder, name, count }: { binder: BinderDef; name: string; count
         <p className={styles.coverName}>{free ? "classeur libre" : name}</p>
         <p className={styles.coverCount}>{free ? `${count} carte${count === "1" ? "" : "s"}` : count.replace("/", " / ")}</p>
       </div>
-      <span className={styles.coverBrand}>PokéPocket</span>
+      <span className={styles.coverBrand}>{SITE_NAME}</span>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { pocketsOf, shelfBinders } from "@/lib/binders";
 import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { VARIANT_LABEL, copiesTotals, formatEur, setStats, unitPrice } from "@/lib/price";
+import { OS_NAME, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { isBackup, makeBackup, useStore } from "@/lib/store";
 import type { CardData, Copy, SetData } from "@/lib/types";
@@ -109,10 +110,10 @@ export function Computer({ origin, onClose, onGoToCard }: Props) {
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className={styles.bezel}>
-        <div className={styles.screen} role="application" aria-label="PokéPocket OS">
+        <div className={styles.screen} role="application" aria-label={OS_NAME}>
           <div className={styles.boot}>
             <header className={styles.top}>
-              <span className={styles.brand}>POKEPOCKET OS</span>
+              <span className={styles.brand}>{OS_NAME}</span>
               <span className={styles.path}>C:\COLLEC\{TABS.find((t) => t.id === tab)!.label.toUpperCase()}&gt;</span>
               <Clock />
               <button className={styles.quit} onClick={onClose} onPointerEnter={sfx.hover}>
@@ -415,7 +416,7 @@ function Save({ say }: { say: (m: string) => void }) {
     const blob = new Blob([JSON.stringify(makeBackup(useStore.getState()), null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `pokepocket-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `${SITE_NAME.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
     sfx.pop();

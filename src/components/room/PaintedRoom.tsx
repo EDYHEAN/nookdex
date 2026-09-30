@@ -5,6 +5,7 @@ import { MAX_BINDERS, pocketsOf, shelfBinders } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatEur, setStats } from "@/lib/price";
 import { SCENE, sceneImg } from "@/lib/scene";
+import { NAME_PARTS, OS_NAME } from "@/lib/site";
 import { sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import type { BinderDef } from "@/lib/types";
@@ -24,6 +25,8 @@ interface Props {
   onOpenComputer: (rect: DOMRect) => void;
   /** the "+" at the end of the shelf */
   onAddBinder: () => void;
+  /** the notebook among the books: "about" */
+  onOpenAbout: () => void;
 }
 
 interface Tip {
@@ -46,6 +49,8 @@ const rowEnd = (i: number) => {
   const b = SCENE.slots[i + 1];
   return !b || Math.abs(b.y - a.y) > 100;
 };
+/** The books at the end of the bottom shelf (scene px): one of them is the "about" notebook. */
+const BOOKS = { x: 2378, y: 515, w: 305, h: 272 };
 const SCREEN_QUAD = SCENE.screenQuad.map(([x, y]) => [x - SCENE.screen.x, y - SCENE.screen.y] as [number, number]);
 
 function useCamera(compact: boolean) {
@@ -61,7 +66,7 @@ function useCamera(compact: boolean) {
   }, [vp.w, vp.h, compact]);
 }
 
-export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder }: Props) {
+export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout }: Props) {
   const cam = useCamera(compact);
   const lampOn = useStore((s) => s.lampOn);
   const ambient = useStore((s) => s.ambient);
@@ -286,7 +291,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             quad={SCREEN_QUAD}
             onHover={() => {
               sfx.hover();
-              showTip(SCENE.screen.x + SCENE.screen.w / 2, SCENE.screen.y - 20, "PokéPocket OS", "wishlist, doublons, recherche…");
+              showTip(SCENE.screen.x + SCENE.screen.w / 2, SCENE.screen.y - 20, OS_NAME, "wishlist, doublons, recherche…");
             }}
             onLeave={() => setTip(null)}
             onOpen={(rect) => {
@@ -507,6 +512,21 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             }}
           />
           <button
+            className={`${styles.hotspot} ${styles.bookSpot}`}
+            style={place(BOOKS)}
+            aria-label="Le carnet de Johan : à propos"
+            onPointerEnter={() => {
+              sfx.hover();
+              showTip(BOOKS.x + BOOKS.w / 2, BOOKS.y - 8, "Le carnet", "qui a fait ce bureau, et pourquoi");
+            }}
+            onPointerLeave={() => setTip(null)}
+            onClick={() => {
+              sfx.coverOpen();
+              setTip(null);
+              onOpenAbout();
+            }}
+          />
+          <button
             className={styles.hotspot}
             style={place(SCENE.catSleep)}
             aria-label="Chat"
@@ -539,7 +559,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
       </div>
 
       {tip && (
-        <div key={tip.title + tip.x} className={`${styles.tip} ${tip.below ? styles.tipBelow : ""}`} style={{ left: tip.x, top: tip.y }}>
+        <div key={tip.title + tip.x} className={`${styles.tip} ${tip.below ? styles.tipBelow : ""}`} style={{ left: tip.x, top: tip.y, ["--x" as string]: `${tip.x}px` }}>
           <strong>{tip.title}</strong>
           {tip.sub && <span>{tip.sub}</span>}
         </div>
@@ -582,7 +602,8 @@ function CompactHeader() {
   return (
     <header className={styles.header}>
       <h1>
-        Poké<span>Pocket</span>
+        {NAME_PARTS[0]}
+        <span>{NAME_PARTS[1]}</span>
       </h1>
       <p>
         {t.total ? `${t.owned}/${t.total}` : t.cards} cartes · <b>{formatEur(t.trend)}</b>

@@ -3,6 +3,7 @@
 import { useMemo, type CSSProperties } from "react";
 import { formatEur } from "@/lib/price";
 import { quadMatrix } from "@/lib/scene";
+import { OS_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { useTotals } from "@/lib/useTotals";
 import styles from "./Monitor.module.css";
@@ -41,11 +42,11 @@ export function Monitor({ style, quad, onOpen, onHover, onLeave }: Props) {
         sfx.boot();
         onOpen(e.currentTarget.getBoundingClientRect());
       }}
-      aria-label="Ouvrir PokéPocket OS"
+      aria-label={`Ouvrir ${OS_NAME}`}
     >
       <div className={styles.inner} style={{ width: innerW, height: innerH, transform: matrix }}>
         <div className={styles.content}>
-          <p className={styles.title}>POKEPOCKET OS</p>
+          <p className={styles.title}>{OS_NAME}</p>
           <p className={styles.big}>
             {t.big}
           </p>

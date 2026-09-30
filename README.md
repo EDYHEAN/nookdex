@@ -1,11 +1,11 @@
-# PokéPocket
+# NookDex
 
 Ta collection de cartes Pokémon TCG, rangée dans des classeurs sur un bureau peint façon film d'animation (animations en « low fps », grain de pellicule).
 
 - Chaque extension = un classeur sur l'étagère. Clic : il sort, s'ouvre, et on tourne les pages.
 - Cartes grises = manquantes. Clic sur une carte grise = tu l'as. Clic sur une carte possédée = sa fiche
   (variante normale / reverse / holo, état Cardmarket, doublons, prix d'achat — 0 € si opening).
-- L'écran du PC ouvre **PokéPocket OS** : tableau de bord, wishlist, doublons, recherche, sauvegarde (export/import JSON).
+- L'écran du PC ouvre **NookDex OS** : tableau de bord, wishlist, doublons, recherche, sauvegarde (export/import JSON).
 - Prix Cardmarket (prix bas + tendance) via [TCGdex](https://tcgdex.dev), totaux par classeur.
 - Sauvegarde 100 % locale (localStorage) pour l'instant.
 
@@ -34,7 +34,7 @@ Relancer la commande rafraîchit aussi les prix.
 | `src/components/room/` | Le bureau peint : calques, classeurs, animations 12 fps (`sceneAnim.ts`) |
 | `src/components/fx/` | Grain de pellicule et « boil » (trait qui frémit façon dessin animé) |
 | `src/components/binder/` | Le classeur : ouverture, pages qui tournent, cartes, fiche |
-| `src/components/computer/` | PokéPocket OS (l'écran du PC en plein écran) |
+| `src/components/computer/` | NookDex OS (l'écran du PC en plein écran) |
 | `src/lib/sound.ts` | Tous les sons, synthétisés en WebAudio (+ radio lofi) |
 | `src/lib/store.ts` | Collection (zustand + localStorage) |
 | `src/lib/price.ts` | Calculs de prix / stats |

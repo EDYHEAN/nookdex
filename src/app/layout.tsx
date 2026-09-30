@@ -1,14 +1,30 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Press_Start_2P, VT323 } from "next/font/google";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const vt = VT323({ variable: "--font-vt", weight: "400", subsets: ["latin"] });
 const press = Press_Start_2P({ variable: "--font-press", weight: "400", subsets: ["latin"] });
 
+const TITLE = `${SITE_NAME} · ta collection de cartes Pokémon`;
+
 export const metadata: Metadata = {
-  title: "PokéPocket",
-  description: "Ta collection de cartes Pokémon, rangée dans des classeurs, sur ton bureau.",
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: ["Pokémon", "cartes Pokémon", "collection", "classeur", "TCG", "Cardmarket", "master set", "wishlist"],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: "/",
+    siteName: SITE_NAME,
+    title: TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {

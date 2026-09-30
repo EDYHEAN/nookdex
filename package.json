@@ -1,5 +1,5 @@
 {
-  "name": "pokepocket",
+  "name": "nookdex",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "fetch-set": "node scripts/fetch-set.mjs",
-    "build-scene": "node scripts/build-scene.mjs"
+    "build-scene": "node scripts/build-scene.mjs",
+    "build-icons": "node scripts/build-icons.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

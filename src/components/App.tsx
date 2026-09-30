@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { shelfBinders } from "@/lib/binders";
 import { loadSet, setIdOfCard } from "@/lib/catalog";
 import { setMuted, sfx, startAmbient, stopAmbient } from "@/lib/sound";
+import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
 import { isCompact, useViewport } from "@/lib/useViewport";
 import { BinderView } from "./binder/BinderView";
@@ -12,6 +13,7 @@ import { Computer } from "./computer/Computer";
 import { Loader } from "./Loader";
 import { BoilFilter } from "./fx/Boil";
 import { Grain } from "./fx/Grain";
+import { AboutBook } from "./room/AboutBook";
 import { PaintedRoom } from "./room/PaintedRoom";
 import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
 import { Welcome } from "./shelf/Welcome";
@@ -28,6 +30,7 @@ export function App() {
   const [open, setOpen] = useState<Open | null>(null);
   const [computer, setComputer] = useState<{ x: number; y: number } | null>(null);
   const [adding, setAdding] = useState(false);
+  const [about, setAbout] = useState(false);
   const [entered, setEntered] = useState(false);
   const profile = useStore((s) => s.profile);
   const userBinders = useStore((s) => s.binders);
@@ -97,7 +100,7 @@ export function App() {
   };
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
-  const busy = !!openBinder || !!computer || adding;
+  const busy = !!openBinder || !!computer || adding || about;
 
   return (
     <>
@@ -109,6 +112,7 @@ export function App() {
         onOpen={(binder) => setOpen({ binderId: binder.id })}
         onOpenComputer={(r) => setComputer({ x: r.left + r.width / 2, y: r.top + r.height / 2 })}
         onAddBinder={() => setAdding(true)}
+        onOpenAbout={() => setAbout(true)}
       />
 
       {openBinder && (
@@ -127,6 +131,8 @@ export function App() {
       <AnimatePresence>
         {computer && <Computer key="os" origin={computer} onClose={() => setComputer(null)} onGoToCard={goToCard} />}
       </AnimatePresence>
+
+      <AnimatePresence>{about && <AboutBook key="about" onClose={() => setAbout(false)} />}</AnimatePresence>
 
       <AnimatePresence>
         {adding && (
@@ -166,8 +172,8 @@ export function App() {
                 sfx.boot();
                 setComputer({ x: window.innerWidth - 40, y: 30 });
               }}
-              aria-label="PokéPocket OS"
-              title="PokéPocket OS"
+              aria-label={OS_NAME}
+              title={OS_NAME}
             >
               <span className={styles.os}>OS</span>
             </button>
