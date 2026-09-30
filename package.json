@@ -12,6 +12,7 @@
     "build-icons": "node scripts/build-icons.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "@vercel/analytics": "^2.0.1",
     "motion": "^13.4.6",
     "next": "16.3.7",
