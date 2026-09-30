@@ -1,7 +1,13 @@
-/** Public address of the site: Vercel gives the production domain at build time; localhost in dev. */
-export const SITE_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "http://localhost:3000";
+/** The public domain. Canonical link, sitemap and share image always point here in production. */
+export const SITE_DOMAIN = "nookdex.com";
+
+/** Production = the real domain; Vercel previews = their own URL; local = localhost. */
+export const IS_PRODUCTION = process.env.VERCEL_ENV === "production";
+export const SITE_URL = IS_PRODUCTION
+  ? `https://${SITE_DOMAIN}`
+  : process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
 
 /** The name, everywhere on the site (split in two for the two-tone lettering). */
 export const SITE_NAME = "NookDex";
