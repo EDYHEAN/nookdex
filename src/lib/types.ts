@@ -65,7 +65,11 @@ export type UserBinder = ({ kind: "set"; setId: string } | { kind: "free"; name:
   id: string;
   /** Cover color; missing on saves from before colors could be picked */
   color?: string;
+  /** Order of the cards in a set binder (default: set number) */
+  sort?: BinderSort;
 };
+
+export type BinderSort = "num" | "rarity" | "name";
 
 /** A binder as drawn in the room and opened on screen. */
 export interface BinderDef {
@@ -83,4 +87,5 @@ export interface BinderDef {
   slot: number;
   /** Set binders only */
   setId: string | null;
+  sort: BinderSort;
 }

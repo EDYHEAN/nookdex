@@ -216,6 +216,28 @@
    Only the drawing moves: the hit area stays in place, so the pointer never slips off it. */
 .binder > div {
   transition: translate 0.2s steps(3);
+  /* entrance, from the very first frame: hidden while the "new binder" leaflet closes, then drops in.
+     On the drawing (not the button) so the button's put-back class never replays it;
+     translate / rotate / scale compose with the drawing's perspective transform. */
+  animation: dropIn 0.5s steps(6) 0.25s backwards;
+}
+
+@keyframes dropIn {
+  0% {
+    opacity: 0;
+    translate: 0 -110px;
+    rotate: -4deg;
+  }
+  60% {
+    opacity: 1;
+    translate: 0 6px;
+    rotate: 0deg;
+    scale: 1 0.97;
+  }
+  100% {
+    translate: 0 0;
+    scale: 1;
+  }
 }
 
 .binder:hover,

@@ -93,22 +93,14 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   const prevOpen = useRef<string | null>(null);
   const prevIds = useRef<string[] | null>(null);
 
-  // A binder that was just added slides onto the shelf.
+  // A binder that was just added drops onto the shelf (the drop itself is its CSS entrance): its sound.
   useEffect(() => {
     const ids = binders.map((b) => b.id);
     const before = prevIds.current;
     prevIds.current = ids;
-    const fresh = before && ids.find((id) => !before.includes(id));
-    if (!fresh) return;
-    const t0 = setTimeout(() => {
-      setReturning(fresh);
-      sfx.shelfIn();
-    }, 250);
-    const t1 = setTimeout(() => setReturning((r) => (r === fresh ? null : r)), 1100);
-    return () => {
-      clearTimeout(t0);
-      clearTimeout(t1);
-    };
+    if (!before || !ids.some((id) => !before.includes(id))) return;
+    const t = setTimeout(() => sfx.shelfIn(), 250);
+    return () => clearTimeout(t);
   }, [binders]);
 
   // The binder that was just put back slides into the shelf.

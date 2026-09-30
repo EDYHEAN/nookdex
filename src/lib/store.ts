@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { MAX_BINDERS, freeColor } from "./binders";
 import { setIdOfCard } from "./catalog";
-import type { Condition, Copy, UserBinder, Variant } from "./types";
+import type { BinderSort, Condition, Copy, UserBinder, Variant } from "./types";
 
 export const CONDITIONS: Condition[] = ["MT", "NM", "EX", "GD", "LP", "PL", "PO"];
 
@@ -68,6 +68,7 @@ interface State {
   /** Puts a new binder at the end of the shelf, returns its id. */
   addBinder: (b: { kind: "set"; setId: string } | { kind: "free"; name: string }) => string;
   setBinderColor: (id: string, color: string) => void;
+  setBinderSort: (id: string, sort: BinderSort) => void;
   /** A set binder leaves the shelf, its cards stay owned. A free binder goes with the cards it holds. */
   removeBinder: (id: string) => void;
   renameBinder: (id: string, name: string) => void;
@@ -112,6 +113,7 @@ export const useStore = create<State>()(
         return id;
       },
       setBinderColor: (id, color) => set((s) => ({ binders: s.binders.map((b) => (b.id === id ? { ...b, color } : b)) })),
+      setBinderSort: (id, sort) => set((s) => ({ binders: s.binders.map((b) => (b.id === id ? { ...b, sort } : b)) })),
       removeBinder: (id) =>
         set((s) => ({
           binders: s.binders.filter((b) => b.id !== id),

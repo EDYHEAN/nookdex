@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { BINDER_COLORS, type Pocket } from "@/lib/binders";
 import { formatEur, type SetStats } from "@/lib/price";
+import { SORT_LABEL } from "@/lib/rarity";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
-import type { BinderDef, Copy } from "@/lib/types";
+import type { BinderDef, BinderSort, Copy } from "@/lib/types";
 import styles from "./Binder.module.css";
 
 export type BinderSummary = Omit<SetStats, "copies"> & {
@@ -21,10 +22,11 @@ interface Props {
   pages: Pocket[][];
   collection: Record<string, Copy[]>;
   onJump: (page: number) => void;
-  onRemove: () => void;
+  /** riffle to a pocket and make its card pulse */
+  onFind: (pocket: number) => void;
 }
 
-export function StatsPage({ binder, title, stats, pages, collection, onJump, onRemove }: Props) {
+export function StatsPage({ binder, title, stats, pages, collection, onJump, onFind }: Props) {
   const free = binder.kind === "free";
   const pct = stats.total ? stats.owned / stats.total : 0;
   const segments = 20;
@@ -41,6 +43,9 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onR
           {free ? <Rename id={binder.id} name={title} /> : <h2>{title}</h2>}
         </div>
       </div>
+
+      <Finder pages={pages} collection={collection} onFind={onFind} />
+      {!free && <SortChips id={binder.id} current={binder.sort} />}
 
       {free ? (
         <div className={styles.bigCount}>
@@ -98,9 +103,10 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onR
         </div>
       </dl>
 
-      <Colors id={binder.id} current={binder.color} />
-
-      <p className={styles.mapTitle}>Carte du classeur</p>
+      <div className={styles.mapHead}>
+        <p className={styles.mapTitle}>Carte du classeur</p>
+        <Colors id={binder.id} current={binder.color} />
+      </div>
       <div className={styles.map}>
         {pages.map((pockets, i) => {
           const owned = pockets.filter(filled).length;
@@ -123,20 +129,101 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onR
           );
         })}
       </div>
-      <div className={styles.foot}>
-        {stats.pricesUpdated && <span>Prix Cardmarket du {new Date(stats.pricesUpdated).toLocaleDateString("fr-FR")}</span>}
-        <HoldToRemove
-          label={free ? "Jeter ce classeur" : "Retirer de l'étagère"}
-          hint={
-            free
-              ? stats.owned
-                ? `Maintiens : le classeur part avec ses ${stats.owned} carte${stats.owned > 1 ? "s" : ""}`
-                : "Maintiens pour jeter ce classeur vide"
-              : "Maintiens : tes cartes restent dans ta collec, tu pourras le remettre"
-          }
-          onConfirm={onRemove}
+      {stats.pricesUpdated && (
+        <p className={styles.foot}>Prix Cardmarket du {new Date(stats.pricesUpdated).toLocaleDateString("fr-FR")}</p>
+      )}
+    </div>
+  );
+}
+
+const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+/** "Où est mon Lugia ?": type a name (or a number), pick it, the binder riffles to it. */
+function Finder({ pages, collection, onFind }: { pages: Pocket[][]; collection: Record<string, Copy[]>; onFind: (pocket: number) => void }) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const pockets = useMemo(() => pages.flat().filter((p): p is Pocket & { card: NonNullable<Pocket["card"]> } => !!p.card), [pages]);
+  const nq = norm(q.trim());
+  const results = nq
+    ? pockets
+        .filter(({ card }) => norm(card.name).includes(nq) || card.num.toLowerCase().replace(/^0+(?=d)/, "") === nq.replace(/^0+(?=d)/, ""))
+        .slice(0, 6)
+    : [];
+  const pick = (index: number) => {
+    sfx.riffle();
+    setOpen(false);
+    setQ("");
+    // let go of the field: the arrow keys turn pages again
+    (document.activeElement as HTMLElement | null)?.blur();
+    onFind(index);
+  };
+  return (
+    <div className={styles.finder} onPointerDown={(e) => e.stopPropagation()}>
+      <label className={styles.finderBox}>
+        <span aria-hidden>⌕</span>
+        <input
+          value={q}
+          placeholder="chercher une carte…"
+          aria-label="Chercher une carte dans ce classeur"
+          onChange={(e) => {
+            setQ(e.target.value);
+            setOpen(true);
+            sfx.hover();
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && results[0]) pick(results[0].index);
+            if (e.key === "Escape") {
+              setQ("");
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
         />
-      </div>
+      </label>
+      {open && nq && (
+        <ul className={styles.finderList}>
+          {results.map(({ index, card }) => (
+            <li key={index}>
+              <button onClick={() => pick(index)} onPointerEnter={sfx.hover}>
+                <span className={collection[card.id]?.length ? styles.dotOn : styles.dotOff} />
+                <b>{card.name}</b>
+                <small>
+                  #{card.num} · p.{Math.floor(index / 9) + 1}
+                </small>
+              </button>
+            </li>
+          ))}
+          {!results.length && <li className={styles.finderNone}>aucune carte</li>}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/** How the set binder is ordered: set number, rarest first, or alphabetical. */
+function SortChips({ id, current }: { id: string; current: BinderSort }) {
+  const setSort = useStore((s) => s.setBinderSort);
+  return (
+    <div className={styles.sortChips} role="radiogroup" aria-label="Ordre des cartes">
+      <span>Ranger par</span>
+      {(Object.keys(SORT_LABEL) as BinderSort[]).map((k) => (
+        <button
+          key={k}
+          role="radio"
+          aria-checked={k === current}
+          className={k === current ? styles.chipOn : ""}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (k === current) return;
+            sfx.riffle();
+            setSort(id, k);
+          }}
+          onPointerEnter={sfx.hover}
+        >
+          {SORT_LABEL[k]}
+        </button>
+      ))}
     </div>
   );
 }
@@ -215,7 +302,7 @@ function Rename({ id, name }: { id: string; name: string }) {
 }
 
 /** Keep pressed to confirm: no binder thrown away by accident. */
-function HoldToRemove({ label, hint, onConfirm }: { label: string; hint: string; onConfirm: () => void }) {
+export function HoldToRemove({ label, hint, onConfirm }: { label: string; hint: string; onConfirm: () => void }) {
   const [holding, setHolding] = useState(false);
   const timer = useRef<number | null>(null);
   const start = (e: React.PointerEvent) => {

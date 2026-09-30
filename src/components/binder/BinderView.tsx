@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { PER_PAGE, freeHomes, freePageCount, pocketsOf, type Pocket } from "@/lib/binders";
 import { loadSet, setIdOfCard, useSets } from "@/lib/catalog";
 import { cardTier, copiesTotals, formatEur, setStats, unitPrice, type Tier } from "@/lib/price";
+import { sortCards } from "@/lib/rarity";
 import { sfx } from "@/lib/sound";
 import { looseCopies, useStore } from "@/lib/store";
 import type { BinderDef, CardData } from "@/lib/types";
@@ -13,7 +14,7 @@ import { CardPicker } from "./CardPicker";
 import { CardSlot, EmptyPocket, LoadingPocket, type AddResult } from "./CardSlot";
 import { Celebration } from "./Celebration";
 import { Inspector } from "./Inspector";
-import { StatsPage, type BinderSummary } from "./StatsPage";
+import { HoldToRemove, StatsPage, type BinderSummary } from "./StatsPage";
 import styles from "./Binder.module.css";
 
 type Face = { type: "cover" } | { type: "stats" } | { type: "page"; index: number } | { type: "blank" } | null;
@@ -73,11 +74,11 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
       }
       return out;
     }
-    const cards = set?.cards ?? [];
+    const cards = set ? sortCards(set.cards, binder.sort) : [];
     for (let i = 0; i < cards.length; i += PER_PAGE)
       out.push(cards.slice(i, i + PER_PAGE).map((card, k) => ({ index: i + k, cardId: card.id, card })));
     return out;
-  }, [pockets, set, cardData]);
+  }, [pockets, set, cardData, binder.sort]);
 
   // Cards slipped in a free binder from a set that isn't downloaded yet.
   useEffect(() => {
@@ -236,10 +237,23 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
     };
   }, [phase, focusCardId, pages, jumpToPage]);
 
+  // Search from the summary page: same riffle and pulse.
+  const focusTimer = useRef<number | null>(null);
+  const find = useCallback(
+    (pocket: number) => {
+      jumpToPage(Math.floor(pocket / PER_PAGE));
+      setFocused(pocket);
+      if (focusTimer.current) clearTimeout(focusTimer.current);
+      focusTimer.current = window.setTimeout(() => setFocused((f) => (f === pocket ? null : f)), 3500);
+    },
+    [jumpToPage],
+  );
+
   // keyboard + wheel
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (inspect != null || picking != null) return;
+      if ((e.target as HTMLElement)?.tagName === "INPUT") return;
       if (e.key === "ArrowRight") next();
       else if (e.key === "ArrowLeft") prev();
       else if (e.key === "Escape") close();
@@ -352,7 +366,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
           pages={pages}
           collection={collection}
           onJump={jumpToPage}
-          onRemove={remove}
+          onFind={find}
         />
       );
     if (face.type === "blank") return <div className={styles.sheet} />;
@@ -416,9 +430,22 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
             {summary.count} cartes · <b>{formatEur(summary.trend)}</b>
           </p>
         </div>
-        <button className={styles.pixelBtn} onClick={close} onPointerEnter={sfx.hover}>
-          Ranger <kbd>Échap</kbd>
-        </button>
+        <div className={styles.titleActions}>
+          <HoldToRemove
+            label={free ? "Jeter" : "Retirer"}
+            hint={
+              free
+                ? summary.owned
+                  ? `Maintiens : le classeur part à la poubelle avec ses ${summary.owned} carte${summary.owned > 1 ? "s" : ""}`
+                  : "Maintiens pour jeter ce classeur vide"
+                : "Maintiens pour retirer le classeur de l'étagère : tes cartes restent dans ta collec, tu pourras le remettre"
+            }
+            onConfirm={remove}
+          />
+          <button className={styles.pixelBtn} onClick={close} onPointerEnter={sfx.hover}>
+            Ranger <kbd>Échap</kbd>
+          </button>
+        </div>
       </motion.header>
 
       <motion.div

@@ -40,7 +40,7 @@ const light = (hex: string) => {
 export function shelfBinders(binders: UserBinder[]): BinderDef[] {
   return binders.slice(0, MAX_BINDERS).map((b, i) => {
     const color = b.color ?? BINDER_COLORS[i % BINDER_COLORS.length];
-    const paint = { slot: i, color, dark: shade(color, -0.48), ink: light(color) ? "#241c26" : "#fff3e6" };
+    const paint = { slot: i, color, dark: shade(color, -0.48), ink: light(color) ? "#241c26" : "#fff3e6", sort: b.sort ?? "num" };
     if (b.kind === "free") return { ...paint, id: b.id, kind: "free", code: "LIBRE", name: b.name, logo: null, setId: null };
     const set = catalogSet(b.setId);
     return {

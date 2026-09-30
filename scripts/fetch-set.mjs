@@ -84,6 +84,16 @@ async function exists(url) {
   return res.ok;
 }
 
+/** Some logos are on the asset server but not listed by the API (ex: 30th): look for them, French first. */
+async function logoOf(set, serie) {
+  if (set.logo) return set.logo;
+  for (const lang of [LANG, "en"]) {
+    const url = `${ASSETS}${lang}/${serie}/${set.id}/logo`;
+    if (await exists(`${url}.png`)) return url;
+  }
+  return null;
+}
+
 function codeOf(set, serie) {
   if (CODES[set.id]) return CODES[set.id];
   const m = set.id.match(/^[a-z]+0*(\d+)$/);
@@ -169,7 +179,7 @@ for (const serie of SERIES) {
       serieName: s.name,
       name: set.name,
       code: codeOf(set, serie),
-      logo: set.logo ?? null,
+      logo: await logoOf(set, serie),
       releaseDate: set.releaseDate ?? null,
       total: set.cardCount?.total ?? 0,
       subs: Object.entries(PARENT)
