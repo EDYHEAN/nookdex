@@ -68,6 +68,9 @@ export function AboutBook({ onClose }: { onClose: () => void }) {
             </motion.section>
           ))}
         </div>
+        <nav className={styles.links}>
+          <a href="/confidentialite">Confidentialité</a> · <a href="/conditions">Conditions d&apos;utilisation</a> · <a href="/contact">Contact</a>
+        </nav>
       </motion.article>
     </motion.div>
   );
