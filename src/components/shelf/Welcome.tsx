@@ -7,6 +7,7 @@ import { loadSets, neededSets } from "@/lib/catalog";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { NAME_PARTS, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
+import { browserIsFrench } from "@/lib/lang";
 import { isBackup, useStore } from "@/lib/store";
 import { BinderPicker, type BinderChoice } from "./BinderPicker";
 import styles from "./Welcome.module.css";
@@ -29,7 +30,7 @@ export function Welcome({ onPick, onDone }: Props) {
   const offline = useStore((s) => s.offline);
   const frenchOk = useStore((s) => s.frenchOk);
   // The site only speaks French for now: a browser in another language first gets a note saying so (in English).
-  const [french] = useState(() => (navigator.languages?.length ? navigator.languages : [navigator.language]).some((l) => /^fr\b/i.test(l)));
+  const [french] = useState(browserIsFrench);
   const base = (!email && !offline) || status === "loading" ? "account" : !profile ? "hello" : "binder";
   const step = base === "account" && !email && !french && !frenchOk ? "lang" : base;
   /** "Play without an account" asks once more, with what it costs. */

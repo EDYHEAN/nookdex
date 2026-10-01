@@ -6,8 +6,18 @@ import { loadSets, neededSets, useSets } from "@/lib/catalog";
 import { SCENE, sceneImg } from "@/lib/scene";
 import { SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
+import { useEnglishIntro } from "@/lib/lang";
 import { useStore } from "@/lib/store";
 import styles from "./Loader.module.css";
+
+const TIPS_EN = [
+  "Tip: sweep the binders with your mouse ♪",
+  "Tip: the cat loves a little pat",
+  "Tip: the radio plays lofi in the rain",
+  "Tip: click a grey card to add it",
+  "Tip: the computer screen lists your most wanted cards",
+  "Tip: the lava lamp changes colour",
+];
 
 const TIPS = [
   "Astuce : balaie les classeurs avec la souris ♪",
@@ -51,6 +61,8 @@ export function Loader({ onEnter }: { onEnter: () => void }) {
   const [ready, setReady] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [tip, setTip] = useState(() => Math.floor(Math.random() * TIPS.length));
+  const en = useEnglishIntro();
+  const tips = en ? TIPS_EN : TIPS;
 
   useEffect(() => {
     let alive = true;
@@ -149,15 +161,15 @@ export function Loader({ onEnter }: { onEnter: () => void }) {
                 ))}
               </div>
               <p key={tip} className={styles.tip}>
-                {TIPS[tip]}
+                {tips[tip]}
               </p>
             </>
           ) : (
             <>
               <button className={styles.start} onClick={enter}>
-                ▶ Appuie pour entrer
+                {en ? "▶ Press to enter" : "▶ Appuie pour entrer"}
               </button>
-              <p className={styles.small}>le son est de la partie · pense à monter le volume</p>
+              <p className={styles.small}>{en ? "sound is part of the fun · turn the volume up" : "le son est de la partie · pense à monter le volume"}</p>
             </>
           )}
         </div>
