@@ -126,9 +126,12 @@ async function fetchCards(setId, main) {
       }
     }
     if (!image) {
-      // Still nothing -> fall back to the English scan.
+      // Still nothing -> the English card. Its French scan is sometimes on the asset server all the same (the API
+      // just doesn't list it): same path, "fr" instead of "en". Else the English scan.
       const en = await get(`${API}/en/cards/${c.id}`);
       image = en?.image ?? null;
+      const fr = image?.replace("/en/", `/${LANG}/`);
+      if (fr && fr !== image && (await exists(`${fr}/low.webp`))) image = fr;
     }
     const cm = d?.pricing?.cardmarket ?? {};
     const v = d?.variants ?? {};
