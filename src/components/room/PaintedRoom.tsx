@@ -514,6 +514,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
           <button
             className={`${styles.hotspot} ${styles.bookSpot}`}
             style={place(BOOKS)}
+            data-tour="about"
             aria-label="Le carnet de Johan : à propos"
             onPointerEnter={() => {
               sfx.hover();

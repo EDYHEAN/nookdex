@@ -94,6 +94,7 @@ export const CardSlot = memo(function CardSlot({ card, copies, cardWidth, focuse
     <div
       className={`${styles.slot} ${owned ? styles.owned : styles.missing} ${fx ? styles.added : ""} ${focused ? styles.focused : ""}`}
       data-tier={tier}
+      data-tour={owned ? "owned" : "missing"}
     >
       <button
         className={styles.pocket}

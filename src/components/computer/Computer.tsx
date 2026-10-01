@@ -13,7 +13,7 @@ import type { CardData, Copy, SetData } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import styles from "./Computer.module.css";
 
-export type Tab = "home" | "wish" | "dupes" | "search" | "save";
+type Tab = "home" | "wish" | "dupes" | "search" | "save";
 
 const TABS: { id: Tab; label: string; hint: string }[] = [
   { id: "home", label: "Accueil", hint: "ta collec en un coup d'œil" },
@@ -28,8 +28,6 @@ interface Props {
   origin: { x: number; y: number };
   onClose: () => void;
   onGoToCard: (cardId: string) => void;
-  /** Tab to show (the onboarding tour points at one): follows the prop when it changes. */
-  initialTab?: Tab;
 }
 
 interface Entry {
@@ -42,17 +40,12 @@ interface Entry {
 
 const cardLabel = (e: Entry) => (/^\d+$/.test(e.card.num) && e.set.official ? `${e.card.num}/${e.set.official}` : e.card.num);
 
-export function Computer({ origin, onClose, onGoToCard, initialTab = "home" }: Props) {
+export function Computer({ origin, onClose, onGoToCard }: Props) {
   const collection = useStore((s) => s.collection);
   const binders = useStore((s) => s.binders);
   const sets = useSets((s) => s.sets);
   const cards = useSets((s) => s.cards);
-  const [tab, setTab] = useState<Tab>(initialTab);
-  const [asked, setAsked] = useState(initialTab);
-  if (asked !== initialTab) {
-    setAsked(initialTab);
-    setTab(initialTab);
-  }
+  const [tab, setTab] = useState<Tab>("home");
   const [toast, setToast] = useState<string | null>(null);
 
   // Every card of the set binders, plus every card owned elsewhere (free binders).
@@ -111,6 +104,7 @@ export function Computer({ origin, onClose, onGoToCard, initialTab = "home" }: P
   return (
     <motion.div
       className={styles.overlay}
+      data-tour="os"
       style={{ transformOrigin: `${origin.x}px ${origin.y}px` }}
       initial={{ scale: 0.14, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
@@ -124,7 +118,7 @@ export function Computer({ origin, onClose, onGoToCard, initialTab = "home" }: P
               <span className={styles.brand}>{OS_NAME}</span>
               <span className={styles.path}>C:\COLLEC\{TABS.find((t) => t.id === tab)!.label.toUpperCase()}&gt;</span>
               <Clock />
-              <button className={styles.quit} onClick={onClose} onPointerEnter={sfx.hover}>
+              <button className={styles.quit} onClick={onClose} onPointerEnter={sfx.hover} data-tour="quit-os">
                 Quitter <kbd>Échap</kbd>
               </button>
             </header>
@@ -136,6 +130,7 @@ export function Computer({ origin, onClose, onGoToCard, initialTab = "home" }: P
                     key={t.id}
                     role="tab"
                     aria-selected={tab === t.id}
+                    data-tour={`tab-${t.id}`}
                     className={`${styles.tab} ${tab === t.id ? styles.tabOn : ""}`}
                     onClick={() => {
                       sfx.click();
@@ -563,7 +558,7 @@ function Account({ say }: { say: (m: string) => void }) {
 
   if (!email)
     return (
-      <div className={styles.account}>
+      <div className={styles.account} data-tour="account">
         <p>
           <b>Compte en ligne</b> : retrouve ta collection sur tous tes appareils.
         </p>
@@ -618,7 +613,7 @@ function Account({ say }: { say: (m: string) => void }) {
     );
 
   return (
-    <div className={styles.account}>
+    <div className={styles.account} data-tour="account">
       <p>
         Connecté : <b>{email}</b> · <span className={styles.muted}>{CLOUD_LABEL[status]}</span>
       </p>

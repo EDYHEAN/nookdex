@@ -36,6 +36,7 @@ export function Monitor({ style, quad, onOpen, onHover, onLeave }: Props) {
     <button
       className={styles.screen}
       style={style}
+      data-tour="monitor"
       onPointerEnter={onHover}
       onPointerLeave={onLeave}
       onClick={(e) => {

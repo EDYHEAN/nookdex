@@ -87,6 +87,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
   return (
     <motion.div
       className={styles.backdrop}
+      data-tour="inspector"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       onClick={(e) => {
@@ -121,7 +122,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
         animate={{ x: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 24, delay: 0.05 }}
       >
-        <button className={styles.close} onClick={onClose} aria-label="Fermer">
+        <button className={styles.close} onClick={onClose} aria-label="Fermer" data-tour="inspector-close">
           ✕
         </button>
         <p className={styles.kicker}>
@@ -437,6 +438,7 @@ function HoldButton({ onConfirm }: { onConfirm: () => void }) {
   return (
     <button
       className={`${styles.hold} ${holding ? styles.holding : ""}`}
+      data-tour="remove-card"
       onPointerDown={start}
       onPointerUp={stop}
       onPointerLeave={stop}
