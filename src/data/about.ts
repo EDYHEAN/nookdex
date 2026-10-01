@@ -7,15 +7,17 @@ export const ABOUT = {
     {
       heading: "Qui je suis",
       paragraphs: [
-        "Salut ! Moi c'est Johan, collectionneur de cartes Pokémon depuis [à compléter].",
-        "En ce moment je m'attaque au master set de Tempête Argentée en français, et j'échange mes doublons sur Cardmarket.",
+        "Salut ! Moi c'est Johan, collectionneur de cartes Pokémon depuis… peut-être toujours. Je suis de 1993 : j'ai carrément grandi avec, comme beaucoup :)",
+        "Depuis quelques années, je suis sur le master set de Tempête Argentée en français, et j'échange mes doublons et mes hits d'autres extensions sur Cardmarket.",
       ],
     },
     {
       heading: "Pourquoi ce petit bureau",
       paragraphs: [
-        "Je voulais un endroit à moi pour ranger ma collection : pas un tableur, pas une appli froide, mais un coin de bureau où l'on a envie de passer du temps, la pluie contre la fenêtre et le chat qui dort à côté.",
+        "Je voulais un endroit à moi pour ranger ma collection. Je suis passé par des Excel horribles (même avec de la couleur, c'était pas ouf…), et j'ai été bombardé de pubs pour des applis à foison, souvent payantes au bout de X cartes.",
+        "Je voulais aussi un style calme : mon petit coin, avec mon chat Warwick et un peu de lofi, pour classer tranquillement ma collection.",
         "Chaque classeur se remplit carte par carte, avec les prix du jour pour savoir ce que vaut ta collec et ce qu'il te manque.",
+        "Enjoy !",
         "— Johan",
       ],
     },
