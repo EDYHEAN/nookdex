@@ -248,17 +248,20 @@ export function App() {
             <span key={String(daytime)} className={daytime ? styles.sun : styles.moon} />
           </button>
         )}
-        <button
-          className={`${styles.iconBtn} ${sound ? styles.on : ""}`}
-          onClick={() => {
-            toggleSound();
-            if (!sound) setTimeout(() => sfx.pop(), 60);
-          }}
-          aria-label={sound ? "Couper le son" : "Activer le son"}
-          title={sound ? "Couper le son" : "Activer le son"}
-        >
-          <span className={`${styles.speaker} ${sound ? "" : styles.muted}`} />
-        </button>
+        {/* on a phone, a binder or the OS needs the whole top bar: the sound button waits in the room */}
+        {(!compact || !busy) && (
+          <button
+            className={`${styles.iconBtn} ${sound ? styles.on : ""}`}
+            onClick={() => {
+              toggleSound();
+              if (!sound) setTimeout(() => sfx.pop(), 60);
+            }}
+            aria-label={sound ? "Couper le son" : "Activer le son"}
+            title={sound ? "Couper le son" : "Activer le son"}
+          >
+            <span className={`${styles.speaker} ${sound ? "" : styles.muted}`} />
+          </button>
+        )}
       </div>
 
       {/* Sign in (or play offline, warned), then a nickname, then a first binder. */}

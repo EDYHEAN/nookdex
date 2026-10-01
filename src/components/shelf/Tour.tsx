@@ -113,8 +113,10 @@ function buildSteps(email: string | null): Step[] {
           🔍 Variante, état, prix payé : tout se règle sur la fiche. Pour retirer la carte, <b>maintiens ce bouton</b>.
         </>
       ),
+      // held long enough: the card is gone, the button with it
+      done: () => !$('[data-tour="remove-card"]'),
       skip: () => !$('[data-tour="inspector"]'),
-      leave: () => click('[data-tour="inspector-close"]'),
+      leave: () => setTimeout(() => click('[data-tour="inspector-close"]'), 400),
     },
     {
       target: ["close-binder"],
@@ -219,6 +221,7 @@ export function Tour({ onDone }: { onDone: () => void }) {
     const tick = () => {
       if (s.done?.() && !advanced) {
         advanced = true;
+        s.leave?.();
         sfx.pop();
         setI((n) => Math.min(n + 1, all.length - 1));
         return;
@@ -227,9 +230,11 @@ export function Tour({ onDone }: { onDone: () => void }) {
       // There but off screen (a tab strip scrolled sideways, the bottom of the card sheet on a phone): bring it in.
       if (!main && !scrolled) {
         const el = s.target.map((t) => $(`[data-tour="${t}"]`)).find(Boolean);
-        if (el) {
+        const r = el?.getBoundingClientRect();
+        // only when really out of the screen, and at once: a button that slides away under the finger cancels a hold
+        if (el && r && r.width > 0 && (r.bottom > innerHeight || r.top < 0 || r.right > innerWidth || r.left < 0)) {
           scrolled = true;
-          el.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+          el.scrollIntoView({ block: "center", inline: "center" });
         }
       }
       const alt = !main && s.detour ? find([s.detour.target], layer.current) : null;

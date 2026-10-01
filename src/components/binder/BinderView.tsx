@@ -381,7 +381,6 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
                   key={p.index}
                   card={p.card}
                   copies={collection[p.card.id]}
-                  cardWidth={pageW * 0.28}
                   focused={focused === p.index}
                   onAdd={onAdd}
                   onInspect={() => setInspect(p.index)}

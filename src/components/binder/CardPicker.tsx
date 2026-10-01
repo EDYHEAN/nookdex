@@ -124,7 +124,7 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
           {!failed && !index && <p className={styles.msg}>on ouvre le catalogue…</p>}
           {index && !q.trim() && (
             <p className={styles.msg}>
-              {index.length.toLocaleString("fr-FR")} cartes, des Épée et Bouclier à Méga-Évolution.
+              {index.length.toLocaleString("fr-FR")} cartes en français, des toutes premières séries à Méga-Évolution, promos comprises.
               <br />
               Tape un nom (<i>pikachu</i>), ajoute un numéro (<i>pikachu 160</i>) ou un code d&apos;extension (<i>pikachu ev08</i>).
             </p>

@@ -4,8 +4,10 @@ import { create } from "zustand";
 import raw from "@/data/catalog.json";
 import type { CardData, CatalogSet, Copy, SetData, UserBinder } from "./types";
 
-/** Every set a binder can be made of, newest first. */
+/** Every French set we have the cards of, newest first (extra ones only feed the free binders' search). */
 export const CATALOG = raw as CatalogSet[];
+/** The sets a binder can be made of. */
+export const BINDER_SETS = CATALOG.filter((s) => !s.extra);
 
 const BY_ID = new Map(CATALOG.map((s) => [s.id, s]));
 /** TCGdex set id (sub-sets included) -> catalog set id */

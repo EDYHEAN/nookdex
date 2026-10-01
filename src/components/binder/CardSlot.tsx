@@ -15,7 +15,6 @@ export interface AddResult {
 interface Props {
   card: CardData;
   copies: Copy[] | undefined;
-  cardWidth: number;
   /** Pulses to show where a card searched from the PC is. */
   focused: boolean;
   onAdd: (card: CardData) => AddResult;
@@ -38,7 +37,7 @@ interface Fx {
   bits: { dx: number; dy: number; r: number; c: string; s: number }[];
 }
 
-export const CardSlot = memo(function CardSlot({ card, copies, cardWidth, focused, onAdd, onInspect, tag }: Props) {
+export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, onInspect, tag }: Props) {
   const owned = !!copies?.length;
   const [fx, setFx] = useState<Fx | null>(null);
   const lift = useRef<HTMLSpanElement>(null);
@@ -107,11 +106,10 @@ export const CardSlot = memo(function CardSlot({ card, copies, cardWidth, focuse
         <span ref={lift} className={styles.lift}>
           <img
             className={styles.img}
+            // The light scan only (245 px, ~20 KB): a phone or a retina screen would otherwise pick the 600 px one
+            // for every pocket. Only the pages around the open one are drawn, so no lazy loading either.
             src={`${card.img}/low.webp`}
-            srcSet={`${card.img}/low.webp 245w, ${card.img}/high.webp 600w`}
-            sizes={`${Math.round(cardWidth)}px`}
             alt={card.name}
-            loading="lazy"
             decoding="async"
             draggable={false}
           />
