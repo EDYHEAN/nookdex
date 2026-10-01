@@ -17,6 +17,7 @@ import { Celebration } from "./Celebration";
 import { Inspector } from "./Inspector";
 import { HoldToRemove, StatsPage, type BinderSummary } from "./StatsPage";
 import styles from "./Binder.module.css";
+import { useT } from "@/lib/lang";
 
 type Face = { type: "cover" } | { type: "stats" } | { type: "page"; index: number } | { type: "blank" } | null;
 interface LeafDef {
@@ -36,6 +37,7 @@ interface Props {
 const ASPECT = 0.74; // page width / height for a 3x3 pocket page
 
 export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) {
+  const t = useT();
   const free = binder.kind === "free";
   const set = useSets((s) => (binder.setId ? s.sets[binder.setId] : undefined));
   const cardData = useSets((s) => s.cards);
@@ -336,7 +338,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
     const copies = collection[cardId];
     if (!copies?.length || looseCopies(copies).length) return undefined;
     const homes = freeHomes(copies, userBinders);
-    return homes.length ? `dans ${homes[0].name}` : undefined;
+    return homes.length ? t(`dans ${homes[0].name}`, `in ${homes[0].name}`) : undefined;
   };
 
   // geometry
@@ -399,9 +401,9 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
   };
 
   let pageLabel = "";
-  if (f === 0) pageLabel = "fermé";
-  else if (single) pageLabel = f === 1 ? "sommaire" : `page ${f - 1} / ${pages.length}`;
-  else if (f === 1) pageLabel = `sommaire · page 1 / ${pages.length}`;
+  if (f === 0) pageLabel = t("fermé", "closed");
+  else if (single) pageLabel = f === 1 ? t("sommaire", "summary") : `page ${f - 1} / ${pages.length}`;
+  else if (f === 1) pageLabel = `${t("sommaire", "summary")} · page 1 / ${pages.length}`;
   else if (f > leaves.length - 1) pageLabel = `page ${pages.length} / ${pages.length}`;
   else pageLabel = `pages ${2 * (f - 1)}–${Math.min(2 * (f - 1) + 1, pages.length)} / ${pages.length}`;
 
@@ -428,23 +430,29 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
         <div className={styles.titleText}>
           <h1>{set?.name ?? binder.name}</h1>
           <p>
-            {summary.count} cartes · <b>{formatEur(summary.trend)}</b>
+            {summary.count} {t("cartes", "cards")} · <b>{formatEur(summary.trend)}</b>
           </p>
         </div>
         <div className={styles.titleActions}>
           <HoldToRemove
-            label={free ? "Jeter" : "Retirer"}
+            label={free ? t("Jeter", "Bin it") : t("Retirer", "Remove")}
             hint={
               free
                 ? summary.owned
-                  ? `Maintiens : le classeur part à la poubelle avec ses ${summary.owned} carte${summary.owned > 1 ? "s" : ""}`
-                  : "Maintiens pour jeter ce classeur vide"
-                : "Maintiens pour retirer le classeur de l'étagère : tes cartes restent dans ta collec, tu pourras le remettre"
+                  ? t(
+                      `Maintiens : le classeur part à la poubelle avec ses ${summary.owned} carte${summary.owned > 1 ? "s" : ""}`,
+                      `Hold: the binder goes in the bin with its ${summary.owned} card${summary.owned > 1 ? "s" : ""}`,
+                    )
+                  : t("Maintiens pour jeter ce classeur vide", "Hold to bin this empty binder")
+                : t(
+                    "Maintiens pour retirer le classeur de l'étagère : tes cartes restent dans ta collec, tu pourras le remettre",
+                    "Hold to take the binder off the shelf: your cards stay in your collection, you can put it back",
+                  )
             }
             onConfirm={remove}
           />
           <button className={styles.pixelBtn} onClick={close} onPointerEnter={sfx.hover} data-tour="close-binder">
-            Ranger <kbd>Échap</kbd>
+            {t("Ranger", "Put away")} <kbd>{t("Échap", "Esc")}</kbd>
           </button>
         </div>
       </motion.header>
@@ -485,7 +493,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
           >
             <div className={styles.endPage}>
               <span>✦</span>
-              <p>fin du classeur</p>
+              <p>{t("fin du classeur", "end of binder")}</p>
             </div>
           </div>
           {!single && (
@@ -512,10 +520,10 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
             />
           ))}
           {phase === "open" && f < maxF && (
-            <button className={`${styles.corner} ${styles.cornerRight}`} onClick={next} aria-label="Page suivante" />
+            <button className={`${styles.corner} ${styles.cornerRight}`} onClick={next} aria-label={t("Page suivante", "Next page")} />
           )}
           {phase === "open" && f > 1 && !single && (
-            <button className={`${styles.corner} ${styles.cornerLeft}`} onClick={prev} aria-label="Page précédente" />
+            <button className={`${styles.corner} ${styles.cornerLeft}`} onClick={prev} aria-label={t("Page précédente", "Previous page")} />
           )}
         </motion.div>
       </motion.div>
@@ -527,11 +535,11 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
         animate={{ y: phase === "open" ? 0 : 40, opacity: phase === "open" ? 1 : 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 22 }}
       >
-        <button className={styles.arrow} onClick={prev} disabled={f <= 1} onPointerEnter={sfx.hover} aria-label="Précédent">
+        <button className={styles.arrow} onClick={prev} disabled={f <= 1} onPointerEnter={sfx.hover} aria-label={t("Précédent", "Previous")}>
           ◀
         </button>
         <span className={styles.pageLabel}>{pageLabel}</span>
-        <button className={styles.arrow} onClick={next} disabled={f >= maxF} onPointerEnter={sfx.hover} aria-label="Suivant" data-tour="next-page">
+        <button className={styles.arrow} onClick={next} disabled={f >= maxF} onPointerEnter={sfx.hover} aria-label={t("Suivant", "Next")} data-tour="next-page">
           ▶
         </button>
       </motion.nav>
@@ -634,6 +642,7 @@ function Leaf({ index, total, flipped, fast, single, left, pivot, width, color, 
 }
 
 function Cover({ binder, name, count }: { binder: BinderDef; name: string; count: string }) {
+  const t = useT();
   const free = binder.kind === "free";
   return (
     <div className={styles.cover} style={{ background: binder.color, color: binder.ink }}>
@@ -647,8 +656,8 @@ function Cover({ binder, name, count }: { binder: BinderDef; name: string; count
         ) : (
           <p className={styles.coverTitle}>{name}</p>
         )}
-        <p className={styles.coverName}>{free ? "classeur libre" : name}</p>
-        <p className={styles.coverCount}>{free ? `${count} carte${count === "1" ? "" : "s"}` : count.replace("/", " / ")}</p>
+        <p className={styles.coverName}>{free ? t("classeur libre", "free binder") : name}</p>
+        <p className={styles.coverCount}>{free ? `${count} ${t("carte", "card")}${count === "1" ? "" : "s"}` : count.replace("/", " / ")}</p>
       </div>
       <span className={styles.coverBrand}>{SITE_NAME}</span>
     </div>

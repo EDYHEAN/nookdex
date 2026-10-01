@@ -6,6 +6,7 @@ import { sfx } from "@/lib/sound";
 import type { CardData, Copy } from "@/lib/types";
 import { CardBack } from "./CardBack";
 import styles from "./CardSlot.module.css";
+import { useT } from "@/lib/lang";
 
 export interface AddResult {
   combo: number;
@@ -39,6 +40,7 @@ interface Fx {
 }
 
 export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, onInspect, tag }: Props) {
+  const tr = useT();
   const owned = !!copies?.length;
   const [fx, setFx] = useState<Fx | null>(null);
   const lift = useRef<HTMLSpanElement>(null);
@@ -102,7 +104,7 @@ export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, o
         onPointerEnter={sfx.hover}
         onPointerMove={onMove}
         onPointerLeave={onLeave}
-        aria-label={owned ? `${card.name} — voir la fiche` : `${card.name} — je l'ai !`}
+        aria-label={owned ? `${card.name} — ${tr("voir la fiche", "see its sheet")}` : `${card.name} — ${tr("je l'ai !", "got it!")}`}
       >
         <span ref={lift} className={styles.lift}>
           {card.img ? (
@@ -129,7 +131,7 @@ export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, o
             <span className={styles.hint}>
               <b>{card.name}</b>
               <span>{price ? formatEur(price) : "—"}</span>
-              <em>clic = je l&apos;ai !</em>
+              <em>{tr("clic = je l'ai !", "click = got it!")}</em>
             </span>
           )}
         </span>
@@ -143,8 +145,8 @@ export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, o
             sfx.pop();
             onInspect(card.id);
           }}
-          aria-label={`Fiche de ${card.name}`}
-          title="Voir la fiche"
+          aria-label={tr(`Fiche de ${card.name}`, `${card.name}'s sheet`)}
+          title={tr("Voir la fiche", "See its sheet")}
         >
           🔍
         </button>
@@ -193,6 +195,7 @@ export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, o
 
 /** An empty pocket of a free binder: slip any card in it. */
 export function EmptyPocket({ index, onPick }: { index: number; onPick: (pocket: number) => void }) {
+  const tr = useT();
   return (
     <div className={`${styles.slot} ${styles.empty}`}>
       <button
@@ -202,7 +205,7 @@ export function EmptyPocket({ index, onPick }: { index: number; onPick: (pocket:
           onPick(index);
         }}
         onPointerEnter={sfx.hover}
-        aria-label={`Pochette ${(index % 9) + 1} : ranger une carte`}
+        aria-label={tr(`Pochette ${(index % 9) + 1} : ranger une carte`, `Pocket ${(index % 9) + 1}: slip a card in`)}
       >
         <span className={styles.lift}>
           <span className={styles.emptyPlus}>+</span>

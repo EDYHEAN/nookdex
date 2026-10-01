@@ -1,3 +1,4 @@
+import { currentLang } from "./lang";
 import type { CardData, Copy, SetData, Variant } from "./types";
 
 type Kind = "low" | "trend";
@@ -87,11 +88,12 @@ export function setStats(set: SetData, collection: Record<string, Copy[]>): SetS
   return s;
 }
 
-const eur = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
-export const formatEur = (n: number) => eur.format(n);
+// Cardmarket prices are in euros, written the visitor's way: 12,50 € or €12.50
+const EUR = { fr: new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }), en: new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" }) };
+export const formatEur = (n: number) => EUR[currentLang()].format(n);
 /** A card's price, or a dash when it isn't sold on Cardmarket (never "0,00 €", which reads as worthless). */
-export const formatPrice = (n: number | null) => (n == null ? "—" : eur.format(n));
-export const NO_PRICE = "Pas en vente sur Cardmarket en ce moment";
+export const formatPrice = (n: number | null) => (n == null ? "—" : formatEur(n));
+export const noPriceText = () => (currentLang() === "en" ? "Not for sale on Cardmarket right now" : "Pas en vente sur Cardmarket en ce moment");
 
 export type Tier = "common" | "rare" | "legend";
 
@@ -103,11 +105,11 @@ export function cardTier(card: CardData): Tier {
   return "common";
 }
 
-export const VARIANT_LABEL: Record<Variant, string> = {
-  normal: "Normale",
-  reverse: "Reverse",
-  holo: "Holo",
+const VARIANTS: Record<"fr" | "en", Record<Variant, string>> = {
+  fr: { normal: "Normale", reverse: "Reverse", holo: "Holo" },
+  en: { normal: "Normal", reverse: "Reverse", holo: "Holo" },
 };
+export const variantLabel = (v: Variant) => VARIANTS[currentLang()][v];
 
 export interface Totals {
   /** Progress over the set binders */

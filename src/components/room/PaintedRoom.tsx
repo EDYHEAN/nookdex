@@ -15,6 +15,7 @@ import { LAVA_THEMES, drawDust, drawLava, drawRain, drawSunDust } from "./sceneA
 import { Monitor } from "./Monitor";
 import { ShelfBinder, binderLabel, binderSize } from "./ShelfBinder";
 import styles from "./PaintedRoom.module.css";
+import { useT } from "@/lib/lang";
 
 interface Props {
   openId: string | null;
@@ -67,6 +68,7 @@ function useCamera(compact: boolean) {
 }
 
 export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout }: Props) {
+  const tr = useT();
   const cam = useCamera(compact);
   const lampOn = useStore((s) => s.lampOn);
   const ambient = useStore((s) => s.ambient);
@@ -185,13 +187,13 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   const clickBinder = async (b: BinderDef) => {
     if (openId || pulling) return;
     if (b.setId && !sets[b.setId]) {
-      setTip((t) => (t ? { ...t, sub: "on sort les cartes…" } : t));
+      setTip((t) => (t ? { ...t, sub: tr("on sort les cartes…", "getting the cards out…") } : t));
       try {
         await loadSet(b.setId);
       } catch {
         sfx.locked();
         setShaking(b.id);
-        setTip((t) => (t ? { ...t, sub: "pas de réseau ? réessaie" } : t));
+        setTip((t) => (t ? { ...t, sub: tr("pas de réseau ? réessaie", "no network? try again") } : t));
         setTimeout(() => setShaking(null), 450);
         return;
       }
@@ -206,13 +208,13 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   const summary = (b: BinderDef) => {
     if (b.setId) {
       const set = sets[b.setId];
-      if (!set) return { sub: `${b.code} · ${catalogTotal(b)} cartes`, pct: null };
+      if (!set) return { sub: `${b.code} · ${catalogTotal(b)} ${tr("cartes", "cards")}`, pct: null };
       const st = setStats(set, collection);
-      return { sub: `${st.owned}/${st.total} cartes · ${formatEur(st.trend)}`, pct: st.total ? st.owned / st.total : 0 };
+      return { sub: `${st.owned}/${st.total} ${tr("cartes", "cards")} · ${formatEur(st.trend)}`, pct: st.total ? st.owned / st.total : 0 };
     }
     const items = [...pocketsOf(b.id, collection).values()].flatMap(({ cardId, copy }) => (cards[cardId] ? [{ card: cards[cardId], copies: [copy] }] : []));
     const t = copiesTotals(items);
-    return { sub: t.cards ? `${t.cards} carte${t.cards > 1 ? "s" : ""} · ${formatEur(t.trend)}` : "classeur libre · vide", pct: null };
+    return { sub: t.cards ? `${t.cards} ${tr("carte", "card")}${t.cards > 1 ? "s" : ""} · ${formatEur(t.trend)}` : tr("classeur libre · vide", "free binder · empty"), pct: null };
   };
   const plusSlot = binders.length < MAX_BINDERS ? SCENE.slots[binders.length] : null;
   /** the binder on its left shows its side cover over part of the sketch */
@@ -291,7 +293,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             quad={SCREEN_QUAD}
             onHover={() => {
               sfx.hover();
-              showTip(SCENE.screen.x + SCENE.screen.w / 2, SCENE.screen.y - 20, OS_NAME, "wishlist, doublons, recherche…");
+              showTip(SCENE.screen.x + SCENE.screen.w / 2, SCENE.screen.y - 20, OS_NAME, tr("wishlist, doublons, recherche…", "wishlist, duplicates, search…"));
             }}
             onLeave={() => setTip(null)}
             onOpen={(rect) => {
@@ -306,14 +308,14 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
               key={`plus-${binders.length}`}
               className={`${styles.binder} ${styles.addSlot}`}
               style={place(plusSlot)}
-              aria-label="Ajouter un classeur"
+              aria-label={tr("Ajouter un classeur", "Add a binder")}
               onPointerEnter={() => {
                 sfx.hover();
                 showTip(
                   plusSlot.x + plusSlot.w / 2,
                   plusSlot.y - 8,
-                  "Nouveau classeur",
-                  binders.length ? "une extension ou un classeur libre" : "choisis ton premier classeur",
+                  tr("Nouveau classeur", "New binder"),
+                  binders.length ? tr("une extension ou un classeur libre", "a set or a free binder") : tr("choisis ton premier classeur", "pick your first binder"),
                   plusSlot.y + plusSlot.h + 10,
                 );
               }}
@@ -450,16 +452,16 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
           <button
             className={styles.hotspot}
             style={place(SCENE.window)}
-            aria-label={daytime ? "Fenêtre : passer à la nuit" : "Fenêtre : passer au jour"}
+            aria-label={daytime ? tr("Fenêtre : passer à la nuit", "Window: switch to night") : tr("Fenêtre : passer au jour", "Window: switch to day")}
             onPointerEnter={() => {
               sfx.hover();
-              showTip(SCENE.window.x + SCENE.window.w / 2, SCENE.window.y + 40, "Fenêtre", daytime ? "clic : attendre la nuit" : "clic : faire lever le soleil");
+              showTip(SCENE.window.x + SCENE.window.w / 2, SCENE.window.y + 40, tr("Fenêtre", "Window"), daytime ? tr("clic : attendre la nuit", "click: wait for night") : tr("clic : faire lever le soleil", "click: let the sun rise"));
             }}
             onPointerLeave={() => setTip(null)}
             onClick={() => {
               sfx.dayNight(!daytime);
               toggleDaytime();
-              showTip(SCENE.window.x + SCENE.window.w / 2, SCENE.window.y + 40, "Fenêtre", !daytime ? "grand soleil ☀" : "pluie de nuit ☾");
+              showTip(SCENE.window.x + SCENE.window.w / 2, SCENE.window.y + 40, tr("Fenêtre", "Window"), !daytime ? tr("grand soleil ☀", "bright sun ☀") : tr("pluie de nuit ☾", "night rain ☾"));
             }}
           />
           <button
@@ -468,7 +470,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             aria-label="Radio"
             onPointerEnter={() => {
               sfx.hover();
-              showTip(SCENE.radio.x + SCENE.radio.w / 2, SCENE.radio.y, ambient ? "Radio lofi ♪" : "Radio", ambient ? "clic : couper" : "clic : lancer la musique");
+              showTip(SCENE.radio.x + SCENE.radio.w / 2, SCENE.radio.y, ambient ? "Radio lofi ♪" : "Radio", ambient ? tr("clic : couper", "click: stop") : tr("clic : lancer la musique", "click: play some music"));
             }}
             onPointerLeave={() => setTip(null)}
             onClick={() => {
@@ -476,16 +478,16 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
               if (ambient) stopAmbient();
               else startAmbient();
               setAmbient(!ambient);
-              showTip(SCENE.radio.x + SCENE.radio.w / 2, SCENE.radio.y, !ambient ? "Radio lofi ♪" : "Radio", !ambient ? (daytime ? "soleil & beats" : "pluie & beats") : "silence…");
+              showTip(SCENE.radio.x + SCENE.radio.w / 2, SCENE.radio.y, !ambient ? "Radio lofi ♪" : "Radio", !ambient ? (daytime ? tr("soleil & beats", "sun & beats") : tr("pluie & beats", "rain & beats")) : tr("silence…", "silence…"));
             }}
           />
           <button
             className={styles.hotspot}
             style={place(SCENE.lava)}
-            aria-label="Lampe à lave"
+            aria-label={tr("Lampe à lave", "Lava lamp")}
             onPointerEnter={() => {
               sfx.hover();
-              showTip(SCENE.lava.x + SCENE.lava.w / 2, SCENE.lava.y, "Lampe à lave", "clic : changer la couleur");
+              showTip(SCENE.lava.x + SCENE.lava.w / 2, SCENE.lava.y, tr("Lampe à lave", "Lava lamp"), tr("clic : changer la couleur", "click: change the colour"));
             }}
             onPointerLeave={() => setTip(null)}
             onClick={() => {
@@ -493,32 +495,32 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
               const n = (lavaTheme.current + 1) % LAVA_THEMES.length;
               lavaTheme.current = n;
               setLavaIdx(n);
-              showTip(SCENE.lava.x + SCENE.lava.w / 2, SCENE.lava.y, "Lampe à lave", LAVA_THEMES[n].name);
+              showTip(SCENE.lava.x + SCENE.lava.w / 2, SCENE.lava.y, tr("Lampe à lave", "Lava lamp"), tr(LAVA_THEMES[n].name, LAVA_THEMES[n].nameEn));
             }}
           />
           <button
             className={styles.hotspot}
             style={place(SCENE.lampHit)}
-            aria-label="Lampe"
+            aria-label={tr("Lampe", "Lamp")}
             onPointerEnter={() => {
               sfx.hover();
-              showTip(SCENE.lampHit.x + SCENE.lampHit.w / 2, SCENE.lampHit.y, "Lampe", lampOn ? "clic : éteindre" : "clic : allumer");
+              showTip(SCENE.lampHit.x + SCENE.lampHit.w / 2, SCENE.lampHit.y, tr("Lampe", "Lamp"), lampOn ? tr("clic : éteindre", "click: switch off") : tr("clic : allumer", "click: switch on"));
             }}
             onPointerLeave={() => setTip(null)}
             onClick={() => {
               sfx.lamp();
               toggleLamp();
-              showTip(SCENE.lampHit.x + SCENE.lampHit.w / 2, SCENE.lampHit.y, "Lampe", !lampOn ? "ahh, la lumière" : daytime ? "le soleil suffit" : "au clair de lune");
+              showTip(SCENE.lampHit.x + SCENE.lampHit.w / 2, SCENE.lampHit.y, tr("Lampe", "Lamp"), !lampOn ? tr("ahh, la lumière", "ahh, light") : daytime ? tr("le soleil suffit", "the sun is enough") : tr("au clair de lune", "by moonlight"));
             }}
           />
           <button
             className={`${styles.hotspot} ${styles.bookSpot}`}
             style={place(BOOKS)}
             data-tour="about"
-            aria-label="Le carnet de Johan : à propos"
+            aria-label={tr("Le carnet de Johan : à propos", "Johan's notebook: about")}
             onPointerEnter={() => {
               sfx.hover();
-              showTip(BOOKS.x + BOOKS.w / 2, BOOKS.y - 8, "Le carnet", "qui a fait ce bureau, et pourquoi");
+              showTip(BOOKS.x + BOOKS.w / 2, BOOKS.y - 8, tr("Le carnet", "The notebook"), tr("qui a fait ce bureau, et pourquoi", "who made this desk, and why"));
             }}
             onPointerLeave={() => setTip(null)}
             onClick={() => {
@@ -530,10 +532,10 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
           <button
             className={styles.hotspot}
             style={place(SCENE.catSleep)}
-            aria-label="Chat"
+            aria-label={tr("Chat", "Cat")}
             onPointerEnter={() => {
               sfx.hover();
-              showTip(SCENE.catSleep.x + SCENE.catSleep.w / 2, SCENE.catSleep.y, "Pixel", "le gardien du bureau");
+              showTip(SCENE.catSleep.x + SCENE.catSleep.w / 2, SCENE.catSleep.y, "Warwick", tr("le gardien du bureau", "keeper of the desk"));
             }}
             onPointerLeave={() => setTip(null)}
             onClick={() => {
@@ -541,7 +543,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
               const id = Date.now();
               setPetting(id);
               setTimeout(() => setPetting((p) => (p === id ? 0 : p)), 2600);
-              showTip(SCENE.catSleep.x + SCENE.catSleep.w / 2, SCENE.catSleep.y, "Pixel", "rrrrrrr ♥");
+              showTip(SCENE.catSleep.x + SCENE.catSleep.w / 2, SCENE.catSleep.y, "Warwick", "rrrrrrr ♥");
             }}
           />
         </div>
@@ -599,6 +601,7 @@ function Clock() {
 }
 
 function CompactHeader() {
+  const tr = useT();
   const t = useTotals();
   return (
     <header className={styles.header}>
@@ -607,7 +610,7 @@ function CompactHeader() {
         <span>{NAME_PARTS[1]}</span>
       </h1>
       <p>
-        {t.total ? `${t.owned}/${t.total}` : t.cards} cartes · <b>{formatEur(t.trend)}</b>
+        {t.total ? `${t.owned}/${t.total}` : t.cards} {tr("cartes", "cards")} · <b>{formatEur(t.trend)}</b>
       </p>
     </header>
   );

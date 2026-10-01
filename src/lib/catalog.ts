@@ -1,20 +1,36 @@
 "use client";
 
 import { create } from "zustand";
-import raw from "@/data/catalog.json";
+import rawEn from "@/data/catalog-en.json";
+import rawFr from "@/data/catalog.json";
+import { currentLang } from "./lang";
 import type { CardData, CatalogSet, Copy, SetData, UserBinder } from "./types";
 
-/** Every French set we have the cards of, newest first (extra ones only feed the free binders' search). */
-export const CATALOG = raw as CatalogSet[];
-/** The sets a binder can be made of. */
-export const BINDER_SETS = CATALOG.filter((s) => !s.extra);
+const FR = rawFr as CatalogSet[];
+const EN = rawEn as CatalogSet[];
 
-const BY_ID = new Map(CATALOG.map((s) => [s.id, s]));
+/**
+ * The card data speaks the visitor's language (French or English cards, same ids). Read once: switching the
+ * language reloads the page. English files not downloaded yet -> the French ones.
+ */
+const english = () => typeof window !== "undefined" && currentLang() === "en" && EN.length > 0;
+
+/** Every set we have the cards of, newest first (extra ones only feed the free binders' search). */
+export const catalog = (): CatalogSet[] => (english() ? EN : FR);
+/** The sets a binder can be made of. */
+export const binderSets = () => catalog().filter((s) => !s.extra);
+
+/** French and English sets merged: a card owned keeps its set whatever the language. */
+const BY_ID = new Map([...FR, ...EN].map((s) => [s.id, s]));
+const BY_ID_EN = new Map(EN.map((s) => [s.id, s]));
 /** TCGdex set id (sub-sets included) -> catalog set id */
 const OWNER = new Map<string, string>();
-CATALOG.forEach((s) => [s.id, ...s.subs].forEach((id) => OWNER.set(id, s.id)));
+[...FR, ...EN].forEach((s) => [s.id, ...s.subs].forEach((id) => OWNER.set(id, s.id)));
 
-export const catalogSet = (id: string) => BY_ID.get(id);
+/** Files of a set or of the search index, in the visitor's language. */
+const dataUrl = (file: string) => (english() ? `/sets/en/${file}` : `/sets/${file}`);
+
+export const catalogSet = (id: string) => (english() ? (BY_ID_EN.get(id) ?? FR.find((s) => s.id === id)) : FR.find((s) => s.id === id)) ?? BY_ID.get(id);
 
 /** "swsh12tg-TG05" -> "swsh12" (the set whose binder holds it) */
 export function setIdOfCard(cardId: string) {
@@ -43,7 +59,9 @@ export function loadSet(id: string): Promise<SetData> {
   if (done) return Promise.resolve(done);
   let p = pending.get(id);
   if (!p) {
-    p = fetch(`/sets/${id}.json`)
+    p = fetch(dataUrl(`${id}.json`))
+      // a set that only exists in French: its French file
+      .then((r) => (r.ok || !english() ? r : fetch(`/sets/${id}.json`)))
       .then((r) => {
         if (!r.ok) throw new Error(`set ${id}: ${r.status}`);
         return r.json() as Promise<SetData>;
@@ -67,7 +85,8 @@ let indexPending: Promise<IndexCard[]> | null = null;
 export function loadIndex(): Promise<IndexCard[]> {
   const done = useSets.getState().index;
   if (done) return Promise.resolve(done);
-  indexPending ??= fetch("/sets/index.json")
+  indexPending ??= fetch(dataUrl("index.json"))
+    .then((r) => (r.ok ? r : fetch("/sets/index.json")))
     .then((r) => r.json() as Promise<{ assets: string; cards: IndexCard[] }>)
     .then(({ assets, cards }) => {
       useSets.setState({ index: cards, assets });

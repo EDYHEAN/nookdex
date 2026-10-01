@@ -34,11 +34,15 @@ jobs:
       - name: Télécharger les prix de toutes les extensions
         run: node scripts/fetch-set.mjs --force
 
+      # les mêmes cartes en anglais, pour les visiteurs dont le navigateur est en anglais
+      - name: Cartes et prix en anglais
+        run: node scripts/fetch-set.mjs --force --lang=en
+
       - name: Enregistrer les prix s'ils ont changé
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/sets public/logos src/data/catalog.json
+          git add public/sets public/logos src/data/catalog.json src/data/catalog-en.json
           if git diff --cached --quiet; then
             echo "Aucun prix n'a bougé aujourd'hui."
             exit 0

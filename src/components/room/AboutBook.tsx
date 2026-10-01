@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { useEffect } from "react";
-import { ABOUT } from "@/data/about";
+import { ABOUT, ABOUT_EN } from "@/data/about";
 import { sfx } from "@/lib/sound";
 import styles from "./AboutBook.module.css";
+import { useT } from "@/lib/lang";
 
 /** The notebook taken from the shelf: it rises, opens, and reads like a handwritten journal. */
 /** onTour: replays the onboarding tour. */
 export function AboutBook({ onClose, onTour }: { onClose: () => void; onTour: () => void }) {
+  const t = useT();
+  const about = t(ABOUT, ABOUT_EN);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -34,7 +37,7 @@ export function AboutBook({ onClose, onTour }: { onClose: () => void; onTour: ()
         animate={{ y: 0, rotateX: 0, scale: 1, opacity: 1 }}
         exit={{ y: 80, rotate: 3, opacity: 0, transition: { duration: 0.25 } }}
         transition={{ type: "spring", stiffness: 220, damping: 22 }}
-        aria-label={ABOUT.title}
+        aria-label={about.title}
       >
         <button
           className={styles.close}
@@ -43,13 +46,13 @@ export function AboutBook({ onClose, onTour }: { onClose: () => void; onTour: ()
             onClose();
           }}
           onPointerEnter={sfx.hover}
-          aria-label="Refermer le carnet"
+          aria-label={t("Refermer le carnet", "Close the notebook")}
         >
           ✕
         </button>
-        <h2 className={styles.title}>{ABOUT.title}</h2>
+        <h2 className={styles.title}>{about.title}</h2>
         <div className={styles.pages}>
-          {ABOUT.pages.map((page, i) => (
+          {about.pages.map((page, i) => (
             <motion.section
               key={page.heading}
               className={styles.page}
@@ -72,15 +75,15 @@ export function AboutBook({ onClose, onTour }: { onClose: () => void; onTour: ()
         </div>
         <nav className={styles.links}>
           <button className={styles.linkBtn} onClick={onTour}>
-            Revoir la visite
+            {t("Revoir la visite", "Replay the tour")}
           </button>{" "}
           ·{" "}
           <Link href="/confidentialite" onClick={onClose}>
-            Confidentialité
+            {t("Confidentialité", "Privacy")}
           </Link>{" "}
           ·{" "}
           <Link href="/conditions" onClick={onClose}>
-            Conditions d&apos;utilisation
+            {t("Conditions d'utilisation", "Terms of use")}
           </Link>{" "}
           ·{" "}
           <Link href="/contact" onClick={onClose}>

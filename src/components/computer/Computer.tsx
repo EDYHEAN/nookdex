@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { pocketsOf, shelfBinders } from "@/lib/binders";
 import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { resolveConflict, signIn, signInWithGoogle, signOut, useCloud } from "@/lib/cloud";
-import { VARIANT_LABEL, copiesTotals, formatEur, formatPrice, priceOf, setStats, unitPrice } from "@/lib/price";
+import { variantLabel, copiesTotals, formatEur, formatPrice, priceOf, setStats, unitPrice } from "@/lib/price";
 import { OS_NAME, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { isBackup, makeBackup, useStore } from "@/lib/store";
@@ -13,15 +13,16 @@ import type { CardData, Copy, SetData } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
 import styles from "./Computer.module.css";
+import { LANG_COOKIE, useLang, useT } from "@/lib/lang";
 
 type Tab = "home" | "wish" | "dupes" | "search" | "save";
 
-const TABS: { id: Tab; label: string; hint: string }[] = [
-  { id: "home", label: "Accueil", hint: "ta collec en un coup d'œil" },
-  { id: "wish", label: "Wishlist", hint: "les cartes qui te manquent" },
-  { id: "dupes", label: "Doublons", hint: "ce que tu peux échanger" },
-  { id: "search", label: "Recherche", hint: "trouver une carte" },
-  { id: "save", label: "Sauvegarde", hint: "compte / exporter" },
+const TABS: { id: Tab; label: [string, string]; hint: [string, string] }[] = [
+  { id: "home", label: ["Accueil", "Home"], hint: ["ta collec en un coup d'œil", "your collection at a glance"] },
+  { id: "wish", label: ["Wishlist", "Wishlist"], hint: ["les cartes qui te manquent", "the cards you're missing"] },
+  { id: "dupes", label: ["Doublons", "Duplicates"], hint: ["ce que tu peux échanger", "what you can trade"] },
+  { id: "search", label: ["Recherche", "Search"], hint: ["trouver une carte", "find a card"] },
+  { id: "save", label: ["Sauvegarde", "Save"], hint: ["compte / exporter", "account / export"] },
 ];
 
 interface Props {
@@ -42,6 +43,7 @@ interface Entry {
 const cardLabel = (e: Entry) => (/^\d+$/.test(e.card.num) && e.set.official ? `${e.card.num}/${e.set.official}` : e.card.num);
 
 export function Computer({ origin, onClose, onGoToCard }: Props) {
+  const tr = useT();
   const collection = useStore((s) => s.collection);
   const binders = useStore((s) => s.binders);
   const sets = useSets((s) => s.sets);
@@ -79,7 +81,7 @@ export function Computer({ origin, onClose, onGoToCard }: Props) {
       say(msg);
     } catch {
       sfx.locked();
-      say("copie impossible");
+      say(tr("copie impossible", "couldn't copy"));
     }
   };
 
@@ -117,10 +119,10 @@ export function Computer({ origin, onClose, onGoToCard }: Props) {
           <div className={styles.boot}>
             <header className={styles.top}>
               <span className={styles.brand}>{OS_NAME}</span>
-              <span className={styles.path}>C:\COLLEC\{TABS.find((t) => t.id === tab)!.label.toUpperCase()}&gt;</span>
+              <span className={styles.path}>C:\COLLEC\{tr(...TABS.find((t) => t.id === tab)!.label).toUpperCase()}&gt;</span>
               <Clock />
               <button className={styles.quit} onClick={onClose} onPointerEnter={sfx.hover} data-tour="quit-os">
-                Quitter <kbd>Échap</kbd>
+                {tr("Quitter", "Quit")} <kbd>{tr("Échap", "Esc")}</kbd>
               </button>
             </header>
 
@@ -141,8 +143,8 @@ export function Computer({ origin, onClose, onGoToCard }: Props) {
                   >
                     <kbd>{i + 1}</kbd>
                     <span>
-                      {t.label}
-                      <small>{t.hint}</small>
+                      {tr(...t.label)}
+                      <small>{tr(...t.hint)}</small>
                     </span>
                   </button>
                 ))}
@@ -166,17 +168,19 @@ export function Computer({ origin, onClose, onGoToCard }: Props) {
 }
 
 function Clock() {
+  const tr = useT();
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 10000);
     return () => clearInterval(t);
   }, []);
-  return <span className={styles.clock}>{now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>;
+  return <span className={styles.clock}>{now.toLocaleTimeString(tr("fr-FR", "en-GB"), { hour: "2-digit", minute: "2-digit" })}</span>;
 }
 
 /* ------------------------------------------------------------------ */
 
 function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void }) {
+  const tr = useT();
   const collection = useStore((s) => s.collection);
   const userBinders = useStore((s) => s.binders);
   const profile = useStore((s) => s.profile);
@@ -193,7 +197,7 @@ function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void 
       cards[cardId] ? [{ card: cards[cardId], copies: [copy] }] : [],
     );
     const s = copiesTotals(items);
-    return { b, pct: null, count: `${s.cards} carte${s.cards > 1 ? "s" : ""}`, trend: s.trend };
+    return { b, pct: null, count: `${s.cards} ${tr("carte", "card")}${s.cards > 1 ? "s" : ""}`, trend: s.trend };
   });
   const gain = t.spentTrend - t.spent;
   const recent = entries
@@ -205,22 +209,27 @@ function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void 
     <div className={styles.home}>
       <div className={styles.tiles}>
         {t.total ? (
-          <Tile label="Cartes" value={`${t.owned}/${t.total}`} sub={`${Math.round((t.owned / t.total) * 100)}% · il en manque ${t.total - t.owned}`} big />
+          <Tile
+            label={tr("Cartes", "Cards")}
+            value={`${t.owned}/${t.total}`}
+            sub={`${Math.round((t.owned / t.total) * 100)}% · ${tr("il en manque", "missing")} ${t.total - t.owned}`}
+            big
+          />
         ) : (
-          <Tile label="Cartes" value={String(t.cards)} sub={`${t.copies} exemplaires`} big />
+          <Tile label={tr("Cartes", "Cards")} value={String(t.cards)} sub={`${t.copies} ${tr("exemplaires", "copies")}`} big />
         )}
-        <Tile label="Valeur (tendance)" value={formatEur(t.trend)} sub={`prix bas ${formatEur(t.low)}`} accent="yellow" />
-        <Tile label="Dépensé" value={formatEur(t.spent)} sub="sur les cartes avec un prix d'achat" />
+        <Tile label={tr("Valeur (tendance)", "Value (trend)")} value={formatEur(t.trend)} sub={`${tr("prix bas", "low")} ${formatEur(t.low)}`} accent="yellow" />
+        <Tile label={tr("Dépensé", "Spent")} value={formatEur(t.spent)} sub={tr("sur les cartes avec un prix d'achat", "on cards with a purchase price")} />
         <Tile
-          label="Plus-value"
+          label={tr("Plus-value", "Gain")}
           value={`${gain >= 0 ? "+" : ""}${formatEur(gain)}`}
-          sub="tendance − prix payé"
+          sub={tr("tendance − prix payé", "trend − price paid")}
           accent={gain >= 0 ? "green" : "red"}
         />
       </div>
 
       <section>
-        <h2>{profile ? `Classeurs de ${profile.name}` : "Classeurs"}</h2>
+        <h2>{profile ? tr(`Classeurs de ${profile.name}`, `${profile.name}'s binders`) : tr("Classeurs", "Binders")}</h2>
         {rows.map(({ b, pct, count, trend }) => (
           <div key={b.id} className={styles.setRow}>
             {b.logo ? <img src={`${b.logo}.png`} alt="" /> : <span className={styles.freeIcon}>✎</span>}
@@ -230,24 +239,24 @@ function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void 
                 <span style={{ width: `${pct * 100}%` }} />
               </span>
             ) : (
-              <span className={styles.freeTag}>classeur libre</span>
+              <span className={styles.freeTag}>{tr("classeur libre", "free binder")}</span>
             )}
             <span className={styles.num}>{count}</span>
             <span className={styles.money}>{formatEur(trend)}</span>
           </div>
         ))}
-        {!rows.length && <p className={styles.muted}>Aucun classeur : clique sur le + de l&apos;étagère.</p>}
+        {!rows.length && <p className={styles.muted}>{tr("Aucun classeur : clique sur le + de l'étagère.", "No binder: click the + on the shelf.")}</p>}
       </section>
 
       <section>
-        <h2>Derniers ajouts</h2>
-        {recent.length === 0 && <p className={styles.muted}>Rien pour l&apos;instant : ouvre un classeur et clique sur une carte grise.</p>}
+        <h2>{tr("Derniers ajouts", "Latest additions")}</h2>
+        {recent.length === 0 && <p className={styles.muted}>{tr("Rien pour l'instant : ouvre un classeur et clique sur une carte grise.", "Nothing yet: open a binder and click a grey card.")}</p>}
         <div className={styles.recent}>
           {recent.map(({ e, c }) => (
             <button key={c.id} className={styles.recentCard} onClick={() => onGo(e.card.id)} onPointerEnter={sfx.hover}>
               {e.card.img ? <img src={`${e.card.img}/low.webp`} alt="" loading="lazy" /> : <span className={styles.recentBack}><CardBack label={false} /></span>}
               <span>{e.card.name}</span>
-              <small>{new Date(c.addedAt).toLocaleDateString("fr-FR")}</small>
+              <small>{new Date(c.addedAt).toLocaleDateString(tr("fr-FR", "en-GB"))}</small>
             </button>
           ))}
         </div>
@@ -286,6 +295,7 @@ function CardRow({ e, right, onGo, extra }: { e: Entry; right: string; onGo: (id
 }
 
 function Wishlist({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string) => void; onCopy: (t: string, m: string) => void }) {
+  const tr = useT();
   const [sort, setSort] = useState<"price" | "num">("price");
   const missing = entries.filter((e) => e.tracked && !e.copies?.length);
   const price = (e: Entry) => unitPrice(e.card, e.card.variants[0], "trend");
@@ -293,13 +303,13 @@ function Wishlist({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: stri
   const total = missing.reduce((n, e) => n + price(e), 0);
 
   const text = () =>
-    [`Je recherche (${missing.length} cartes) :`, ...list.map((e) => `- ${e.set.name} ${cardLabel(e)} ${e.card.name}`)].join("\n");
+    [tr(`Je recherche (${missing.length} cartes) :`, `Looking for (${missing.length} cards):`), ...list.map((e) => `- ${e.set.name} ${cardLabel(e)} ${e.card.name}`)].join("\n");
 
   return (
     <div className={styles.listTab}>
       <div className={styles.toolbar}>
         <p>
-          <b>{missing.length}</b> cartes manquantes · compléter ≈ <b className={styles.money}>{formatEur(total)}</b>
+          <b>{missing.length}</b> {tr("cartes manquantes · compléter ≈", "missing cards · to complete ≈")} <b className={styles.money}>{formatEur(total)}</b>
         </p>
         <div className={styles.actions}>
           <button
@@ -309,14 +319,14 @@ function Wishlist({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: stri
               setSort(sort === "price" ? "num" : "price");
             }}
           >
-            Tri : {sort === "price" ? "prix ↓" : "numéro"}
+            {tr("Tri :", "Sort:")} {sort === "price" ? tr("prix ↓", "price ↓") : tr("numéro", "number")}
           </button>
-          <button className={styles.btn} onClick={() => onCopy(text(), "liste copiée ! colle-la à tes traders")} disabled={!missing.length}>
-            Copier la liste
+          <button className={styles.btn} onClick={() => onCopy(text(), tr("liste copiée ! colle-la à tes traders", "list copied! paste it to your traders"))} disabled={!missing.length}>
+            {tr("Copier la liste", "Copy the list")}
           </button>
         </div>
       </div>
-      {missing.length === 0 && <p className={styles.win}>★ MASTER SET COMPLET ★</p>}
+      {missing.length === 0 && <p className={styles.win}>{tr("★ MASTER SET COMPLET ★", "★ MASTER SET COMPLETE ★")}</p>}
       <div className={styles.rows}>
         {list.map((e) => (
           <CardRow key={e.card.id} e={e} right={formatPrice(priceOf(e.card, e.card.variants[0], "trend"))} onGo={onGo} />
@@ -327,6 +337,7 @@ function Wishlist({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: stri
 }
 
 function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string) => void; onCopy: (t: string, m: string) => void }) {
+  const tr = useT();
   const dupes = entries
     .map((e) => {
       const qty = e.copies?.reduce((n, c) => n + c.qty, 0) ?? 0;
@@ -335,9 +346,9 @@ function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string)
     .filter((d) => d.extra > 0);
   const value = dupes.reduce((n, d) => n + d.extra * unitPrice(d.e.card, d.e.card.variants[0], "trend"), 0);
   const detail = (e: Entry) =>
-    (e.copies ?? []).map((c) => `${c.qty}× ${VARIANT_LABEL[c.variant]} ${c.condition}`).join(" · ");
+    (e.copies ?? []).map((c) => `${c.qty}× ${variantLabel(c.variant)} ${c.condition}`).join(" · ");
   const text = () =>
-    [`À échanger (${dupes.length} cartes) :`, ...dupes.map((d) => `- ${d.e.set.name} ${cardLabel(d.e)} ${d.e.card.name} ×${d.extra} (${detail(d.e)})`)].join(
+    [tr(`À échanger (${dupes.length} cartes) :`, `For trade (${dupes.length} cards):`), ...dupes.map((d) => `- ${d.e.set.name} ${cardLabel(d.e)} ${d.e.card.name} ×${d.extra} (${detail(d.e)})`)].join(
       "\n",
     );
 
@@ -345,16 +356,18 @@ function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string)
     <div className={styles.listTab}>
       <div className={styles.toolbar}>
         <p>
-          <b>{dupes.length}</b> cartes en double · valeur des doubles ≈ <b className={styles.money}>{formatEur(value)}</b>
+          <b>{dupes.length}</b> {tr("cartes en double · valeur des doubles ≈", "duplicate cards · duplicates worth ≈")} <b className={styles.money}>{formatEur(value)}</b>
         </p>
         <div className={styles.actions}>
-          <button className={styles.btn} onClick={() => onCopy(text(), "doublons copiés !")} disabled={!dupes.length}>
-            Copier la liste
+          <button className={styles.btn} onClick={() => onCopy(text(), tr("doublons copiés !", "duplicates copied!"))} disabled={!dupes.length}>
+            {tr("Copier la liste", "Copy the list")}
           </button>
         </div>
       </div>
       {dupes.length === 0 && (
-        <p className={styles.muted}>Pas encore de doubles. Dans la fiche d&apos;une carte, le bouton + augmente la quantité.</p>
+        <p className={styles.muted}>
+          {tr("Pas encore de doubles. Dans la fiche d'une carte, le bouton + augmente la quantité.", "No duplicates yet. On a card's sheet, the + button raises the quantity.")}
+        </p>
       )}
       <div className={styles.rows}>
         {dupes.map(({ e, extra }) => (
@@ -366,6 +379,7 @@ function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string)
 }
 
 function Search({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void }) {
+  const tr = useT();
   const [q, setQ] = useState("");
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => input.current?.focus(), []);
@@ -380,7 +394,7 @@ function Search({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => voi
         <input
           ref={input}
           value={q}
-          placeholder="nom ou numéro (ex : lugia, 186, TG20)"
+          placeholder={tr("nom ou numéro (ex : lugia, 186, TG20)", "name or number (e.g. lugia, 186, TG20)")}
           onChange={(e) => {
             setQ(e.target.value);
             sfx.hover();
@@ -388,16 +402,17 @@ function Search({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => voi
           onKeyDown={(e) => {
             if (e.key === "Enter" && results[0]) onGo(results[0].card.id);
           }}
-          aria-label="Rechercher une carte"
+          aria-label={tr("Rechercher une carte", "Search a card")}
         />
       </label>
-      {nq && <p className={styles.muted}>{results.length} résultat{results.length > 1 ? "s" : ""} · Entrée = ouvrir le premier</p>}
+      {nq && <p className={styles.muted}>{results.length} {tr("résultat", "result")}
+          {results.length > 1 ? "s" : ""} · {tr("Entrée = ouvrir le premier", "Enter = open the first")}</p>}
       <div className={styles.rows}>
         {results.map((e) => (
           <CardRow
             key={e.card.id}
             e={e}
-            right={e.copies?.length ? "✓ possédée" : formatPrice(priceOf(e.card, e.card.variants[0], "trend"))}
+            right={e.copies?.length ? tr("✓ possédée", "✓ owned") : formatPrice(priceOf(e.card, e.card.variants[0], "trend"))}
             onGo={onGo}
           />
         ))}
@@ -407,6 +422,7 @@ function Search({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => voi
 }
 
 function Save({ say }: { say: (m: string) => void }) {
+  const tr = useT();
   const email = useCloud((c) => c.email);
   const collection = useStore((s) => s.collection);
   const profile = useStore((s) => s.profile);
@@ -425,7 +441,7 @@ function Save({ say }: { say: (m: string) => void }) {
     a.click();
     URL.revokeObjectURL(a.href);
     sfx.pop();
-    say("sauvegarde téléchargée !");
+    say(tr("sauvegarde téléchargée !", "save downloaded!"));
   };
 
   const importFile = async (f: File) => {
@@ -436,35 +452,54 @@ function Save({ say }: { say: (m: string) => void }) {
       const s = useStore.getState();
       await loadSets(neededSets(s.binders, s.collection));
       sfx.add(0, "rare");
-      say(`${Object.keys(data.collection).length} cartes importées !`);
+      say(tr(`${Object.keys(data.collection).length} cartes importées !`, `${Object.keys(data.collection).length} cards imported!`));
     } catch {
       sfx.locked();
-      say("fichier illisible");
+      say(tr("fichier illisible", "unreadable file"));
     }
   };
 
   return (
     <div className={styles.save}>
       <Account say={say} />
-      <p>
-        {profile && (
-          <>
-            Joueur <b>{profile.name}</b>.{" "}
-          </>
-        )}
-        Ta collection (<b>{cards}</b> cartes, <b>{copies}</b> exemplaires){" "}
-        {email ? (
-          <>est sauvegardée sur ton compte. Tu peux aussi en garder une copie en fichier.</>
-        ) : (
-          <>
-            est enregistrée <b>uniquement dans ce navigateur</b>. Sans compte, exporte-la de temps en temps : si tu vides les données du site, elle
-            part avec.
-          </>
-        )}
-      </p>
+      <LangSwitch />
+      {tr(
+        <p>
+          {profile && (
+            <>
+              Joueur <b>{profile.name}</b>.{" "}
+            </>
+          )}
+          Ta collection (<b>{cards}</b> cartes, <b>{copies}</b> exemplaires){" "}
+          {email ? (
+            <>est sauvegardée sur ton compte. Tu peux aussi en garder une copie en fichier.</>
+          ) : (
+            <>
+              est enregistrée <b>uniquement dans ce navigateur</b>. Sans compte, exporte-la de temps en temps : si tu vides les données du site,
+              elle part avec.
+            </>
+          )}
+        </p>,
+        <p>
+          {profile && (
+            <>
+              Player <b>{profile.name}</b>.{" "}
+            </>
+          )}
+          Your collection (<b>{cards}</b> cards, <b>{copies}</b> copies){" "}
+          {email ? (
+            <>is saved on your account. You can also keep a copy as a file.</>
+          ) : (
+            <>
+              is stored <b>in this browser only</b>. Without an account, export it now and then: if you clear the site&apos;s data, it goes
+              with it.
+            </>
+          )}
+        </p>,
+      )}
       <div className={styles.saveActions}>
         <button className={styles.btnBig} onClick={exportFile}>
-          ⬇ Exporter la collection
+          {tr("⬇ Exporter la collection", "⬇ Export the collection")}
         </button>
         <button
           className={styles.btnBig}
@@ -473,7 +508,7 @@ function Save({ say }: { say: (m: string) => void }) {
             file.current?.click();
           }}
         >
-          ⬆ Importer une sauvegarde
+          {tr("⬆ Importer une sauvegarde", "⬆ Import a save")}
         </button>
         <input
           ref={file}
@@ -488,7 +523,7 @@ function Save({ say }: { say: (m: string) => void }) {
         />
       </div>
       <div className={styles.danger}>
-        <p>Zone rouge</p>
+        <p>{tr("Zone rouge", "Danger zone")}</p>
         {arming ? (
           <div className={styles.saveActions}>
             <button
@@ -497,13 +532,13 @@ function Save({ say }: { say: (m: string) => void }) {
                 sfx.remove();
                 resetCollection();
                 setArming(false);
-                say("collection remise à zéro");
+                say(tr("collection remise à zéro", "collection reset"));
               }}
             >
-              Oui, tout effacer
+              {tr("Oui, tout effacer", "Yes, erase everything")}
             </button>
             <button className={styles.btnBig} onClick={() => setArming(false)}>
-              Non !
+              {tr("Non !", "No!")}
             </button>
           </div>
         ) : (
@@ -514,7 +549,7 @@ function Save({ say }: { say: (m: string) => void }) {
               setArming(true);
             }}
           >
-            Remettre la collection à zéro…
+            {tr("Remettre la collection à zéro…", "Reset the collection…")}
           </button>
         )}
       </div>
@@ -523,15 +558,43 @@ function Save({ say }: { say: (m: string) => void }) {
 }
 
 const CLOUD_LABEL = {
-  off: "",
-  loading: "chargement…",
-  synced: "à jour ✓",
-  saving: "enregistrement…",
-  error: "⚠ sauvegarde en ligne impossible",
-  conflict: "deux versions différentes",
+  off: ["", ""],
+  loading: ["chargement…", "loading…"],
+  synced: ["à jour ✓", "up to date ✓"],
+  saving: ["enregistrement…", "saving…"],
+  error: ["⚠ sauvegarde en ligne impossible", "⚠ online save failed"],
+  conflict: ["deux versions différentes", "two different versions"],
 } as const;
 
+/** Language of the site and of the card names (the page reloads: the cards are downloaded in that language). */
+function LangSwitch() {
+  const lang = useLang();
+  return (
+    <p className={styles.langRow} role="radiogroup" aria-label="Langue / Language">
+      <span>Langue · Language</span>
+      {(["fr", "en"] as const).map((l) => (
+        <button
+          key={l}
+          role="radio"
+          aria-checked={lang === l}
+          className={`${styles.btn} ${lang === l ? styles.langOn : ""}`}
+          onClick={() => {
+            if (lang === l) return;
+            sfx.click();
+            useStore.getState().setLang(l);
+            document.cookie = `${LANG_COOKIE}=${l}; path=/; max-age=31536000; samesite=lax`;
+            setTimeout(() => location.reload(), 150);
+          }}
+        >
+          {l === "fr" ? "Français" : "English"}
+        </button>
+      ))}
+    </p>
+  );
+}
+
 function Account({ say }: { say: (m: string) => void }) {
+  const tr = useT();
   const { email, status, conflict, error } = useCloud();
   const [address, setAddress] = useState("");
   const [sent, setSent] = useState<string | null>(null);
@@ -541,7 +604,7 @@ function Account({ say }: { say: (m: string) => void }) {
     const to = address.trim();
     if (!/^\S+@\S+\.\S+$/.test(to)) {
       sfx.locked();
-      say("adresse e-mail invalide");
+      say(tr("adresse e-mail invalide", "invalid e-mail address"));
       return;
     }
     setBusy(true);
@@ -549,7 +612,7 @@ function Account({ say }: { say: (m: string) => void }) {
     setBusy(false);
     if (error) {
       sfx.locked();
-      say("envoi impossible, réessaie dans un moment");
+      say(tr("envoi impossible, réessaie dans un moment", "couldn't send, try again in a moment"));
       console.warn("[cloud] sign in", error);
       return;
     }
@@ -561,13 +624,20 @@ function Account({ say }: { say: (m: string) => void }) {
     return (
       <div className={styles.account} data-tour="account">
         <p>
-          <b>Compte en ligne</b> : retrouve ta collection sur tous tes appareils.
+          {tr(
+            <>
+              <b>Compte en ligne</b> : retrouve ta collection sur tous tes appareils.
+            </>,
+            <>
+              <b>Online account</b>: get your collection back on all your devices.
+            </>,
+          )}
         </p>
         {sent ? (
           <p>
-            Lien de connexion envoyé à <b>{sent}</b>. Ouvre-le sur cet appareil.{" "}
+            {tr("Lien de connexion envoyé à", "Sign-in link sent to")} <b>{sent}</b>. {tr("Ouvre-le sur cet appareil.", "Open it on this device.")}{" "}
             <button className={styles.linkBtn} onClick={() => setSent(null)}>
-              changer d&apos;adresse
+              {tr("changer d'adresse", "use another address")}
             </button>
           </p>
         ) : (
@@ -583,16 +653,16 @@ function Account({ say }: { say: (m: string) => void }) {
               <input
                 type="email"
                 value={address}
-                placeholder="ton e-mail"
+                placeholder={tr("ton e-mail", "your e-mail")}
                 autoComplete="email"
                 onChange={(e) => setAddress(e.target.value)}
-                aria-label="Adresse e-mail"
+                aria-label={tr("Adresse e-mail", "E-mail address")}
               />
             </label>
             <button className={styles.btnBig} disabled={busy}>
-              {busy ? "envoi…" : "Recevoir un lien"}
+              {busy ? tr("envoi…", "sending…") : tr("Recevoir un lien", "Get a link")}
             </button>
-            <span className={styles.muted}>ou</span>
+            <span className={styles.muted}>{tr("ou", "or")}</span>
             <button
               type="button"
               className={styles.btnBig}
@@ -601,12 +671,12 @@ function Account({ say }: { say: (m: string) => void }) {
                 void signInWithGoogle().then((error) => {
                   if (!error) return;
                   sfx.locked();
-                  say("connexion Google impossible");
+                  say(tr("connexion Google impossible", "Google sign-in failed"));
                   console.warn("[cloud] google", error);
                 });
               }}
             >
-              G Continuer avec Google
+              G {tr("Continuer avec Google", "Continue with Google")}
             </button>
           </form>
         )}
@@ -616,25 +686,27 @@ function Account({ say }: { say: (m: string) => void }) {
   return (
     <div className={styles.account} data-tour="account">
       <p>
-        Connecté : <b>{email}</b> · <span className={styles.muted}>{CLOUD_LABEL[status]}</span>
+        {tr("Connecté :", "Signed in:")} <b>{email}</b> · <span className={styles.muted}>{tr(CLOUD_LABEL[status][0] as string, CLOUD_LABEL[status][1] as string)}</span>
       </p>
       {status === "error" && (
         <p className={styles.muted}>
-          Ta collec reste dans ce navigateur, on réessaie au prochain changement. Détail : {error ?? "serveur injoignable"}
+          {tr("Ta collec reste dans ce navigateur, on réessaie au prochain changement. Détail :", "Your collection stays in this browser, we'll retry on the next change. Detail:")}{" "}
+          {error ?? tr("serveur injoignable", "server unreachable")}
         </p>
       )}
       {status === "conflict" && conflict && (
         <>
           <p>
-            Ce navigateur et ton compte ont chacun changé. Laquelle garder ? En ligne : <b>{Object.keys(conflict.collection).length}</b> cartes, ici :{" "}
-            <b>{Object.keys(useStore.getState().collection).length}</b> cartes.
+            {tr("Ce navigateur et ton compte ont chacun changé. Laquelle garder ? En ligne :", "This browser and your account both changed. Which one to keep? Online:")}{" "}
+            <b>{Object.keys(conflict.collection).length}</b> {tr("cartes, ici :", "cards, here:")} <b>{Object.keys(useStore.getState().collection).length}</b>{" "}
+            {tr("cartes.", "cards.")}
           </p>
           <div className={styles.saveActions}>
-            <button className={styles.btnBig} onClick={() => void resolveConflict("cloud").then(() => say("collection en ligne récupérée"))}>
-              ☁ Garder celle en ligne
+            <button className={styles.btnBig} onClick={() => void resolveConflict("cloud").then(() => say(tr("collection en ligne récupérée", "online collection restored")))}>
+              {tr("☁ Garder celle en ligne", "☁ Keep the online one")}
             </button>
-            <button className={styles.btnBig} onClick={() => void resolveConflict("local").then(() => say("collection envoyée en ligne"))}>
-              💻 Garder celle d&apos;ici
+            <button className={styles.btnBig} onClick={() => void resolveConflict("local").then(() => say(tr("collection envoyée en ligne", "collection sent online")))}>
+              {tr("💻 Garder celle d'ici", "💻 Keep this one")}
             </button>
           </div>
         </>
@@ -644,10 +716,10 @@ function Account({ say }: { say: (m: string) => void }) {
           className={styles.btnBig}
           onClick={() => {
             sfx.click();
-            void signOut().then(() => say("déconnecté, la collection reste dans ce navigateur"));
+            void signOut().then(() => say(tr("déconnecté, la collection reste dans ce navigateur", "signed out, the collection stays in this browser")));
           }}
         >
-          Se déconnecter
+          {tr("Se déconnecter", "Sign out")}
         </button>
       </div>
     </div>

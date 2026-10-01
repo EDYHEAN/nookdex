@@ -7,6 +7,7 @@ import { OS_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { useTotals } from "@/lib/useTotals";
 import styles from "./Monitor.module.css";
+import { useT } from "@/lib/lang";
 
 interface Props {
   style: CSSProperties;
@@ -27,6 +28,7 @@ export function Monitor({ style, quad, onOpen, onHover, onLeave }: Props) {
   const matrix = useMemo(() => quadMatrix(innerW, innerH, quad), [innerH, quad]);
 
   const totals = useTotals();
+  const tr = useT();
   // Only free binders so far: count the cards instead of a set progress.
   const t = totals.total
     ? { big: `${totals.owned}/${totals.total}`, pct: Math.round((totals.owned / totals.total) * 100), trend: totals.trend }
@@ -43,7 +45,7 @@ export function Monitor({ style, quad, onOpen, onHover, onLeave }: Props) {
         sfx.boot();
         onOpen(e.currentTarget.getBoundingClientRect());
       }}
-      aria-label={`Ouvrir ${OS_NAME}`}
+      aria-label={tr(`Ouvrir ${OS_NAME}`, `Open ${OS_NAME}`)}
     >
       <div className={styles.inner} style={{ width: innerW, height: innerH, transform: matrix }}>
         <div className={styles.content}>
@@ -57,7 +59,7 @@ export function Monitor({ style, quad, onOpen, onHover, onLeave }: Props) {
           <p className={styles.money}>{formatEur(t.trend)}</p>
           <p className={styles.cta}>
             <span className={styles.ctaArrow}>▶</span>
-            <span className={styles.ctaText}>OUVRIR</span>
+            <span className={styles.ctaText}>{tr("OUVRIR", "OPEN")}</span>
             <span className={styles.ctaKey}>OS</span>
           </p>
         </div>

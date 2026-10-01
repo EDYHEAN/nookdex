@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
+import { serverLang } from "@/lib/serverLang";
 import { LegalPage } from "@/components/LegalPage";
 import Link from "next/link";
 import { SITE_NAME } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: `Conditions d'utilisation · ${SITE_NAME}`,
-  alternates: { canonical: "/conditions" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const en = (await serverLang()) === "en";
+  return en ? { title: `Terms of use · ${SITE_NAME}`, alternates: { canonical: "/conditions" } } : { title: `Conditions d'utilisation · ${SITE_NAME}`, alternates: { canonical: "/conditions" } };
+}
 
-export default function Terms() {
+function Fr() {
   return (
     <LegalPage path="/conditions" title="Conditions d'utilisation" updated="30 septembre 2026">
       <p>{SITE_NAME} est gratuit. En l&apos;utilisant, tu acceptes ces quelques règles.</p>
@@ -43,4 +44,42 @@ export default function Terms() {
       </p>
     </LegalPage>
   );
+}
+
+function En() {
+  return (
+    <LegalPage path="/conditions" title="Terms of use" updated="1 October 2026" en>
+      <p>{SITE_NAME} is free. By using it, you accept these few rules.</p>
+
+      <h2>The service</h2>
+      <p>
+        {SITE_NAME} helps you track your card collection. It comes as is, with no warranty: the site may change, be unavailable or stop. Export
+        your collection now and then from NookDex OS → Save.
+      </p>
+
+      <h2>Prices</h2>
+      <p>
+        Prices come from Cardmarket through <a href="https://tcgdex.dev">TCGdex</a>. They are a guide and may be late or wrong: don&apos;t use them
+        as an official valuation.
+      </p>
+
+      <h2>Your account</h2>
+      <p>One account per person, for your own collection. No abuse (bots, overloading the service). An account that abuses the service may be deleted.</p>
+
+      <h2>Pokémon</h2>
+      <p>
+        {SITE_NAME} is an unofficial fan project, not affiliated with Nintendo, Creatures, GAME FREAK or The Pokémon Company. Pokémon and the card
+        names and pictures belong to their owners.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        A question? Write to us through the <Link href="/contact">contact form</Link>.
+      </p>
+    </LegalPage>
+  );
+}
+
+export default async function Terms() {
+  return (await serverLang()) === "en" ? <En /> : <Fr />;
 }

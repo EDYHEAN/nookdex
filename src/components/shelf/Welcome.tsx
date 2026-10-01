@@ -7,7 +7,7 @@ import { loadSets, neededSets } from "@/lib/catalog";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { NAME_PARTS, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
-import { browserIsFrench } from "@/lib/lang";
+import { useT } from "@/lib/lang";
 import { isBackup, useStore } from "@/lib/store";
 import { BinderPicker, type BinderChoice } from "./BinderPicker";
 import styles from "./Welcome.module.css";
@@ -28,11 +28,8 @@ export function Welcome({ onPick, onDone }: Props) {
   const binders = useStore((s) => s.binders);
   const { email, firstName, status } = useCloud();
   const offline = useStore((s) => s.offline);
-  const frenchOk = useStore((s) => s.frenchOk);
-  // The site only speaks French for now: a browser in another language first gets a note saying so (in English).
-  const [french] = useState(browserIsFrench);
-  const base = (!email && !offline) || status === "loading" ? "account" : !profile ? "hello" : "binder";
-  const step = base === "account" && !email && !french && !frenchOk ? "lang" : base;
+  const t = useT();
+  const step = (!email && !offline) || status === "loading" ? "account" : !profile ? "hello" : "binder";
   /** "Play without an account" asks once more, with what it costs. */
   const [warn, setWarn] = useState(false);
   /** null = untouched: suggests the first name Google gave */
@@ -40,7 +37,6 @@ export function Welcome({ onPick, onDone }: Props) {
   const [address, setAddress] = useState("");
   const [sent, setSent] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [waitlist, setWaitlist] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [shake, setShake] = useState(0);
   const [note, setNote] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
@@ -69,36 +65,13 @@ export function Welcome({ onPick, onDone }: Props) {
     setBusy(false);
     if (error) {
       sfx.locked();
-      setNote("L'envoi a échoué, réessaie dans un moment.");
+      setNote(t("L'envoi a échoué, réessaie dans un moment.", "Couldn't send it, try again in a moment."));
       console.warn("[cloud] sign in", error);
       return;
     }
     sfx.pop();
     setNote(null);
     setSent(to);
-  };
-
-  /** English waiting list: one e-mail when the English version is out. */
-  const joinWaitlist = async () => {
-    const to = address.trim();
-    if (!/^\S+@\S+\.\S+$/.test(to)) {
-      sfx.locked();
-      return;
-    }
-    setWaitlist("busy");
-    try {
-      const res = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: to, lang: navigator.language }),
-      });
-      if (!res.ok) throw new Error(String(res.status));
-      sfx.pop();
-      setWaitlist("done");
-    } catch {
-      sfx.locked();
-      setWaitlist("error");
-    }
   };
 
   const google = async () => {
@@ -109,7 +82,7 @@ export function Welcome({ onPick, onDone }: Props) {
     if (error) {
       setBusy(false);
       sfx.locked();
-      setNote("Connexion Google impossible pour le moment.");
+      setNote(t("Connexion Google impossible pour le moment.", "Google sign-in isn't available right now."));
       console.warn("[cloud] google", error);
     }
   };
@@ -137,10 +110,11 @@ export function Welcome({ onPick, onDone }: Props) {
       const s = useStore.getState();
       await loadSets(neededSets(s.binders, s.collection));
       sfx.add(1, "rare");
-      setNote(`${Object.keys(data.collection).length} cartes récupérées ! Connecte-toi pour les sauvegarder en ligne.`);
+      const n = Object.keys(data.collection).length;
+      setNote(t(`${n} cartes récupérées ! Connecte-toi pour les sauvegarder en ligne.`, `${n} cards back! Sign in to save them online.`));
     } catch {
       sfx.locked();
-      setNote(`Ce fichier n'est pas une sauvegarde ${SITE_NAME}.`);
+      setNote(t(`Ce fichier n'est pas une sauvegarde ${SITE_NAME}.`, `This file isn't a ${SITE_NAME} save.`));
     }
   };
 
@@ -169,69 +143,39 @@ export function Welcome({ onPick, onDone }: Props) {
       transition={{ duration: 0.35 }}
     >
       <AnimatePresence mode="wait">
-        {step === "lang" &&
-          card(
-            "lang",
-            <>
-              <h1>Hello, trainer!</h1>
-              <p className={styles.text}>
-                {SITE_NAME} only speaks <b>French</b> for now. An English version is on its way: leave your e-mail and we&apos;ll let you know
-                (once, when it&apos;s ready).
-              </p>
-              {waitlist === "done" ? (
-                <p className={styles.note}>Thanks! We&apos;ll write to you as soon as English is here.</p>
-              ) : (
-                <form
-                  className={styles.inline}
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void joinWaitlist();
-                  }}
-                >
-                  <input
-                    type="email"
-                    value={address}
-                    placeholder="ash@pallet-town.com"
-                    autoComplete="email"
-                    aria-label="E-mail address"
-                    className={styles.email}
-                    onChange={(e) => setAddress(e.target.value)}
-                  />
-                  <button type="submit" className={styles.go} disabled={waitlist === "busy"} aria-label="Notify me">
-                    ✉
-                  </button>
-                </form>
-              )}
-              {waitlist === "error" && <p className={styles.note}>That didn&apos;t work, please try again later.</p>}
-              <button
-                className={styles.linkBtn}
-                onClick={() => {
-                  sfx.click();
-                  useStore.getState().acceptFrench();
-                }}
-              >
-                Continue in French anyway ▶
-              </button>
-            </>,
-          )}
-
         {step === "account" &&
           card(
             "account",
             <>
-              <h1>Bienvenue au bureau !</h1>
+              <h1>{t("Bienvenue au bureau !", "Welcome to the desk!")}</h1>
               <p className={styles.steps}>
-                <b>1. Connexion</b> · 2. Pseudo · 3. Premier classeur
+                <b>{t("1. Connexion", "1. Sign in")}</b> · {t("2. Pseudo", "2. Nickname")} · {t("3. Premier classeur", "3. First binder")}
               </p>
               {warn && !email ? (
                 <div className={styles.form}>
                   <p className={styles.warn}>
-                    Sans compte, ta collec reste <b>uniquement dans ce navigateur</b> : pas de sauvegarde en ligne, pas de synchro entre tes
-                    appareils. Si tu vides les données du site ou changes d&apos;appareil, elle est perdue.
+                    {t(
+                      <>
+                        Sans compte, ta collec reste <b>uniquement dans ce navigateur</b> : pas de sauvegarde en ligne, pas de synchro entre tes
+                        appareils. Si tu vides les données du site ou changes d&apos;appareil, elle est perdue.
+                      </>,
+                      <>
+                        Without an account, your collection stays <b>in this browser only</b>: no online save, no sync between your devices. Clear
+                        the site&apos;s data or change device and it&apos;s gone.
+                      </>,
+                    )}
                   </p>
                   <p className={styles.text}>
-                    Pense à l&apos;exporter de temps en temps depuis le PC du bureau (<b>NookDex OS → Sauvegarde</b>). Tu pourras aussi créer ton
-                    compte plus tard, au même endroit, sans rien perdre.
+                    {t(
+                      <>
+                        Pense à l&apos;exporter de temps en temps depuis le PC du bureau (<b>NookDex OS → Sauvegarde</b>). Tu pourras aussi créer
+                        ton compte plus tard, au même endroit, sans rien perdre.
+                      </>,
+                      <>
+                        Remember to export it now and then from the desk computer (<b>NookDex OS → Save</b>). You can also create your account
+                        later, from the same place, without losing anything.
+                      </>,
+                    )}
                   </p>
                   <button
                     className={styles.go}
@@ -241,7 +185,7 @@ export function Welcome({ onPick, onDone }: Props) {
                     }}
                     onPointerEnter={sfx.hover}
                   >
-                    Jouer sans compte ▶
+                    {t("Jouer sans compte ▶", "Play without an account ▶")}
                   </button>
                   <button
                     className={styles.linkBtn}
@@ -250,19 +194,26 @@ export function Welcome({ onPick, onDone }: Props) {
                       setWarn(false);
                     }}
                   >
-                    ← finalement, je me connecte
+                    {t("← finalement, je me connecte", "← actually, I'll sign in")}
                   </button>
                 </div>
               ) : email ? (
                 <div className={styles.form}>
                   <p className={styles.text}>
-                    Connecté avec <b>{email}</b>. On cherche ta collection…
+                    {t("Connecté avec", "Signed in as")} <b>{email}</b>. {t("On cherche ta collection…", "Looking for your collection…")}
                   </p>
                 </div>
               ) : sent ? (
                 <div className={styles.form}>
                   <p className={styles.note}>
-                    Lien envoyé à <b>{sent}</b> ! Ouvre l&apos;e-mail sur cet appareil et clique sur le lien pour entrer.
+                    {t(
+                      <>
+                        Lien envoyé à <b>{sent}</b> ! Ouvre l&apos;e-mail sur cet appareil et clique sur le lien pour entrer.
+                      </>,
+                      <>
+                        Link sent to <b>{sent}</b>! Open the e-mail on this device and click the link to come in.
+                      </>,
+                    )}
                   </p>
                   <button
                     className={styles.linkBtn}
@@ -271,15 +222,15 @@ export function Welcome({ onPick, onDone }: Props) {
                       setSent(null);
                     }}
                   >
-                    changer d&apos;adresse
+                    {t("changer d'adresse", "use another address")}
                   </button>
                 </div>
               ) : (
                 <div className={styles.form}>
                   <button className={styles.go} disabled={busy} onClick={() => void google()} onPointerEnter={sfx.hover}>
-                    G&nbsp;&nbsp;Continuer avec Google
+                    G&nbsp;&nbsp;{t("Continuer avec Google", "Continue with Google")}
                   </button>
-                  <p className={styles.or}>ou avec ton e-mail</p>
+                  <p className={styles.or}>{t("ou avec ton e-mail", "or with your e-mail")}</p>
                   <form
                     className={styles.inline}
                     onSubmit={(e) => {
@@ -291,9 +242,9 @@ export function Welcome({ onPick, onDone }: Props) {
                       key={shake}
                       type="email"
                       value={address}
-                      placeholder="sacha@bourg-palette.fr"
+                      placeholder={t("sacha@bourg-palette.fr", "ash@pallet-town.com")}
                       autoComplete="email"
-                      aria-label="Adresse e-mail"
+                      aria-label={t("Adresse e-mail", "E-mail address")}
                       className={styles.email}
                       animate={shake ? { x: [0, -10, 9, -6, 4, 0] } : undefined}
                       transition={{ duration: 0.35 }}
@@ -304,12 +255,16 @@ export function Welcome({ onPick, onDone }: Props) {
                     </button>
                   </form>
                   <p className={styles.small}>
-                    On t&apos;envoie un lien pour entrer, sans mot de passe. <Link href="/a-propos">C&apos;est quoi {SITE_NAME} ?</Link> ·{" "}
-                    <Link href="/confidentialite">Confidentialité</Link>
+                    {t("On t'envoie un lien pour entrer, sans mot de passe.", "We send you a link to come in, no password.")}{" "}
+                    <Link href="/a-propos">{t(`C'est quoi ${SITE_NAME} ?`, `What's ${SITE_NAME}?`)}</Link> ·{" "}
+                    <Link href="/confidentialite">{t("Confidentialité", "Privacy")}</Link>
                   </p>
                   {note && <p className={styles.note}>{note}</p>}
                   <p className={styles.small}>
-                    Ta collec est sauvegardée sur ton compte et te suit sur tous tes appareils. Tu as un fichier de sauvegarde ?{" "}
+                    {t(
+                      "Ta collec est sauvegardée sur ton compte et te suit sur tous tes appareils. Tu as un fichier de sauvegarde ?",
+                      "Your collection is saved on your account and follows you on all your devices. Got a save file?",
+                    )}{" "}
                     <button
                       className={styles.linkBtn}
                       onClick={() => {
@@ -317,9 +272,9 @@ export function Welcome({ onPick, onDone }: Props) {
                         file.current?.click();
                       }}
                     >
-                      Importe-le
+                      {t("Importe-le", "Import it")}
                     </button>{" "}
-                    puis connecte-toi. Ou{" "}
+                    {t("puis connecte-toi. Ou", "then sign in. Or")}{" "}
                     <button
                       className={styles.linkBtn}
                       onClick={() => {
@@ -328,7 +283,7 @@ export function Welcome({ onPick, onDone }: Props) {
                         setWarn(true);
                       }}
                     >
-                      jouer sans compte
+                      {t("jouer sans compte", "play without an account")}
                     </button>
                     .
                   </p>
@@ -352,9 +307,9 @@ export function Welcome({ onPick, onDone }: Props) {
           card(
             "hello",
             <>
-              <h1>Comment on t&apos;appelle ?</h1>
+              <h1>{t("Comment on t'appelle ?", "What should we call you?")}</h1>
               <p className={styles.steps}>
-                1. Connexion · <b>2. Pseudo</b> · 3. Premier classeur
+                {t("1. Connexion", "1. Sign in")} · <b>{t("2. Pseudo", "2. Nickname")}</b> · {t("3. Premier classeur", "3. First binder")}
               </p>
               <form
                 className={styles.form}
@@ -364,14 +319,14 @@ export function Welcome({ onPick, onDone }: Props) {
                 }}
               >
                 <label className={styles.field}>
-                  <span>Ton pseudo de dresseur</span>
+                  <span>{t("Ton pseudo de dresseur", "Your trainer name")}</span>
                   <motion.input
                     key={shake}
                     ref={input}
                     autoFocus
                     value={nickname}
                     maxLength={20}
-                    placeholder="Sacha"
+                    placeholder={t("Sacha", "Ash")}
                     autoComplete="nickname"
                     animate={shake ? { x: [0, -10, 9, -6, 4, 0] } : undefined}
                     transition={{ duration: 0.35 }}
@@ -383,16 +338,17 @@ export function Welcome({ onPick, onDone }: Props) {
                 </label>
                 {note && <p className={styles.note}>{note}</p>}
                 <button type="submit" className={styles.go} onPointerEnter={sfx.hover}>
-                  {binders.length ? "Retrouver mon bureau ▶" : "C'est parti ▶"}
+                  {binders.length ? t("Retrouver mon bureau ▶", "Back to my desk ▶") : t("C'est parti ▶", "Let's go ▶")}
                 </button>
                 <p className={styles.small}>
                   {email ? (
                     <>
-                      Connecté avec <b>{email}</b> : ta collec est sauvegardée en ligne.
+                      {t("Connecté avec", "Signed in as")} <b>{email}</b>{t(" : ta collec est sauvegardée en ligne.", ": your collection is saved online.")}
                     </>
                   ) : (
                     <>
-                      Sans compte : ta collec reste dans ce navigateur. Exporte-la depuis <b>NookDex OS → Sauvegarde</b>.
+                      {t("Sans compte : ta collec reste dans ce navigateur. Exporte-la depuis", "No account: your collection stays in this browser. Export it from")}{" "}
+                      <b>{t("NookDex OS → Sauvegarde", "NookDex OS → Save")}</b>.
                     </>
                   )}
                 </p>
@@ -403,8 +359,11 @@ export function Welcome({ onPick, onDone }: Props) {
         {step === "binder" && (
           <motion.div key="binder" className={styles.pickerWrap} exit={{ opacity: 0, y: 40, transition: { duration: 0.25 } }}>
             <BinderPicker
-              title={`${profile?.name ?? "Dresseur"}, choisis ton premier classeur`}
-              subtitle="Une extension à compléter, ou un classeur libre où tu ranges ce que tu veux. Tu pourras en ajouter d'autres sur l'étagère."
+              title={t(`${profile?.name ?? "Dresseur"}, choisis ton premier classeur`, `${profile?.name ?? "Trainer"}, pick your first binder`)}
+              subtitle={t(
+                "Une extension à compléter, ou un classeur libre où tu ranges ce que tu veux. Tu pourras en ajouter d'autres sur l'étagère.",
+                "A set to complete, or a free binder for whatever you like. You can add more on the shelf later.",
+              )}
               onPick={async (choice) => {
                 await onPick(choice);
                 finish();

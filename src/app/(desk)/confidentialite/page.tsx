@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { serverLang } from "@/lib/serverLang";
 import { LegalPage } from "@/components/LegalPage";
 import { SITE_DOMAIN, SITE_NAME } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: `Confidentialité · ${SITE_NAME}`,
-  alternates: { canonical: "/confidentialite" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const en = (await serverLang()) === "en";
+  return en ? { title: `Privacy · ${SITE_NAME}`, alternates: { canonical: "/confidentialite" } } : { title: `Confidentialité · ${SITE_NAME}`, alternates: { canonical: "/confidentialite" } };
+}
 
-export default function Privacy() {
+function Fr() {
   return (
     <LegalPage path="/confidentialite" title="Règles de confidentialité" updated="30 septembre 2026">
       <p>
@@ -40,10 +41,6 @@ export default function Privacy() {
       </ul>
       <p>
         <b>Formulaire de contact.</b> Si tu nous écris : ton e-mail, le sujet et ton message.
-      </p>
-      <p>
-        <b>Liste d&apos;attente anglaise.</b> Si tu laisses ton e-mail pour être prévenu de la version anglaise, on le garde uniquement
-        pour t&apos;envoyer ce message, puis on le supprime.
       </p>
       <p>
         <b>Mesure d&apos;audience.</b> Des statistiques de visite anonymes (pages vues, pays, type d&apos;appareil), sans cookie et sans suivi
@@ -133,4 +130,121 @@ export default function Privacy() {
       <p>Si cette page change, la date en haut est mise à jour. Pour un changement important, on te prévient sur le site.</p>
     </LegalPage>
   );
+}
+
+function En() {
+  return (
+    <LegalPage path="/confidentialite" title="Privacy policy" updated="1 October 2026" en>
+      <p>
+        {SITE_NAME} ({SITE_DOMAIN}) is a free site to file and track your Pokémon card collection in virtual binders. This page explains which
+        data the site collects, why, who it is shared with, how long it is kept and how to delete it. We collect as little as possible, and nothing
+        is sold or used for advertising.
+      </p>
+
+      <h2>1. Who is responsible</h2>
+      <p>
+        {SITE_NAME} is a personal project run by a private individual, Johan (data controller). For any question about your data, use the{" "}
+        <Link href="/contact">contact form</Link>.
+      </p>
+
+      <h2>2. Data collected</h2>
+      <p>
+        <b>Without an account.</b> You can play without an account: your collection and nickname then stay in your browser only (localStorage) and
+        are sent nowhere.
+      </p>
+      <p>
+        <b>With an account.</b> If you sign in, we store:
+      </p>
+      <ul>
+        <li>your e-mail address, to recognise you and send you the sign-in link;</li>
+        <li>when the account was created and when you last signed in;</li>
+        <li>your save: your nickname, binders and collection (cards owned, variant, condition, quantity, price paid you entered).</li>
+      </ul>
+      <p>
+        <b>Contact form.</b> If you write to us: your e-mail, the subject and your message.
+      </p>
+      <p>
+        <b>Audience measurement.</b> Anonymous visit statistics (pages viewed, country, device type), with no cookie and no tracking from one visit
+        to the next.
+      </p>
+      <p>The site collects no payment data, no precise location, and none of your contacts.</p>
+
+      <h2>3. Signing in with Google</h2>
+      <p>If you choose &laquo; Continue with Google &raquo;, Google sends us, with your consent, only:</p>
+      <ul>
+        <li>your e-mail address;</li>
+        <li>your name and profile picture (public profile information).</li>
+      </ul>
+      <p>
+        This information is only used to create your {SITE_NAME} account, recognise you when you come back and suggest a nickname (your first name).
+        {SITE_NAME} accesses nothing else in your Google account: not your e-mails, contacts, files or calendar.
+      </p>
+      <p>
+        Data received from Google is not sold, not shared with third parties (apart from the technical host below), not used for advertising, and
+        not used to train artificial intelligence models. The use of information received from Google APIs follows the{" "}
+        <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited
+        Use requirements.
+      </p>
+      <p>
+        You can remove {SITE_NAME}&apos;s access to your Google account at any time from{" "}
+        <a href="https://myaccount.google.com/connections">myaccount.google.com/connections</a>.
+      </p>
+
+      <h2>4. Why this data is used</h2>
+      <ul>
+        <li>to run your account and the sign-in (performing the service);</li>
+        <li>to save your collection and sync it between your devices (performing the service);</li>
+        <li>to answer your messages (your request);</li>
+        <li>to know how many people visit the site, anonymously (legitimate interest).</li>
+      </ul>
+      <p>No automated decisions, no profiling, no advertising.</p>
+
+      <h2>5. Who it is shared with</h2>
+      <p>Your data is never sold. It only goes through the technical providers the site needs:</p>
+      <ul>
+        <li>
+          <a href="https://supabase.com/privacy">Supabase</a>: accounts and saves (database and sign-in);
+        </li>
+        <li>
+          <a href="https://vercel.com/legal/privacy-policy">Vercel</a>: hosting and anonymous visit statistics;
+        </li>
+        <li>
+          <a href="https://www.brevo.com/legal/privacypolicy/">Brevo</a>: e-mailing the contact form messages;
+        </li>
+        <li>Google: only if you choose to sign in with Google.</li>
+      </ul>
+      <p>These providers may process data outside the European Union, with the safeguards set by the GDPR (standard contractual clauses).</p>
+
+      <h2>6. Security</h2>
+      <p>
+        Exchanges with the site are encrypted (HTTPS). In the database, each player can only read and change their own save (row-level access
+        rules). Sign-in is password-free: no password is stored.
+      </p>
+
+      <h2>7. How long it is kept</h2>
+      <ul>
+        <li>account and save: as long as your account exists, deleted within 30 days of your request;</li>
+        <li>contact messages: the time to answer you, then one year at most;</li>
+        <li>data in your browser: until you clear it (site data in your browser).</li>
+      </ul>
+
+      <h2>8. Your rights</h2>
+      <p>
+        You can at any time access your data, correct it, get a copy, object to its processing or ask for your account and save to be deleted,
+        through the <Link href="/contact">contact form</Link> (subject &laquo; Delete my account / my data &raquo;). Your collection can also be
+        exported at any time from NookDex OS → Save. If you feel your rights are not respected, you can complain to the{" "}
+        <a href="https://www.cnil.fr/en">CNIL</a> (French data protection authority).
+      </p>
+
+      <h2>9. Children</h2>
+      <p>The site is for every collector. If you are under 15, ask a parent before creating an account.</p>
+
+      <h2>10. Changes</h2>
+      <p>If this page changes, the date at the top is updated. For an important change, we let you know on the site.</p>
+    </LegalPage>
+  );
+}
+
+export default async function Privacy() {
+  return (await serverLang()) === "en" ? <En /> : <Fr />;
 }

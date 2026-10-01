@@ -2,12 +2,13 @@
 
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CATALOG, loadIndex, useSets, type IndexCard } from "@/lib/catalog";
+import { catalog, loadIndex, useSets, type IndexCard } from "@/lib/catalog";
 import { formatEur } from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import { CardBack } from "./CardBack";
 import styles from "./CardPicker.module.css";
+import { useT } from "@/lib/lang";
 
 interface Props {
   /** Pocket being filled, for the title */
@@ -17,18 +18,19 @@ interface Props {
 }
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-const SETS = new Map(CATALOG.map((s) => [s.id, { code: norm(s.code), name: norm(s.name), label: s.code }]));
+const setsInfo = () => new Map(catalog().map((s) => [s.id, { code: norm(s.code), name: norm(s.name), label: s.code }]));
 const MAX = 60;
 
 /** "dracaufeu ev3.5", "lugia 186", "eb12 tg": every word must hit the name, the number or the set. */
 function search(index: IndexCard[], q: string) {
+  const sets = setsInfo();
   const words = norm(q).split(/\s+/).filter(Boolean);
   if (!words.length) return [];
   const out: IndexCard[] = [];
   for (const c of index) {
     const name = norm(c[1]);
     const num = c[2].toLowerCase();
-    const set = SETS.get(c[3]);
+    const set = sets.get(c[3]);
     const ok = words.every((w) => {
       const n = w.replace(/^0+(?=\d)/, "");
       return name.includes(w) || num === w || num.replace(/^([a-z]*)0+(?=\d)/, "$1") === n || set?.code === w || (w.length > 3 && set?.name.includes(w));
@@ -43,6 +45,7 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
   const index = useSets((s) => s.index);
   const assets = useSets((s) => s.assets);
   const collection = useStore((s) => s.collection);
+  const t = useT();
   const [q, setQ] = useState("");
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -64,6 +67,7 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
     return () => window.removeEventListener("keydown", onKey, true);
   }, [onClose]);
 
+  const labels = useMemo(() => setsInfo(), []);
   const results = useMemo(() => (index ? search(index, q) : []), [index, q]);
 
   const pick = async (id: string) => {
@@ -93,13 +97,13 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
         animate={{ y: 0, scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 24 }}
         role="dialog"
-        aria-label="Choisir une carte"
+        aria-label={t("Choisir une carte", "Pick a card")}
       >
         <header className={styles.head}>
           <p>
-            Pochette <b>{(pocket % 9) + 1}</b> · page {Math.floor(pocket / 9) + 1}
+            {t("Pochette", "Pocket")} <b>{(pocket % 9) + 1}</b> · page {Math.floor(pocket / 9) + 1}
           </p>
-          <button className={styles.close} onClick={onClose} onPointerEnter={sfx.hover} aria-label="Fermer">
+          <button className={styles.close} onClick={onClose} onPointerEnter={sfx.hover} aria-label={t("Fermer", "Close")}>
             ✕
           </button>
         </header>
@@ -108,7 +112,7 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
           <input
             ref={input}
             value={q}
-            placeholder="nom, numéro, extension… (ex : dracaufeu mew)"
+            placeholder={t("nom, numéro, extension… (ex : dracaufeu mew)", "name, number, set… (e.g. charizard mew)")}
             onChange={(e) => {
               setQ(e.target.value);
               sfx.hover();
@@ -116,21 +120,30 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
             onKeyDown={(e) => {
               if (e.key === "Enter" && results[0]) void pick(results[0][0]);
             }}
-            aria-label="Rechercher une carte"
+            aria-label={t("Rechercher une carte", "Search a card")}
           />
         </label>
 
         <div className={styles.body}>
-          {failed && <p className={styles.msg}>Impossible de charger le catalogue. Vérifie ta connexion.</p>}
-          {!failed && !index && <p className={styles.msg}>on ouvre le catalogue…</p>}
+          {failed && <p className={styles.msg}>{t("Impossible de charger le catalogue. Vérifie ta connexion.", "Couldn't load the catalogue. Check your connection.")}</p>}
+          {!failed && !index && <p className={styles.msg}>{t("on ouvre le catalogue…", "opening the catalogue…")}</p>}
           {index && !q.trim() && (
             <p className={styles.msg}>
-              {index.length.toLocaleString("fr-FR")} cartes en français, des toutes premières séries à Méga-Évolution, promos comprises.
-              <br />
-              Tape un nom (<i>pikachu</i>), ajoute un numéro (<i>pikachu 160</i>) ou un code d&apos;extension (<i>pikachu ev08</i>).
+              {t(
+                <>
+                  {index.length.toLocaleString("fr-FR")} cartes en français, des toutes premières séries à Méga-Évolution, promos comprises.
+                  <br />
+                  Tape un nom (<i>pikachu</i>), ajoute un numéro (<i>pikachu 160</i>) ou un code d&apos;extension (<i>pikachu ev08</i>).
+                </>,
+                <>
+                  {index.length.toLocaleString("en-GB")} cards, from the very first series to Mega Evolution, promos included.
+                  <br />
+                  Type a name (<i>pikachu</i>), add a number (<i>pikachu 160</i>) or a set code (<i>pikachu sit</i>).
+                </>,
+              )}
             </p>
           )}
-          {index && q.trim() && !results.length && <p className={styles.msg}>Aucune carte trouvée… vérifie l&apos;orthographe ?</p>}
+          {index && q.trim() && !results.length && <p className={styles.msg}>{t("Aucune carte trouvée… vérifie l'orthographe ?", "No card found… check the spelling?")}</p>}
           <div className={styles.grid}>
             {results.map((c, i) => {
               const [id, name, num, setId, img, trend] = c;
@@ -145,7 +158,7 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
                   onClick={() => void pick(id)}
                   onPointerEnter={sfx.hover}
                   disabled={!!busy}
-                  title={`${name} · ${SETS.get(setId)?.label} ${num}`}
+                  title={`${name} · ${labels.get(setId)?.label} ${num}`}
                 >
                   {img ? (
                     <img src={`${assets}${img}/low.webp`} alt={name} loading="lazy" draggable={false} />
@@ -157,7 +170,7 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
                   <span className={styles.label}>
                     <b>{name}</b>
                     <small>
-                      {SETS.get(setId)?.label} · {num}
+                      {labels.get(setId)?.label} · {num}
                       {trend ? ` · ${formatEur(trend)}` : ""}
                     </small>
                   </span>
@@ -166,7 +179,7 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
               );
             })}
           </div>
-          {results.length >= MAX && <p className={styles.msg}>Les {MAX} premières : précise ta recherche.</p>}
+          {results.length >= MAX && <p className={styles.msg}>{t(`Les ${MAX} premières : précise ta recherche.`, `The first ${MAX}: narrow your search.`)}</p>}
         </div>
       </motion.div>
     </motion.div>

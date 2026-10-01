@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CardData } from "@/lib/types";
 import styles from "./Binder.module.css";
+import { useT } from "@/lib/lang";
 
 const COLORS = ["#ffd35a", "#ff7aa8", "#6ae6ff", "#9dff7a", "#b28cff", "#ffffff"];
 
@@ -20,6 +21,7 @@ function makeConfetti() {
 
 /** Full-screen party when a very expensive card joins the collection. */
 export function Celebration({ card, onDone }: { card: CardData; onDone: () => void }) {
+  const tr = useT();
   const done = useRef(onDone);
   useEffect(() => {
     done.current = onDone;
@@ -53,7 +55,7 @@ export function Celebration({ card, onDone }: { card: CardData; onDone: () => vo
       <div className={styles.partyBanner}>
         <span>★ PÉPITE ★</span>
         <b>{card.name}</b>
-        <em>rejoint ta collection !</em>
+        <em>{tr("rejoint ta collection !", "joins your collection!")}</em>
       </div>
     </div>
   );

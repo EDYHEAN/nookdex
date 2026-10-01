@@ -58,10 +58,10 @@ export function drawRain(c: Ctx, t: number) {
 /* ---------------- lava lamp blobs ---------------- */
 
 export const LAVA_THEMES = [
-  { name: "rose bonbon", fill: "#f39bd0", light: "#ffd6ef", line: "#7a2f63", glow: "rgba(255,120,200,0.30)" },
-  { name: "orange seventies", fill: "#ffae5c", light: "#ffe0b3", line: "#7a3b12", glow: "rgba(255,160,80,0.30)" },
-  { name: "slime radioactif", fill: "#a6f07a", light: "#e2ffd0", line: "#2f6b1c", glow: "rgba(150,255,110,0.26)" },
-  { name: "bleu cosmique", fill: "#7fd6ff", light: "#d9f4ff", line: "#1f4f7a", glow: "rgba(110,200,255,0.28)" },
+  { name: "rose bonbon", nameEn: "candy pink", fill: "#f39bd0", light: "#ffd6ef", line: "#7a2f63", glow: "rgba(255,120,200,0.30)" },
+  { name: "orange seventies", nameEn: "seventies orange", fill: "#ffae5c", light: "#ffe0b3", line: "#7a3b12", glow: "rgba(255,160,80,0.30)" },
+  { name: "slime radioactif", nameEn: "radioactive slime", fill: "#a6f07a", light: "#e2ffd0", line: "#2f6b1c", glow: "rgba(150,255,110,0.26)" },
+  { name: "bleu cosmique", nameEn: "cosmic blue", fill: "#7fd6ff", light: "#d9f4ff", line: "#1f4f7a", glow: "rgba(110,200,255,0.28)" },
 ];
 type Theme = (typeof LAVA_THEMES)[number];
 

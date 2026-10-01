@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useCloud } from "@/lib/cloud";
+import { useLang } from "@/lib/lang";
 import { OS_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import styles from "./Tour.module.css";
@@ -74,44 +75,57 @@ function placeNote(hole: Box | null, w: number, h: number) {
   return { left: clampX(cx - w / 2), top: vh - h - 12 };
 }
 
-/** The steps (only the texts depend on the account). */
-function buildSteps(email: string | null): Step[] {
+/** The steps (only the texts depend on the account and the language). */
+function buildSteps(email: string | null, en: boolean): Step[] {
+  const t = (fr: ReactNode, english: ReactNode) => (en ? english : fr);
   return [
     {
       target: ["summary"],
-      text: (
+      text: t(
         <>
           📒 <b>Ton classeur.</b> Ici : ton avancement et la valeur Cardmarket de ta collec.
-        </>
+        </>,
+        <>
+          📒 <b>Your binder.</b> Here: your progress and the Cardmarket value of your collection.
+        </>,
       ),
     },
     {
       target: ["missing"],
-      text: (
+      text: t(
         <>
           🃏 Une carte <b>grise</b> = une carte qui te manque. <b>Clique dessus</b> : elle est à toi !
-        </>
+        </>,
+        <>
+          🃏 A <b>grey</b> card = a card you&apos;re missing. <b>Click it</b>: it&apos;s yours!
+        </>,
       ),
-      detour: { target: "next-page", text: <>Tourne la page ▶</> },
+      detour: { target: "next-page", text: t(<>Tourne la page ▶</>, <>Turn the page ▶</>) },
       done: () => !!$('[data-tour="owned"]'),
       skip: () => !$('[data-tour="missing"]') && !$('[data-tour="owned"]'),
     },
     {
       target: ["owned"],
-      text: (
+      text: t(
         <>
           Bien joué ! <b>Clique sur ta carte</b> pour ouvrir sa fiche.
-        </>
+        </>,
+        <>
+          Nice! <b>Click your card</b> to open its sheet.
+        </>,
       ),
       done: () => !!$('[data-tour="inspector"]'),
       skip: () => !$('[data-tour="owned"]'),
     },
     {
       target: ["remove-card"],
-      text: (
+      text: t(
         <>
           🔍 Variante, état, prix payé : tout se règle sur la fiche. Pour retirer la carte, <b>maintiens ce bouton</b>.
-        </>
+        </>,
+        <>
+          🔍 Variant, condition, price paid: it&apos;s all on the sheet. To remove the card, <b>hold this button</b>.
+        </>,
       ),
       // held long enough: the card is gone, the button with it
       done: () => !$('[data-tour="remove-card"]'),
@@ -120,72 +134,98 @@ function buildSteps(email: string | null): Step[] {
     },
     {
       target: ["close-binder"],
-      text: (
+      text: t(
         <>
           <b>Range ton classeur</b> sur l&apos;étagère.
-        </>
+        </>,
+        <>
+          <b>Put your binder away</b> on the shelf.
+        </>,
       ),
       done: () => !$('[data-tour="binder"]'),
       skip: () => !$('[data-tour="binder"]'),
     },
     {
       target: ["os-button", "monitor"],
-      text: (
+      text: t(
         <>
           🖥️ <b>Clique ici</b> pour allumer {OS_NAME}.
-        </>
+        </>,
+        <>
+          🖥️ <b>Click here</b> to switch {OS_NAME} on.
+        </>,
       ),
       done: () => !!$('[data-tour="os"]'),
     },
     {
       target: ["tab-wish"],
-      text: (
+      text: t(
         <>
           ⭐ <b>Ta wishlist</b> : toutes les cartes qui te manquent, avec leur prix. Clique !
-        </>
+        </>,
+        <>
+          ⭐ <b>Your wishlist</b>: every card you&apos;re missing, with its price. Click!
+        </>,
       ),
       done: () => !!$('[data-tour="tab-wish"][aria-selected="true"]'),
       skip: () => !$('[data-tour="os"]'),
     },
     {
       target: ["tab-save"],
-      text: (
+      text: t(
         <>
           ☁️ Et ta <b>sauvegarde</b>, juste là. Clique !
-        </>
+        </>,
+        <>
+          ☁️ And your <b>save</b>, right there. Click!
+        </>,
       ),
       done: () => !!$('[data-tour="tab-save"][aria-selected="true"]'),
       skip: () => !$('[data-tour="os"]'),
     },
     {
       target: ["account"],
-      text: email ? (
-        <>
-          Connecté : ta collec se <b>sauvegarde toute seule</b> en ligne, sur tous tes appareils.
-        </>
-      ) : (
-        <>
-          Sans compte, ta collec reste dans ce navigateur. <b>Connecte-toi ici</b> pour la garder en ligne.
-        </>
-      ),
+      text: email
+        ? t(
+            <>
+              Connecté : ta collec se <b>sauvegarde toute seule</b> en ligne, sur tous tes appareils.
+            </>,
+            <>
+              Signed in: your collection <b>saves itself</b> online, on all your devices.
+            </>,
+          )
+        : t(
+            <>
+              Sans compte, ta collec reste dans ce navigateur. <b>Connecte-toi ici</b> pour la garder en ligne.
+            </>,
+            <>
+              Without an account, your collection stays in this browser. <b>Sign in here</b> to keep it online.
+            </>,
+          ),
       skip: () => !$('[data-tour="account"]'),
     },
     {
       target: ["quit-os"],
-      text: (
+      text: t(
         <>
           <b>Quitte l&apos;OS</b> pour revenir au bureau.
-        </>
+        </>,
+        <>
+          <b>Quit the OS</b> to get back to the desk.
+        </>,
       ),
       done: () => !$('[data-tour="os"]'),
       skip: () => !$('[data-tour="os"]'),
     },
     {
       target: ["about"],
-      text: (
+      text: t(
         <>
           ✉️ <b>Le carnet</b> : l&apos;histoire du site, et le formulaire de contact si besoin. Le reste, à toi de le découvrir !
-        </>
+        </>,
+        <>
+          ✉️ <b>The notebook</b>: the story of the site, and the contact form if you need it. The rest is yours to discover!
+        </>,
       ),
     },
   ];
@@ -201,14 +241,15 @@ export function Tour({ onDone }: { onDone: () => void }) {
   const [lost, setLost] = useState(false);
   const [pos, setPos] = useState({ left: -9999, top: -9999 });
 
-  const steps = buildSteps(email);
+  const en = useLang() === "en";
+  const steps = buildSteps(email, en);
   const step = steps[i];
   const last = i === steps.length - 1;
   const interactive = !!step.done && !lost;
 
   // Follows the target every frame (binders flip, the OS zooms in…), and moves on when the player did the thing.
   useEffect(() => {
-    const all = buildSteps(null);
+    const all = buildSteps(null, false);
     const s = all[i];
     if (s.skip?.()) {
       const t = setTimeout(() => setI((n) => Math.min(n + 1, all.length - 1)), 0);
@@ -295,7 +336,7 @@ export function Tour({ onDone }: { onDone: () => void }) {
     : [{ left: 0, top: 0, right: 0, bottom: 0 }];
 
   return (
-    <div ref={layer} className={styles.layer} role="dialog" aria-modal="true" aria-label="Visite guidée">
+    <div ref={layer} className={styles.layer} role="dialog" aria-modal="true" aria-label={en ? "Guided tour" : "Visite guidée"}>
       {panels.map((p, n) => (
         <div key={n} className={styles.block} style={p} />
       ))}
@@ -319,10 +360,10 @@ export function Tour({ onDone }: { onDone: () => void }) {
             {i + 1}/{steps.length}
           </span>
           {interactive ? (
-            <span className={styles.todo}>à toi !</span>
+            <span className={styles.todo}>{en ? "your turn!" : "à toi !"}</span>
           ) : (
             <button className={styles.next} onClick={next} autoFocus>
-              {last ? "À toi de jouer ▶" : "OK ▶"}
+              {last ? (en ? "Your turn ▶" : "À toi de jouer ▶") : "OK ▶"}
             </button>
           )}
         </div>

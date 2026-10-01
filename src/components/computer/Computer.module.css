@@ -723,3 +723,19 @@
   width: 34px;
   flex: none;
 }
+
+/* Langue · Language */
+.langRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.langRow > span {
+  color: #8fd9b0;
+}
+
+.langOn {
+  background: #ffd35a;
+}
