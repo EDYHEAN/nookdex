@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "fetch-set": "node scripts/fetch-set.mjs",
+    "watch": "node scripts/watch.mjs",
     "build-scene": "node scripts/build-scene.mjs",
     "build-icons": "node scripts/build-icons.mjs"
   },

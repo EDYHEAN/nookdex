@@ -42,3 +42,7 @@ next-env.d.ts
 
 # export of the current backdrop, to attach in Gemini (regenerate it from public/scene/plate.webp)
 /img/plate-pour-gemini.jpg
+
+# veille (GitHub Action)
+watch-report.md
+watch-sets.txt

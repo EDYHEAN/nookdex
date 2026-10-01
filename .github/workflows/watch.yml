@@ -1,0 +1,61 @@
+# Chaque lundi : y a-t-il de nouveaux visuels FR (cartes en scan anglais ou en dos de carte) ou de nouveaux champs
+# de prix chez TCGdex (prix Cardmarket FR, nouveau marché…) ?
+# - nouveaux visuels : les extensions concernées sont retéléchargées et le robot fait un commit sur main ;
+# - dans tous les cas où il y a du nouveau, une issue « Veille cartes et prix » est ouverte (ou complétée) :
+#   GitHub t'envoie une notification.
+# Lancement à la main : onglet « Actions » > « Veille cartes et prix » > « Run workflow ».
+name: Veille cartes et prix
+
+on:
+  schedule:
+    - cron: "17 7 * * 1" # le lundi à 7 h 17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write # commit des visuels retrouvés
+  issues: write # l'issue de veille
+
+concurrency:
+  group: prix # jamais en même temps que les prix du jour (mêmes fichiers)
+  cancel-in-progress: false
+
+jobs:
+  veille:
+    name: Chercher du nouveau
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Vérifier les visuels et les champs de prix
+        run: node scripts/watch.mjs
+
+      - name: Retélécharger les extensions qui ont de nouveaux visuels
+        run: |
+          sets="$(cat watch-sets.txt)"
+          if [ -z "$sets" ]; then echo "Pas de nouveau visuel."; exit 0; fi
+          node scripts/fetch-set.mjs $sets
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/sets public/logos src/data/catalog.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Nouveaux visuels FR : $sets"
+          git push
+
+      - name: Ouvrir ou compléter l'issue de veille
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ ! -s watch-report.md ]; then echo "Rien de nouveau cette semaine."; exit 0; fi
+          gh label create veille --color FFD35A --description "Veille cartes et prix" --force
+          title="Veille cartes et prix"
+          num="$(gh issue list --label veille --state open --json number --jq '.[0].number')"
+          if [ -n "$num" ]; then
+            gh issue comment "$num" --body-file watch-report.md
+          else
+            gh issue create --title "$title" --label veille --body-file watch-report.md
+          fi
