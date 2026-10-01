@@ -4,6 +4,7 @@
 //   npm run fetch-set -- --force   every binder set (refreshes the prices), plus the extra sets not downloaded yet
 //   npm run fetch-set -- --all     every set, extra sets included (slow: thousands of cards)
 //   npm run fetch-set -- swsh12    one set (+ its sub-sets, like the Trainer Gallery)
+//   add --lang=en                  the same in English (the site shows English cards to English browsers)
 //
 // Binder sets: the main sets of the recent series, offered as binders.
 // Extra sets: everything else in French (older series, promos, energies…), only for the free binders' search.
@@ -16,8 +17,12 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
 const API = "https://api.tcgdex.net/v2";
-const LANG = "fr";
-const OUT = "public/sets";
+// French (default) or English: same card ids, files side by side.
+const LANG = process.argv.find((a) => a.startsWith("--lang="))?.slice(7) ?? "fr";
+const FR = LANG === "fr";
+const OUT = FR ? "public/sets" : `public/sets/${LANG}`;
+const LOGOS = FR ? "public/logos" : `public/logos/${LANG}`;
+const CATALOG_FILE = FR ? "src/data/catalog.json" : `src/data/catalog-${LANG}.json`;
 const ASSETS = "https://assets.tcgdex.net/";
 
 /** Series offered as binders, newest first. */
@@ -101,6 +106,8 @@ async function logoOf(set, serie) {
 }
 
 function codeOf(set, serie) {
+  // English: the official abbreviation (SIT, PAL…)
+  if (!FR) return set.abbreviation?.official ?? set.tcgOnline ?? set.id.toUpperCase();
   if (CODES[set.id]) return CODES[set.id];
   const m = set.id.match(/^[a-z]+0*(\d+)$/);
   if (m && PREFIX[serie]) return `${PREFIX[serie]}${m[1].padStart(2, "0")}`;
@@ -236,10 +243,10 @@ for (const serie of SERIES) {
 catalog.sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""));
 
 // Binder logos are served by the site itself: the shelf and the "new binder" menu show them all at once.
-await mkdir("public/logos", { recursive: true });
+await mkdir(LOGOS, { recursive: true });
 await pool(catalog, 6, async (c) => {
   if (!c.logo?.startsWith("http")) return;
-  const file = `public/logos/${c.id}.png`;
+  const file = `${LOGOS}/${c.id}.png`;
   if (!existsSync(file)) {
     try {
       const res = await fetch(`${c.logo}.png`);
@@ -249,7 +256,7 @@ await pool(catalog, 6, async (c) => {
       return; // keep the TCGdex address
     }
   }
-  c.logo = `/logos/${c.id}`;
+  c.logo = `/${LOGOS.replace(/^public\//, "")}/${c.id}`;
 });
 
 // Extra sets: every other French set (older series, promos, energies), searchable in the free binders.
@@ -309,6 +316,6 @@ for (const c of catalog) {
 
 // Extra sets with no French scan at all stay out.
 const kept = catalog.filter((c) => !c.extra || (existsSync(`${OUT}/${c.id}.json`) && c.total > 0));
-await writeFile("src/data/catalog.json", JSON.stringify(kept, null, 1));
+await writeFile(CATALOG_FILE, JSON.stringify(kept, null, 1));
 await writeFile(`${OUT}/index.json`, JSON.stringify({ assets: ASSETS, cards: index }));
 console.log(`catalog: ${catalog.length} sets, ${index.length} cards`);

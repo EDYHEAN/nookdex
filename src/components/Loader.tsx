@@ -6,7 +6,7 @@ import { loadSets, neededSets, useSets } from "@/lib/catalog";
 import { SCENE, sceneImg } from "@/lib/scene";
 import { SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
-import { useEnglishIntro } from "@/lib/lang";
+import { useLang } from "@/lib/lang";
 import { useStore } from "@/lib/store";
 import styles from "./Loader.module.css";
 
@@ -61,7 +61,7 @@ export function Loader({ onEnter }: { onEnter: () => void }) {
   const [ready, setReady] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [tip, setTip] = useState(() => Math.floor(Math.random() * TIPS.length));
-  const en = useEnglishIntro();
+  const en = useLang() === "en";
   const tips = en ? TIPS_EN : TIPS;
 
   useEffect(() => {

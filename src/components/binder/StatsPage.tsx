@@ -3,11 +3,12 @@
 import { useMemo, useRef, useState } from "react";
 import { BINDER_COLORS, type Pocket } from "@/lib/binders";
 import { formatEur, type SetStats } from "@/lib/price";
-import { SORT_LABEL } from "@/lib/rarity";
+import { SORT_LABEL, SORT_LABEL_EN } from "@/lib/rarity";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import type { BinderDef, BinderSort, Copy } from "@/lib/types";
 import styles from "./Binder.module.css";
+import { useT } from "@/lib/lang";
 
 export type BinderSummary = Omit<SetStats, "copies"> & {
   /** "112/245" for a set, "12" for a free binder */
@@ -27,6 +28,7 @@ interface Props {
 }
 
 export function StatsPage({ binder, title, stats, pages, collection, onJump, onFind }: Props) {
+  const t = useT();
   const free = binder.kind === "free";
   const pct = stats.total ? stats.owned / stats.total : 0;
   const segments = 20;
@@ -39,7 +41,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
       <div className={styles.statsHead}>
         {binder.logo && <img src={`${binder.logo}.png`} alt="" draggable={false} />}
         <div>
-          <p className={styles.kicker}>{free ? "classeur libre" : binder.code} · sommaire</p>
+          <p className={styles.kicker}>{free ? t("classeur libre", "free binder") : binder.code} · {t("sommaire", "summary")}</p>
           {free ? <Rename id={binder.id} name={title} /> : <h2>{title}</h2>}
         </div>
       </div>
@@ -50,13 +52,15 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
       {free ? (
         <div className={styles.bigCount}>
           <b>{stats.owned}</b>
-          <span>carte{stats.owned > 1 ? "s" : ""} rangée{stats.owned > 1 ? "s" : ""}</span>
+          <span>{t(`carte${stats.owned > 1 ? "s" : ""} rangée${stats.owned > 1 ? "s" : ""}`, `card${stats.owned > 1 ? "s" : ""} filed`)}</span>
         </div>
       ) : (
         <>
           <div className={styles.bigCount}>
             <b>{stats.owned}</b>
-            <span>/ {stats.total} cartes</span>
+            <span>
+              / {stats.total} {t("cartes", "cards")}
+            </span>
             <em>{Math.round(pct * 100)}%</em>
           </div>
           <div className={styles.segBar}>
@@ -73,29 +77,31 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
             <div>
               <dt>Master set</dt>
               <dd>
-                {stats.masterOwned}/{stats.masterTotal} variantes
+                {stats.masterOwned}/{stats.masterTotal} {t("variantes", "variants")}
               </dd>
             </div>
             <div>
-              <dt>Il te manque</dt>
-              <dd>{stats.total - stats.owned} cartes</dd>
+              <dt>{t("Il te manque", "Missing")}</dt>
+              <dd>
+                {stats.total - stats.owned} {t("cartes", "cards")}
+              </dd>
             </div>
           </>
         )}
         <div>
-          <dt>Valeur tendance</dt>
+          <dt>{t("Valeur tendance", "Trend value")}</dt>
           <dd className={styles.money}>{formatEur(stats.trend)}</dd>
         </div>
         <div>
-          <dt>Valeur prix bas</dt>
+          <dt>{t("Valeur prix bas", "Low value")}</dt>
           <dd>{formatEur(stats.low)}</dd>
         </div>
         <div>
-          <dt>Dépensé</dt>
+          <dt>{t("Dépensé", "Spent")}</dt>
           <dd>{formatEur(stats.spent)}</dd>
         </div>
         <div>
-          <dt>Plus-value</dt>
+          <dt>{t("Plus-value", "Gain")}</dt>
           <dd className={gain >= 0 ? styles.up : styles.down}>
             {gain >= 0 ? "+" : ""}
             {formatEur(gain)}
@@ -104,7 +110,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
       </dl>
 
       <div className={styles.mapHead}>
-        <p className={styles.mapTitle}>Carte du classeur</p>
+        <p className={styles.mapTitle}>{t("Carte du classeur", "Binder map")}</p>
         <Colors id={binder.id} current={binder.color} />
       </div>
       <div className={styles.map}>
@@ -130,7 +136,9 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
         })}
       </div>
       {stats.pricesUpdated && (
-        <p className={styles.foot}>Prix Cardmarket du {new Date(stats.pricesUpdated).toLocaleDateString("fr-FR")}</p>
+        <p className={styles.foot}>
+          {t("Prix Cardmarket du", "Cardmarket prices of")} {new Date(stats.pricesUpdated).toLocaleDateString(t("fr-FR", "en-GB"))}
+        </p>
       )}
     </div>
   );
@@ -140,6 +148,7 @@ const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCa
 
 /** "Où est mon Lugia ?": type a name (or a number), pick it, the binder riffles to it. */
 function Finder({ pages, collection, onFind }: { pages: Pocket[][]; collection: Record<string, Copy[]>; onFind: (pocket: number) => void }) {
+  const t = useT();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const pockets = useMemo(() => pages.flat().filter((p): p is Pocket & { card: NonNullable<Pocket["card"]> } => !!p.card), [pages]);
@@ -163,8 +172,8 @@ function Finder({ pages, collection, onFind }: { pages: Pocket[][]; collection: 
         <span aria-hidden>⌕</span>
         <input
           value={q}
-          placeholder="chercher une carte…"
-          aria-label="Chercher une carte dans ce classeur"
+          placeholder={t("chercher une carte…", "find a card…")}
+          aria-label={t("Chercher une carte dans ce classeur", "Find a card in this binder")}
           onChange={(e) => {
             setQ(e.target.value);
             setOpen(true);
@@ -194,7 +203,7 @@ function Finder({ pages, collection, onFind }: { pages: Pocket[][]; collection: 
               </button>
             </li>
           ))}
-          {!results.length && <li className={styles.finderNone}>aucune carte</li>}
+          {!results.length && <li className={styles.finderNone}>{t("aucune carte", "no card")}</li>}
         </ul>
       )}
     </div>
@@ -203,10 +212,11 @@ function Finder({ pages, collection, onFind }: { pages: Pocket[][]; collection: 
 
 /** How the set binder is ordered: set number, rarest first, or alphabetical. */
 function SortChips({ id, current }: { id: string; current: BinderSort }) {
+  const t = useT();
   const setSort = useStore((s) => s.setBinderSort);
   return (
-    <div className={styles.sortChips} role="radiogroup" aria-label="Ordre des cartes">
-      <span>Ranger par</span>
+    <div className={styles.sortChips} role="radiogroup" aria-label={t("Ordre des cartes", "Card order")}>
+      <span>{t("Ranger par", "Sort by")}</span>
       {(Object.keys(SORT_LABEL) as BinderSort[]).map((k) => (
         <button
           key={k}
@@ -221,7 +231,7 @@ function SortChips({ id, current }: { id: string; current: BinderSort }) {
           }}
           onPointerEnter={sfx.hover}
         >
-          {SORT_LABEL[k]}
+          {t(SORT_LABEL[k], SORT_LABEL_EN[k])}
         </button>
       ))}
     </div>
@@ -230,9 +240,10 @@ function SortChips({ id, current }: { id: string; current: BinderSort }) {
 
 /** The cover color: the binder on the shelf and its pages follow. */
 function Colors({ id, current }: { id: string; current: string }) {
+  const t = useT();
   const setColor = useStore((s) => s.setBinderColor);
   return (
-    <div className={styles.colors} role="radiogroup" aria-label="Couleur du classeur">
+    <div className={styles.colors} role="radiogroup" aria-label={t("Couleur du classeur", "Binder colour")}>
       {BINDER_COLORS.map((c) => (
         <button
           key={c}
@@ -256,6 +267,7 @@ function Colors({ id, current }: { id: string; current: string }) {
 
 /** The free binder's name, written on the page: click to change it. */
 function Rename({ id, name }: { id: string; name: string }) {
+  const t = useT();
   const rename = useStore((s) => s.renameBinder);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(name);
@@ -270,7 +282,7 @@ function Rename({ id, name }: { id: string; name: string }) {
             setDraft(name);
             setEditing(true);
           }}
-          title="Clic : renommer"
+          title={t("Clic : renommer", "Click: rename")}
         >
           {name} <span aria-hidden>✎</span>
         </button>

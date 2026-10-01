@@ -20,6 +20,7 @@ import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
 import { Tour } from "./shelf/Tour";
 import { Welcome } from "./shelf/Welcome";
 import styles from "./App.module.css";
+import { LANG_COOKIE, useLang, useT } from "@/lib/lang";
 
 interface Open {
   binderId: string;
@@ -29,6 +30,7 @@ interface Open {
 export function App() {
   const vp = useViewport();
   const compact = isCompact(vp);
+  const tr = useT();
   const [open, setOpen] = useState<Open | null>(null);
   const [computer, setComputer] = useState<{ x: number; y: number } | null>(null);
   /** The guided tour, after the first binder is picked (and replayable from the notebook). */
@@ -53,6 +55,13 @@ export function App() {
   const setAmbient = useStore((s) => s.setAmbient);
 
   useEffect(() => setMuted(!sound), [sound]);
+
+  // The server pages (notebook pages, page text) follow the language the app speaks.
+  const lang = useLang();
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.cookie = `${LANG_COOKIE}=${lang}; path=/; max-age=31536000; samesite=lax`;
+  }, [lang]);
 
   useEffect(startCloud, []);
 
@@ -187,8 +196,8 @@ export function App() {
             }}
           >
             <BinderPicker
-              title="Nouveau classeur"
-              subtitle={`Il prendra la place libre de l'étagère (${binders.length + 1}/14).`}
+              title={tr("Nouveau classeur", "New binder")}
+              subtitle={tr(`Il prendra la place libre de l'étagère (${binders.length + 1}/14).`, `It takes the free spot on the shelf (${binders.length + 1}/14).`)}
               onPick={async (choice) => {
                 await addBinder(choice);
                 setAdding(false);
@@ -226,8 +235,8 @@ export function App() {
                 else startAmbient();
                 setAmbient(!ambient);
               }}
-              aria-label="Musique"
-              title="Musique lofi"
+              aria-label={tr("Musique", "Music")}
+              title={tr("Musique lofi", "Lofi music")}
             >
               ♪
             </button>
@@ -241,8 +250,8 @@ export function App() {
               toggleSound();
               if (!sound) setTimeout(() => sfx.pop(), 60);
             }}
-            aria-label={sound ? "Couper le son" : "Activer le son"}
-            title={sound ? "Couper le son" : "Activer le son"}
+            aria-label={sound ? tr("Couper le son", "Mute") : tr("Activer le son", "Sound on")}
+            title={sound ? tr("Couper le son", "Mute") : tr("Activer le son", "Sound on")}
           >
             <span className={`${styles.speaker} ${sound ? "" : styles.muted}`} />
           </button>

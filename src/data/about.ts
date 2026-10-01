@@ -30,3 +30,34 @@ export const ABOUT = {
     },
   ],
 };
+
+/** The same notebook in English (keep both in step). */
+export const ABOUT_EN: typeof ABOUT = {
+  title: "Johan's notebook",
+  pages: [
+    {
+      heading: "Who I am",
+      paragraphs: [
+        "Hi! I'm Johan, a Pokémon card collector since… forever, maybe. Born in 1993: I literally grew up with it, like so many of us :)",
+        "For a few years now I've been chasing the French master set of Silver Tempest, and I trade my duplicates and the hits of other sets on Cardmarket.",
+      ],
+    },
+    {
+      heading: "Why this little desk",
+      paragraphs: [
+        "I wanted a place of my own to file my collection. I went through horrible spreadsheets (even with colours, not great…), and I got flooded with ads for countless apps, often paid after X cards.",
+        "I also wanted something calm: my little corner, with my cat Warwick and some lofi, to file my collection in peace.",
+        "Every binder fills up card by card, with today's prices so you know what your collection is worth and what you're missing.",
+        "Enjoy!",
+        "— Johan",
+      ],
+    },
+    {
+      heading: "Small print",
+      paragraphs: [
+        "Card data: TCGdex. Prices: Cardmarket price guide, updated every day.",
+        "This is a fan project, not affiliated with Nintendo, Creatures, GAME FREAK or The Pokémon Company. Pokémon and card names belong to their owners.",
+      ],
+    },
+  ],
+};

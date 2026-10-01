@@ -2,13 +2,14 @@
 
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { NO_PRICE, VARIANT_LABEL, copiesPaid, copiesValue, formatEur, formatPrice, hasPrice, priceMove, priceOf, unitPrice } from "@/lib/price";
+import { noPriceText, variantLabel, copiesPaid, copiesValue, formatEur, formatPrice, hasPrice, priceMove, priceOf, unitPrice } from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import { CONDITIONS, CONDITION_LABEL, useStore } from "@/lib/store";
 import type { CardData, Condition, Copy, Variant } from "@/lib/types";
 import type { AddResult } from "./CardSlot";
 import { CardBack } from "./CardBack";
 import styles from "./Inspector.module.css";
+import { useT } from "@/lib/lang";
 
 interface Props {
   card: CardData;
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props) {
+  const t = useT();
   const copies = useStore((s) => s.collection[card.id]);
   const binders = useStore((s) => s.binders);
   const { addCopy, updateCopy, removeCopy, removeCard } = useStore.getState();
@@ -98,10 +100,10 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <button className={`${styles.nav} ${styles.navPrev}`} onClick={() => onNavigate(-1)} aria-label="Carte précédente">
+      <button className={`${styles.nav} ${styles.navPrev}`} onClick={() => onNavigate(-1)} aria-label={t("Carte précédente", "Previous card")}>
         ‹
       </button>
-      <button className={`${styles.nav} ${styles.navNext}`} onClick={() => onNavigate(1)} aria-label="Carte suivante">
+      <button className={`${styles.nav} ${styles.navNext}`} onClick={() => onNavigate(1)} aria-label={t("Carte suivante", "Next card")}>
         ›
       </button>
 
@@ -126,7 +128,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
         animate={{ x: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 24, delay: 0.05 }}
       >
-        <button className={styles.close} onClick={onClose} aria-label="Fermer" data-tour="inspector-close">
+        <button className={styles.close} onClick={onClose} aria-label={t("Fermer", "Close")} data-tour="inspector-close">
           ✕
         </button>
         <p className={styles.kicker}>
@@ -135,21 +137,32 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
         <h2 className={styles.name}>{card.name}</h2>
         {card.unavailable && (
           <p className={styles.soon}>
-            🚧 <b>Bientôt de retour</b> : notre fournisseur de cartes a retiré cette carte pour l&apos;instant, on est au courant. Tu peux
-            toujours la garder et la compléter ; image et prix reviennent dès qu&apos;elle est de nouveau en ligne (prix figés en attendant).
+            {t(
+              <>
+                🚧 <b>Bientôt de retour</b> : notre fournisseur de cartes a retiré cette carte pour l&apos;instant, on est au courant. Tu
+                peux toujours la garder et la compléter ; image et prix reviennent dès qu&apos;elle est de nouveau en ligne (prix figés en
+                attendant).
+              </>,
+              <>
+                🚧 <b>Back soon</b>: our card provider took this card out for now, we know about it. You can still keep it and fill it in;
+                picture and price come back as soon as it&apos;s online again (prices frozen meanwhile).
+              </>,
+            )}
           </p>
         )}
 
         <section className={styles.prices}>
           <div className={styles.priceHead}>
-            <span title="Le guide de prix Cardmarket mélange toutes les langues et tous les états">Cardmarket · toutes langues</span>
-            <span>prix bas</span>
-            <span>tendance</span>
+            <span title={t("Le guide de prix Cardmarket mélange toutes les langues et tous les états", "Cardmarket's price guide mixes every language and condition")}>
+              {t("Cardmarket · toutes langues", "Cardmarket · all languages")}
+            </span>
+            <span>{t("prix bas", "low")}</span>
+            <span>{t("tendance", "trend")}</span>
           </div>
           {card.variants.map((v) => (
             <div key={v} className={styles.priceRow}>
               <span>
-                <i className={`${styles.gem} ${styles[v]}`} /> {VARIANT_LABEL[v]}
+                <i className={`${styles.gem} ${styles[v]}`} /> {variantLabel(v)}
               </span>
               <span>{formatPrice(priceOf(card, v, "low"))}</span>
               <span className={styles.trend}>
@@ -158,13 +171,13 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
               </span>
             </div>
           ))}
-          {!priced && <p className={styles.noPrice}>{NO_PRICE} : pas de prix pour l&apos;instant.</p>}
+          {!priced && <p className={styles.noPrice}>{noPriceText()}{t(" : pas de prix pour l'instant.", ": no price for now.")}</p>}
         </section>
 
         {owned ? (
           <section className={styles.copies}>
             <h3>
-              Mes exemplaires <span>×{count}</span>
+              {t("Mes exemplaires", "My copies")} <span>×{count}</span>
             </h3>
             {copies!.map((copy, i) => (
               <CopyRow
@@ -196,19 +209,19 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
               />
             ))}
             <button className={styles.addCopy} onClick={addAnother} onPointerEnter={sfx.hover}>
-              + un autre exemplaire
+              {t("+ un autre exemplaire", "+ another copy")}
             </button>
             <dl className={styles.value}>
               <div>
-                <dt>Valeur</dt>
-                <dd title={priced ? undefined : NO_PRICE}>{priced ? formatEur(trendValue) : "—"}</dd>
+                <dt>{t("Valeur", "Value")}</dt>
+                <dd title={priced ? undefined : noPriceText()}>{priced ? formatEur(trendValue) : "—"}</dd>
               </div>
               <div>
-                <dt>Payé</dt>
+                <dt>{t("Payé", "Paid")}</dt>
                 <dd>{known ? formatEur(paid) : "—"}</dd>
               </div>
               <div>
-                <dt>Plus-value</dt>
+                <dt>{t("Plus-value", "Gain")}</dt>
                 <dd className={gainKnown ? (gain >= 0 ? styles.up : styles.down) : ""}>
                   {gainKnown ? `${gain >= 0 ? "+" : ""}${formatEur(gain)}` : "—"}
                 </dd>
@@ -224,9 +237,9 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
               }}
               onPointerEnter={sfx.hover}
             >
-              ★ Je l&apos;ai !
+              {t("★ Je l'ai !", "★ Got it!")}
             </button>
-            <p className={styles.hint}>Tu pourras ensuite préciser la variante, l&apos;état et les doublons.</p>
+            <p className={styles.hint}>{t("Tu pourras ensuite préciser la variante, l'état et les doublons.", "You can then set the variant, condition and duplicates.")}</p>
           </section>
         )}
 
@@ -237,7 +250,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
             rel="noreferrer"
             onClick={() => sfx.click()}
           >
-            Voir sur Cardmarket ↗
+            {t("Voir sur Cardmarket ↗", "See on Cardmarket ↗")}
           </a>
           {keptHere && (
             <HoldButton
@@ -279,6 +292,7 @@ interface CopyRowProps {
 }
 
 function CopyRow({ index, copy, place, canCycleVariant, onVariant, onCondition, onQty, onPaid }: CopyRowProps) {
+  const t = useT();
   return (
     <motion.div
       className={styles.copy}
@@ -294,10 +308,10 @@ function CopyRow({ index, copy, place, canCycleVariant, onVariant, onCondition, 
         transition={{ type: "spring", stiffness: 380, damping: 16 }}
         onClick={onVariant}
         disabled={!canCycleVariant}
-        title={canCycleVariant ? "Clic : changer de variante" : "Seule variante existante"}
+        title={canCycleVariant ? t("Clic : changer de variante", "Click: change variant") : t("Seule variante existante", "Only variant there is")}
       >
         <i className={`${styles.gem} ${styles[copy.variant as Variant]}`} />
-        {VARIANT_LABEL[copy.variant]}
+        {variantLabel(copy.variant)}
       </motion.button>
 
       <motion.button
@@ -312,19 +326,19 @@ function CopyRow({ index, copy, place, canCycleVariant, onVariant, onCondition, 
           e.preventDefault();
           onCondition(-1);
         }}
-        title={`${CONDITION_LABEL[copy.condition]} — clic : état suivant, clic droit : précédent`}
+        title={`${CONDITION_LABEL[copy.condition]} — ${t("clic : état suivant, clic droit : précédent", "click: next condition, right-click: previous")}`}
       >
         {copy.condition}
       </motion.button>
 
       <div className={styles.qty}>
-        <button onClick={() => onQty(-1)} aria-label="Moins">
+        <button onClick={() => onQty(-1)} aria-label={t("Moins", "Less")}>
           −
         </button>
         <motion.b key={copy.qty} initial={{ scale: 1.7, y: -4 }} animate={{ scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 500, damping: 14 }}>
           {copy.qty}
         </motion.b>
-        <button onClick={() => onQty(1)} aria-label="Plus">
+        <button onClick={() => onQty(1)} aria-label={t("Plus", "More")}>
           +
         </button>
       </div>
@@ -339,6 +353,7 @@ function CopyRow({ index, copy, place, canCycleVariant, onVariant, onCondition, 
  * Two explicit choices, the price tag only shows for a bought copy.
  */
 function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number | null) => void }) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const pulled = paid === 0;
@@ -360,8 +375,8 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
 
   return (
     <div className={styles.paidRow}>
-      <span className={styles.paidLabel}>obtenue</span>
-      <div className={styles.origin} role="radiogroup" aria-label="Comment tu as eu cet exemplaire">
+      <span className={styles.paidLabel}>{t("obtenue", "got it")}</span>
+      <div className={styles.origin} role="radiogroup" aria-label={t("Comment tu as eu cet exemplaire", "How you got this copy")}>
         <button
           role="radio"
           aria-checked={!pulled}
@@ -372,9 +387,9 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
             open();
           }}
           onPointerEnter={sfx.hover}
-          title="Achetée ou échangée : note son prix"
+          title={t("Achetée ou échangée : note son prix", "Bought or traded: note its price")}
         >
-          achetée
+          {t("achetée", "bought")}
         </button>
         <button
           role="radio"
@@ -387,13 +402,13 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
             onChange(0);
           }}
           onPointerEnter={sfx.hover}
-          title="Tirée d'un booster : elle ne t'a rien coûté (0 €)"
+          title={t("Tirée d'un booster : elle ne t'a rien coûté (0 €)", "Pulled from a booster: it cost you nothing (€0)")}
         >
           <svg className={styles.pack} viewBox="0 0 14 20" aria-hidden>
             <path d="M1 3 L2.5 1 L4 3 L5.5 1 L7 3 L8.5 1 L10 3 L11.5 1 L13 3 V17 L11.5 19 L10 17 L8.5 19 L7 17 L5.5 19 L4 17 L2.5 19 L1 17 Z" />
             <circle cx="7" cy="10" r="3" />
           </svg>
-          en booster
+          {t("en booster", "from a pack")}
         </button>
       </div>
       {!pulled &&
@@ -424,7 +439,7 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
             animate={{ rotate: 0, scale: 1 }}
             transition={{ type: "spring", stiffness: 420, damping: 9 }}
             onClick={open}
-            title="Clic : saisir le prix payé"
+            title={t("Clic : saisir le prix payé", "Click: enter the price paid")}
           >
             {paid == null ? "? €" : formatEur(paid)}
           </motion.button>
@@ -435,6 +450,7 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
 
 /** Keep pressed to confirm: no accidental removals. */
 function HoldButton({ onConfirm }: { onConfirm: () => void }) {
+  const t = useT();
   const [holding, setHolding] = useState(false);
   const timer = useRef<number | null>(null);
   const start = () => {
@@ -461,23 +477,27 @@ function HoldButton({ onConfirm }: { onConfirm: () => void }) {
       onPointerUp={stop}
       onPointerCancel={stop}
       onLostPointerCapture={stop}
-      title="Maintiens pour retirer"
+      title={t("Maintiens pour retirer", "Hold to remove")}
     >
       <span className={styles.holdFill} />
-      <span className={styles.holdText}>{holding ? "Maintiens…" : "Retirer du classeur"}</span>
+      <span className={styles.holdText}>{holding ? t("Maintiens…", "Hold…") : t("Retirer du classeur", "Remove from binder")}</span>
     </button>
   );
 }
 
 /** ↗ / ↘ : the last 7 days' average sale price against the last 30 days'. */
 function Move({ value }: { value: number | null }) {
+  const t = useT();
   if (value == null) return null;
   const pct = Math.round(Math.abs(value) * 100);
   const up = value > 0;
   return (
     <span
       className={`${styles.move} ${up ? styles.moveUp : styles.moveDown}`}
-      title={`Ventes des 7 derniers jours ${up ? "au-dessus" : "en dessous"} de la moyenne du mois (${up ? "+" : "−"}${pct} %)`}
+      title={t(
+        `Ventes des 7 derniers jours ${up ? "au-dessus" : "en dessous"} de la moyenne du mois (${up ? "+" : "−"}${pct} %)`,
+        `Last 7 days' sales ${up ? "above" : "below"} the month's average (${up ? "+" : "−"}${pct}%)`,
+      )}
     >
       {up ? "↗" : "↘"} {pct} %
     </span>

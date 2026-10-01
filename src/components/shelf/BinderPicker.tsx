@@ -2,10 +2,11 @@
 
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BINDER_SETS } from "@/lib/catalog";
+import { binderSets } from "@/lib/catalog";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import styles from "./BinderPicker.module.css";
+import { useT } from "@/lib/lang";
 
 export type BinderChoice = { kind: "set"; setId: string } | { kind: "free"; name: string };
 
@@ -17,15 +18,16 @@ interface Props {
   onClose?: () => void;
 }
 
-const SERIES = [...new Map(BINDER_SETS.map((s) => [s.serie, s.serieName])).entries()].map(([id, name]) => ({ id, name }));
+const seriesOf = () => [...new Map(binderSets().map((s) => [s.serie, s.serieName])).entries()].map(([id, name]) => ({ id, name }));
 type Tab = string | "free";
 
-const FREE_IDEAS = ["Fourre-tout", "Openings", "Mes favorites", "À échanger", "Full Arts"];
+const FREE_IDEAS = { fr: ["Fourre-tout", "Openings", "Mes favorites", "À échanger", "Full Arts"], en: ["Bits & bobs", "Openings", "Favourites", "For trade", "Full Arts"] };
 
 export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
   const binders = useStore((s) => s.binders);
+  const t = useT();
   const onShelf = useMemo(() => new Set(binders.flatMap((b) => (b.kind === "set" ? [b.setId] : []))), [binders]);
-  const [tab, setTab] = useState<Tab>(SERIES[0].id);
+  const [tab, setTab] = useState<Tab>(seriesOf()[0].id);
   const [busy, setBusy] = useState<string | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -58,7 +60,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
     }
   };
 
-  const sets = BINDER_SETS.filter((s) => s.serie === tab);
+  const sets = binderSets().filter((s) => s.serie === tab);
 
   return (
     <motion.div
@@ -76,14 +78,14 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
           {subtitle && <p>{subtitle}</p>}
         </div>
         {onClose && (
-          <button className={styles.close} onClick={onClose} onPointerEnter={sfx.hover} aria-label="Fermer">
+          <button className={styles.close} onClick={onClose} onPointerEnter={sfx.hover} aria-label={t("Fermer", "Close")}>
             ✕
           </button>
         )}
       </header>
 
       <nav className={styles.tabs} role="tablist">
-        {[...SERIES, { id: "free", name: "Classeur libre" }].map((s) => (
+        {[...seriesOf(), { id: "free", name: t("Classeur libre", "Free binder") }].map((s) => (
           <button
             key={s.id}
             role="tab"
@@ -123,11 +125,11 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
                 </span>
                 <span className={styles.setName}>{s.name}</span>
                 <span className={styles.meta}>
-                  <kbd>{s.code}</kbd> {s.releaseDate?.slice(0, 4)} · {s.total} cartes
+                  <kbd>{s.code}</kbd> {s.releaseDate?.slice(0, 4)} · {s.total} {t("cartes", "cards")}
                 </span>
-                {have && <span className={styles.stamp}>déjà sur l&apos;étagère</span>}
-                {loading && <span className={styles.stamp}>on déballe…</span>}
-                {failed === s.id && <span className={`${styles.stamp} ${styles.stampRed}`}>raté, réessaie</span>}
+                {have && <span className={styles.stamp}>{t("déjà sur l'étagère", "already on the shelf")}</span>}
+                {loading && <span className={styles.stamp}>{t("on déballe…", "unpacking…")}</span>}
+                {failed === s.id && <span className={`${styles.stamp} ${styles.stampRed}`}>{t("raté, réessaie", "failed, try again")}</span>}
               </motion.button>
             );
           })}
@@ -147,16 +149,23 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
           }}
         >
           <p className={styles.freeIntro}>
-            Un classeur sans extension imposée : tu choisis <b>quelle carte</b> va dans <b>quelle pochette</b>. Parfait pour ranger tes
-            openings ou tes coups de cœur.
+            {t(
+              <>
+                Un classeur sans extension imposée : tu choisis <b>quelle carte</b> va dans <b>quelle pochette</b>. Parfait pour ranger tes
+                openings ou tes coups de cœur.
+              </>,
+              <>
+                A binder with no set: you choose <b>which card</b> goes in <b>which pocket</b>. Perfect for your openings or your favourites.
+              </>,
+            )}
           </p>
           <label className={styles.nameField}>
-            <span>Nom sur la tranche</span>
+            <span>{t("Nom sur la tranche", "Name on the spine")}</span>
             <input
               ref={input}
               value={name}
               maxLength={28}
-              placeholder="Fourre-tout"
+              placeholder={t("Fourre-tout", "Bits & bobs")}
               onChange={(e) => {
                 setName(e.target.value);
                 sfx.hover();
@@ -164,7 +173,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
             />
           </label>
           <div className={styles.ideas}>
-            {FREE_IDEAS.map((idea) => (
+            {t(FREE_IDEAS.fr, FREE_IDEAS.en).map((idea) => (
               <button
                 key={idea}
                 type="button"
@@ -180,9 +189,9 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
             ))}
           </div>
           <button className={styles.create} type="submit" disabled={!!busy} onPointerEnter={sfx.hover}>
-            {busy === "free" ? "on l'étiquette…" : "Créer ce classeur ▶"}
+            {busy === "free" ? t("on l'étiquette…", "labelling…") : t("Créer ce classeur ▶", "Create this binder ▶")}
           </button>
-          {failed === "free" && <p className={styles.error}>Oups, réessaie.</p>}
+          {failed === "free" && <p className={styles.error}>{t("Oups, réessaie.", "Oops, try again.")}</p>}
         </form>
       )}
     </motion.div>

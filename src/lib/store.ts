@@ -62,8 +62,10 @@ interface State {
   profile: Profile | null;
   /** Chose to play without an account (warned: no online save, export by hand). */
   offline: boolean;
-  /** A visitor whose browser isn't in French chose to go on in French anyway. */
+  /** Saves from before the English version: the visitor chose to go on in French. */
   frenchOk: boolean;
+  /** Language picked in NookDex OS; null = the browser's (see lib/lang). */
+  lang: "fr" | "en" | null;
   binders: UserBinder[];
   collection: Record<string, Copy[]>;
   sound: boolean;
@@ -73,7 +75,7 @@ interface State {
   daytime: boolean;
   createProfile: (name: string) => void;
   setOffline: (on: boolean) => void;
-  acceptFrench: () => void;
+  setLang: (lang: "fr" | "en") => void;
   /** Puts a new binder at the end of the shelf, returns its id. */
   addBinder: (b: { kind: "set"; setId: string } | { kind: "free"; name: string }) => string;
   setBinderColor: (id: string, color: string) => void;
@@ -112,6 +114,7 @@ export const useStore = create<State>()(
       profile: null,
       offline: false,
       frenchOk: false,
+      lang: null,
       binders: [],
       collection: {},
       sound: true,
@@ -120,7 +123,7 @@ export const useStore = create<State>()(
       daytime: true,
       createProfile: (name) => set({ profile: { name: name.trim(), since: Date.now() } }),
       setOffline: (on) => set({ offline: on }),
-      acceptFrench: () => set({ frenchOk: true }),
+      setLang: (lang) => set({ lang }),
       addBinder: (b) => {
         const id = uid();
         if (get().binders.length >= MAX_BINDERS) return id;
@@ -180,7 +183,7 @@ export const useStore = create<State>()(
       version: 3,
       storage: createJSONStorage(() => localStorage),
       // Ambient music never auto-starts on reload (browsers block autoplay anyway).
-      partialize: (s) => ({ profile: s.profile, offline: s.offline, frenchOk: s.frenchOk, binders: s.binders, collection: s.collection, sound: s.sound, lampOn: s.lampOn, daytime: s.daytime }),
+      partialize: (s) => ({ profile: s.profile, offline: s.offline, frenchOk: s.frenchOk, lang: s.lang, binders: s.binders, collection: s.collection, sound: s.sound, lampOn: s.lampOn, daytime: s.daytime }),
       migrate: (persisted, version) => {
         const s = persisted as { collection?: Record<string, Copy[]>; binders?: UserBinder[] } & Record<string, unknown>;
         if (version < 2) {
