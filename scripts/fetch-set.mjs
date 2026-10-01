@@ -1,8 +1,12 @@
 // Fetches the card catalog from TCGdex: every set a binder can be made of.
 //
-//   npm run fetch-set              every catalog set that isn't downloaded yet
-//   npm run fetch-set -- --force   every catalog set (refreshes the prices)
+//   npm run fetch-set              every set that isn't downloaded yet
+//   npm run fetch-set -- --force   every binder set (refreshes the prices), plus the extra sets not downloaded yet
+//   npm run fetch-set -- --all     every set, extra sets included (slow: thousands of cards)
 //   npm run fetch-set -- swsh12    one set (+ its sub-sets, like the Trainer Gallery)
+//
+// Binder sets: the main sets of the recent series, offered as binders.
+// Extra sets: everything else in French (older series, promos, energies…), only for the free binders' search.
 //
 // Output:
 //   public/sets/<id>.json    one set, loaded when its binder is opened
@@ -16,8 +20,10 @@ const LANG = "fr";
 const OUT = "public/sets";
 const ASSETS = "https://assets.tcgdex.net/";
 
-/** Series offered, newest first. */
+/** Series offered as binders, newest first. */
 const SERIES = ["me", "sv", "swsh"];
+/** TCGdex "series" that aren't cards you collect. */
+const SKIP_SERIES = new Set(["tcgp"]);
 /** Promos and energies: not a set you open boosters of. */
 const SKIP = new Set(["swshp", "svp", "sve", "mep", "mee"]);
 /** Sub-sets printed inside another set's boosters: merged into that set's binder. */
@@ -101,16 +107,23 @@ function codeOf(set, serie) {
   return set.abbreviation?.official ?? set.id.toUpperCase();
 }
 
-async function fetchCards(setId, mainImageBase) {
+async function fetchCards(setId, main) {
   const set = await get(`${API}/${LANG}/sets/${setId}`);
   if (!set) throw new Error(`set not found: ${setId}`);
   const cards = await pool(set.cards ?? [], 8, async (c) => {
     const d = await get(`${API}/${LANG}/cards/${c.id}`);
     let image = d?.image ?? c.image;
-    if (!image && mainImageBase) {
-      // Sub-sets (ex: Trainer Gallery) have their scans stored under the main set.
-      const guess = `${mainImageBase}/${c.localId}`;
-      if (await exists(`${guess}/low.webp`)) image = guess;
+    if (!image && main?.base) {
+      // Sub-sets have their scans stored under their own folder, or under the main set (Trainer Gallery: TG05…).
+      // Never the main set's when it has a card of that number: 30th-c "029" is Lugia, 30th "029" is a Pikachu.
+      const guesses = [`${main.base.replace(/[^/]+$/, setId)}/${c.localId}`];
+      if (!main.nums.has(c.localId)) guesses.push(`${main.base}/${c.localId}`);
+      for (const guess of guesses) {
+        if (await exists(`${guess}/low.webp`)) {
+          image = guess;
+          break;
+        }
+      }
     }
     if (!image) {
       // Still nothing -> fall back to the English scan.
@@ -142,8 +155,9 @@ async function fetchCards(setId, mainImageBase) {
 async function fetchSet(mainId, subIds) {
   const main = await fetchCards(mainId, null);
   const base = main.cards.find((c) => c.img)?.img.replace(/\/[^/]+$/, "") ?? null;
+  const nums = new Set(main.cards.map((c) => c.num));
   const subs = [];
-  for (const id of subIds) subs.push(await fetchCards(id, base));
+  for (const id of subIds) subs.push(await fetchCards(id, { base, nums }));
   const out = {
     id: main.set.id,
     name: main.set.name,
@@ -164,6 +178,7 @@ async function fetchSet(mainId, subIds) {
 await mkdir(OUT, { recursive: true });
 const args = process.argv.slice(2);
 const force = args.includes("--force");
+const all = args.includes("--all");
 const only = args.filter((a) => !a.startsWith("--"));
 
 // Catalog: main sets of each series, newest first, sub-sets attached to their parent.
@@ -190,10 +205,62 @@ for (const serie of SERIES) {
 }
 catalog.sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""));
 
-const todo = catalog.filter((c) => (only.length ? only.includes(c.id) : force || !existsSync(`${OUT}/${c.id}.json`)));
+// Binder logos are served by the site itself: the shelf and the "new binder" menu show them all at once.
+await mkdir("public/logos", { recursive: true });
+await pool(catalog, 6, async (c) => {
+  if (!c.logo?.startsWith("http")) return;
+  const file = `public/logos/${c.id}.png`;
+  if (!existsSync(file)) {
+    try {
+      const res = await fetch(`${c.logo}.png`);
+      if (!res.ok) return;
+      await writeFile(file, Buffer.from(await res.arrayBuffer()));
+    } catch {
+      return; // keep the TCGdex address
+    }
+  }
+  c.logo = `/logos/${c.id}`;
+});
+
+// Extra sets: every other French set (older series, promos, energies), searchable in the free binders.
+const binderIds = new Set(catalog.flatMap((c) => [c.id, ...c.subs]));
+const extras = [];
+for (const serie of (await get(`${API}/${LANG}/series`)) ?? []) {
+  if (SKIP_SERIES.has(serie.id)) continue;
+  const s = await get(`${API}/${LANG}/series/${serie.id}`);
+  for (const x of s?.sets ?? []) {
+    if (binderIds.has(x.id)) continue;
+    const set = await get(`${API}/${LANG}/sets/${x.id}`);
+    if (!set?.cardCount?.total) continue;
+    extras.push({
+      id: set.id,
+      serie: serie.id,
+      serieName: s.name,
+      name: set.name,
+      code: codeOf(set, serie.id),
+      logo: set.logo ?? null,
+      releaseDate: set.releaseDate ?? null,
+      total: set.cardCount.total,
+      subs: [],
+      extra: true,
+    });
+  }
+}
+extras.sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""));
+catalog.push(...extras);
+
+const missing = (c) => !existsSync(`${OUT}/${c.id}.json`);
+const todo = catalog.filter((c) =>
+  only.length ? only.includes(c.id) : all || missing(c) || (force && !c.extra),
+);
 for (const c of todo) {
-  const data = await fetchSet(c.id, c.subs);
-  c.total = data.cards.length;
+  try {
+    const data = await fetchSet(c.id, c.subs);
+    c.total = data.cards.length;
+  } catch (e) {
+    // one broken set never stops the others (nor the daily prices)
+    console.warn(`${c.id}: skipped (${e.message})`);
+  }
 }
 
 // Card counts come from the downloaded files (sub-sets included, cards without scans dropped).
@@ -203,12 +270,15 @@ for (const c of catalog) {
   if (!existsSync(file)) continue;
   const data = JSON.parse(await readFile(file, "utf8"));
   c.total = data.cards.length;
+  if (!data.cards.length) continue;
   for (const card of data.cards) {
     // [id, name, num, set, image path, trend]
     index.push([card.id, card.name, card.num, c.id, card.img.replace(ASSETS, ""), card.price.trend]);
   }
 }
 
-await writeFile("src/data/catalog.json", JSON.stringify(catalog, null, 1));
+// Extra sets with no French scan at all stay out.
+const kept = catalog.filter((c) => !c.extra || (existsSync(`${OUT}/${c.id}.json`) && c.total > 0));
+await writeFile("src/data/catalog.json", JSON.stringify(kept, null, 1));
 await writeFile(`${OUT}/index.json`, JSON.stringify({ assets: ASSETS, cards: index }));
 console.log(`catalog: ${catalog.length} sets, ${index.length} cards`);

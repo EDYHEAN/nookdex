@@ -784,16 +784,40 @@
 /* ---------- compact (phones) ---------- */
 
 @media (max-width: 820px), (max-aspect-ratio: 105/100) {
+  /* the corner buttons step aside on small screens: the header gets the whole width */
   .title {
-    padding: 0 178px 0 14px;
+    padding: 0 12px;
+    gap: 10px;
+  }
+
+  .titleText {
+    flex: 1;
+    min-width: 0;
   }
 
   .titleText h1 {
     font-size: 11px;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .titleText p {
-    font-size: 17px;
+    margin-top: 2px;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .titleActions {
+    gap: 10px;
+  }
+
+  .titleActions .removeBtn {
+    padding: 5px 10px;
+    font-size: 18px;
   }
 
   .pixelBtn {

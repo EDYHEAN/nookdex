@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CATALOG } from "@/lib/catalog";
+import { BINDER_SETS } from "@/lib/catalog";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import styles from "./BinderPicker.module.css";
@@ -17,7 +17,7 @@ interface Props {
   onClose?: () => void;
 }
 
-const SERIES = [...new Map(CATALOG.map((s) => [s.serie, s.serieName])).entries()].map(([id, name]) => ({ id, name }));
+const SERIES = [...new Map(BINDER_SETS.map((s) => [s.serie, s.serieName])).entries()].map(([id, name]) => ({ id, name }));
 type Tab = string | "free";
 
 const FREE_IDEAS = ["Fourre-tout", "Openings", "Mes favorites", "À échanger", "Full Arts"];
@@ -58,7 +58,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
     }
   };
 
-  const sets = CATALOG.filter((s) => s.serie === tab);
+  const sets = BINDER_SETS.filter((s) => s.serie === tab);
 
   return (
     <motion.div

@@ -439,9 +439,14 @@ function HoldButton({ onConfirm }: { onConfirm: () => void }) {
     <button
       className={`${styles.hold} ${holding ? styles.holding : ""}`}
       data-tour="remove-card"
-      onPointerDown={start}
+      onPointerDown={(e) => {
+        // keeps the press even if the sheet moves under the finger (it scrolls to show the focused button)
+        e.currentTarget.setPointerCapture(e.pointerId);
+        start();
+      }}
       onPointerUp={stop}
-      onPointerLeave={stop}
+      onPointerCancel={stop}
+      onLostPointerCapture={stop}
       title="Maintiens pour retirer"
     >
       <span className={styles.holdFill} />

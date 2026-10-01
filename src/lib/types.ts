@@ -58,6 +58,8 @@ export interface CatalogSet {
   total: number;
   /** Sub-sets merged into this binder (Trainer Gallery…) */
   subs: string[];
+  /** Older series, promos…: not offered as a binder, only searchable for the free binders */
+  extra?: boolean;
 }
 
 /** A binder the player put on their shelf (shelf order). */
