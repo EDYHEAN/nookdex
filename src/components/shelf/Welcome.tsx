@@ -27,7 +27,11 @@ export function Welcome({ onPick, onDone }: Props) {
   const binders = useStore((s) => s.binders);
   const { email, firstName, status } = useCloud();
   const offline = useStore((s) => s.offline);
-  const step = (!email && !offline) || status === "loading" ? "account" : !profile ? "hello" : "binder";
+  const frenchOk = useStore((s) => s.frenchOk);
+  // The site only speaks French for now: a browser in another language first gets a note saying so (in English).
+  const [french] = useState(() => (navigator.languages?.length ? navigator.languages : [navigator.language]).some((l) => /^fr\b/i.test(l)));
+  const base = (!email && !offline) || status === "loading" ? "account" : !profile ? "hello" : "binder";
+  const step = base === "account" && !email && !french && !frenchOk ? "lang" : base;
   /** "Play without an account" asks once more, with what it costs. */
   const [warn, setWarn] = useState(false);
   /** null = untouched: suggests the first name Google gave */
@@ -35,6 +39,7 @@ export function Welcome({ onPick, onDone }: Props) {
   const [address, setAddress] = useState("");
   const [sent, setSent] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [waitlist, setWaitlist] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [shake, setShake] = useState(0);
   const [note, setNote] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
@@ -70,6 +75,29 @@ export function Welcome({ onPick, onDone }: Props) {
     sfx.pop();
     setNote(null);
     setSent(to);
+  };
+
+  /** English waiting list: one e-mail when the English version is out. */
+  const joinWaitlist = async () => {
+    const to = address.trim();
+    if (!/^\S+@\S+\.\S+$/.test(to)) {
+      sfx.locked();
+      return;
+    }
+    setWaitlist("busy");
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: to, lang: navigator.language }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      sfx.pop();
+      setWaitlist("done");
+    } catch {
+      sfx.locked();
+      setWaitlist("error");
+    }
   };
 
   const google = async () => {
@@ -140,6 +168,52 @@ export function Welcome({ onPick, onDone }: Props) {
       transition={{ duration: 0.35 }}
     >
       <AnimatePresence mode="wait">
+        {step === "lang" &&
+          card(
+            "lang",
+            <>
+              <h1>Hello, trainer!</h1>
+              <p className={styles.text}>
+                {SITE_NAME} only speaks <b>French</b> for now. An English version is on its way: leave your e-mail and we&apos;ll let you know
+                (once, when it&apos;s ready).
+              </p>
+              {waitlist === "done" ? (
+                <p className={styles.note}>Thanks! We&apos;ll write to you as soon as English is here.</p>
+              ) : (
+                <form
+                  className={styles.inline}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void joinWaitlist();
+                  }}
+                >
+                  <input
+                    type="email"
+                    value={address}
+                    placeholder="ash@pallet-town.com"
+                    autoComplete="email"
+                    aria-label="E-mail address"
+                    className={styles.email}
+                    onChange={(e) => setAddress(e.target.value)}
+                  />
+                  <button type="submit" className={styles.go} disabled={waitlist === "busy"} aria-label="Notify me">
+                    ✉
+                  </button>
+                </form>
+              )}
+              {waitlist === "error" && <p className={styles.note}>That didn&apos;t work, please try again later.</p>}
+              <button
+                className={styles.linkBtn}
+                onClick={() => {
+                  sfx.click();
+                  useStore.getState().acceptFrench();
+                }}
+              >
+                Continue in French anyway ▶
+              </button>
+            </>,
+          )}
+
         {step === "account" &&
           card(
             "account",

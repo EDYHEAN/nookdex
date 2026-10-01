@@ -42,6 +42,10 @@ export default function Privacy() {
         <b>Formulaire de contact.</b> Si tu nous écris : ton e-mail, le sujet et ton message.
       </p>
       <p>
+        <b>Liste d&apos;attente anglaise.</b> Si tu laisses ton e-mail pour être prévenu de la version anglaise, on le garde uniquement
+        pour t&apos;envoyer ce message, puis on le supprime.
+      </p>
+      <p>
         <b>Mesure d&apos;audience.</b> Des statistiques de visite anonymes (pages vues, pays, type d&apos;appareil), sans cookie et sans suivi
         d&apos;une visite à l&apos;autre.
       </p>
