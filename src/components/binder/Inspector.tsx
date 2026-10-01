@@ -7,6 +7,7 @@ import { sfx } from "@/lib/sound";
 import { CONDITIONS, CONDITION_LABEL, useStore } from "@/lib/store";
 import type { CardData, Condition, Copy, Variant } from "@/lib/types";
 import type { AddResult } from "./CardSlot";
+import { CardBack } from "./CardBack";
 import styles from "./Inspector.module.css";
 
 interface Props {
@@ -110,7 +111,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
         onPointerLeave={untilt}
       >
         <div ref={cardRef} className={`${styles.card} ${owned ? "" : styles.cardMissing}`}>
-          <img src={`${card.img}/high.webp`} alt={card.name} draggable={false} />
+          {card.img ? <img src={`${card.img}/high.webp`} alt={card.name} draggable={false} /> : <CardBack />}
           {owned && hasFoil && <span className={styles.foil} />}
           <span className={styles.glare} />
         </div>
@@ -129,6 +130,12 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
           #{card.num} · {card.rarity ?? card.category}
         </p>
         <h2 className={styles.name}>{card.name}</h2>
+        {card.unavailable && (
+          <p className={styles.soon}>
+            🚧 <b>Bientôt de retour</b> : notre fournisseur de cartes a retiré cette carte pour l&apos;instant, on est au courant. Tu peux
+            toujours la garder et la compléter ; image et prix reviennent dès qu&apos;elle est de nouveau en ligne (prix figés en attendant).
+          </p>
+        )}
 
         <section className={styles.prices}>
           <div className={styles.priceHead}>

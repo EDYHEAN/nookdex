@@ -4,6 +4,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { cardTier, formatEur, unitPrice, type Tier } from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import type { CardData, Copy } from "@/lib/types";
+import { CardBack } from "./CardBack";
 import styles from "./CardSlot.module.css";
 
 export interface AddResult {
@@ -104,15 +105,19 @@ export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, o
         aria-label={owned ? `${card.name} — voir la fiche` : `${card.name} — je l'ai !`}
       >
         <span ref={lift} className={styles.lift}>
-          <img
-            className={styles.img}
-            // The light scan only (245 px, ~20 KB): a phone or a retina screen would otherwise pick the 600 px one
-            // for every pocket. Only the pages around the open one are drawn, so no lazy loading either.
-            src={`${card.img}/low.webp`}
-            alt={card.name}
-            decoding="async"
-            draggable={false}
-          />
+          {card.img ? (
+            <img
+              className={styles.img}
+              // The light scan only (245 px, ~20 KB): a phone or a retina screen would otherwise pick the 600 px one
+              // for every pocket. Only the pages around the open one are drawn, so no lazy loading either.
+              src={`${card.img}/low.webp`}
+              alt={card.name}
+              decoding="async"
+              draggable={false}
+            />
+          ) : (
+            <CardBack />
+          )}
           {owned && <span className={styles.glare} />}
           {owned && variants.has("reverse") && <span className={styles.foil} />}
           {!owned && (

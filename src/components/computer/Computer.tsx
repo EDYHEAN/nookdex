@@ -11,6 +11,7 @@ import { sfx } from "@/lib/sound";
 import { isBackup, makeBackup, useStore } from "@/lib/store";
 import type { CardData, Copy, SetData } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
+import { CardBack } from "../binder/CardBack";
 import styles from "./Computer.module.css";
 
 type Tab = "home" | "wish" | "dupes" | "search" | "save";
@@ -244,7 +245,7 @@ function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void 
         <div className={styles.recent}>
           {recent.map(({ e, c }) => (
             <button key={c.id} className={styles.recentCard} onClick={() => onGo(e.card.id)} onPointerEnter={sfx.hover}>
-              <img src={`${e.card.img}/low.webp`} alt="" loading="lazy" />
+              {e.card.img ? <img src={`${e.card.img}/low.webp`} alt="" loading="lazy" /> : <span className={styles.recentBack}><CardBack label={false} /></span>}
               <span>{e.card.name}</span>
               <small>{new Date(c.addedAt).toLocaleDateString("fr-FR")}</small>
             </button>
@@ -270,7 +271,7 @@ function Tile({ label, value, sub, accent, big }: { label: string; value: string
 function CardRow({ e, right, onGo, extra }: { e: Entry; right: string; onGo: (id: string) => void; extra?: string }) {
   return (
     <button className={styles.row} onClick={() => onGo(e.card.id)} onPointerEnter={sfx.hover}>
-      <img src={`${e.card.img}/low.webp`} alt="" loading="lazy" />
+      {e.card.img ? <img src={`${e.card.img}/low.webp`} alt="" loading="lazy" /> : <span className={styles.rowBack}><CardBack label={false} /></span>}
       <span className={styles.rowNum}>{cardLabel(e)}</span>
       <span className={styles.rowName}>
         {e.card.name}

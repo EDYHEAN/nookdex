@@ -6,6 +6,7 @@ import { CATALOG, loadIndex, useSets, type IndexCard } from "@/lib/catalog";
 import { formatEur } from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
+import { CardBack } from "./CardBack";
 import styles from "./CardPicker.module.css";
 
 interface Props {
@@ -146,7 +147,13 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
                   disabled={!!busy}
                   title={`${name} · ${SETS.get(setId)?.label} ${num}`}
                 >
-                  <img src={`${assets}${img}/low.webp`} alt={name} loading="lazy" draggable={false} />
+                  {img ? (
+                    <img src={`${assets}${img}/low.webp`} alt={name} loading="lazy" draggable={false} />
+                  ) : (
+                    <span className={styles.back}>
+                      <CardBack />
+                    </span>
+                  )}
                   <span className={styles.label}>
                     <b>{name}</b>
                     <small>

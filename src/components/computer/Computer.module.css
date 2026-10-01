@@ -706,3 +706,20 @@
     animation: none;
   }
 }
+
+/* a card TCGdex took out: its back instead of the scan */
+.recentBack,
+.rowBack {
+  position: relative;
+  display: block;
+  aspect-ratio: 63 / 88;
+}
+
+.recentBack {
+  width: 100%;
+}
+
+.rowBack {
+  width: 34px;
+  flex: none;
+}
