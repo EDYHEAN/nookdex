@@ -1,47 +1,91 @@
-/* A note taped at the bottom of the screen, above the binder and the OS, under the welcome card. */
-.note {
-  --paper: #f3ead9;
-  --ink: #2b2230;
-  --ink-soft: #6b5d66;
+/* Above the binder, the card sheet and the OS; under the grain. */
+.layer {
   position: fixed;
-  z-index: 120;
-  left: 50%;
-  bottom: 16px;
-  translate: -50% 0;
-  width: min(440px, calc(100% - 32px));
-  padding: 18px 20px 12px;
-  background:
-    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.55), transparent 45%),
-    var(--paper);
-  color: var(--ink);
-  border-radius: 6px;
-  box-shadow:
-    0 0 0 3px var(--ink),
-    6px 8px 0 3px rgba(20, 12, 28, 0.45),
-    0 20px 60px rgba(0, 0, 0, 0.45);
-  font-family: var(--font-vt), monospace;
-  font-size: 19px;
-  line-height: 1.15;
+  inset: 0;
+  z-index: 500;
+  pointer-events: none;
 }
 
-/* the tape */
+/* the dim panels around the spotlight: they catch the clicks, the spotlight lets them through */
+.block {
+  position: absolute;
+  pointer-events: auto;
+}
+
+/* the spotlight: a hole in a dark veil, circled like a pencil mark */
+.hole {
+  position: absolute;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 3px #ffd35a,
+    0 0 0 9999px rgba(14, 9, 24, 0.74);
+  transition:
+    left 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    top 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: glow 1.6s steps(4) infinite;
+}
+
+.noHole {
+  inset: 0;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 9999px rgba(14, 9, 24, 0.74);
+  animation: none;
+}
+
+@keyframes glow {
+  50% {
+    box-shadow:
+      0 0 0 5px #ffd35a,
+      0 0 0 9999px rgba(14, 9, 24, 0.74);
+  }
+}
+
+/* the note, taped right next to what it shows */
+.note {
+  --ink: #2b2230;
+  position: absolute;
+  width: min(300px, calc(100vw - 20px));
+  padding: 14px 16px 10px;
+  pointer-events: auto;
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.55), transparent 45%),
+    #f3ead9;
+  color: var(--ink);
+  box-shadow:
+    0 0 0 3px var(--ink),
+    5px 6px 0 3px rgba(20, 12, 28, 0.45);
+  font-family: var(--font-vt), monospace;
+  font-size: 20px;
+  line-height: 1.15;
+  transition:
+    left 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    top 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .note::before {
   content: "";
   position: absolute;
-  top: -12px;
+  top: -11px;
   left: 50%;
-  width: 90px;
-  height: 22px;
+  width: 70px;
+  height: 20px;
   translate: -50% 0;
-  rotate: 2deg;
-  background: rgba(255, 226, 150, 0.8);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  rotate: -2deg;
+  background: rgba(255, 226, 150, 0.85);
 }
 
-.top {
+.text {
+  margin: 0;
+}
+
+.foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: 10px;
 }
 
 .count {
@@ -50,140 +94,29 @@
   color: #d9534f;
 }
 
-.fold {
-  width: 26px;
-  height: 26px;
-  border: 2px solid var(--ink);
-  border-radius: 50%;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  line-height: 1;
-  cursor: pointer;
+.todo {
+  color: #6b5d66;
+  animation: nudge 1s steps(2) infinite;
 }
 
-.note h2 {
-  margin: 8px 0 6px;
-  font-family: var(--font-press), monospace;
-  font-weight: normal;
-  font-size: 14px;
-  line-height: 1.5;
+@keyframes nudge {
+  50% {
+    transform: translateY(-3px);
+  }
 }
 
-.note p {
-  margin: 0;
-}
-
-.dots {
-  display: flex;
-  gap: 6px;
-  margin: 12px 0 10px;
-}
-
-.dots span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #dccdb0;
-}
-
-.dots .dotDone {
-  background: #c9a45a;
-}
-
-.dots .dotOn {
-  background: #d9534f;
-  transform: scale(1.25);
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.spacer {
-  flex: 1;
-}
-
-.show,
-.prev,
 .next {
-  padding: 8px 12px;
+  padding: 6px 14px;
   border: 3px solid var(--ink);
   border-radius: 6px;
+  background: #ffd35a;
   color: var(--ink);
   font: inherit;
-  text-decoration: none;
+  box-shadow: 3px 3px 0 var(--ink);
   cursor: pointer;
   transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
 }
 
-.show:hover,
-.prev:hover,
 .next:hover {
   transform: translateY(-2px);
-}
-
-.show {
-  background: #fffaf0;
-}
-
-.prev {
-  background: transparent;
-}
-
-.next {
-  background: #ffd35a;
-  box-shadow: 3px 3px 0 var(--ink);
-}
-
-.skip {
-  display: block;
-  margin: 8px auto 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ink-soft);
-  font: inherit;
-  font-size: 16px;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-/* folded: a small tab to bring it back */
-.pill {
-  position: fixed;
-  z-index: 120;
-  left: 16px;
-  bottom: 16px;
-  padding: 8px 14px;
-  border: 3px solid #2b2230;
-  border-radius: 999px;
-  background: #ffd35a;
-  color: #2b2230;
-  font-family: var(--font-vt), monospace;
-  font-size: 19px;
-  box-shadow: 3px 3px 0 #2b2230;
-  cursor: pointer;
-}
-
-@media (max-width: 560px) {
-  .note {
-    bottom: 10px;
-    padding: 16px 14px 10px;
-    font-size: 18px;
-  }
-}
-
-/* wide screens: in the corner, clear of the binder and its page arrows */
-@media (min-width: 1100px) {
-  .note {
-    left: auto;
-    right: 20px;
-    bottom: 20px;
-    translate: none;
-    width: 400px;
-  }
 }

@@ -10,7 +10,7 @@ import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
 import { isCompact, useViewport } from "@/lib/useViewport";
 import { BinderView } from "./binder/BinderView";
-import { Computer, type Tab } from "./computer/Computer";
+import { Computer } from "./computer/Computer";
 import { Loader } from "./Loader";
 import { BoilFilter } from "./fx/Boil";
 import { Grain } from "./fx/Grain";
@@ -30,11 +30,9 @@ export function App() {
   const vp = useViewport();
   const compact = isCompact(vp);
   const [open, setOpen] = useState<Open | null>(null);
-  const [computer, setComputer] = useState<{ x: number; y: number; tab?: Tab } | null>(null);
-  /** The onboarding tour, shown after the first binder is picked (and replayable from the notebook). */
+  const [computer, setComputer] = useState<{ x: number; y: number } | null>(null);
+  /** The guided tour, after the first binder is picked (and replayable from the notebook). */
   const [tour, setTour] = useState(false);
-  /** The binder picked at the end of the welcome, opened for the tour. */
-  const [firstBinder, setFirstBinder] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [about, setAbout] = useState(false);
   // Back from Google or the e-mail link: the player already went in, no loader again.
@@ -121,20 +119,16 @@ export function App() {
     return useStore.getState().addBinder(choice);
   };
 
-  /** Tour: opens the first binder (or the first one on the shelf), in front of everything else. */
-  const tourBinder = async () => {
-    const b = binders.find((x) => x.id === firstBinder) ?? binders[0];
-    if (!b) return;
-    if (b.setId) await loadSet(b.setId);
+  /** The tour: opens the first binder (or the first one on the shelf), lets it settle, then the spotlight starts. */
+  const startTour = async (binderId?: string) => {
+    const b = binders.find((x) => x.id === binderId) ?? binders[0];
     setComputer(null);
     setAbout(false);
-    setOpen({ binderId: b.id });
-  };
-
-  const tourOS = (tab: Tab) => {
-    setOpen(null);
-    setAbout(false);
-    setComputer((c) => ({ x: c?.x ?? window.innerWidth / 2, y: c?.y ?? window.innerHeight / 2, tab }));
+    if (b) {
+      if (b.setId) await loadSet(b.setId);
+      setOpen({ binderId: b.id });
+    }
+    setTimeout(() => setTour(true), 1300);
   };
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
@@ -168,7 +162,7 @@ export function App() {
 
       <AnimatePresence>
         {computer && (
-          <Computer key="os" origin={computer} initialTab={computer.tab} onClose={() => setComputer(null)} onGoToCard={goToCard} />
+          <Computer key="os" origin={computer} onClose={() => setComputer(null)} onGoToCard={goToCard} />
         )}
       </AnimatePresence>
 
@@ -177,10 +171,7 @@ export function App() {
           <AboutBook
             key="about"
             onClose={() => setAbout(false)}
-            onTour={() => {
-              setAbout(false);
-              setTour(true);
-            }}
+            onTour={() => void startTour()}
           />
         )}
       </AnimatePresence>
@@ -219,6 +210,7 @@ export function App() {
           <>
             <button
               className={styles.iconBtn}
+              data-tour="os-button"
               onClick={() => {
                 sfx.boot();
                 setComputer({ x: window.innerWidth - 40, y: 30 });
@@ -278,16 +270,17 @@ export function App() {
         ((!cloud.email && !offline) || !profile || (welcome && !userBinders.length)) && (
           <Welcome
             onPick={async (choice) => {
-              // The first binder: once the welcome card is gone, open it and walk through the essentials.
+              // The first binder: once the welcome card is gone, it opens and the tour starts.
               const id = await addBinder(choice);
-              setFirstBinder(id);
-              setTour(true);
-              setTimeout(() => setOpen({ binderId: id }), 450);
+              setTimeout(() => {
+                setOpen({ binderId: id });
+                setTimeout(() => setTour(true), 1300);
+              }, 450);
             }}
             onDone={() => setWelcome(false)}
           />
         )}
-      {tour && <Tour compact={compact} onOpenBinder={() => void tourBinder()} onOpenOS={tourOS} onDone={() => setTour(false)} />}
+      {tour && <Tour onDone={() => setTour(false)} />}
       {!entered && <Loader onEnter={() => setEntered(true)} />}
       <Grain />
     </>

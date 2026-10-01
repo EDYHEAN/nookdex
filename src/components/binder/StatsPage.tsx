@@ -35,7 +35,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
   const filled = (p: Pocket) => (free ? !!p.cardId : !!(p.cardId && collection[p.cardId]?.length));
 
   return (
-    <div className={styles.stats} style={{ ["--accent" as string]: binder.color }}>
+    <div className={styles.stats} style={{ ["--accent" as string]: binder.color }} data-tour="summary">
       <div className={styles.statsHead}>
         {binder.logo && <img src={`${binder.logo}.png`} alt="" draggable={false} />}
         <div>

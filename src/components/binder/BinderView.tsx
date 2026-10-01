@@ -411,6 +411,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
   return (
     <motion.div
       className={styles.overlay}
+      data-tour="binder"
       initial={{ opacity: 0 }}
       animate={{ opacity: leaving ? 0 : 1 }}
       transition={{ duration: leaving ? 0.45 : 0.35 }}
@@ -443,7 +444,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
             }
             onConfirm={remove}
           />
-          <button className={styles.pixelBtn} onClick={close} onPointerEnter={sfx.hover}>
+          <button className={styles.pixelBtn} onClick={close} onPointerEnter={sfx.hover} data-tour="close-binder">
             Ranger <kbd>Échap</kbd>
           </button>
         </div>
@@ -531,7 +532,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
           ◀
         </button>
         <span className={styles.pageLabel}>{pageLabel}</span>
-        <button className={styles.arrow} onClick={next} disabled={f >= maxF} onPointerEnter={sfx.hover} aria-label="Suivant">
+        <button className={styles.arrow} onClick={next} disabled={f >= maxF} onPointerEnter={sfx.hover} aria-label="Suivant" data-tour="next-page">
           ▶
         </button>
       </motion.nav>
