@@ -16,9 +16,12 @@ export interface CardData {
   name: string;
   rarity: string | null;
   category: string | null;
+  /** Scan base URL; empty when TCGdex took the card out (see unavailable) */
   img: string;
   variants: Variant[];
   price: CardPrice;
+  /** No longer listed by TCGdex: kept with its last known prices, shown as a card back until it's back. */
+  unavailable?: boolean;
 }
 
 export interface SetData {

@@ -1,0 +1,46 @@
+/* A painted card back: blue frame, swirl, a Poké Ball in the middle; sized by its parent (container units). */
+.back {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  container-type: inline-size;
+  border-radius: 4.5%;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.35), transparent 42%),
+    repeating-radial-gradient(circle at 50% 45%, #3c6bc6 0 6%, #2f58a8 6% 12%),
+    #2f58a8;
+  box-shadow:
+    inset 0 0 0 4cqw #e8d9a8,
+    inset 0 0 0 5cqw #2b2230;
+}
+
+.ball {
+  width: 38cqw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2.5cqw solid #2b2230;
+  background:
+    radial-gradient(circle, #fffaf0 0 18%, #2b2230 18% 26%, transparent 26%),
+    linear-gradient(#d9534f 0 46%, #2b2230 46% 54%, #fffaf0 54%);
+  opacity: 0.9;
+}
+
+/* "Bientôt de retour", stamped across */
+.stamp {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 14%;
+  padding: 2cqw 1cqw;
+  border: 1.5cqw solid #ffd35a;
+  border-radius: 2cqw;
+  rotate: -8deg;
+  background: rgba(43, 34, 48, 0.85);
+  color: #ffd35a;
+  font-family: var(--font-press), monospace;
+  font-size: 6.5cqw;
+  line-height: 1.3;
+  text-align: center;
+}

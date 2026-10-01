@@ -152,6 +152,28 @@ async function fetchCards(setId, main) {
   return { set, cards: cards.filter((c) => c.img) };
 }
 
+/**
+ * A card TCGdex stops listing is never dropped: players may own it. It stays with its last known prices,
+ * flagged "unavailable" (shown as a card back with "Bientôt de retour"), until TCGdex lists it again.
+ * A scan borrowed from the main set's card of the same number (the old sub-set guess) was wrong: it goes.
+ */
+async function keepVanished(mainId, cards, mainNums) {
+  const file = `${OUT}/${mainId}.json`;
+  if (!existsSync(file)) return 0;
+  const before = JSON.parse(await readFile(file, "utf8")).cards ?? [];
+  const now = new Set(cards.map((c) => c.id));
+  let n = 0;
+  for (const old of before) {
+    if (now.has(old.id)) continue;
+    const setId = old.id.slice(0, old.id.lastIndexOf("-"));
+    const folder = old.img?.split("/").at(-2);
+    const borrowed = setId !== mainId && folder === mainId && mainNums.has(old.num);
+    cards.push({ ...old, img: borrowed ? "" : (old.img ?? ""), unavailable: true });
+    n++;
+  }
+  return n;
+}
+
 async function fetchSet(mainId, subIds) {
   const main = await fetchCards(mainId, null);
   const base = main.cards.find((c) => c.img)?.img.replace(/\/[^/]+$/, "") ?? null;
@@ -168,8 +190,9 @@ async function fetchSet(mainId, subIds) {
     pricesUpdated: new Date().toISOString(),
     cards: [...main.cards, ...subs.flatMap((s) => s.cards)],
   };
+  const gone = await keepVanished(mainId, out.cards, nums);
   await writeFile(`${OUT}/${mainId}.json`, JSON.stringify(out));
-  console.log(`${mainId}: ${out.cards.length} cards`);
+  console.log(`${mainId}: ${out.cards.length} cards${gone ? ` (${gone} no longer on TCGdex, kept)` : ""}`);
   return out;
 }
 
@@ -273,7 +296,7 @@ for (const c of catalog) {
   if (!data.cards.length) continue;
   for (const card of data.cards) {
     // [id, name, num, set, image path, trend]
-    index.push([card.id, card.name, card.num, c.id, card.img.replace(ASSETS, ""), card.price.trend]);
+    index.push([card.id, card.name, card.num, c.id, (card.img ?? "").replace(ASSETS, ""), card.price.trend]);
   }
 }
 

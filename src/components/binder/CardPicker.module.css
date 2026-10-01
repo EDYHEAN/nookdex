@@ -203,3 +203,11 @@
     font-size: 14px;
   }
 }
+
+/* a card TCGdex took out: its back instead of the scan */
+.back {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 245 / 342;
+}

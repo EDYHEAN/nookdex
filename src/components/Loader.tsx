@@ -38,7 +38,7 @@ function assetsToPreload() {
   ];
   for (const b of shelfBinders(binders)) {
     if (b.logo) urls.push(`${b.logo}.png`);
-    if (b.setId) sets[b.setId]?.cards.slice(0, 18).forEach((c) => urls.push(`${c.img}/low.webp`));
+    if (b.setId) sets[b.setId]?.cards.slice(0, 18).forEach((c) => c.img && urls.push(`${c.img}/low.webp`));
   }
   return urls;
 }
