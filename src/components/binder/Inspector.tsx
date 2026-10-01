@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { VARIANT_LABEL, copiesPaid, copiesValue, formatEur, unitPrice } from "@/lib/price";
+import { NO_PRICE, VARIANT_LABEL, copiesPaid, copiesValue, formatEur, formatPrice, hasPrice, priceMove, priceOf, unitPrice } from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import { CONDITIONS, CONDITION_LABEL, useStore } from "@/lib/store";
 import type { CardData, Condition, Copy, Variant } from "@/lib/types";
@@ -79,10 +79,13 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
     addCopy(card.id, missing ?? card.variants[0]);
   };
 
+  const priced = card.variants.some((v) => hasPrice(card, v));
   const trendValue = copiesValue(card, copies, "trend");
   const { paid, known } = copiesPaid(copies);
-  const knownValue = copies?.reduce((sum, c) => sum + (c.paid == null ? 0 : c.qty * unitPrice(card, c.variant, "trend")), 0) ?? 0;
-  const gain = knownValue - paid;
+  // the gain only counts copies whose price paid AND current price are both known
+  const both = copies?.filter((c) => c.paid != null && hasPrice(card, c.variant));
+  const gainKnown = !!both?.length;
+  const gain = (both ?? []).reduce((sum, c) => sum + c.qty * (unitPrice(card, c.variant, "trend") - (c.paid ?? 0)), 0);
   const count = copies?.reduce((n, c) => n + c.qty, 0) ?? 0;
 
   return (
@@ -148,10 +151,14 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
               <span>
                 <i className={`${styles.gem} ${styles[v]}`} /> {VARIANT_LABEL[v]}
               </span>
-              <span>{formatEur(unitPrice(card, v, "low"))}</span>
-              <span className={styles.trend}>{formatEur(unitPrice(card, v, "trend"))}</span>
+              <span>{formatPrice(priceOf(card, v, "low"))}</span>
+              <span className={styles.trend}>
+                <Move value={priceMove(card, v)} />
+                {formatPrice(priceOf(card, v, "trend"))}
+              </span>
             </div>
           ))}
+          {!priced && <p className={styles.noPrice}>{NO_PRICE} : pas de prix pour l&apos;instant.</p>}
         </section>
 
         {owned ? (
@@ -194,7 +201,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
             <dl className={styles.value}>
               <div>
                 <dt>Valeur</dt>
-                <dd>{formatEur(trendValue)}</dd>
+                <dd title={priced ? undefined : NO_PRICE}>{priced ? formatEur(trendValue) : "—"}</dd>
               </div>
               <div>
                 <dt>Payé</dt>
@@ -202,8 +209,8 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
               </div>
               <div>
                 <dt>Plus-value</dt>
-                <dd className={known ? (gain >= 0 ? styles.up : styles.down) : ""}>
-                  {known ? `${gain >= 0 ? "+" : ""}${formatEur(gain)}` : "—"}
+                <dd className={gainKnown ? (gain >= 0 ? styles.up : styles.down) : ""}>
+                  {gainKnown ? `${gain >= 0 ? "+" : ""}${formatEur(gain)}` : "—"}
                 </dd>
               </div>
             </dl>
@@ -459,5 +466,20 @@ function HoldButton({ onConfirm }: { onConfirm: () => void }) {
       <span className={styles.holdFill} />
       <span className={styles.holdText}>{holding ? "Maintiens…" : "Retirer du classeur"}</span>
     </button>
+  );
+}
+
+/** ↗ / ↘ : the last 7 days' average sale price against the last 30 days'. */
+function Move({ value }: { value: number | null }) {
+  if (value == null) return null;
+  const pct = Math.round(Math.abs(value) * 100);
+  const up = value > 0;
+  return (
+    <span
+      className={`${styles.move} ${up ? styles.moveUp : styles.moveDown}`}
+      title={`Ventes des 7 derniers jours ${up ? "au-dessus" : "en dessous"} de la moyenne du mois (${up ? "+" : "−"}${pct} %)`}
+    >
+      {up ? "↗" : "↘"} {pct} %
+    </span>
   );
 }

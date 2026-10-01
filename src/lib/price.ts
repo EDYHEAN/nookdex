@@ -2,14 +2,34 @@ import type { CardData, Copy, SetData, Variant } from "./types";
 
 type Kind = "low" | "trend";
 
-/** Cardmarket lists reverse holos as the "holo" version of the product. */
-export function unitPrice(card: CardData, variant: Variant, kind: Kind): number {
+/**
+ * Cardmarket price of a variant, or null when the card isn't for sale there (TCGdex then leaves Cardmarket out).
+ * Cardmarket lists reverse holos as the "holo" version of the product.
+ */
+export function priceOf(card: CardData, variant: Variant, kind: Kind): number | null {
   const p = card.price;
   if (variant === "reverse") {
     const holo = kind === "low" ? p.lowHolo : p.trendHolo;
     if (holo) return holo;
   }
-  return (kind === "low" ? p.low : p.trend) ?? 0;
+  return (kind === "low" ? p.low : p.trend) ?? null;
+}
+
+/** For sums: a card without a Cardmarket price adds nothing. */
+export const unitPrice = (card: CardData, variant: Variant, kind: Kind): number => priceOf(card, variant, kind) ?? 0;
+
+/** A card's price is known (it's sold on Cardmarket). */
+export const hasPrice = (card: CardData, variant: Variant) => priceOf(card, variant, "trend") != null;
+
+/** Where the price is heading: last 7 days' average against the last 30 days' (null when too flat or unknown). */
+export function priceMove(card: CardData, variant: Variant): number | null {
+  const p = card.price;
+  const holo = variant === "reverse" && p.avg7Holo != null && p.avg30Holo != null;
+  const recent = holo ? p.avg7Holo : p.avg7;
+  const month = holo ? p.avg30Holo : p.avg30;
+  if (recent == null || month == null || month <= 0) return null;
+  const move = (recent - month) / month;
+  return Math.abs(move) >= 0.05 ? move : null;
 }
 
 export function copiesValue(card: CardData, copies: Copy[] | undefined, kind: Kind): number {
@@ -57,7 +77,8 @@ export function setStats(set: SetData, collection: Record<string, Copy[]>): SetS
     s.low += copiesValue(card, copies, "low");
     s.trend += copiesValue(card, copies, "trend");
     for (const c of copies) {
-      if (c.paid == null) continue;
+      // a gain needs both prices: what was paid, and what it's worth now
+      if (c.paid == null || !hasPrice(card, c.variant)) continue;
       s.spent += c.paid * c.qty;
       s.spentTrend += unitPrice(card, c.variant, "trend") * c.qty;
     }
@@ -68,6 +89,9 @@ export function setStats(set: SetData, collection: Record<string, Copy[]>): SetS
 
 const eur = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
 export const formatEur = (n: number) => eur.format(n);
+/** A card's price, or a dash when it isn't sold on Cardmarket (never "0,00 €", which reads as worthless). */
+export const formatPrice = (n: number | null) => (n == null ? "—" : eur.format(n));
+export const NO_PRICE = "Pas en vente sur Cardmarket en ce moment";
 
 export type Tier = "common" | "rare" | "legend";
 
@@ -108,7 +132,7 @@ export function copiesTotals(items: { card: CardData; copies: Copy[] }[]): Omit<
     t.trend += copiesValue(card, copies, "trend");
     for (const c of copies) {
       t.copies += c.qty;
-      if (c.paid == null) continue;
+      if (c.paid == null || !hasPrice(card, c.variant)) continue;
       t.spent += c.paid * c.qty;
       t.spentTrend += unitPrice(card, c.variant, "trend") * c.qty;
     }

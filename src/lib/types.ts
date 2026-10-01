@@ -8,6 +8,11 @@ export interface CardPrice {
   trend: number | null;
   lowHolo: number | null;
   trendHolo: number | null;
+  /** Average sale price over the last 7 and 30 days (for the ↗ ↘ arrow); missing in files fetched before */
+  avg7?: number | null;
+  avg30?: number | null;
+  avg7Holo?: number | null;
+  avg30Holo?: number | null;
 }
 
 export interface CardData {

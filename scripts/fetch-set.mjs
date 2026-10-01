@@ -146,6 +146,10 @@ async function fetchCards(setId, main) {
         trend: round(cm.trend),
         lowHolo: round(cm["low-holo"]),
         trendHolo: round(cm["trend-holo"]),
+        avg7: round(cm.avg7),
+        avg30: round(cm.avg30),
+        avg7Holo: round(cm["avg7-holo"]),
+        avg30Holo: round(cm["avg30-holo"]),
       },
     };
   });

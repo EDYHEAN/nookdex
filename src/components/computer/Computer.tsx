@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { pocketsOf, shelfBinders } from "@/lib/binders";
 import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { resolveConflict, signIn, signInWithGoogle, signOut, useCloud } from "@/lib/cloud";
-import { VARIANT_LABEL, copiesTotals, formatEur, setStats, unitPrice } from "@/lib/price";
+import { VARIANT_LABEL, copiesTotals, formatEur, formatPrice, priceOf, setStats, unitPrice } from "@/lib/price";
 import { OS_NAME, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { isBackup, makeBackup, useStore } from "@/lib/store";
@@ -319,7 +319,7 @@ function Wishlist({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: stri
       {missing.length === 0 && <p className={styles.win}>★ MASTER SET COMPLET ★</p>}
       <div className={styles.rows}>
         {list.map((e) => (
-          <CardRow key={e.card.id} e={e} right={formatEur(price(e))} onGo={onGo} />
+          <CardRow key={e.card.id} e={e} right={formatPrice(priceOf(e.card, e.card.variants[0], "trend"))} onGo={onGo} />
         ))}
       </div>
     </div>
@@ -397,7 +397,7 @@ function Search({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => voi
           <CardRow
             key={e.card.id}
             e={e}
-            right={e.copies?.length ? "✓ possédée" : formatEur(unitPrice(e.card, e.card.variants[0], "trend"))}
+            right={e.copies?.length ? "✓ possédée" : formatPrice(priceOf(e.card, e.card.variants[0], "trend"))}
             onGo={onGo}
           />
         ))}

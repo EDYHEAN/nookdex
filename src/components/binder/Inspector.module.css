@@ -169,7 +169,7 @@
 .priceHead,
 .priceRow {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr;
+  grid-template-columns: 1.15fr 0.9fr 1.35fr;
   gap: 8px;
   align-items: center;
 }
@@ -698,4 +698,25 @@
   background: rgba(255, 211, 90, 0.25);
   font-size: 0.9em;
   line-height: 1.2;
+}
+
+/* ↗ ↘ next to the trend price */
+.move {
+  margin-right: 6px;
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+
+.moveUp {
+  color: var(--ink-green);
+}
+
+.moveDown {
+  color: var(--ink-red);
+}
+
+.noPrice {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.85em;
 }
