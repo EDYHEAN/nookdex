@@ -5,9 +5,9 @@
   "serieName": "Méga-Évolution",
   "name": "30ᵉ Anniversaire",
   "code": "30TH",
-  "logo": "https://assets.tcgdex.net/fr/me/30th/logo",
+  "logo": null,
   "releaseDate": "2026-09-16",
-  "total": 188,
+  "total": 158,
   "subs": [
    "30th-c"
   ]
@@ -262,7 +262,7 @@
   "code": "EB12.5",
   "logo": "https://assets.tcgdex.net/fr/swsh/swsh12.5/logo",
   "releaseDate": "2023-01-20",
-  "total": 230,
+  "total": 160,
   "subs": [
    "swsh12.5gg"
   ]
@@ -275,7 +275,7 @@
   "code": "EB12",
   "logo": "https://assets.tcgdex.net/fr/swsh/swsh12/logo",
   "releaseDate": "2022-11-11",
-  "total": 245,
+  "total": 215,
   "subs": [
    "swsh12tg"
   ]
@@ -288,7 +288,7 @@
   "code": "EB11",
   "logo": "https://assets.tcgdex.net/fr/swsh/swsh11/logo",
   "releaseDate": "2022-09-09",
-  "total": 247,
+  "total": 217,
   "subs": [
    "swsh11tg"
   ]
@@ -312,7 +312,7 @@
   "code": "EB10",
   "logo": "https://assets.tcgdex.net/fr/swsh/swsh10/logo",
   "releaseDate": "2022-05-27",
-  "total": 246,
+  "total": 216,
   "subs": [
    "swsh10tg"
   ]
@@ -325,7 +325,7 @@
   "code": "EB09",
   "logo": "https://assets.tcgdex.net/fr/swsh/swsh9/logo",
   "releaseDate": "2022-02-25",
-  "total": 216,
+  "total": 186,
   "subs": [
    "swsh9tg"
   ]
@@ -395,7 +395,7 @@
   "code": "EB4.5",
   "logo": "https://assets.tcgdex.net/fr/swsh/swsh4.5/logo",
   "releaseDate": "2021-02-19",
-  "total": 195,
+  "total": 73,
   "subs": [
    "swsh4.5sv"
   ]
