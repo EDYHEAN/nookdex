@@ -30,7 +30,8 @@ function search(lang: CardLang, index: IndexCard[], q: string) {
   if (!words.length) return [];
   const out: IndexCard[] = [];
   for (const c of index) {
-    const name = norm(c[1]);
+    // a Japanese card also answers to its Pokémon's French and English names
+    const name = c[6] ? `${norm(c[1])} ${norm(c[6])}` : norm(c[1]);
     const num = c[2].toLowerCase();
     const set = sets.get(c[3]);
     const ok = words.every((w) => {
@@ -131,7 +132,11 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
           <input
             ref={input}
             value={q}
-            placeholder={t("nom, numéro, extension… (ex : dracaufeu mew)", "name, number, set… (e.g. charizard mew)")}
+            placeholder={
+              lang === "ja"
+                ? t("pokémon, numéro, code… (ex : pikachu sv8)", "pokémon, number, code… (e.g. pikachu sv8)")
+                : t("nom, numéro, extension… (ex : dracaufeu mew)", "name, number, set… (e.g. charizard mew)")
+            }
             onChange={(e) => {
               setQ(e.target.value);
               sfx.hover();
@@ -150,13 +155,13 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
             <p className={styles.msg}>
               {t(
                 <>
-                  {index.length.toLocaleString("fr-FR")} cartes en {lang === "fr" ? "français" : "anglais"}, des toutes premières séries à
+                  {index.length.toLocaleString("fr-FR")} cartes en {{ fr: "français", en: "anglais", ja: "japonais" }[lang]}, des toutes premières séries à
                   Méga-Évolution, promos comprises.
                   <br />
                   Tape un nom (<i>pikachu</i>), ajoute un numéro (<i>pikachu 160</i>) ou un code d&apos;extension (<i>pikachu ev08</i>).
                 </>,
                 <>
-                  {index.length.toLocaleString("en-GB")} {lang === "fr" ? "French" : "English"} cards, from the very first series to Mega
+                  {index.length.toLocaleString("en-GB")} {{ fr: "French", en: "English", ja: "Japanese" }[lang]} cards, from the very first series to Mega
                   Evolution, promos included.
                   <br />
                   Type a name (<i>pikachu</i>), add a number (<i>pikachu 160</i>) or a set code (<i>pikachu sit</i>).
@@ -167,7 +172,7 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
           {index && q.trim() && !results.length && <p className={styles.msg}>{t("Aucune carte trouvée… vérifie l'orthographe ?", "No card found… check the spelling?")}</p>}
           <div className={styles.grid}>
             {results.map((c, i) => {
-              const [id, name, num, setId, img, trend] = c;
+              const [id, name, num, setId, img, trend, aka] = c;
               const qty = collection[id]?.reduce((n, cp) => n + cp.qty, 0) ?? 0;
               return (
                 <motion.button
@@ -190,6 +195,7 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
                   )}
                   <span className={styles.label}>
                     <b>{name}</b>
+                    {aka && <small>{aka}</small>}
                     <small>
                       {labels.get(setId)?.label} · {num}
                       {trend ? ` · ${formatPrice(trend, currencyOf(lang))}` : ""}

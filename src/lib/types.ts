@@ -31,6 +31,8 @@ export interface CardData {
   img: string;
   variants: Variant[];
   price: CardPrice;
+  /** Japanese cards: the French and English names of their Pokémon ("Dracaufeu · Charizard"), to find them */
+  aka?: string;
   /** No longer listed by TCGdex: kept with its last known prices, shown as a card back until it's back. */
   unavailable?: boolean;
 }

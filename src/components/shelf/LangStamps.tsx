@@ -1,17 +1,19 @@
 "use client";
 
 import { motion } from "motion/react";
-import { CARD_LANGS, type CardLang, LANG_LABEL } from "@/lib/cardLang";
-import { useT } from "@/lib/lang";
+import { CARD_LANGS, type CardLang, langLabel } from "@/lib/cardLang";
+import { useLang, useT } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
 import styles from "./LangStamps.module.css";
 
 /** Card language picker: one rubber stamp per language (new binder, free binder search). */
 export function LangStamps({ value, onChange, disabled }: { value: CardLang; onChange: (lang: CardLang) => void; disabled?: boolean }) {
   const t = useT();
+  const site = useLang();
   const titles: Record<CardLang, string> = {
     fr: t("Cartes françaises · prix Cardmarket", "French cards · Cardmarket prices"),
     en: t("Cartes anglaises · prix TCGplayer", "English cards · TCGplayer prices"),
+    ja: t("Cartes japonaises · prix Cardmarket des japonaises", "Japanese cards · Cardmarket prices of Japanese prints"),
   };
   return (
     <div className={styles.langs} role="radiogroup" aria-label={t("Langue des cartes", "Card language")}>
@@ -32,7 +34,7 @@ export function LangStamps({ value, onChange, disabled }: { value: CardLang; onC
           onPointerEnter={sfx.hover}
           title={titles[l]}
         >
-          {LANG_LABEL[l]}
+          {langLabel(l, site)}
         </motion.button>
       ))}
     </div>

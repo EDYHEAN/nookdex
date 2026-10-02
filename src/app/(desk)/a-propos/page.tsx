@@ -35,8 +35,8 @@ function Fr() {
           reverse, holo), état Cardmarket, doublons, prix payé.
         </li>
         <li>
-          <b>Suis la valeur de ta collection</b> avec les prix mis à jour chaque jour : Cardmarket pour les cartes françaises, TCGplayer
-          pour les anglaises (prix bas et tendance).
+          <b>Suis la valeur de ta collection</b> avec les prix mis à jour chaque jour : Cardmarket pour les cartes françaises et japonaises,
+          TCGplayer pour les anglaises (prix bas et tendance).
         </li>
         <li>
           <b>NookDex OS</b>, sur l&apos;écran du PC : tableau de bord, wishlist, doublons à échanger, recherche de carte, sauvegarde.
@@ -87,8 +87,8 @@ function En() {
           condition, duplicates, price paid.
         </li>
         <li>
-          <b>Follow your collection&apos;s value</b> with prices updated every day: TCGplayer for English cards, Cardmarket for French ones
-          (low and trend).
+          <b>Follow your collection&apos;s value</b> with prices updated every day: TCGplayer for English cards, Cardmarket for French and
+          Japanese ones (low and trend).
         </li>
         <li>
           <b>NookDex OS</b>, on the computer screen: dashboard, wishlist, duplicates to trade, card search, save.
