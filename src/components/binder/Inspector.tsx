@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { noPriceText, variantLabel, copiesPaid, copiesValue, formatEur, formatPrice, hasPrice, priceMove, priceOf, unitPrice } from "@/lib/price";
+import { noPriceText, variantLabel, copiesPaid, copiesValue, formatMoney, formatPrice, hasPrice, priceMove, priceOf, unitPrice } from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import { CONDITIONS, CONDITION_LABEL, useStore } from "@/lib/store";
 import type { CardData, Condition, Copy, Variant } from "@/lib/types";
@@ -153,9 +153,18 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
 
         <section className={styles.prices}>
           <div className={styles.priceHead}>
-            <span title={t("Le guide de prix Cardmarket mélange toutes les langues et tous les états", "Cardmarket's price guide mixes every language and condition")}>
-              {t("Cardmarket · toutes langues", "Cardmarket · all languages")}
-            </span>
+            {card.price.cm ? (
+              <span title={t("", "Not sold on TCGplayer: Cardmarket's price guide (every language), converted to dollars")}>≈ Cardmarket</span>
+            ) : (
+              <span
+                title={t(
+                  "Le guide de prix Cardmarket mélange toutes les langues et tous les états",
+                  "TCGplayer market price: English cards sold in the US, every condition",
+                )}
+              >
+                {t("Cardmarket · toutes langues", "TCGplayer · English cards")}
+              </span>
+            )}
             <span>{t("prix bas", "low")}</span>
             <span>{t("tendance", "trend")}</span>
           </div>
@@ -214,16 +223,16 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
             <dl className={styles.value}>
               <div>
                 <dt>{t("Valeur", "Value")}</dt>
-                <dd title={priced ? undefined : noPriceText()}>{priced ? formatEur(trendValue) : "—"}</dd>
+                <dd title={priced ? undefined : noPriceText()}>{priced ? formatMoney(trendValue) : "—"}</dd>
               </div>
               <div>
                 <dt>{t("Payé", "Paid")}</dt>
-                <dd>{known ? formatEur(paid) : "—"}</dd>
+                <dd>{known ? formatMoney(paid) : "—"}</dd>
               </div>
               <div>
                 <dt>{t("Plus-value", "Gain")}</dt>
                 <dd className={gainKnown ? (gain >= 0 ? styles.up : styles.down) : ""}>
-                  {gainKnown ? `${gain >= 0 ? "+" : ""}${formatEur(gain)}` : "—"}
+                  {gainKnown ? `${gain >= 0 ? "+" : ""}${formatMoney(gain)}` : "—"}
                 </dd>
               </div>
             </dl>
@@ -245,12 +254,17 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
 
         <footer className={styles.footer}>
           <a
-            href={`https://www.cardmarket.com/fr/Pokemon/Products/Search?searchString=${encodeURIComponent(card.name)}`}
+            href={t(
+              `https://www.cardmarket.com/fr/Pokemon/Products/Search?searchString=${encodeURIComponent(card.name)}`,
+              card.price.tp
+                ? `https://www.tcgplayer.com/product/${card.price.tp}`
+                : `https://www.tcgplayer.com/search/pokemon/product?q=${encodeURIComponent(card.name)}`,
+            )}
             target="_blank"
             rel="noreferrer"
             onClick={() => sfx.click()}
           >
-            {t("Voir sur Cardmarket ↗", "See on Cardmarket ↗")}
+            {t("Voir sur Cardmarket ↗", "See on TCGplayer ↗")}
           </a>
           {keptHere && (
             <HoldButton
@@ -360,7 +374,7 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
 
   const open = () => {
     sfx.pop();
-    setDraft(paid ? String(paid).replace(".", ",") : "");
+    setDraft(paid ? t(String(paid).replace(".", ","), String(paid)) : "");
     setEditing(true);
   };
   const commit = () => {
@@ -402,7 +416,7 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
             onChange(0);
           }}
           onPointerEnter={sfx.hover}
-          title={t("Tirée d'un booster : elle ne t'a rien coûté (0 €)", "Pulled from a booster: it cost you nothing (€0)")}
+          title={t("Tirée d'un booster : elle ne t'a rien coûté (0 €)", "Pulled from a booster: it cost you nothing ($0)")}
         >
           <svg className={styles.pack} viewBox="0 0 14 20" aria-hidden>
             <path d="M1 3 L2.5 1 L4 3 L5.5 1 L7 3 L8.5 1 L10 3 L11.5 1 L13 3 V17 L11.5 19 L10 17 L8.5 19 L7 17 L5.5 19 L4 17 L2.5 19 L1 17 Z" />
@@ -418,7 +432,7 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
               autoFocus
               inputMode="decimal"
               value={draft}
-              placeholder="0,00"
+              placeholder={t("0,00", "0.00")}
               onChange={(e) => setDraft(e.target.value)}
               onBlur={commit}
               onKeyDown={(e) => {
@@ -429,7 +443,7 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
                 }
               }}
             />
-            €
+            {t("€", "$")}
           </span>
         ) : (
           <motion.button
@@ -441,7 +455,7 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
             onClick={open}
             title={t("Clic : saisir le prix payé", "Click: enter the price paid")}
           >
-            {paid == null ? "? €" : formatEur(paid)}
+            {paid == null ? t("? €", "$ ?") : formatMoney(paid)}
           </motion.button>
         ))}
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useEffect, useRef, useState } from "react";
-import { cardTier, formatEur, unitPrice, type Tier } from "@/lib/price";
+import { cardTier, formatMoney, unitPrice, type Tier } from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import type { CardData, Copy } from "@/lib/types";
 import { CardBack } from "./CardBack";
@@ -130,7 +130,7 @@ export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, o
           {!owned && (
             <span className={styles.hint}>
               <b>{card.name}</b>
-              <span>{price ? formatEur(price) : "—"}</span>
+              <span>{price ? formatMoney(price) : "—"}</span>
               <em>{tr("clic = je l'ai !", "click = got it!")}</em>
             </span>
           )}
@@ -185,7 +185,7 @@ export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, o
               }}
             />
           ))}
-          {fx.gain > 0 && <span className={styles.gain}>+{formatEur(fx.gain)}</span>}
+          {fx.gain > 0 && <span className={styles.gain}>+{formatMoney(fx.gain)}</span>}
           {fx.combo >= 2 && <span className={styles.combo}>COMBO ×{fx.combo}</span>}
         </div>
       )}

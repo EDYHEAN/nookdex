@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { BINDER_COLORS, type Pocket } from "@/lib/binders";
-import { formatEur, type SetStats } from "@/lib/price";
+import { formatMoney, type SetStats } from "@/lib/price";
 import { SORT_LABEL, SORT_LABEL_EN } from "@/lib/rarity";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
@@ -90,21 +90,21 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
         )}
         <div>
           <dt>{t("Valeur tendance", "Trend value")}</dt>
-          <dd className={styles.money}>{formatEur(stats.trend)}</dd>
+          <dd className={styles.money}>{formatMoney(stats.trend)}</dd>
         </div>
         <div>
           <dt>{t("Valeur prix bas", "Low value")}</dt>
-          <dd>{formatEur(stats.low)}</dd>
+          <dd>{formatMoney(stats.low)}</dd>
         </div>
         <div>
           <dt>{t("Dépensé", "Spent")}</dt>
-          <dd>{formatEur(stats.spent)}</dd>
+          <dd>{formatMoney(stats.spent)}</dd>
         </div>
         <div>
           <dt>{t("Plus-value", "Gain")}</dt>
           <dd className={gain >= 0 ? styles.up : styles.down}>
             {gain >= 0 ? "+" : ""}
-            {formatEur(gain)}
+            {formatMoney(gain)}
           </dd>
         </div>
       </dl>

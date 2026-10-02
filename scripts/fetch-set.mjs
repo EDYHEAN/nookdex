@@ -4,7 +4,8 @@
 //   npm run fetch-set -- --force   every binder set (refreshes the prices), plus the extra sets not downloaded yet
 //   npm run fetch-set -- --all     every set, extra sets included (slow: thousands of cards)
 //   npm run fetch-set -- swsh12    one set (+ its sub-sets, like the Trainer Gallery)
-//   add --lang=en                  the same in English (the site shows English cards to English browsers)
+//   add --lang=en                  the same in English (the site shows English cards to English browsers), priced
+//                                  on TCGplayer in dollars
 //
 // Binder sets: the main sets of the recent series, offered as binders.
 // Extra sets: everything else in French (older series, promos, energies…), only for the free binders' search.
@@ -24,6 +25,9 @@ const OUT = FR ? "public/sets" : `public/sets/${LANG}`;
 const LOGOS = FR ? "public/logos" : `public/logos/${LANG}`;
 const CATALOG_FILE = FR ? "src/data/catalog.json" : `src/data/catalog-${LANG}.json`;
 const ASSETS = "https://assets.tcgdex.net/";
+// English cards are priced on TCGplayer (US, English cards only), in dollars. A card TCGplayer doesn't sell gets
+// its Cardmarket price converted at the ECB rate, kept here for the site (it converts French fallback files too).
+const RATE_FILE = "src/data/eur-usd.json";
 
 /** Series offered as binders, newest first. */
 const SERIES = ["me", "sv", "swsh"];
@@ -90,6 +94,71 @@ async function pool(items, size, fn) {
 
 const round = (n) => (typeof n === "number" ? Math.round(n * 100) / 100 : null);
 
+/** Today's euro -> dollar rate (ECB), else the last one saved. */
+async function eurUsd() {
+  const saved = existsSync(RATE_FILE) ? JSON.parse(await readFile(RATE_FILE, "utf8")) : null;
+  try {
+    const res = await fetch("https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD");
+    const rate = res.ok ? (await res.json()).rates?.USD : null;
+    if (rate) return { rate, date: new Date().toISOString().slice(0, 10) };
+  } catch {
+    // offline: the last rate
+  }
+  if (!saved) throw new Error("no euro -> dollar rate");
+  return saved;
+}
+const RATE = FR ? null : await eurUsd();
+
+function cardmarketPrice(cm) {
+  return {
+    low: round(cm.low),
+    trend: round(cm.trend),
+    lowHolo: round(cm["low-holo"]),
+    trendHolo: round(cm["trend-holo"]),
+    avg7: round(cm.avg7),
+    avg30: round(cm.avg30),
+    avg7Holo: round(cm["avg7-holo"]),
+    avg30Holo: round(cm["avg30-holo"]),
+  };
+}
+
+/** A Cardmarket price (euros) in dollars, flagged "cm" so the card says where it comes from. */
+function cardmarketInDollars(p) {
+  const usd = (n) => (n == null ? null : round(n * RATE.rate));
+  const out = { ...p, low: usd(p.low), trend: usd(p.trend), lowHolo: usd(p.lowHolo), trendHolo: usd(p.trendHolo) };
+  return p.low != null || p.trend != null || p.lowHolo != null || p.trendHolo != null ? { ...out, cm: true } : out;
+}
+
+/**
+ * TCGplayer price of an English card: market price as the trend, lowest listing as the low. The "holo" fields hold the
+ * reverse (or the holo of a card that also comes plain), like Cardmarket's. TCGplayer gives no averages: the ↗ ↘ arrow
+ * keeps Cardmarket's (only their ratio is used). Null when TCGplayer doesn't sell the card.
+ */
+function tcgplayerPrice(tp, cm) {
+  const kinds = Object.keys(tp ?? {}).filter((k) => tp[k] && typeof tp[k] === "object" && tp[k].productId);
+  if (!kinds.length) return null;
+  const base = tp.normal ?? tp.holofoil ?? tp[kinds.find((k) => k !== "reverse-holofoil")] ?? null;
+  const holo = tp["reverse-holofoil"] ?? (tp.normal ? tp.holofoil : null) ?? null;
+  const p = cardmarketPrice(cm);
+  return {
+    low: round(base?.lowPrice),
+    trend: round(base?.marketPrice ?? base?.midPrice),
+    lowHolo: round(holo?.lowPrice),
+    trendHolo: round(holo?.marketPrice ?? holo?.midPrice),
+    avg7: p.avg7,
+    avg30: p.avg30,
+    avg7Holo: p.avg7Holo,
+    avg30Holo: p.avg30Holo,
+    tp: (base ?? holo).productId,
+  };
+}
+
+function priceOf(d) {
+  const cm = d?.pricing?.cardmarket ?? {};
+  if (FR) return cardmarketPrice(cm);
+  return tcgplayerPrice(d?.pricing?.tcgplayer, cm) ?? cardmarketInDollars(cardmarketPrice(cm));
+}
+
 async function exists(url) {
   const res = await fetch(url, { method: "HEAD" });
   return res.ok;
@@ -140,7 +209,6 @@ async function fetchCards(setId, main) {
       const fr = image?.replace("/en/", `/${LANG}/`);
       if (fr && fr !== image && (await exists(`${fr}/low.webp`))) image = fr;
     }
-    const cm = d?.pricing?.cardmarket ?? {};
     const v = d?.variants ?? {};
     const variants = ["normal", "reverse", "holo"].filter((k) => v[k]);
     return {
@@ -151,16 +219,7 @@ async function fetchCards(setId, main) {
       category: d?.category ?? null,
       img: image,
       variants: variants.length ? variants : ["normal"],
-      price: {
-        low: round(cm.low),
-        trend: round(cm.trend),
-        lowHolo: round(cm["low-holo"]),
-        trendHolo: round(cm["trend-holo"]),
-        avg7: round(cm.avg7),
-        avg30: round(cm.avg30),
-        avg7Holo: round(cm["avg7-holo"]),
-        avg30Holo: round(cm["avg30-holo"]),
-      },
+      price: priceOf(d),
     };
   });
   return { set, cards: cards.filter((c) => c.img) };
@@ -174,7 +233,10 @@ async function fetchCards(setId, main) {
 async function keepVanished(mainId, cards, mainNums) {
   const file = `${OUT}/${mainId}.json`;
   if (!existsSync(file)) return 0;
-  const before = JSON.parse(await readFile(file, "utf8")).cards ?? [];
+  const prev = JSON.parse(await readFile(file, "utf8"));
+  const before = prev.cards ?? [];
+  // English files from before the dollars hold Cardmarket euros
+  const euros = !FR && prev.currency !== "USD";
   const now = new Set(cards.map((c) => c.id));
   let n = 0;
   for (const old of before) {
@@ -182,7 +244,8 @@ async function keepVanished(mainId, cards, mainNums) {
     const setId = old.id.slice(0, old.id.lastIndexOf("-"));
     const folder = old.img?.split("/").at(-2);
     const borrowed = setId !== mainId && folder === mainId && mainNums.has(old.num);
-    cards.push({ ...old, img: borrowed ? "" : (old.img ?? ""), unavailable: true });
+    const price = euros ? cardmarketInDollars(old.price) : old.price;
+    cards.push({ ...old, price, img: borrowed ? "" : (old.img ?? ""), unavailable: true });
     n++;
   }
   return n;
@@ -202,6 +265,7 @@ async function fetchSet(mainId, subIds) {
     official: main.set.cardCount?.official ?? null,
     releaseDate: main.set.releaseDate ?? null,
     pricesUpdated: new Date().toISOString(),
+    ...(FR ? {} : { currency: "USD" }),
     cards: [...main.cards, ...subs.flatMap((s) => s.cards)],
   };
   const gone = await keepVanished(mainId, out.cards, nums);
@@ -308,11 +372,15 @@ for (const c of catalog) {
   const data = JSON.parse(await readFile(file, "utf8"));
   c.total = data.cards.length;
   if (!data.cards.length) continue;
+  // English extra sets fetched before the dollars: their Cardmarket euros, converted
+  const toUsd = !FR && data.currency !== "USD" ? RATE.rate : 1;
   for (const card of data.cards) {
     // [id, name, num, set, image path, trend]
-    index.push([card.id, card.name, card.num, c.id, (card.img ?? "").replace(ASSETS, ""), card.price.trend]);
+    const trend = card.price.trend == null ? null : round(card.price.trend * toUsd);
+    index.push([card.id, card.name, card.num, c.id, (card.img ?? "").replace(ASSETS, ""), trend]);
   }
 }
+if (RATE) await writeFile(RATE_FILE, JSON.stringify(RATE) + "\n");
 
 // Extra sets with no French scan at all stay out.
 const kept = catalog.filter((c) => !c.extra || (existsSync(`${OUT}/${c.id}.json`) && c.total > 0));

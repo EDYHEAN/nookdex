@@ -4,7 +4,7 @@ import { AnimatePresence, animate, motion, useMotionValue, useTransform } from "
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { PER_PAGE, freeHomes, freePageCount, pocketsOf, type Pocket } from "@/lib/binders";
 import { loadSet, setIdOfCard, useSets } from "@/lib/catalog";
-import { cardTier, copiesTotals, formatEur, setStats, unitPrice, type Tier } from "@/lib/price";
+import { cardTier, copiesTotals, formatMoney, setStats, unitPrice, type Tier } from "@/lib/price";
 import { sortCards } from "@/lib/rarity";
 import { SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
@@ -430,7 +430,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
         <div className={styles.titleText}>
           <h1>{set?.name ?? binder.name}</h1>
           <p>
-            {summary.count} {t("cartes", "cards")} · <b>{formatEur(summary.trend)}</b>
+            {summary.count} {t("cartes", "cards")} · <b>{formatMoney(summary.trend)}</b>
           </p>
         </div>
         <div className={styles.titleActions}>
