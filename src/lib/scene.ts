@@ -37,6 +37,15 @@ export const SCENE = raw as unknown as SceneData;
 
 export const sceneImg = (file: string) => `/scene/${file}`;
 
+/**
+ * The loader's painted logo, the page's first big paint (LCP): three widths made by build-scene, the one the screen
+ * needs is taken (preloaded in the desk layout, before any script runs).
+ */
+export const LOGO_SIZES = [720, 1400, 2816];
+export const logoSrcSet = LOGO_SIZES.map((w) => `${sceneImg(`logo-paper-${w}.webp`)} ${w}w`).join(", ");
+/** Same width as the loader's .art box */
+export const LOGO_IMG_SIZES = "min(100vw, calc(100vh * 2816 / 1536))";
+
 
 /**
  * CSS matrix3d that maps a w x h box (origin top-left) onto a quad

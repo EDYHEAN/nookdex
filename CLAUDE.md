@@ -21,6 +21,11 @@ doesn't show.
 
 - Next.js (App Router, see AGENTS.md), React, zustand (`src/lib/store.ts`, persisted in localStorage under the old key
   `pokepocket:v1`), motion. The room is client-only (`src/components/App.tsx`).
+- Loader and page speed (PageSpeed only ever sees the loader): its logo is plain HTML (`LoaderStill`, the dynamic
+  import's fallback), preloaded from the desk layout, in 3 widths (`logo-paper-{720,1400,2816}.webp`, made by
+  build-scene). The room's pictures load after the logo, and the room stays `visibility: hidden` under the loader:
+  a picture hidden *behind* it still counts as the page's biggest paint (LCP). Measured 2026-10-02: desktop 61 → 97,
+  mobile 44 → 76 (Lighthouse).
 - `src/app/(desk)/` shares one layout for `/` and the notebook pages (`/a-propos`, `/confidentialite`, `/conditions`,
   `/contact`): the room stays mounted, those pages open as a notebook over it and are server-rendered (Google reads them).
 - Card data is static JSON from TCGdex, built by `scripts/fetch-set.mjs` into `public/sets/` (one file per set +
