@@ -13,7 +13,7 @@ import type { CardData, Copy, SetData } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
 import styles from "./Computer.module.css";
-import { LANG_LABEL, langOfKey } from "@/lib/cardLang";
+import { langLabel, langOfKey } from "@/lib/cardLang";
 import { LANG_COOKIE, currentLang, useLang, useT } from "@/lib/lang";
 
 type Tab = "home" | "wish" | "dupes" | "search" | "save";
@@ -45,7 +45,7 @@ const cardLabel = (e: Entry) => (/^\d+$/.test(e.card.num) && e.set.official ? `$
 /** " [EN]" after a card that isn't in the site's language: a shared list says which print is wanted */
 const langNote = (e: Entry) => {
   const l = langOfKey(e.card.id);
-  return l !== currentLang() ? ` [${LANG_LABEL[l]}]` : "";
+  return l !== currentLang() ? ` [${langLabel(l, currentLang())}]` : "";
 };
 
 export function Computer({ origin, onClose, onGoToCard }: Props) {
@@ -241,7 +241,7 @@ function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void 
             {b.logo ? <img src={`${b.logo}.png`} alt="" /> : <span className={styles.freeIcon}>✎</span>}
             <span className={styles.setName}>
               {b.name}
-              {b.lang && b.lang !== currentLang() && <small className={styles.langTag}>{LANG_LABEL[b.lang]}</small>}
+              {b.lang && b.lang !== currentLang() && <small className={styles.langTag}>{langLabel(b.lang, currentLang())}</small>}
             </span>
             {pct != null ? (
               <span className={styles.bar} aria-label={count}>
@@ -394,7 +394,7 @@ function Search({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => voi
   useEffect(() => input.current?.focus(), []);
   const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const nq = norm(q.trim());
-  const results = nq ? entries.filter((e) => norm(e.card.name).includes(nq) || e.card.num.toLowerCase().replace(/^0+/, "") === nq.replace(/^0+/, "")).slice(0, 60) : [];
+  const results = nq ? entries.filter((e) => norm(e.card.name).includes(nq) || norm(e.card.aka ?? "").includes(nq) || e.card.num.toLowerCase().replace(/^0+/, "") === nq.replace(/^0+/, "")).slice(0, 60) : [];
 
   return (
     <div className={styles.listTab}>

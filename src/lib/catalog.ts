@@ -3,11 +3,12 @@
 import { create } from "zustand";
 import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
+import rawJa from "@/data/catalog-ja.json";
 import { type CardLang, bareId, keyOf, langOfKey } from "./cardLang";
 import type { CardData, CatalogSet, Copy, SetData, UserBinder } from "./types";
 
 /**
- * Each binder has its card language (see lib/cardLang): French cards come from /sets, English ones from /sets/en.
+ * Each binder has its card language (see lib/cardLang): French cards come from /sets, the others from /sets/<lang>.
  * Set and card ids are keyed with their language as soon as they're read, so the rest of the code never mixes them.
  */
 const keyed = (lang: CardLang, sets: CatalogSet[]): CatalogSet[] =>
@@ -16,6 +17,7 @@ const keyed = (lang: CardLang, sets: CatalogSet[]): CatalogSet[] =>
 const CATALOGS: Record<CardLang, CatalogSet[]> = {
   fr: keyed("fr", rawFr as CatalogSet[]),
   en: keyed("en", rawEn as CatalogSet[]),
+  ja: keyed("ja", rawJa as CatalogSet[]),
 };
 
 /** Every set we have the cards of in a language, newest first (extra ones only feed the free binders' search). */
@@ -38,8 +40,8 @@ export function setIdOfCard(cardKey: string) {
 /** Files of a set or of the search index, in a card language. */
 const dataUrl = (lang: CardLang, file: string) => (lang === "fr" ? `/sets/${file}` : `/sets/${lang}/${file}`);
 
-/** A card of the search index: [card key, name, num, set key, image path, trend] */
-export type IndexCard = [string, string, string, string, string, number | null];
+/** A card of the search index: [card key, name, num, set key, image path, trend, (Japanese cards) French and English names] */
+export type IndexCard = [string, string, string, string, string, number | null, string?];
 
 interface Sets {
   /** Set files downloaded so far, by set key */
@@ -90,7 +92,7 @@ export function loadIndex(lang: CardLang): Promise<IndexCard[]> {
   indexPending[lang] ??= fetch(dataUrl(lang, "index.json"))
     .then((r) => r.json() as Promise<{ assets: string; cards: IndexCard[] }>)
     .then(({ assets, cards }) => {
-      const list = cards.map(([id, name, num, set, img, trend]): IndexCard => [keyOf(lang, id), name, num, keyOf(lang, set), img, trend]);
+      const list = cards.map(([id, name, num, set, img, trend, aka]): IndexCard => [keyOf(lang, id), name, num, keyOf(lang, set), img, trend, aka]);
       useSets.setState((s) => ({ index: { ...s.index, [lang]: list }, assets }));
       return list;
     })

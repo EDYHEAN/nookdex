@@ -170,8 +170,11 @@
 
 .logo b {
   font-family: var(--font-press), monospace;
-  font-size: 12px;
+  font-size: 22px;
   line-height: 1.5;
+  color: var(--accent);
+  text-shadow: 2px 2px 0 var(--ink);
+  rotate: -3deg;
 }
 
 .setName {

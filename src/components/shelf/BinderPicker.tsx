@@ -20,7 +20,15 @@ interface Props {
   onClose?: () => void;
 }
 
-const seriesOf = (lang: CardLang) => [...new Map(binderSets(lang).map((s) => [s.serie, s.serieName])).entries()].map(([id, name]) => ({ id, name }));
+/** Japanese series ids and their international twins: same tab, and its name in the site's language. */
+const TWIN: Record<string, string> = { M: "me", SV: "sv", S: "swsh" };
+const twinOf = (serie: string, to: CardLang) =>
+  to === "ja" ? (Object.keys(TWIN).find((k) => TWIN[k] === serie) ?? serie) : (TWIN[serie] ?? serie);
+
+function seriesOf(lang: CardLang, site: "fr" | "en") {
+  const names = new Map(binderSets(site).map((s) => [s.serie, s.serieName]));
+  return [...new Map(binderSets(lang).map((s) => [s.serie, names.get(twinOf(s.serie, site)) ?? s.serieName])).entries()].map(([id, name]) => ({ id, name }));
+}
 type Tab = string | "free";
 
 const FREE_IDEAS = { fr: ["Fourre-tout", "Openings", "Mes favorites", "À échanger", "Full Arts"], en: ["Bits & bobs", "Openings", "Favourites", "For trade", "Full Arts"] };
@@ -29,9 +37,18 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
   const binders = useStore((s) => s.binders);
   const t = useT();
   // cards in the site's language, unless the player picks another (an English binder on a French shelf…)
-  const [cardLang, setCardLang] = useState<CardLang>(useLang());
+  const site = useLang();
+  const [cardLang, setCardLang] = useState<CardLang>(site);
   const onShelf = useMemo(() => new Set(binders.flatMap((b) => (b.kind === "set" ? [b.setId] : []))), [binders]);
-  const [tab, setTab] = useState<Tab>(seriesOf(cardLang)[0].id);
+  const [tab, setTab] = useState<Tab>(seriesOf(cardLang, site)[0].id);
+  /** Another card language: the same series' tab in it (or its first one) */
+  const pickLang = (lang: CardLang) => {
+    setCardLang(lang);
+    if (tab === "free") return;
+    const series = seriesOf(lang, site);
+    const twin = twinOf(TWIN[tab] ?? tab, lang);
+    setTab(series.some((x) => x.id === twin) ? twin : series[0].id);
+  };
   const [busy, setBusy] = useState<string | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -83,7 +100,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
         </div>
         {tab !== "free" && (
           <div className={styles.langs}>
-            <LangStamps value={cardLang} onChange={setCardLang} disabled={!!busy} />
+            <LangStamps value={cardLang} onChange={pickLang} disabled={!!busy} />
           </div>
         )}
         {onClose && (
@@ -94,7 +111,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
       </header>
 
       <nav className={styles.tabs} role="tablist">
-        {[...seriesOf(cardLang), { id: "free", name: t("Classeur libre", "Free binder") }].map((s) => (
+        {[...seriesOf(cardLang, site), { id: "free", name: t("Classeur libre", "Free binder") }].map((s) => (
           <button
             key={s.id}
             role="tab"
@@ -130,7 +147,8 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
                 onClick={() => pick({ kind: "set", setId: s.id }, s.id)}
               >
                 <span className={styles.logo}>
-                  {s.logo ? <img src={`${s.logo}.png`} alt="" loading="lazy" draggable={false} /> : <b>{s.name}</b>}
+                  {/* no logo (Japanese sets): the set code, big */}
+                  {s.logo ? <img src={`${s.logo}.png`} alt="" loading="lazy" draggable={false} /> : <b>{s.code}</b>}
                 </span>
                 <span className={styles.setName}>{s.name}</span>
                 <span className={styles.meta}>

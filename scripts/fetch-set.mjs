@@ -4,8 +4,8 @@
 //   npm run fetch-set -- --force   every binder set (refreshes the prices), plus the extra sets not downloaded yet
 //   npm run fetch-set -- --all     every set, extra sets included (slow: thousands of cards)
 //   npm run fetch-set -- swsh12    one set (+ its sub-sets, like the Trainer Gallery)
-//   add --lang=en                  the same in English (the site shows English cards to English browsers), priced
-//                                  on TCGplayer in dollars
+//   add --lang=en                  the same in English, priced on TCGplayer in dollars
+//   add --lang=ja                  the same in Japanese (Cardmarket prices, which are per language for Japanese cards)
 //
 // Binder sets: the main sets of the recent series, offered as binders.
 // Extra sets: everything else in French (older series, promos, energies…), only for the free binders' search.
@@ -18,23 +18,27 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
 const API = "https://api.tcgdex.net/v2";
-// French (default) or English: same card ids, files side by side.
+// French (default), English (same card ids) or Japanese (its own sets and ids): files side by side.
 const LANG = process.argv.find((a) => a.startsWith("--lang="))?.slice(7) ?? "fr";
 const FR = LANG === "fr";
+const JA = LANG === "ja";
 const OUT = FR ? "public/sets" : `public/sets/${LANG}`;
 const LOGOS = FR ? "public/logos" : `public/logos/${LANG}`;
 const CATALOG_FILE = FR ? "src/data/catalog.json" : `src/data/catalog-${LANG}.json`;
 const ASSETS = "https://assets.tcgdex.net/";
 // English cards are priced on TCGplayer (US, English cards only), in dollars. A card TCGplayer doesn't sell gets
-// its Cardmarket price converted at the ECB rate, kept here for the site (it converts French fallback files too).
+// its Cardmarket price converted at the ECB rate, kept here for the site (it converts the player's money too).
 const RATE_FILE = "src/data/eur-usd.json";
 
-/** Series offered as binders, newest first. */
-const SERIES = ["me", "sv", "swsh"];
+/** Series offered as binders, newest first (Japanese ids: MEGA, Scarlet & Violet, Sword & Shield). */
+const SERIES = JA ? ["M", "SV", "S"] : ["me", "sv", "swsh"];
 /** TCGdex "series" that aren't cards you collect. */
 const SKIP_SERIES = new Set(["tcgp"]);
 /** Promos and energies: not a set you open boosters of. */
 const SKIP = new Set(["swshp", "svp", "sve", "mep", "mee"]);
+/** Japanese: promos, starter decks, collections, and the Chinese "CS" sets TCGdex files under Japanese. */
+const SKIP_JA = /-P$|^CS|^SVL|^SVK$|^MC$|^MF$/;
+const skipped = (id) => SKIP.has(id) || (JA && SKIP_JA.test(id));
 /** Sub-sets printed inside another set's boosters: merged into that set's binder. */
 const PARENT = {
   "swsh4.5sv": "swsh4.5",
@@ -107,7 +111,41 @@ async function eurUsd() {
   if (!saved) throw new Error("no euro -> dollar rate");
   return saved;
 }
-const RATE = FR ? null : await eurUsd();
+// only English cards are in dollars
+const EN = LANG === "en";
+const RATE = EN ? await eurUsd() : null;
+
+/**
+ * Japanese cards have Japanese names only: the French and English names of their Pokémon (PokéAPI, by National Dex
+ * number) let a French or English player find them ("pikachu", "dracaufeu").
+ */
+async function pokemonNames() {
+  const query = `{ pokemon_v2_pokemonspeciesname(where: {pokemon_v2_language: {name: {_in: ["fr", "en"]}}}) { name pokemon_species_id pokemon_v2_language { name } } }`;
+  const res = await fetch("https://beta.pokeapi.co/graphql/v1beta", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
+  const names = new Map();
+  for (const r of (await res.json()).data.pokemon_v2_pokemonspeciesname) {
+    const n = names.get(r.pokemon_species_id) ?? {};
+    n[r.pokemon_v2_language.name] = r.name;
+    names.set(r.pokemon_species_id, n);
+  }
+  return names;
+}
+const NAMES = JA ? await pokemonNames() : null;
+
+/** "Dracaufeu · Charizard", "Pikachu" (same in both), "Pikachu · Zekrom" for a tag team; null for a trainer. */
+function akaOf(d) {
+  const out = new Set();
+  for (const id of d?.dexId ?? []) {
+    const n = NAMES.get(id);
+    if (n?.fr) out.add(n.fr);
+    if (n?.en) out.add(n.en);
+  }
+  return out.size ? [...out].join(" · ") : null;
+}
 
 function cardmarketPrice(cm) {
   return {
@@ -155,7 +193,7 @@ function tcgplayerPrice(tp, cm) {
 
 function priceOf(d) {
   const cm = d?.pricing?.cardmarket ?? {};
-  if (FR) return cardmarketPrice(cm);
+  if (FR || JA) return cardmarketPrice(cm);
   return tcgplayerPrice(d?.pricing?.tcgplayer, cm) ?? cardmarketInDollars(cardmarketPrice(cm));
 }
 
@@ -175,6 +213,8 @@ async function logoOf(set, serie) {
 }
 
 function codeOf(set, serie) {
+  // Japanese: the set's own code (SV8, SV2a…)
+  if (JA) return set.id;
   // English: the official abbreviation (SIT, PAL…)
   if (!FR) return set.abbreviation?.official ?? set.tcgOnline ?? set.id.toUpperCase();
   if (CODES[set.id]) return CODES[set.id];
@@ -201,7 +241,7 @@ async function fetchCards(setId, main) {
         }
       }
     }
-    if (!image) {
+    if (!image && !JA) {
       // Still nothing -> the English card. Its French scan is sometimes on the asset server all the same (the API
       // just doesn't list it): same path, "fr" instead of "en". Else the English scan.
       const en = await get(`${API}/en/cards/${c.id}`);
@@ -220,6 +260,7 @@ async function fetchCards(setId, main) {
       img: image,
       variants: variants.length ? variants : ["normal"],
       price: priceOf(d),
+      ...(JA && akaOf(d) ? { aka: akaOf(d) } : {}),
     };
   });
   return { set, cards: cards.filter((c) => c.img) };
@@ -236,7 +277,7 @@ async function keepVanished(mainId, cards, mainNums) {
   const prev = JSON.parse(await readFile(file, "utf8"));
   const before = prev.cards ?? [];
   // English files from before the dollars hold Cardmarket euros
-  const euros = !FR && prev.currency !== "USD";
+  const euros = EN && prev.currency !== "USD";
   const now = new Set(cards.map((c) => c.id));
   let n = 0;
   for (const old of before) {
@@ -265,7 +306,7 @@ async function fetchSet(mainId, subIds) {
     official: main.set.cardCount?.official ?? null,
     releaseDate: main.set.releaseDate ?? null,
     pricesUpdated: new Date().toISOString(),
-    ...(FR ? {} : { currency: "USD" }),
+    ...(EN ? { currency: "USD" } : {}),
     cards: [...main.cards, ...subs.flatMap((s) => s.cards)],
   };
   const gone = await keepVanished(mainId, out.cards, nums);
@@ -286,7 +327,7 @@ const only = args.filter((a) => !a.startsWith("--"));
 const catalog = [];
 for (const serie of SERIES) {
   const s = await get(`${API}/${LANG}/series/${serie}`);
-  const sets = s.sets.filter((x) => !SKIP.has(x.id) && !PARENT[x.id]);
+  const sets = s.sets.filter((x) => !skipped(x.id) && !PARENT[x.id]);
   const detailed = await pool(sets, 6, (x) => get(`${API}/${LANG}/sets/${x.id}`));
   for (const set of detailed) {
     catalog.push({
@@ -373,17 +414,18 @@ for (const c of catalog) {
   c.total = data.cards.length;
   if (!data.cards.length) continue;
   // English extra sets fetched before the dollars: their Cardmarket euros, converted
-  const toUsd = !FR && data.currency !== "USD" ? RATE.rate : 1;
+  const toUsd = EN && data.currency !== "USD" ? RATE.rate : 1;
   for (const card of data.cards) {
-    // [id, name, num, set, image path, trend]
+    // [id, name, num, set, image path, trend, (Japanese cards) French and English names]
     const trend = card.price.trend == null ? null : round(card.price.trend * toUsd);
-    index.push([card.id, card.name, card.num, c.id, (card.img ?? "").replace(ASSETS, ""), trend]);
+    const row = [card.id, card.name, card.num, c.id, (card.img ?? "").replace(ASSETS, ""), trend];
+    index.push(card.aka ? [...row, card.aka] : row);
   }
 }
 if (RATE) await writeFile(RATE_FILE, JSON.stringify(RATE) + "\n");
 
-// Extra sets with no French scan at all stay out.
-const kept = catalog.filter((c) => !c.extra || (existsSync(`${OUT}/${c.id}.json`) && c.total > 0));
+// Sets with no scan at all in this language stay out (extra ones, and Japanese binder sets TCGdex has no pictures of yet).
+const kept = catalog.filter((c) => (existsSync(`${OUT}/${c.id}.json`) ? c.total > 0 : !c.extra));
 await writeFile(CATALOG_FILE, JSON.stringify(kept, null, 1));
 await writeFile(`${OUT}/index.json`, JSON.stringify({ assets: ASSETS, cards: index }));
 console.log(`catalog: ${catalog.length} sets, ${index.length} cards`);

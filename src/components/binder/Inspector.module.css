@@ -149,6 +149,11 @@
   font-size: 18px;
 }
 
+/* a Japanese card's Pokémon, in French and English */
+.aka {
+  color: var(--ink);
+}
+
 .name {
   margin: 8px 0 16px;
   font-family: var(--font-press), monospace;

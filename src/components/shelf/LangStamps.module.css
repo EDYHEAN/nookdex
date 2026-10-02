@@ -27,6 +27,10 @@
   rotate: 3deg;
 }
 
+.lang:nth-of-type(3) {
+  rotate: -1.5deg;
+}
+
 .lang:hover {
   rotate: 0deg;
 }

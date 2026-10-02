@@ -41,15 +41,21 @@ doesn't show.
   the page reloads. Server pages (layout metadata, `/` text, notebook pages) read `lib/serverLang.ts` (cookie, else
   Accept-Language; no header = French). Each notebook page has a French and an English version in the same file;
   `src/data/about.ts` holds the notebook text (`ABOUT`, `ABOUT_EN`). Supabase auth e-mails stay French only.
-- **Card language**: chosen per set binder (FR/EN stamps in the new binder sheet, default = site language), and per
-  card in a free binder (same stamps in its search). It lives in the ids (`lib/cardLang.ts`): a French card keeps its
-  TCGdex id (`sv08-001`, like every older save), an English one is `en:sv08-001`; sets likewise (`sv08`, `en:sv08`,
-  that's a set binder's `setId`). `lib/catalog.ts` keys ids as it reads files, so the rest of the code just uses
+- **Card language** (FR, EN, JAP): chosen per set binder (stamps in the new binder sheet, default = site language), and
+  per card in a free binder (same stamps in its search). It lives in the ids (`lib/cardLang.ts`): a French card keeps
+  its TCGdex id (`sv08-001`, like every older save), an English one is `en:sv08-001`, a Japanese one `ja:SV8-033`;
+  sets likewise (`sv08`, `en:sv08`, `ja:SV8`: that's a set binder's `setId`). `lib/catalog.ts` keys ids as it reads files, so the rest of the code just uses
   `collection[card.id]` and never mixes languages. Never cut a card id by hand: `setIdOfCard`, `langOfKey`, `bareId`.
   A binder not in the site's language wears a small "EN"/"FR" sticker (shelf, NookDex OS); shared lists tag such cards.
 - Card data in English: `fetch-set --lang=en` writes `public/sets/en/`, `public/logos/en/`, `src/data/catalog-en.json`
   (same TCGdex ids).
-- **Prices follow the card's language**: French cards → Cardmarket (euros), English cards → TCGplayer (US market, English
+- Japanese: `fetch-set --lang=ja` → `public/sets/ja/`, `src/data/catalog-ja.json`. Japanese sets are their own (ids
+  `SV8`, `S12a`…; binder series `M`, `SV`, `S`, shown under the site's series names; promos, decks and the "CS"
+  sets are search-only). TCGdex has no logos and few scans for them: no MEGA scans yet, so those sets stay out until it
+  does (the daily Action picks them up). Names are Japanese: `aka` holds the Pokémon's French and English names
+  (PokéAPI by dex number) so searches find "pikachu", "dracaufeu", and the card sheet shows them.
+- **Prices follow the card's language**: French cards → Cardmarket (euros, all languages mixed), Japanese cards →
+  Cardmarket (euros, and for once per language: Japanese prints are products of their own), English cards → TCGplayer (US market, English
   cards, dollars: `marketPrice` as the trend, `lowPrice` as the low, `tp` = product id for the link; the arrow keeps
   Cardmarket's averages). An English card TCGplayer doesn't sell (Trainer Galleries, Shiny Vault, 30th for now) gets
   Cardmarket's price converted at the ECB rate (`src/data/eur-usd.json`, refreshed by fetch-set), flagged `cm`.

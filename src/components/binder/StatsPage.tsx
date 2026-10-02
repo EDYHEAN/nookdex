@@ -155,7 +155,7 @@ function Finder({ pages, collection, onFind }: { pages: Pocket[][]; collection: 
   const nq = norm(q.trim());
   const results = nq
     ? pockets
-        .filter(({ card }) => norm(card.name).includes(nq) || card.num.toLowerCase().replace(/^0+(?=d)/, "") === nq.replace(/^0+(?=d)/, ""))
+        .filter(({ card }) => norm(card.name).includes(nq) || norm(card.aka ?? "").includes(nq) || card.num.toLowerCase().replace(/^0+(?=\d)/, "") === nq.replace(/^0+(?=\d)/, ""))
         .slice(0, 6)
     : [];
   const pick = (index: number) => {

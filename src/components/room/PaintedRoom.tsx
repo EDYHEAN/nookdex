@@ -15,7 +15,7 @@ import { LAVA_THEMES, drawDust, drawLava, drawRain, drawSunDust } from "./sceneA
 import { Monitor } from "./Monitor";
 import { ShelfBinder, binderLabel, binderSize } from "./ShelfBinder";
 import styles from "./PaintedRoom.module.css";
-import { LANG_LABEL } from "@/lib/cardLang";
+import { langLabel } from "@/lib/cardLang";
 import { useLang, useT } from "@/lib/lang";
 
 interface Props {
@@ -71,7 +71,7 @@ function useCamera(compact: boolean) {
 export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout }: Props) {
   const uiLang = useLang();
   /** "EN" on an English binder of the French site (and the other way round): the language it isn't in */
-  const langTag = (b: BinderDef) => (b.lang && b.lang !== uiLang ? LANG_LABEL[b.lang] : null);
+  const langTag = (b: BinderDef) => (b.lang && b.lang !== uiLang ? langLabel(b.lang, uiLang) : null);
   const tr = useT();
   const cam = useCamera(compact);
   const lampOn = useStore((s) => s.lampOn);

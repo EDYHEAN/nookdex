@@ -28,6 +28,8 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
   // a card is priced on its language's market: Cardmarket for French cards, TCGplayer for English ones
   const cardLang = langOfKey(card.id);
   const english = cardLang === "en";
+  // Cardmarket is searched by English name: a Japanese card's is the last of its Pokémon names
+  const searchName = cardLang === "ja" ? (card.aka?.split(" · ").at(-1) ?? card.name) : card.name;
   const copies = useStore((s) => s.collection[card.id]);
   const binders = useStore((s) => s.binders);
   const { addCopy, updateCopy, removeCopy, removeCard } = useStore.getState();
@@ -139,6 +141,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
         </button>
         <p className={styles.kicker}>
           #{card.num} · {card.rarity ?? card.category}
+          {card.aka && <span className={styles.aka}> · {card.aka}</span>}
         </p>
         <h2 className={styles.name}>{card.name}</h2>
         {card.unavailable && (
@@ -176,6 +179,15 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
                 )}
               >
                 {t("TCGplayer · cartes anglaises", "TCGplayer · English cards")}
+              </span>
+            ) : cardLang === "ja" ? (
+              <span
+                title={t(
+                  "Cardmarket a des fiches à part pour les cartes japonaises : c'est leur prix à elles (tous états)",
+                  "Cardmarket lists Japanese prints as products of their own: this is their price (every condition)",
+                )}
+              >
+                {t("Cardmarket · cartes japonaises", "Cardmarket · Japanese cards")}
               </span>
             ) : (
               <span title={t("Le guide de prix Cardmarket mélange toutes les langues et tous les états", "Cardmarket's price guide mixes every language and condition")}>
@@ -273,7 +285,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
           <a
             href={
               !english
-                ? `https://www.cardmarket.com/${t("fr", "en")}/Pokemon/Products/Search?searchString=${encodeURIComponent(card.name)}`
+                ? `https://www.cardmarket.com/${t("fr", "en")}/Pokemon/Products/Search?searchString=${encodeURIComponent(searchName)}`
                 : card.price.tp
                   ? `https://www.tcgplayer.com/product/${card.price.tp}`
                   : `https://www.tcgplayer.com/search/pokemon/product?q=${encodeURIComponent(card.name)}`
