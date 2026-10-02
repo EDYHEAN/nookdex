@@ -34,6 +34,8 @@ interface Props {
    * biggest paint (the 463 KB room on phones), not an invisible one.
    */
   veiled?: boolean;
+  /** a phone's binder is open over it: faded out and not drawn, its big pictures and layers are memory the binder needs */
+  behind?: boolean;
 }
 
 interface Tip {
@@ -73,7 +75,7 @@ function useCamera(compact: boolean) {
   }, [vp.w, vp.h, compact]);
 }
 
-export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, veiled }: Props) {
+export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, veiled, behind }: Props) {
   const uiLang = useLang();
   /** "EN" on an English binder of the French site (and the other way round): the language it isn't in */
   const langTag = (b: BinderDef) => (b.lang && b.lang !== uiLang ? langLabel(b.lang, uiLang) : null);
@@ -240,7 +242,10 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   let binderIndex = 0;
 
   return (
-    <div className={`${styles.stage} ${compact ? styles.compact : ""} ${paused ? styles.paused : ""}`} style={veiled ? { visibility: "hidden" } : undefined}>
+    <div
+      className={`${styles.stage} ${compact ? styles.compact : ""} ${paused ? styles.paused : ""}`}
+      style={veiled ? { visibility: "hidden" } : behind ? { visibility: "hidden", opacity: 0, transition: "opacity 0.3s, visibility 0s 0.3s" } : { transition: "opacity 0.3s" }}
+    >
       {compact && <CompactHeader />}
 
       <div className={styles.scene} style={sceneStyle}>
