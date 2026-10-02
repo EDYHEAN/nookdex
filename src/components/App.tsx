@@ -40,6 +40,8 @@ export function App() {
   const [about, setAbout] = useState(false);
   // Back from Google or the e-mail link: the player already went in, no loader again.
   const [entered, setEntered] = useState(returningFromSignIn);
+  /** the loader started melting away: the room shows through */
+  const [revealed, setRevealed] = useState(false);
   const profile = useStore((s) => s.profile);
   const cloud = useCloud();
   const offline = useStore((s) => s.offline);
@@ -155,6 +157,7 @@ export function App() {
         onOpenComputer={(r) => setComputer({ x: r.left + r.width / 2, y: r.top + r.height / 2 })}
         onAddBinder={() => setAdding(true)}
         onOpenAbout={() => setAbout(true)}
+        veiled={!entered && !revealed}
       />
 
       {openBinder && (
@@ -281,7 +284,7 @@ export function App() {
           />
         )}
       {tour && <Tour onDone={() => setTour(false)} />}
-      {!entered && <Loader onEnter={() => setEntered(true)} />}
+      {!entered && <Loader onLeave={() => setRevealed(true)} onEnter={() => setEntered(true)} />}
       <Grain />
     </>
   );

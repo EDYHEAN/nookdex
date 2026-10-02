@@ -29,6 +29,11 @@ interface Props {
   onAddBinder: () => void;
   /** the notebook among the books: "about" */
   onOpenAbout: () => void;
+  /**
+   * Under the loader: drawn and downloading, but invisible. Browsers count a hidden-behind picture as the page's
+   * biggest paint (the 463 KB room on phones), not an invisible one.
+   */
+  veiled?: boolean;
 }
 
 interface Tip {
@@ -68,7 +73,7 @@ function useCamera(compact: boolean) {
   }, [vp.w, vp.h, compact]);
 }
 
-export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout }: Props) {
+export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, veiled }: Props) {
   const uiLang = useLang();
   /** "EN" on an English binder of the French site (and the other way round): the language it isn't in */
   const langTag = (b: BinderDef) => (b.lang && b.lang !== uiLang ? langLabel(b.lang, uiLang) : null);
@@ -235,14 +240,16 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   let binderIndex = 0;
 
   return (
-    <div className={`${styles.stage} ${compact ? styles.compact : ""} ${paused ? styles.paused : ""}`}>
+    <div className={`${styles.stage} ${compact ? styles.compact : ""} ${paused ? styles.paused : ""}`} style={veiled ? { visibility: "hidden" } : undefined}>
       {compact && <CompactHeader />}
 
       <div className={styles.scene} style={sceneStyle}>
         <div ref={world} className={styles.layer}>
-          <img className={styles.plate} src={sceneImg("plate.webp")} alt="" draggable={false} />
+          {/* low priority: the loader's logo goes first */}
+          {/* low priority: the loader's logo is fetched first */}
+          <img className={styles.plate} src={sceneImg("plate.webp")} alt="" draggable={false} fetchPriority="low" />
           {/* the same room on a sunny afternoon, faded in over the rainy night */}
-          <img className={`${styles.plate} ${styles.dayPlate} ${daytime ? "" : styles.off}`} src={sceneImg("day.webp")} alt="" draggable={false} />
+          <img className={`${styles.plate} ${styles.dayPlate} ${daytime ? "" : styles.off}`} src={sceneImg("day.webp")} alt="" draggable={false} fetchPriority="low" />
 
           {/* the sky behind the glass: night city in the rain, or sunny afternoon */}
           <div className={styles.sky} style={{ ...place(SCENE.window), maskImage: windowMask, WebkitMaskImage: windowMask }}>

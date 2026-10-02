@@ -63,12 +63,15 @@ function ico(pngs) {
   return Buffer.concat([header, dir, ...pngs.map((p) => p.data)]);
 }
 
+/** Big icons as palette PNGs: a quarter of the weight, no visible change (the manifest icon is fetched on load). */
+const light = (png) => sharp(png).png({ palette: true, quality: 90, effort: 10, compressionLevel: 9 }).toBuffer();
+
 const small = await Promise.all([16, 32, 48].map(async (size) => ({ size, data: await roundIcon(size) })));
 await writeFile("src/app/favicon.ico", ico(small));
-await writeFile("src/app/icon.png", await roundIcon(192));
-await writeFile("src/app/apple-icon.png", await paperIcon(180, 0.78, false));
-await writeFile("public/icon-512.png", await paperIcon(512, 0.8, true));
-await writeFile("public/icon-maskable-512.png", await paperIcon(512, 0.6, false));
+await writeFile("src/app/icon.png", await light(await roundIcon(192)));
+await writeFile("src/app/apple-icon.png", await light(await paperIcon(180, 0.78, false)));
+await writeFile("public/icon-512.png", await light(await paperIcon(512, 0.8, true)));
+await writeFile("public/icon-maskable-512.png", await light(await paperIcon(512, 0.6, false)));
 
 // share image: the sunny room, with the logo on a strip of paper taped over it
 {

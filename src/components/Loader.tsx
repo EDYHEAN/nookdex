@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { shelfBinders } from "@/lib/binders";
 import { loadSets, neededSets, useSets } from "@/lib/catalog";
-import { SCENE, sceneImg } from "@/lib/scene";
+import { LOGO_IMG_SIZES, SCENE, logoSrcSet, sceneImg } from "@/lib/scene";
 import { SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { useLang } from "@/lib/lang";
@@ -56,8 +56,10 @@ function assetsToPreload() {
 const L = SCENE.logo;
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 
-export function Loader({ onEnter }: { onEnter: () => void }) {
+export function Loader({ onLeave, onEnter }: { onLeave: () => void; onEnter: () => void }) {
   const [progress, setProgress] = useState(0);
+  /** The logo is painted: only then the room's pictures start, so on a slow phone they don't hold the logo back */
+  const [logoShown, setLogoShown] = useState(false);
   const [ready, setReady] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [tip, setTip] = useState(() => Math.floor(Math.random() * TIPS.length));
@@ -65,6 +67,7 @@ export function Loader({ onEnter }: { onEnter: () => void }) {
   const tips = en ? TIPS_EN : TIPS;
 
   useEffect(() => {
+    if (!logoShown) return;
     let alive = true;
     const started = performance.now();
     let total = 2;
@@ -73,6 +76,7 @@ export function Loader({ onEnter }: { onEnter: () => void }) {
     const preload = (src: string) =>
       new Promise<void>((resolve) => {
         const img = new Image();
+        img.fetchPriority = "low";
         img.onload = img.onerror = () => {
           tick();
           resolve();
@@ -103,7 +107,7 @@ export function Loader({ onEnter }: { onEnter: () => void }) {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [logoShown]);
 
   useEffect(() => {
     const t = setInterval(() => setTip((i) => (i + 1) % TIPS.length), 2600);
@@ -115,6 +119,7 @@ export function Loader({ onEnter }: { onEnter: () => void }) {
     sfx.boot();
     sfx.coverOpen();
     setLeaving(true);
+    onLeave();
     setTimeout(onEnter, 700);
   };
 
@@ -134,7 +139,21 @@ export function Loader({ onEnter }: { onEnter: () => void }) {
   return (
     <div className={`${styles.loader} ${leaving ? styles.leaving : ""}`} onClick={enter}>
       <div className={styles.art} style={{ aspectRatio: `${L.width} / ${L.height}` }}>
-        <img className={styles.paper} src={sceneImg("logo-paper.webp")} alt={SITE_NAME} draggable={false} />
+        <img
+          className={styles.paper}
+          src={sceneImg("logo-paper-1400.webp")}
+          srcSet={logoSrcSet}
+          sizes={LOGO_IMG_SIZES}
+          fetchPriority="high"
+          alt={SITE_NAME}
+          draggable={false}
+          ref={(img) => {
+            // already in the cache (preloaded): onLoad may have fired before React listened
+            if (img?.complete && !logoShown) setLogoShown(true);
+          }}
+          onLoad={() => setLogoShown(true)}
+          onError={() => setLogoShown(true)}
+        />
         <img
           className={`${styles.ball} ${ready ? styles.caught : ""}`}
           src={sceneImg("logo-ball.webp")}

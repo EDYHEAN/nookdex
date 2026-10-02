@@ -545,7 +545,14 @@ await sharp(`${SRC}/sky-day.jpg`).resize(1600).webp({ quality: 80 }).toFile(`${O
     }
   }
   out.letters = letters;
-  await sharp(paper, { raw: { width: LW, height: LH, channels: 3 } }).webp({ quality: 88 }).toFile(`${OUT}/logo-paper.webp`);
+  // The loader's picture, and the page's first big paint: three widths, the browser takes the one the screen needs
+  // (src/lib/scene.ts LOGO_SIZES). The full 2816 px one weighed 209 KB and held the loader back on phones.
+  for (const w of [720, 1400, LW]) {
+    await sharp(paper, { raw: { width: LW, height: LH, channels: 3 } })
+      .resize({ width: w })
+      .webp({ quality: w === LW ? 78 : 80, effort: 6 })
+      .toFile(`${OUT}/logo-paper-${w}.webp`);
+  }
   meta.logo = out;
 }
 
