@@ -117,10 +117,11 @@ const RATE = EN ? await eurUsd() : null;
 
 /**
  * Japanese cards have Japanese names only: the French and English names of their Pokémon (PokéAPI, by National Dex
- * number) let a French or English player find them ("pikachu", "dracaufeu").
+ * number) let a French or English player find them ("pikachu", "dracaufeu"). The Japanese names find the Pokémon of a
+ * card TCGdex gives no dex number for (one in seven, ex: S12 Lugia V).
  */
 async function pokemonNames() {
-  const query = `{ pokemon_v2_pokemonspeciesname(where: {pokemon_v2_language: {name: {_in: ["fr", "en"]}}}) { name pokemon_species_id pokemon_v2_language { name } } }`;
+  const query = `{ pokemon_v2_pokemonspeciesname(where: {pokemon_v2_language: {name: {_in: ["fr", "en", "ja-Hrkt"]}}}) { name pokemon_species_id pokemon_v2_language { name } } }`;
   const res = await fetch("https://beta.pokeapi.co/graphql/v1beta", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -135,11 +136,23 @@ async function pokemonNames() {
   return names;
 }
 const NAMES = JA ? await pokemonNames() : null;
+/** Japanese species names, longest first: "ミュウツー" (Mewtwo) must win over "ミュウ" (Mew) */
+const JA_NAMES = JA
+  ? [...NAMES].flatMap(([id, n]) => (n["ja-Hrkt"]?.length > 1 ? [[n["ja-Hrkt"], id]] : [])).sort((a, b) => b[0].length - a[0].length)
+  : [];
+
+/** Dex numbers of a card: TCGdex's, else the Pokémon whose Japanese name is in the card's ("ルギアV" -> Lugia). */
+function dexOf(d) {
+  if (d?.dexId?.length) return d.dexId;
+  if (d?.category !== "Pokemon" || !d.name) return [];
+  const hit = JA_NAMES.find(([name]) => d.name.includes(name));
+  return hit ? [hit[1]] : [];
+}
 
 /** "Dracaufeu · Charizard", "Pikachu" (same in both), "Pikachu · Zekrom" for a tag team; null for a trainer. */
 function akaOf(d) {
   const out = new Set();
-  for (const id of d?.dexId ?? []) {
+  for (const id of dexOf(d)) {
     const n = NAMES.get(id);
     if (n?.fr) out.add(n.fr);
     if (n?.en) out.add(n.en);
