@@ -118,6 +118,20 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
   const fRef = useRef(0);
   const [fast, setFast] = useState(false);
   const [phase, setPhase] = useState<"enter" | "open" | "closing">("enter");
+  /** leaves in the middle of a turn, and the leaves resting flipped (on the left) once their turn is over */
+  const [anim, setAnim] = useState<ReadonlySet<number>>(() => new Set());
+  const [rest, setRest] = useState<ReadonlySet<number>>(() => new Set());
+  const onTurn = useCallback((i: number, flipped: boolean, done: boolean) => {
+    const put = (s: ReadonlySet<number>, on: boolean) => {
+      if (s.has(i) === on) return s;
+      const n = new Set(s);
+      if (on) n.add(i);
+      else n.delete(i);
+      return n;
+    };
+    setAnim((s) => put(s, !done));
+    if (done) setRest((s) => put(s, flipped));
+  }, []);
   /** pocket index of the card shown in the inspector */
   const [inspect, setInspect] = useState<number | null>(null);
   /** empty pocket being filled (free binder) */
@@ -409,6 +423,20 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
 
   const inspectIndex = inspect == null ? -1 : browsable.findIndex((p) => p.index === inspect);
 
+  // A leaf turns from the render that flips it (not a frame later, when its animation starts) until it lands:
+  // in between it must stay drawn and on top, or it vanishes for a frame and then turns over itself.
+  const turning = leaves.map((_, i) => anim.has(i) || i < f !== rest.has(i));
+  // Leaves lying flat under another one are hidden: on a phone each drawn leaf is a full-screen 3D layer,
+  // and the 20-odd pages of a big set were enough to run Safari out of memory.
+  let topRight = leaves.length;
+  let topLeft = -1;
+  turning.forEach((moving, i) => {
+    if (moving) return;
+    if (i >= f) topRight = Math.min(topRight, i);
+    else topLeft = i;
+  });
+  const covered = (i: number) => !turning[i] && (i >= f ? i > topRight : single || i < topLeft);
+
   return (
     <motion.div
       className={styles.overlay}
@@ -461,7 +489,8 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
         className={styles.wrapper}
         style={{ left, top, width: spreadW, height: pageH, ["--pw" as string]: `${pageW}px`, ["--ph" as string]: `${pageH}px` }}
         initial={below}
-        animate={leaving ? dropped : { y: 0, rotateX: 0, scale: 1, opacity: 1, filter: "blur(0px)" }}
+        // no filter left once landed: even blur(0px) keeps the whole binder in an offscreen copy and flattens its 3D in Safari
+        animate={leaving ? dropped : { y: 0, rotateX: 0, scale: 1, opacity: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } }}
         transition={
           leaving
             ? { duration: 0.42, ease: [0.55, 0, 0.8, 0.2] }
@@ -509,8 +538,10 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
               index={i}
               total={leaves.length}
               flipped={i < f}
+              moving={turning[i]}
+              covered={covered(i)}
+              onTurn={onTurn}
               fast={fast}
-              single={single}
               left={single ? 0 : pageW + gap}
               pivot={single ? 0 : -gap / 2}
               width={pageW}
@@ -576,8 +607,12 @@ interface LeafProps {
   index: number;
   total: number;
   flipped: boolean;
+  /** turning (from the parent: it knows from the very render that flips the leaf) */
+  moving: boolean;
+  /** flat under another leaf: not drawn */
+  covered: boolean;
+  onTurn: (index: number, flipped: boolean, done: boolean) => void;
   fast: boolean;
-  single: boolean;
   left: number;
   pivot: number;
   width: number;
@@ -586,28 +621,29 @@ interface LeafProps {
   back: ReactNode;
 }
 
-function Leaf({ index, total, flipped, fast, single, left, pivot, width, color, front, back }: LeafProps) {
+function Leaf({ index, total, flipped, moving, covered, onTurn, fast, left, pivot, width, color, front, back }: LeafProps) {
   const rot = useMotionValue(flipped ? -180 : 0);
-  const [moving, setMoving] = useState(false);
   const shade = useTransform(rot, [0, -90, -180], [0, 0.5, 0]);
   const blur = useTransform(rot, [0, -90, -180], ["blur(0px)", "blur(1.4px)", "blur(0px)"]);
   const sheen = useTransform(rot, [0, -180], ["-60%", "160%"]);
 
   useEffect(() => {
     const target = flipped ? -180 : 0;
-    if (rot.get() === target) return;
+    if (rot.get() === target) {
+      onTurn(index, flipped, true);
+      return;
+    }
     const ctrl = animate(rot, target, {
       duration: fast ? 0.3 : 0.52,
       ease: [0.33, 0, 0.15, 1],
-      onPlay: () => setMoving(true),
-      onComplete: () => setMoving(false),
+      onPlay: () => onTurn(index, flipped, false),
+      onComplete: () => onTurn(index, flipped, true),
     });
     return () => ctrl.stop();
-  }, [flipped, fast, rot]);
+  }, [flipped, fast, rot, index, onTurn]);
 
   // While turning, the leaf goes on top; among several turning leaves, the last one launched wins.
   const z = moving ? total * 3 + (flipped ? index : total - index) : flipped ? index + 1 : total * 2 - index;
-  const hidden = single && flipped && !moving;
   const isCover = index === 0;
 
   return (
@@ -620,7 +656,7 @@ function Leaf({ index, total, flipped, fast, single, left, pivot, width, color, 
         rotateY: rot,
         transformPerspective: 2400,
         originX: `${pivot}px`,
-        visibility: hidden ? "hidden" : "visible",
+        visibility: covered ? "hidden" : "visible",
         ["--leaf" as string]: color,
       }}
     >
