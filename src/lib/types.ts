@@ -13,6 +13,10 @@ export interface CardPrice {
   avg30?: number | null;
   avg7Holo?: number | null;
   avg30Holo?: number | null;
+  /** English cards: TCGplayer product id (the "see on TCGplayer" link) */
+  tp?: number;
+  /** English cards TCGplayer doesn't sell: Cardmarket's price, converted to dollars */
+  cm?: true;
 }
 
 export interface CardData {
@@ -37,6 +41,8 @@ export interface SetData {
   official: number | null;
   releaseDate: string | null;
   pricesUpdated: string;
+  /** English files: prices in dollars (TCGplayer). Absent: Cardmarket euros. */
+  currency?: "USD";
   cards: CardData[];
 }
 
@@ -45,7 +51,7 @@ export interface Copy {
   variant: Variant;
   condition: Condition;
   qty: number;
-  /** What this copy cost, in €. 0 = pulled from a booster, null = not filled in. */
+  /** What this copy cost, in the site's currency (€ in French, $ in English). 0 = pulled from a booster, null = not filled in. */
   paid: number | null;
   addedAt: number;
   /** Sits in a pocket of a free binder. Absent = it lives in its own set's binder. */

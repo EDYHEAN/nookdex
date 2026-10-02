@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MAX_BINDERS, pocketsOf, shelfBinders } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
-import { copiesTotals, formatEur, setStats } from "@/lib/price";
+import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, OS_NAME } from "@/lib/site";
 import { sfx, startAmbient, stopAmbient } from "@/lib/sound";
@@ -210,11 +210,11 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
       const set = sets[b.setId];
       if (!set) return { sub: `${b.code} · ${catalogTotal(b)} ${tr("cartes", "cards")}`, pct: null };
       const st = setStats(set, collection);
-      return { sub: `${st.owned}/${st.total} ${tr("cartes", "cards")} · ${formatEur(st.trend)}`, pct: st.total ? st.owned / st.total : 0 };
+      return { sub: `${st.owned}/${st.total} ${tr("cartes", "cards")} · ${formatMoney(st.trend)}`, pct: st.total ? st.owned / st.total : 0 };
     }
     const items = [...pocketsOf(b.id, collection).values()].flatMap(({ cardId, copy }) => (cards[cardId] ? [{ card: cards[cardId], copies: [copy] }] : []));
     const t = copiesTotals(items);
-    return { sub: t.cards ? `${t.cards} ${tr("carte", "card")}${t.cards > 1 ? "s" : ""} · ${formatEur(t.trend)}` : tr("classeur libre · vide", "free binder · empty"), pct: null };
+    return { sub: t.cards ? `${t.cards} ${tr("carte", "card")}${t.cards > 1 ? "s" : ""} · ${formatMoney(t.trend)}` : tr("classeur libre · vide", "free binder · empty"), pct: null };
   };
   const plusSlot = binders.length < MAX_BINDERS ? SCENE.slots[binders.length] : null;
   /** the binder on its left shows its side cover over part of the sketch */
@@ -610,7 +610,7 @@ function CompactHeader() {
         <span>{NAME_PARTS[1]}</span>
       </h1>
       <p>
-        {t.total ? `${t.owned}/${t.total}` : t.cards} {tr("cartes", "cards")} · <b>{formatEur(t.trend)}</b>
+        {t.total ? `${t.owned}/${t.total}` : t.cards} {tr("cartes", "cards")} · <b>{formatMoney(t.trend)}</b>
       </p>
     </header>
   );

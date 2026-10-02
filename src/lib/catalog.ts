@@ -3,8 +3,9 @@
 import { create } from "zustand";
 import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
+import eurUsd from "@/data/eur-usd.json";
 import { currentLang } from "./lang";
-import type { CardData, CatalogSet, Copy, SetData, UserBinder } from "./types";
+import type { CardData, CardPrice, CatalogSet, Copy, SetData, UserBinder } from "./types";
 
 const FR = rawFr as CatalogSet[];
 const EN = rawEn as CatalogSet[];
@@ -54,6 +55,21 @@ export const useSets = create<Sets>(() => ({ sets: {}, cards: {}, index: null, a
 
 const pending = new Map<string, Promise<SetData>>();
 
+const usd = (n: number | null) => (n == null ? null : Math.round(n * eurUsd.rate * 100) / 100);
+function inDollars(p: CardPrice): CardPrice {
+  const priced = p.low != null || p.trend != null || p.lowHolo != null || p.trendHolo != null;
+  return { ...p, low: usd(p.low), trend: usd(p.trend), lowHolo: usd(p.lowHolo), trendHolo: usd(p.trendHolo), ...(priced ? { cm: true as const } : {}) };
+}
+
+/**
+ * The English site counts in dollars (TCGplayer). A file still in Cardmarket euros (a set only in French, an English
+ * extra set fetched before the dollars): its prices converted, flagged as Cardmarket's.
+ */
+function inSiteCurrency(set: SetData): SetData {
+  if (!english() || set.currency === "USD") return set;
+  return { ...set, currency: "USD", cards: set.cards.map((c) => ({ ...c, price: inDollars(c.price) })) };
+}
+
 export function loadSet(id: string): Promise<SetData> {
   const done = useSets.getState().sets[id];
   if (done) return Promise.resolve(done);
@@ -66,6 +82,7 @@ export function loadSet(id: string): Promise<SetData> {
         if (!r.ok) throw new Error(`set ${id}: ${r.status}`);
         return r.json() as Promise<SetData>;
       })
+      .then(inSiteCurrency)
       .then((set) => {
         useSets.setState((s) => {
           const cards = { ...s.cards };

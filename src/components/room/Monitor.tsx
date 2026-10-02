@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, type CSSProperties } from "react";
-import { formatEur } from "@/lib/price";
+import { formatMoney } from "@/lib/price";
 import { quadMatrix } from "@/lib/scene";
 import { OS_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
@@ -56,7 +56,7 @@ export function Monitor({ style, quad, onOpen, onHover, onLeave }: Props) {
           <p className={styles.bar}>
             <span style={{ width: `${t.pct}%` }} />
           </p>
-          <p className={styles.money}>{formatEur(t.trend)}</p>
+          <p className={styles.money}>{formatMoney(t.trend)}</p>
           <p className={styles.cta}>
             <span className={styles.ctaArrow}>▶</span>
             <span className={styles.ctaText}>{tr("OUVRIR", "OPEN")}</span>

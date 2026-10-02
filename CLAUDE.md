@@ -27,7 +27,9 @@ doesn't show.
   `index.json` for the free-binder search), `public/logos/`, `src/data/catalog.json`. Binder sets = recent series
   (`me`, `sv`, `swsh`); every other set is `extra` (search only).
 - Prices: Cardmarket via TCGdex (`low`, `trend`, `-holo` variants, `avg7`/`avg30` for the ↗ ↘ arrow). A card TCGdex
-  doesn't price shows "—", never "0,00 €", and stays out of gains.
+  doesn't price shows "—", never "0,00 €", and stays out of gains. Cardmarket's guide is per product: it mixes every
+  language. No API gives Cardmarket prices per card language (the official API is closed to new apps; the "FR prices"
+  of resellers are the seller's country). English cards are priced on TCGplayer instead (see Languages).
 - A card TCGdex stops listing is never dropped: kept with its last prices, `unavailable: true`, shown as a painted card
   back stamped "Bientôt de retour" (`CardBack`). The 30 classic cards of the 30th Anniversary are in that state.
 
@@ -41,7 +43,12 @@ doesn't show.
   no header = French). Each notebook page has a French and an English version in the same file.
 - Card data in English: `fetch-set --lang=en` writes `public/sets/en/`, `public/logos/en/`, `src/data/catalog-en.json`
   (same card ids). `lib/catalog.ts` picks the language's files and falls back to the French ones (set missing in
-  English, English data not fetched yet). Prices are the same Cardmarket prices, shown as €12.50 in English.
+  English, English data not fetched yet).
+- English cards are priced on TCGplayer (US market, English cards) in dollars: `marketPrice` as the trend, `lowPrice`
+  as the low, `tp` = product id for the link; the arrow keeps Cardmarket's averages. A card TCGplayer doesn't sell
+  (Trainer Galleries, Shiny Vault, 30th for now) gets Cardmarket's price converted at the ECB rate
+  (`src/data/eur-usd.json`, refreshed by fetch-set), flagged `cm`. English files carry `currency: "USD"`; a file
+  without it (French fallback) is converted on load (`lib/catalog.ts`). The purchase price is in the site's currency.
 - `src/data/about.ts` holds the notebook text in both languages (`ABOUT`, `ABOUT_EN`).
 - Supabase auth e-mails stay French only (one template per kind in Supabase).
 

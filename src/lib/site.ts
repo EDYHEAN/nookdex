@@ -16,7 +16,7 @@ export const OS_NAME = `${SITE_NAME.toUpperCase()} OS`;
 export const SITE_DESCRIPTION =
   "Range ta collection de cartes Pokémon dans des classeurs, sur un petit bureau peint à la main : suivi de tes extensions, prix Cardmarket, wishlist et doublons.";
 export const SITE_DESCRIPTION_EN =
-  "File your Pokémon card collection in binders, on a little hand-painted desk: track your sets, Cardmarket prices, wishlist and duplicates.";
+  "File your Pokémon card collection in binders, on a little hand-painted desk: track your sets, TCGplayer prices, wishlist and duplicates.";
 
 /** Server pages (the legal notebook, the page text) read the language from this cookie, kept in step with the app. */
 export const LANG_COOKIE = "nookdex-lang";

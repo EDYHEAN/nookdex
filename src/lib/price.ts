@@ -4,22 +4,22 @@ import type { CardData, Copy, SetData, Variant } from "./types";
 type Kind = "low" | "trend";
 
 /**
- * Cardmarket price of a variant, or null when the card isn't for sale there (TCGdex then leaves Cardmarket out).
- * Cardmarket lists reverse holos as the "holo" version of the product.
+ * Price of a variant (Cardmarket in French, TCGplayer in English), or null when the card isn't for sale there.
+ * Both list reverse holos as the "holo" version of the product, and so the holo of a card that also comes plain.
  */
 export function priceOf(card: CardData, variant: Variant, kind: Kind): number | null {
   const p = card.price;
-  if (variant === "reverse") {
+  if (variant === "reverse" || (variant === "holo" && card.variants.includes("normal"))) {
     const holo = kind === "low" ? p.lowHolo : p.trendHolo;
     if (holo) return holo;
   }
   return (kind === "low" ? p.low : p.trend) ?? null;
 }
 
-/** For sums: a card without a Cardmarket price adds nothing. */
+/** For sums: a card without a price adds nothing. */
 export const unitPrice = (card: CardData, variant: Variant, kind: Kind): number => priceOf(card, variant, kind) ?? 0;
 
-/** A card's price is known (it's sold on Cardmarket). */
+/** A card's price is known (it's sold on Cardmarket, or TCGplayer in English). */
 export const hasPrice = (card: CardData, variant: Variant) => priceOf(card, variant, "trend") != null;
 
 /** Where the price is heading: last 7 days' average against the last 30 days' (null when too flat or unknown). */
@@ -58,9 +58,9 @@ export interface SetStats {
   low: number;
   trend: number;
   copies: number;
-  /** € spent on the copies that have a purchase price */
+  /** Money spent on the copies that have a purchase price */
   spent: number;
-  /** Cardmarket trend of those same copies, to compute a gain */
+  /** Trend of those same copies, to compute a gain */
   spentTrend: number;
 }
 
@@ -88,12 +88,16 @@ export function setStats(set: SetData, collection: Record<string, Copy[]>): SetS
   return s;
 }
 
-// Cardmarket prices are in euros, written the visitor's way: 12,50 € or €12.50
-const EUR = { fr: new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }), en: new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" }) };
-export const formatEur = (n: number) => EUR[currentLang()].format(n);
-/** A card's price, or a dash when it isn't sold on Cardmarket (never "0,00 €", which reads as worthless). */
-export const formatPrice = (n: number | null) => (n == null ? "—" : formatEur(n));
-export const noPriceText = () => (currentLang() === "en" ? "Not for sale on Cardmarket right now" : "Pas en vente sur Cardmarket en ce moment");
+// French cards: Cardmarket euros (12,50 €). English cards: TCGplayer dollars ($12.50). A French card and its English
+// twin don't sell for the same price, so each language keeps its own market and currency.
+const MONEY = {
+  fr: new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }),
+  en: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }),
+};
+export const formatMoney = (n: number) => MONEY[currentLang()].format(n);
+/** A card's price, or a dash when it isn't for sale (never "0,00 €", which reads as worthless). */
+export const formatPrice = (n: number | null) => (n == null ? "—" : formatMoney(n));
+export const noPriceText = () => (currentLang() === "en" ? "Not for sale on TCGplayer right now" : "Pas en vente sur Cardmarket en ce moment");
 
 export type Tier = "common" | "rare" | "legend";
 

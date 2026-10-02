@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { pocketsOf, shelfBinders } from "@/lib/binders";
 import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { resolveConflict, signIn, signInWithGoogle, signOut, useCloud } from "@/lib/cloud";
-import { variantLabel, copiesTotals, formatEur, formatPrice, priceOf, setStats, unitPrice } from "@/lib/price";
+import { variantLabel, copiesTotals, formatMoney, formatPrice, priceOf, setStats, unitPrice } from "@/lib/price";
 import { OS_NAME, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { isBackup, makeBackup, useStore } from "@/lib/store";
@@ -218,11 +218,11 @@ function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void 
         ) : (
           <Tile label={tr("Cartes", "Cards")} value={String(t.cards)} sub={`${t.copies} ${tr("exemplaires", "copies")}`} big />
         )}
-        <Tile label={tr("Valeur (tendance)", "Value (trend)")} value={formatEur(t.trend)} sub={`${tr("prix bas", "low")} ${formatEur(t.low)}`} accent="yellow" />
-        <Tile label={tr("Dépensé", "Spent")} value={formatEur(t.spent)} sub={tr("sur les cartes avec un prix d'achat", "on cards with a purchase price")} />
+        <Tile label={tr("Valeur (tendance)", "Value (trend)")} value={formatMoney(t.trend)} sub={`${tr("prix bas", "low")} ${formatMoney(t.low)}`} accent="yellow" />
+        <Tile label={tr("Dépensé", "Spent")} value={formatMoney(t.spent)} sub={tr("sur les cartes avec un prix d'achat", "on cards with a purchase price")} />
         <Tile
           label={tr("Plus-value", "Gain")}
-          value={`${gain >= 0 ? "+" : ""}${formatEur(gain)}`}
+          value={`${gain >= 0 ? "+" : ""}${formatMoney(gain)}`}
           sub={tr("tendance − prix payé", "trend − price paid")}
           accent={gain >= 0 ? "green" : "red"}
         />
@@ -242,7 +242,7 @@ function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void 
               <span className={styles.freeTag}>{tr("classeur libre", "free binder")}</span>
             )}
             <span className={styles.num}>{count}</span>
-            <span className={styles.money}>{formatEur(trend)}</span>
+            <span className={styles.money}>{formatMoney(trend)}</span>
           </div>
         ))}
         {!rows.length && <p className={styles.muted}>{tr("Aucun classeur : clique sur le + de l'étagère.", "No binder: click the + on the shelf.")}</p>}
@@ -309,7 +309,7 @@ function Wishlist({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: stri
     <div className={styles.listTab}>
       <div className={styles.toolbar}>
         <p>
-          <b>{missing.length}</b> {tr("cartes manquantes · compléter ≈", "missing cards · to complete ≈")} <b className={styles.money}>{formatEur(total)}</b>
+          <b>{missing.length}</b> {tr("cartes manquantes · compléter ≈", "missing cards · to complete ≈")} <b className={styles.money}>{formatMoney(total)}</b>
         </p>
         <div className={styles.actions}>
           <button
@@ -356,7 +356,7 @@ function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string)
     <div className={styles.listTab}>
       <div className={styles.toolbar}>
         <p>
-          <b>{dupes.length}</b> {tr("cartes en double · valeur des doubles ≈", "duplicate cards · duplicates worth ≈")} <b className={styles.money}>{formatEur(value)}</b>
+          <b>{dupes.length}</b> {tr("cartes en double · valeur des doubles ≈", "duplicate cards · duplicates worth ≈")} <b className={styles.money}>{formatMoney(value)}</b>
         </p>
         <div className={styles.actions}>
           <button className={styles.btn} onClick={() => onCopy(text(), tr("doublons copiés !", "duplicates copied!"))} disabled={!dupes.length}>

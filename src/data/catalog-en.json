@@ -7,7 +7,7 @@
   "code": "30C",
   "logo": "/logos/en/30th",
   "releaseDate": "2026-09-16",
-  "total": 158,
+  "total": 161,
   "subs": [
    "30th-c"
   ]
@@ -79,17 +79,6 @@
   "subs": []
  },
  {
-  "id": "sv10.5w",
-  "serie": "sv",
-  "serieName": "Scarlet & Violet",
-  "name": "White Flare",
-  "code": "WHT",
-  "logo": "/logos/en/sv10.5w",
-  "releaseDate": "2025-07-17",
-  "total": 173,
-  "subs": []
- },
- {
   "id": "sv10.5b",
   "serie": "sv",
   "serieName": "Scarlet & Violet",
@@ -98,6 +87,17 @@
   "logo": "/logos/en/sv10.5b",
   "releaseDate": "2025-07-17",
   "total": 172,
+  "subs": []
+ },
+ {
+  "id": "sv10.5w",
+  "serie": "sv",
+  "serieName": "Scarlet & Violet",
+  "name": "White Flare",
+  "code": "WHT",
+  "logo": "/logos/en/sv10.5w",
+  "releaseDate": "2025-07-17",
+  "total": 173,
   "subs": []
  },
  {
@@ -514,18 +514,6 @@
   "extra": true
  },
  {
-  "id": "sm115",
-  "serie": "sm",
-  "serieName": "Sun & Moon",
-  "name": "Hidden Fates",
-  "code": "HIF",
-  "logo": "https://assets.tcgdex.net/en/sm/sm115/logo",
-  "releaseDate": "2019-08-23",
-  "total": 69,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "sma",
   "serie": "sm",
   "serieName": "Sun & Moon",
@@ -534,6 +522,18 @@
   "logo": null,
   "releaseDate": "2019-08-23",
   "total": 94,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sm115",
+  "serie": "sm",
+  "serieName": "Sun & Moon",
+  "name": "Hidden Fates",
+  "code": "HIF",
+  "logo": "https://assets.tcgdex.net/en/sm/sm115/logo",
+  "releaseDate": "2019-08-23",
+  "total": 69,
   "subs": [],
   "extra": true
  },
@@ -670,18 +670,6 @@
   "extra": true
  },
  {
-  "id": "smp",
-  "serie": "sm",
-  "serieName": "Sun & Moon",
-  "name": "SM Black Star Promos",
-  "code": "SMP",
-  "logo": "https://assets.tcgdex.net/en/sm/smp/logo",
-  "releaseDate": "2017-02-03",
-  "total": 181,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "sm1",
   "serie": "sm",
   "serieName": "Sun & Moon",
@@ -690,6 +678,18 @@
   "logo": "https://assets.tcgdex.net/en/sm/sm1/logo",
   "releaseDate": "2017-02-03",
   "total": 172,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "smp",
+  "serie": "sm",
+  "serieName": "Sun & Moon",
+  "name": "SM Black Star Promos",
+  "code": "SMP",
+  "logo": "https://assets.tcgdex.net/en/sm/smp/logo",
+  "releaseDate": "2017-02-03",
+  "total": 181,
   "subs": [],
   "extra": true
  },

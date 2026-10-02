@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { catalog, loadIndex, useSets, type IndexCard } from "@/lib/catalog";
-import { formatEur } from "@/lib/price";
+import { formatMoney } from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import { CardBack } from "./CardBack";
@@ -171,7 +171,7 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
                     <b>{name}</b>
                     <small>
                       {labels.get(setId)?.label} · {num}
-                      {trend ? ` · ${formatEur(trend)}` : ""}
+                      {trend ? ` · ${formatMoney(trend)}` : ""}
                     </small>
                   </span>
                   {qty > 0 && <span className={styles.have}>×{qty}</span>}

@@ -59,8 +59,8 @@ function En() {
 
       <h2>Prices</h2>
       <p>
-        Prices come from Cardmarket through <a href="https://tcgdex.dev">TCGdex</a>. They are a guide and may be late or wrong: don&apos;t use them
-        as an official valuation.
+        Prices come from TCGplayer (or Cardmarket, converted, for cards TCGplayer doesn&apos;t sell) through{" "}
+        <a href="https://tcgdex.dev">TCGdex</a>. They are a guide and may be late or wrong: don&apos;t use them as an official valuation.
       </p>
 
       <h2>Your account</h2>

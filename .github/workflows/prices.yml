@@ -34,7 +34,8 @@ jobs:
       - name: Télécharger les prix de toutes les extensions
         run: node scripts/fetch-set.mjs --force
 
-      # les mêmes cartes en anglais, pour les visiteurs dont le navigateur est en anglais
+      # les mêmes cartes en anglais, pour les visiteurs dont le navigateur est en anglais (prix TCGplayer en dollars,
+      # + le taux euro -> dollar du jour dans src/data/eur-usd.json)
       - name: Cartes et prix en anglais
         run: node scripts/fetch-set.mjs --force --lang=en
 
@@ -42,7 +43,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/sets public/logos src/data/catalog.json src/data/catalog-en.json
+          git add public/sets public/logos src/data/catalog.json src/data/catalog-en.json src/data/eur-usd.json
           if git diff --cached --quiet; then
             echo "Aucun prix n'a bougé aujourd'hui."
             exit 0

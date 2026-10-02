@@ -55,7 +55,7 @@ export const ABOUT_EN: typeof ABOUT = {
     {
       heading: "Small print",
       paragraphs: [
-        "Card data: TCGdex. Prices: Cardmarket price guide, updated every day.",
+        "Card data: TCGdex. Prices: TCGplayer market prices (US), updated every day.",
         "This is a fan project, not affiliated with Nintendo, Creatures, GAME FREAK or The Pokémon Company. Pokémon and card names belong to their owners.",
       ],
     },
