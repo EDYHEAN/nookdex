@@ -79,17 +79,6 @@
   "subs": []
  },
  {
-  "id": "sv10.5b",
-  "serie": "sv",
-  "serieName": "Scarlet & Violet",
-  "name": "Black Bolt",
-  "code": "BLK",
-  "logo": "/logos/en/sv10.5b",
-  "releaseDate": "2025-07-17",
-  "total": 172,
-  "subs": []
- },
- {
   "id": "sv10.5w",
   "serie": "sv",
   "serieName": "Scarlet & Violet",
@@ -98,6 +87,17 @@
   "logo": "/logos/en/sv10.5w",
   "releaseDate": "2025-07-17",
   "total": 173,
+  "subs": []
+ },
+ {
+  "id": "sv10.5b",
+  "serie": "sv",
+  "serieName": "Scarlet & Violet",
+  "name": "Black Bolt",
+  "code": "BLK",
+  "logo": "/logos/en/sv10.5b",
+  "releaseDate": "2025-07-17",
+  "total": 172,
   "subs": []
  },
  {
@@ -503,18 +503,6 @@
   "extra": true
  },
  {
-  "id": "sma",
-  "serie": "sm",
-  "serieName": "Sun & Moon",
-  "name": "Hidden Fates Shiny Vault",
-  "code": "SMA",
-  "logo": null,
-  "releaseDate": "2019-08-23",
-  "total": 94,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "sm115",
   "serie": "sm",
   "serieName": "Sun & Moon",
@@ -523,6 +511,18 @@
   "logo": "https://assets.tcgdex.net/en/sm/sm115/logo",
   "releaseDate": "2019-08-23",
   "total": 69,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sma",
+  "serie": "sm",
+  "serieName": "Sun & Moon",
+  "name": "Hidden Fates Shiny Vault",
+  "code": "SMA",
+  "logo": null,
+  "releaseDate": "2019-08-23",
+  "total": 94,
   "subs": [],
   "extra": true
  },
@@ -659,18 +659,6 @@
   "extra": true
  },
  {
-  "id": "sm1",
-  "serie": "sm",
-  "serieName": "Sun & Moon",
-  "name": "Sun & Moon",
-  "code": "SUM",
-  "logo": "https://assets.tcgdex.net/en/sm/sm1/logo",
-  "releaseDate": "2017-02-03",
-  "total": 172,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "smp",
   "serie": "sm",
   "serieName": "Sun & Moon",
@@ -679,6 +667,18 @@
   "logo": "https://assets.tcgdex.net/en/sm/smp/logo",
   "releaseDate": "2017-02-03",
   "total": 181,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sm1",
+  "serie": "sm",
+  "serieName": "Sun & Moon",
+  "name": "Sun & Moon",
+  "code": "SUM",
+  "logo": "https://assets.tcgdex.net/en/sm/sm1/logo",
+  "releaseDate": "2017-02-03",
+  "total": 172,
   "subs": [],
   "extra": true
  },

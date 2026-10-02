@@ -79,17 +79,6 @@
   "subs": []
  },
  {
-  "id": "sv10.5b",
-  "serie": "sv",
-  "serieName": "Écarlate et Violet",
-  "name": "Foudre Noire",
-  "code": "BLK",
-  "logo": "/logos/sv10.5b",
-  "releaseDate": "2025-07-17",
-  "total": 172,
-  "subs": []
- },
- {
   "id": "sv10.5w",
   "serie": "sv",
   "serieName": "Écarlate et Violet",
@@ -98,6 +87,17 @@
   "logo": "/logos/sv10.5w",
   "releaseDate": "2025-07-17",
   "total": 173,
+  "subs": []
+ },
+ {
+  "id": "sv10.5b",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Foudre Noire",
+  "code": "BLK",
+  "logo": "/logos/sv10.5b",
+  "releaseDate": "2025-07-17",
+  "total": 172,
   "subs": []
  },
  {
@@ -492,18 +492,6 @@
   "extra": true
  },
  {
-  "id": "sma",
-  "serie": "sm",
-  "serieName": "Soleil et Lune",
-  "name": "Destinées Occultes Coffre Étincelant",
-  "code": "SMA",
-  "logo": null,
-  "releaseDate": "2019-08-23",
-  "total": 94,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "sm115",
   "serie": "sm",
   "serieName": "Soleil et Lune",
@@ -512,6 +500,18 @@
   "logo": "https://assets.tcgdex.net/fr/sm/sm115/logo",
   "releaseDate": "2019-08-23",
   "total": 69,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sma",
+  "serie": "sm",
+  "serieName": "Soleil et Lune",
+  "name": "Destinées Occultes Coffre Étincelant",
+  "code": "SMA",
+  "logo": null,
+  "releaseDate": "2019-08-23",
+  "total": 94,
   "subs": [],
   "extra": true
  },
@@ -648,18 +648,6 @@
   "extra": true
  },
  {
-  "id": "sm1",
-  "serie": "sm",
-  "serieName": "Soleil et Lune",
-  "name": "Soleil et Lune",
-  "code": "SUM",
-  "logo": "https://assets.tcgdex.net/fr/sm/sm1/logo",
-  "releaseDate": "2017-02-03",
-  "total": 163,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "smp",
   "serie": "sm",
   "serieName": "Soleil et Lune",
@@ -668,6 +656,18 @@
   "logo": null,
   "releaseDate": "2017-02-03",
   "total": 181,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sm1",
+  "serie": "sm",
+  "serieName": "Soleil et Lune",
+  "name": "Soleil et Lune",
+  "code": "SUM",
+  "logo": "https://assets.tcgdex.net/fr/sm/sm1/logo",
+  "releaseDate": "2017-02-03",
+  "total": 163,
   "subs": [],
   "extra": true
  },
