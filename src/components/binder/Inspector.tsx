@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { langOfKey } from "@/lib/cardLang";
 import {
-  noPriceText, variantLabel, cardCurrency, copiesPaid, currencySign, copiesValue, formatMoney, formatPrice, hasPrice, marketName, marketPrice, priceMove, unitPrice,
+  noPriceText, variantLabel, cardCurrency, copiesPaid, currencySign, copiesValue, formatMoney, formatPrice, hasPrice, marketPrice, priceMove, unitPrice,
 } from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import { CONDITIONS, CONDITION_LABEL, useStore } from "@/lib/store";
@@ -28,6 +28,8 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
   // a card is priced on its language's market: Cardmarket for French cards, TCGplayer for English ones
   const cardLang = langOfKey(card.id);
   const english = cardLang === "en";
+  // where the price comes from, and where the link goes: an English card TCGplayer doesn't sell is priced on Cardmarket
+  const onCardmarket = !english || !!card.price.cm;
   // Cardmarket is searched by English name: a Japanese card's is the last of its Pokémon names
   const searchName = cardLang === "ja" ? (card.aka?.split(" · ").at(-1) ?? card.name) : card.name;
   const copies = useStore((s) => s.collection[card.id]);
@@ -284,8 +286,10 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
         <footer className={styles.footer}>
           <a
             href={
-              !english
-                ? `https://www.cardmarket.com/${t("fr", "en")}/Pokemon/Products/Search?searchString=${encodeURIComponent(searchName)}`
+              onCardmarket
+                ? card.price.cmId
+                  ? `https://www.cardmarket.com/${t("fr", "en")}/Pokemon/Products?idProduct=${card.price.cmId}`
+                  : `https://www.cardmarket.com/${t("fr", "en")}/Pokemon/Products/Search?searchString=${encodeURIComponent(searchName)}`
                 : card.price.tp
                   ? `https://www.tcgplayer.com/product/${card.price.tp}`
                   : `https://www.tcgplayer.com/search/pokemon/product?q=${encodeURIComponent(card.name)}`
@@ -294,7 +298,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
             rel="noreferrer"
             onClick={() => sfx.click()}
           >
-            {t("Voir sur", "See on")} {marketName(cardLang)} ↗
+            {t("Voir sur", "See on")} {onCardmarket ? "Cardmarket" : "TCGplayer"} ↗
           </a>
           {keptHere && (
             <HoldButton

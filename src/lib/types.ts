@@ -17,6 +17,8 @@ export interface CardPrice {
   avg30Holo?: number | null;
   /** English cards: TCGplayer product id (the "see on TCGplayer" link) */
   tp?: number;
+  /** Cardmarket product id (the card's own page on Cardmarket); missing in files fetched before */
+  cmId?: number;
   /** English cards TCGplayer doesn't sell: Cardmarket's price, converted to dollars */
   cm?: true;
 }
