@@ -22,7 +22,8 @@ function Fr() {
 
       <h2>Les prix</h2>
       <p>
-        Les prix affichés viennent de Cardmarket via <a href="https://tcgdex.dev">TCGdex</a>. Ils sont indicatifs et peuvent être en retard ou faux :
+        Les prix affichés viennent de Cardmarket (cartes françaises) et de TCGplayer (cartes anglaises) via{" "}
+        <a href="https://tcgdex.dev">TCGdex</a>. Ils sont indicatifs et peuvent être en retard ou faux :
         ne t&apos;en sers pas comme d&apos;une estimation officielle.
       </p>
 
@@ -59,7 +60,8 @@ function En() {
 
       <h2>Prices</h2>
       <p>
-        Prices come from TCGplayer (or Cardmarket, converted, for cards TCGplayer doesn&apos;t sell) through{" "}
+        Prices come from Cardmarket (French cards) and TCGplayer (English cards; Cardmarket, converted, for those TCGplayer doesn&apos;t
+        sell) through{" "}
         <a href="https://tcgdex.dev">TCGdex</a>. They are a guide and may be late or wrong: don&apos;t use them as an official valuation.
       </p>
 

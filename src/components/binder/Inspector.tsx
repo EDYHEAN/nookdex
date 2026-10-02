@@ -2,7 +2,10 @@
 
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { noPriceText, variantLabel, copiesPaid, copiesValue, formatMoney, formatPrice, hasPrice, priceMove, priceOf, unitPrice } from "@/lib/price";
+import { langOfKey } from "@/lib/cardLang";
+import {
+  noPriceText, variantLabel, cardCurrency, copiesPaid, currencySign, copiesValue, formatMoney, formatPrice, hasPrice, marketName, marketPrice, priceMove, unitPrice,
+} from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import { CONDITIONS, CONDITION_LABEL, useStore } from "@/lib/store";
 import type { CardData, Condition, Copy, Variant } from "@/lib/types";
@@ -22,6 +25,9 @@ interface Props {
 
 export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props) {
   const t = useT();
+  // a card is priced on its language's market: Cardmarket for French cards, TCGplayer for English ones
+  const cardLang = langOfKey(card.id);
+  const english = cardLang === "en";
   const copies = useStore((s) => s.collection[card.id]);
   const binders = useStore((s) => s.binders);
   const { addCopy, updateCopy, removeCopy, removeCard } = useStore.getState();
@@ -31,9 +37,9 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
   const placeOf = (copy: Copy) => {
     const here = (copy.at?.binder ?? null) === binderId;
     if (here) return undefined;
-    if (!copy.at) return "dans son classeur";
+    if (!copy.at) return t("dans son classeur", "in its binder");
     const b = binders.find((x) => x.id === copy.at!.binder);
-    return b?.kind === "free" ? `dans ${b.name}` : undefined;
+    return b?.kind === "free" ? `${t("dans", "in")} ${b.name}` : undefined;
   };
   const cardRef = useRef<HTMLDivElement>(null);
   const hasFoil = copies?.some((c) => c.variant !== "normal") || card.variants.every((v) => v !== "normal");
@@ -154,15 +160,26 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
         <section className={styles.prices}>
           <div className={styles.priceHead}>
             {card.price.cm ? (
-              <span title={t("", "Not sold on TCGplayer: Cardmarket's price guide (every language), converted to dollars")}>≈ Cardmarket</span>
-            ) : (
               <span
                 title={t(
-                  "Le guide de prix Cardmarket mélange toutes les langues et tous les états",
+                  "Pas vendue sur TCGplayer : guide de prix Cardmarket (toutes langues), converti en dollars",
+                  "Not sold on TCGplayer: Cardmarket's price guide (every language), converted to dollars",
+                )}
+              >
+                ≈ Cardmarket
+              </span>
+            ) : english ? (
+              <span
+                title={t(
+                  "Prix du marché TCGplayer : cartes anglaises vendues aux États-Unis, tous états",
                   "TCGplayer market price: English cards sold in the US, every condition",
                 )}
               >
-                {t("Cardmarket · toutes langues", "TCGplayer · English cards")}
+                {t("TCGplayer · cartes anglaises", "TCGplayer · English cards")}
+              </span>
+            ) : (
+              <span title={t("Le guide de prix Cardmarket mélange toutes les langues et tous les états", "Cardmarket's price guide mixes every language and condition")}>
+                {t("Cardmarket · toutes langues", "Cardmarket · all languages")}
               </span>
             )}
             <span>{t("prix bas", "low")}</span>
@@ -173,14 +190,14 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
               <span>
                 <i className={`${styles.gem} ${styles[v]}`} /> {variantLabel(v)}
               </span>
-              <span>{formatPrice(priceOf(card, v, "low"))}</span>
+              <span>{formatPrice(marketPrice(card, v, "low"), cardCurrency(card))}</span>
               <span className={styles.trend}>
                 <Move value={priceMove(card, v)} />
-                {formatPrice(priceOf(card, v, "trend"))}
+                {formatPrice(marketPrice(card, v, "trend"), cardCurrency(card))}
               </span>
             </div>
           ))}
-          {!priced && <p className={styles.noPrice}>{noPriceText()}{t(" : pas de prix pour l'instant.", ": no price for now.")}</p>}
+          {!priced && <p className={styles.noPrice}>{noPriceText(card)}{t(" : pas de prix pour l'instant.", ": no price for now.")}</p>}
         </section>
 
         {owned ? (
@@ -223,7 +240,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
             <dl className={styles.value}>
               <div>
                 <dt>{t("Valeur", "Value")}</dt>
-                <dd title={priced ? undefined : noPriceText()}>{priced ? formatMoney(trendValue) : "—"}</dd>
+                <dd title={priced ? undefined : noPriceText(card)}>{priced ? formatMoney(trendValue) : "—"}</dd>
               </div>
               <div>
                 <dt>{t("Payé", "Paid")}</dt>
@@ -254,17 +271,18 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
 
         <footer className={styles.footer}>
           <a
-            href={t(
-              `https://www.cardmarket.com/fr/Pokemon/Products/Search?searchString=${encodeURIComponent(card.name)}`,
-              card.price.tp
-                ? `https://www.tcgplayer.com/product/${card.price.tp}`
-                : `https://www.tcgplayer.com/search/pokemon/product?q=${encodeURIComponent(card.name)}`,
-            )}
+            href={
+              !english
+                ? `https://www.cardmarket.com/${t("fr", "en")}/Pokemon/Products/Search?searchString=${encodeURIComponent(card.name)}`
+                : card.price.tp
+                  ? `https://www.tcgplayer.com/product/${card.price.tp}`
+                  : `https://www.tcgplayer.com/search/pokemon/product?q=${encodeURIComponent(card.name)}`
+            }
             target="_blank"
             rel="noreferrer"
             onClick={() => sfx.click()}
           >
-            {t("Voir sur Cardmarket ↗", "See on TCGplayer ↗")}
+            {t("Voir sur", "See on")} {marketName(cardLang)} ↗
           </a>
           {keptHere && (
             <HoldButton
@@ -416,7 +434,7 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
             onChange(0);
           }}
           onPointerEnter={sfx.hover}
-          title={t("Tirée d'un booster : elle ne t'a rien coûté (0 €)", "Pulled from a booster: it cost you nothing ($0)")}
+          title={`${t("Tirée d'un booster : elle ne t'a rien coûté", "Pulled from a booster: it cost you nothing")} (${formatMoney(0)})`}
         >
           <svg className={styles.pack} viewBox="0 0 14 20" aria-hidden>
             <path d="M1 3 L2.5 1 L4 3 L5.5 1 L7 3 L8.5 1 L10 3 L11.5 1 L13 3 V17 L11.5 19 L10 17 L8.5 19 L7 17 L5.5 19 L4 17 L2.5 19 L1 17 Z" />
@@ -443,7 +461,7 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
                 }
               }}
             />
-            {t("€", "$")}
+            {currencySign()}
           </span>
         ) : (
           <motion.button
@@ -455,7 +473,7 @@ function PaidTag({ paid, onChange }: { paid: number | null; onChange: (p: number
             onClick={open}
             title={t("Clic : saisir le prix payé", "Click: enter the price paid")}
           >
-            {paid == null ? t("? €", "$ ?") : formatMoney(paid)}
+            {paid == null ? t(`? ${currencySign()}`, `${currencySign()} ?`) : formatMoney(paid)}
           </motion.button>
         ))}
     </div>

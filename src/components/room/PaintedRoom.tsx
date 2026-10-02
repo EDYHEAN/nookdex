@@ -15,7 +15,8 @@ import { LAVA_THEMES, drawDust, drawLava, drawRain, drawSunDust } from "./sceneA
 import { Monitor } from "./Monitor";
 import { ShelfBinder, binderLabel, binderSize } from "./ShelfBinder";
 import styles from "./PaintedRoom.module.css";
-import { useT } from "@/lib/lang";
+import { LANG_LABEL } from "@/lib/cardLang";
+import { useLang, useT } from "@/lib/lang";
 
 interface Props {
   openId: string | null;
@@ -68,6 +69,9 @@ function useCamera(compact: boolean) {
 }
 
 export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout }: Props) {
+  const uiLang = useLang();
+  /** "EN" on an English binder of the French site (and the other way round): the language it isn't in */
+  const langTag = (b: BinderDef) => (b.lang && b.lang !== uiLang ? LANG_LABEL[b.lang] : null);
   const tr = useT();
   const cam = useCamera(compact);
   const lampOn = useStore((s) => s.lampOn);
@@ -355,10 +359,10 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
                 key={b.id}
                 className={cls}
                 style={place(slot)}
-                aria-label={b.name}
+                aria-label={langTag(b) ? `${b.name} · ${langTag(b)}` : b.name}
                 onPointerEnter={() => {
                   sfx.spine(i);
-                  showTip(slot.x + slot.w / 2, slot.y - 8, b.name, sum.sub, slot.y + slot.h + 10);
+                  showTip(slot.x + slot.w / 2, slot.y - 8, langTag(b) ? `${b.name} · ${langTag(b)}` : b.name, sum.sub, slot.y + slot.h + 10);
                 }}
                 onPointerLeave={() => setTip(null)}
                 onClick={() => clickBinder(b)}
@@ -375,6 +379,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
                         {b.kind === "free" ? b.name : b.code}
                       </span>
                     )}
+                    {langTag(b) && <span className={styles.langTag}>{langTag(b)}</span>}
                     {sum.pct != null && (
                       <span className={styles.progress}>
                         <span style={{ height: `${sum.pct * 100}%` }} />

@@ -33,24 +33,31 @@ doesn't show.
 - A card TCGdex stops listing is never dropped: kept with its last prices, `unavailable: true`, shown as a painted card
   back stamped "Bientôt de retour" (`CardBack`). The 30 classic cards of the 30th Anniversary are in that state.
 
-## Languages (French and English)
+## Languages: the site, the cards, the money (three separate things)
 
-- The site speaks French, or English when the browser isn't French. `lib/lang.ts`: `useLang()`, `useT()` →
+- **Site language** (texts): French, or English when the browser isn't French. `lib/lang.ts`: `useLang()`, `useT()` →
   `t("Ranger", "Put away")` (both texts side by side in the component, no key dictionary). Every new UI text needs both.
-- The choice can be forced in NookDex OS → Save (« Langue · Language »): stored in zustand (`lang`), mirrored in the
-  `nookdex-lang` cookie, and the page reloads (card data is per language).
-- Server pages (layout metadata, `/` text, notebook pages) read `lib/serverLang.ts` (cookie, else Accept-Language;
-  no header = French). Each notebook page has a French and an English version in the same file.
+  Can be forced in NookDex OS → Save (« Langue · Language »): zustand `lang`, mirrored in the `nookdex-lang` cookie,
+  the page reloads. Server pages (layout metadata, `/` text, notebook pages) read `lib/serverLang.ts` (cookie, else
+  Accept-Language; no header = French). Each notebook page has a French and an English version in the same file;
+  `src/data/about.ts` holds the notebook text (`ABOUT`, `ABOUT_EN`). Supabase auth e-mails stay French only.
+- **Card language**: chosen per set binder (FR/EN stamps in the new binder sheet, default = site language), and per
+  card in a free binder (same stamps in its search). It lives in the ids (`lib/cardLang.ts`): a French card keeps its
+  TCGdex id (`sv08-001`, like every older save), an English one is `en:sv08-001`; sets likewise (`sv08`, `en:sv08`,
+  that's a set binder's `setId`). `lib/catalog.ts` keys ids as it reads files, so the rest of the code just uses
+  `collection[card.id]` and never mixes languages. Never cut a card id by hand: `setIdOfCard`, `langOfKey`, `bareId`.
+  A binder not in the site's language wears a small "EN"/"FR" sticker (shelf, NookDex OS); shared lists tag such cards.
 - Card data in English: `fetch-set --lang=en` writes `public/sets/en/`, `public/logos/en/`, `src/data/catalog-en.json`
-  (same card ids). `lib/catalog.ts` picks the language's files and falls back to the French ones (set missing in
-  English, English data not fetched yet).
-- English cards are priced on TCGplayer (US market, English cards) in dollars: `marketPrice` as the trend, `lowPrice`
-  as the low, `tp` = product id for the link; the arrow keeps Cardmarket's averages. A card TCGplayer doesn't sell
-  (Trainer Galleries, Shiny Vault, 30th for now) gets Cardmarket's price converted at the ECB rate
-  (`src/data/eur-usd.json`, refreshed by fetch-set), flagged `cm`. English files carry `currency: "USD"`; a file
-  without it (French fallback) is converted on load (`lib/catalog.ts`). The purchase price is in the site's currency.
-- `src/data/about.ts` holds the notebook text in both languages (`ABOUT`, `ABOUT_EN`).
-- Supabase auth e-mails stay French only (one template per kind in Supabase).
+  (same TCGdex ids).
+- **Prices follow the card's language**: French cards → Cardmarket (euros), English cards → TCGplayer (US market, English
+  cards, dollars: `marketPrice` as the trend, `lowPrice` as the low, `tp` = product id for the link; the arrow keeps
+  Cardmarket's averages). An English card TCGplayer doesn't sell (Trainer Galleries, Shiny Vault, 30th for now) gets
+  Cardmarket's price converted at the ECB rate (`src/data/eur-usd.json`, refreshed by fetch-set), flagged `cm`.
+- **The player's money** (`currency` in zustand and in the save, NookDex OS → Save « Devise »): purchase prices are typed
+  in it; values, totals and gains are added up in it (`priceOf` converts). Only the card sheet's price table shows the
+  card's own market price and currency (`marketPrice`). Switching the currency converts the purchase prices.
+- Saves v3 and older (before card languages): on the English site their cards were English → migrated to `en:` keys,
+  and their currency set to the site's (store `migrate` and `importBackup`, also for an older cloud save).
 
 ## Accounts and data (Supabase)
 

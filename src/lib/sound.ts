@@ -114,6 +114,11 @@ export const sfx = {
     tone({ freq: 660, dur: 0.05, vol: 0.06 });
     tone({ freq: 440, dur: 0.07, vol: 0.06, delay: 0.05 });
   },
+  /** a coin on the counter: the currency changes */
+  coin() {
+    tone({ freq: 1320, type: "square", dur: 0.06, vol: 0.05 });
+    tone({ freq: 1980, type: "square", dur: 0.22, vol: 0.05, delay: 0.06 });
+  },
   stamp() {
     noise({ dur: 0.14, vol: 0.5, type: "lowpass", freq: 500 });
     tone({ freq: 120, to: 60, type: "sine", dur: 0.14, vol: 0.35 });

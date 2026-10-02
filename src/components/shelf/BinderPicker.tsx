@@ -3,10 +3,12 @@
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { binderSets } from "@/lib/catalog";
+import type { CardLang } from "@/lib/cardLang";
+import { LangStamps } from "./LangStamps";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import styles from "./BinderPicker.module.css";
-import { useT } from "@/lib/lang";
+import { useLang, useT } from "@/lib/lang";
 
 export type BinderChoice = { kind: "set"; setId: string } | { kind: "free"; name: string };
 
@@ -18,7 +20,7 @@ interface Props {
   onClose?: () => void;
 }
 
-const seriesOf = () => [...new Map(binderSets().map((s) => [s.serie, s.serieName])).entries()].map(([id, name]) => ({ id, name }));
+const seriesOf = (lang: CardLang) => [...new Map(binderSets(lang).map((s) => [s.serie, s.serieName])).entries()].map(([id, name]) => ({ id, name }));
 type Tab = string | "free";
 
 const FREE_IDEAS = { fr: ["Fourre-tout", "Openings", "Mes favorites", "À échanger", "Full Arts"], en: ["Bits & bobs", "Openings", "Favourites", "For trade", "Full Arts"] };
@@ -26,8 +28,10 @@ const FREE_IDEAS = { fr: ["Fourre-tout", "Openings", "Mes favorites", "À échan
 export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
   const binders = useStore((s) => s.binders);
   const t = useT();
+  // cards in the site's language, unless the player picks another (an English binder on a French shelf…)
+  const [cardLang, setCardLang] = useState<CardLang>(useLang());
   const onShelf = useMemo(() => new Set(binders.flatMap((b) => (b.kind === "set" ? [b.setId] : []))), [binders]);
-  const [tab, setTab] = useState<Tab>(seriesOf()[0].id);
+  const [tab, setTab] = useState<Tab>(seriesOf(cardLang)[0].id);
   const [busy, setBusy] = useState<string | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -60,7 +64,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
     }
   };
 
-  const sets = binderSets().filter((s) => s.serie === tab);
+  const sets = binderSets(cardLang).filter((s) => s.serie === tab);
 
   return (
     <motion.div
@@ -77,6 +81,11 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
           <h2>{title}</h2>
           {subtitle && <p>{subtitle}</p>}
         </div>
+        {tab !== "free" && (
+          <div className={styles.langs}>
+            <LangStamps value={cardLang} onChange={setCardLang} disabled={!!busy} />
+          </div>
+        )}
         {onClose && (
           <button className={styles.close} onClick={onClose} onPointerEnter={sfx.hover} aria-label={t("Fermer", "Close")}>
             ✕
@@ -85,7 +94,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
       </header>
 
       <nav className={styles.tabs} role="tablist">
-        {[...seriesOf(), { id: "free", name: t("Classeur libre", "Free binder") }].map((s) => (
+        {[...seriesOf(cardLang), { id: "free", name: t("Classeur libre", "Free binder") }].map((s) => (
           <button
             key={s.id}
             role="tab"
@@ -105,7 +114,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
       </nav>
 
       {tab !== "free" ? (
-        <div key={tab} className={styles.grid}>
+        <div key={`${cardLang}:${tab}`} className={styles.grid}>
           {sets.map((s, i) => {
             const have = onShelf.has(s.id);
             const loading = busy === s.id;

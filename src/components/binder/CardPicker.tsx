@@ -3,12 +3,14 @@
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { catalog, loadIndex, useSets, type IndexCard } from "@/lib/catalog";
-import { formatMoney } from "@/lib/price";
+import { type CardLang, currencyOf } from "@/lib/cardLang";
+import { formatPrice } from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
+import { LangStamps } from "../shelf/LangStamps";
 import { CardBack } from "./CardBack";
 import styles from "./CardPicker.module.css";
-import { useT } from "@/lib/lang";
+import { useLang, useT } from "@/lib/lang";
 
 interface Props {
   /** Pocket being filled, for the title */
@@ -18,12 +20,12 @@ interface Props {
 }
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-const setsInfo = () => new Map(catalog().map((s) => [s.id, { code: norm(s.code), name: norm(s.name), label: s.code }]));
+const setsInfo = (lang: CardLang) => new Map(catalog(lang).map((s) => [s.id, { code: norm(s.code), name: norm(s.name), label: s.code }]));
 const MAX = 60;
 
 /** "dracaufeu ev3.5", "lugia 186", "eb12 tg": every word must hit the name, the number or the set. */
-function search(index: IndexCard[], q: string) {
-  const sets = setsInfo();
+function search(lang: CardLang, index: IndexCard[], q: string) {
+  const sets = setsInfo(lang);
   const words = norm(q).split(/\s+/).filter(Boolean);
   if (!words.length) return [];
   const out: IndexCard[] = [];
@@ -42,19 +44,26 @@ function search(index: IndexCard[], q: string) {
 }
 
 export function CardPicker({ pocket, onPick, onClose }: Props) {
-  const index = useSets((s) => s.index);
+  const t = useT();
+  // the site's language first; a binder can mix languages (a "Japanese cards" binder, French and English hits…)
+  const [lang, setLang] = useState<CardLang>(useLang());
+  const index = useSets((s) => s.index[lang]);
   const assets = useSets((s) => s.assets);
   const collection = useStore((s) => s.collection);
-  const t = useT();
   const [q, setQ] = useState("");
-  const [failed, setFailed] = useState(false);
+  /** Language whose catalogue couldn't be loaded */
+  const [failedLang, setFailedLang] = useState<CardLang | null>(null);
+  const failed = failedLang === lang;
   const [busy, setBusy] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     input.current?.focus();
-    loadIndex().catch(() => setFailed(true));
   }, []);
+
+  useEffect(() => {
+    loadIndex(lang).catch(() => setFailedLang(lang));
+  }, [lang]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -67,8 +76,8 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
     return () => window.removeEventListener("keydown", onKey, true);
   }, [onClose]);
 
-  const labels = useMemo(() => setsInfo(), []);
-  const results = useMemo(() => (index ? search(index, q) : []), [index, q]);
+  const labels = useMemo(() => setsInfo(lang), [lang]);
+  const results = useMemo(() => (index ? search(lang, index, q) : []), [lang, index, q]);
 
   const pick = async (id: string) => {
     if (busy) return;
@@ -103,6 +112,16 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
           <p>
             {t("Pochette", "Pocket")} <b>{(pocket % 9) + 1}</b> · page {Math.floor(pocket / 9) + 1}
           </p>
+          <span className={styles.langs}>
+            <LangStamps
+              value={lang}
+              onChange={(l) => {
+                setLang(l);
+                input.current?.focus();
+              }}
+              disabled={!!busy}
+            />
+          </span>
           <button className={styles.close} onClick={onClose} onPointerEnter={sfx.hover} aria-label={t("Fermer", "Close")}>
             ✕
           </button>
@@ -131,12 +150,14 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
             <p className={styles.msg}>
               {t(
                 <>
-                  {index.length.toLocaleString("fr-FR")} cartes en français, des toutes premières séries à Méga-Évolution, promos comprises.
+                  {index.length.toLocaleString("fr-FR")} cartes en {lang === "fr" ? "français" : "anglais"}, des toutes premières séries à
+                  Méga-Évolution, promos comprises.
                   <br />
                   Tape un nom (<i>pikachu</i>), ajoute un numéro (<i>pikachu 160</i>) ou un code d&apos;extension (<i>pikachu ev08</i>).
                 </>,
                 <>
-                  {index.length.toLocaleString("en-GB")} cards, from the very first series to Mega Evolution, promos included.
+                  {index.length.toLocaleString("en-GB")} {lang === "fr" ? "French" : "English"} cards, from the very first series to Mega
+                  Evolution, promos included.
                   <br />
                   Type a name (<i>pikachu</i>), add a number (<i>pikachu 160</i>) or a set code (<i>pikachu sit</i>).
                 </>,
@@ -171,7 +192,7 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
                     <b>{name}</b>
                     <small>
                       {labels.get(setId)?.label} · {num}
-                      {trend ? ` · ${formatMoney(trend)}` : ""}
+                      {trend ? ` · ${formatPrice(trend, currencyOf(lang))}` : ""}
                     </small>
                   </span>
                   {qty > 0 && <span className={styles.have}>×{qty}</span>}

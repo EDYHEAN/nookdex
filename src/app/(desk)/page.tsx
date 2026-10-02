@@ -12,8 +12,9 @@ export default async function Home() {
           <h1>{SITE_NAME}, your Pokémon card collection filed on your desk</h1>
           <p>{SITE_DESCRIPTION_EN}</p>
           <p>
-            Pick a set (Sword &amp; Shield, Scarlet &amp; Violet, Mega Evolution) or create a free binder, tick the cards you own, follow your
-            collection&apos;s value with TCGplayer prices updated every day, and share your wanted list.
+            Pick a set (Sword &amp; Shield, Scarlet &amp; Violet, Mega Evolution) in English or French, or create a free binder, tick the
+            cards you own, follow your collection&apos;s value with prices updated every day (TCGplayer, Cardmarket), and share your wanted
+            list.
           </p>
           <nav>
             <Link href="/a-propos">About</Link> · <Link href="/confidentialite">Privacy policy</Link> · <Link href="/conditions">Terms of use</Link> ·{" "}
@@ -25,8 +26,9 @@ export default async function Home() {
           <h1>{SITE_NAME}, ta collection de cartes Pokémon rangée sur ton bureau</h1>
           <p>{SITE_DESCRIPTION}</p>
           <p>
-            Choisis une extension (Épée et Bouclier, Écarlate et Violet, Méga-Évolution) ou crée un classeur libre, coche les cartes que tu
-            possèdes, suis la valeur de ta collection avec les prix Cardmarket mis à jour chaque jour, et partage ta liste de recherche.
+            Choisis une extension (Épée et Bouclier, Écarlate et Violet, Méga-Évolution) en français ou en anglais, ou crée un classeur
+            libre, coche les cartes que tu possèdes, suis la valeur de ta collection avec les prix mis à jour chaque jour (Cardmarket,
+            TCGplayer), et partage ta liste de recherche.
           </p>
           <nav>
             <Link href="/a-propos">À propos</Link> · <Link href="/confidentialite">Règles de confidentialité</Link> ·{" "}

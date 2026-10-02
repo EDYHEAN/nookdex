@@ -83,10 +83,10 @@ function buildSteps(email: string | null, en: boolean): Step[] {
       target: ["summary"],
       text: t(
         <>
-          📒 <b>Ton classeur.</b> Ici : ton avancement et la valeur Cardmarket de ta collec.
+          📒 <b>Ton classeur.</b> Ici : ton avancement et la valeur de ta collec.
         </>,
         <>
-          📒 <b>Your binder.</b> Here: your progress and the TCGplayer value of your collection.
+          📒 <b>Your binder.</b> Here: your progress and the value of your collection.
         </>,
       ),
     },

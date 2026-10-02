@@ -1,3 +1,5 @@
+import type { CardLang } from "./cardLang";
+
 export type Variant = "normal" | "reverse" | "holo";
 
 // Cardmarket conditions, best to worst.
@@ -74,9 +76,12 @@ export interface CatalogSet {
   subs: string[];
   /** Older series, promos…: not offered as a binder, only searchable for the free binders */
   extra?: boolean;
+  /** Card language, set when read (ids are then keyed with it, see lib/catalog) */
+  lang?: CardLang;
 }
 
 /** A binder the player put on their shelf (shelf order). */
+/** A set binder's setId is a set key: "sv08" (French cards), "en:sv08" (English cards). */
 export type UserBinder = ({ kind: "set"; setId: string } | { kind: "free"; name: string }) & {
   id: string;
   /** Cover color; missing on saves from before colors could be picked */
@@ -101,7 +106,9 @@ export interface BinderDef {
   logo: string | null;
   /** Place on the shelves (index in SCENE.slots) */
   slot: number;
-  /** Set binders only */
+  /** Set binders only (a set key, see lib/cardLang) */
   setId: string | null;
+  /** Card language of a set binder; null for a free binder (its cards can be of any language) */
+  lang: CardLang | null;
   sort: BinderSort;
 }

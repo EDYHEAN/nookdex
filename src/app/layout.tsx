@@ -18,8 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     applicationName: SITE_NAME,
     keywords: en
-      ? ["Pokémon", "Pokémon cards", "collection", "binder", "TCG", "TCGplayer", "master set", "wishlist"]
-      : ["Pokémon", "cartes Pokémon", "collection", "classeur", "TCG", "Cardmarket", "master set", "wishlist"],
+      ? ["Pokémon", "Pokémon cards", "collection", "binder", "TCG", "TCGplayer", "Cardmarket", "master set", "wishlist"]
+      : ["Pokémon", "cartes Pokémon", "collection", "classeur", "TCG", "Cardmarket", "TCGplayer", "master set", "wishlist"],
     alternates: { canonical: "/" },
     openGraph: { type: "website", locale: en ? "en_GB" : "fr_FR", url: "/", siteName: SITE_NAME, title, description },
     twitter: { card: "summary_large_image" },

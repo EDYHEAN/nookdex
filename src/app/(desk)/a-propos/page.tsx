@@ -35,7 +35,8 @@ function Fr() {
           reverse, holo), état Cardmarket, doublons, prix payé.
         </li>
         <li>
-          <b>Suis la valeur de ta collection</b> avec les prix Cardmarket (prix bas et tendance) mis à jour chaque jour.
+          <b>Suis la valeur de ta collection</b> avec les prix mis à jour chaque jour : Cardmarket pour les cartes françaises, TCGplayer
+          pour les anglaises (prix bas et tendance).
         </li>
         <li>
           <b>NookDex OS</b>, sur l&apos;écran du PC : tableau de bord, wishlist, doublons à échanger, recherche de carte, sauvegarde.
@@ -51,7 +52,7 @@ function Fr() {
 
       <h2>Qui fait {SITE_NAME}</h2>
       <p>
-        Un projet de fan, fait par un collectionneur. Données des cartes : <a href="https://tcgdex.dev">TCGdex</a>. Prix : guide de prix Cardmarket.{" "}
+        Un projet de fan, fait par un collectionneur. Données des cartes : <a href="https://tcgdex.dev">TCGdex</a>. Prix : Cardmarket et TCGplayer.{" "}
         {SITE_NAME} n&apos;a aucun lien avec Nintendo, Creatures, GAME FREAK ou The Pokémon Company.
       </p>
 
@@ -86,7 +87,8 @@ function En() {
           condition, duplicates, price paid.
         </li>
         <li>
-          <b>Follow your collection&apos;s value</b> with TCGplayer prices (low and market) updated every day.
+          <b>Follow your collection&apos;s value</b> with prices updated every day: TCGplayer for English cards, Cardmarket for French ones
+          (low and trend).
         </li>
         <li>
           <b>NookDex OS</b>, on the computer screen: dashboard, wishlist, duplicates to trade, card search, save.
@@ -102,7 +104,7 @@ function En() {
 
       <h2>Who makes {SITE_NAME}</h2>
       <p>
-        A fan project, made by a collector. Card data: <a href="https://tcgdex.dev">TCGdex</a>. Prices: TCGplayer market prices. {SITE_NAME} has no
+        A fan project, made by a collector. Card data: <a href="https://tcgdex.dev">TCGdex</a>. Prices: TCGplayer and Cardmarket. {SITE_NAME} has no
         link with Nintendo, Creatures, GAME FREAK or The Pokémon Company.
       </p>
 
