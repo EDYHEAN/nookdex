@@ -3,117 +3,102 @@
 import { create } from "zustand";
 import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
-import eurUsd from "@/data/eur-usd.json";
-import { currentLang } from "./lang";
-import type { CardData, CardPrice, CatalogSet, Copy, SetData, UserBinder } from "./types";
-
-const FR = rawFr as CatalogSet[];
-const EN = rawEn as CatalogSet[];
+import { type CardLang, bareId, keyOf, langOfKey } from "./cardLang";
+import type { CardData, CatalogSet, Copy, SetData, UserBinder } from "./types";
 
 /**
- * The card data speaks the visitor's language (French or English cards, same ids). Read once: switching the
- * language reloads the page. English files not downloaded yet -> the French ones.
+ * Each binder has its card language (see lib/cardLang): French cards come from /sets, English ones from /sets/en.
+ * Set and card ids are keyed with their language as soon as they're read, so the rest of the code never mixes them.
  */
-const english = () => typeof window !== "undefined" && currentLang() === "en" && EN.length > 0;
+const keyed = (lang: CardLang, sets: CatalogSet[]): CatalogSet[] =>
+  sets.map((s) => ({ ...s, id: keyOf(lang, s.id), subs: s.subs.map((id) => keyOf(lang, id)), lang }));
 
-/** Every set we have the cards of, newest first (extra ones only feed the free binders' search). */
-export const catalog = (): CatalogSet[] => (english() ? EN : FR);
+const CATALOGS: Record<CardLang, CatalogSet[]> = {
+  fr: keyed("fr", rawFr as CatalogSet[]),
+  en: keyed("en", rawEn as CatalogSet[]),
+};
+
+/** Every set we have the cards of in a language, newest first (extra ones only feed the free binders' search). */
+export const catalog = (lang: CardLang): CatalogSet[] => CATALOGS[lang];
 /** The sets a binder can be made of. */
-export const binderSets = () => catalog().filter((s) => !s.extra);
+export const binderSets = (lang: CardLang) => catalog(lang).filter((s) => !s.extra);
 
-/** French and English sets merged: a card owned keeps its set whatever the language. */
-const BY_ID = new Map([...FR, ...EN].map((s) => [s.id, s]));
-const BY_ID_EN = new Map(EN.map((s) => [s.id, s]));
-/** TCGdex set id (sub-sets included) -> catalog set id */
+const BY_ID = new Map(Object.values(CATALOGS).flatMap((sets) => sets.map((s) => [s.id, s] as const)));
+/** Set key (sub-sets included) -> key of the catalog set whose binder holds it */
 const OWNER = new Map<string, string>();
-[...FR, ...EN].forEach((s) => [s.id, ...s.subs].forEach((id) => OWNER.set(id, s.id)));
+Object.values(CATALOGS).forEach((sets) => sets.forEach((s) => [s.id, ...s.subs].forEach((id) => OWNER.set(id, s.id))));
 
-/** Files of a set or of the search index, in the visitor's language. */
-const dataUrl = (file: string) => (english() ? `/sets/en/${file}` : `/sets/${file}`);
+export const catalogSet = (key: string) => BY_ID.get(key);
 
-export const catalogSet = (id: string) => (english() ? (BY_ID_EN.get(id) ?? FR.find((s) => s.id === id)) : FR.find((s) => s.id === id)) ?? BY_ID.get(id);
-
-/** "swsh12tg-TG05" -> "swsh12" (the set whose binder holds it) */
-export function setIdOfCard(cardId: string) {
-  return OWNER.get(cardId.slice(0, cardId.lastIndexOf("-")));
+/** "en:swsh12tg-TG05" -> "en:swsh12" (the set whose binder holds it) */
+export function setIdOfCard(cardKey: string) {
+  return OWNER.get(cardKey.slice(0, cardKey.lastIndexOf("-")));
 }
 
-/** A card of the search index: [id, name, num, setId, image path, trend] */
+/** Files of a set or of the search index, in a card language. */
+const dataUrl = (lang: CardLang, file: string) => (lang === "fr" ? `/sets/${file}` : `/sets/${lang}/${file}`);
+
+/** A card of the search index: [card key, name, num, set key, image path, trend] */
 export type IndexCard = [string, string, string, string, string, number | null];
 
 interface Sets {
-  /** Set files downloaded so far */
+  /** Set files downloaded so far, by set key */
   sets: Record<string, SetData>;
+  /** Cards of those sets, by card key */
   cards: Record<string, CardData>;
-  /** Every card in a few fields, for the free binders' search (loaded on demand) */
-  index: IndexCard[] | null;
+  /** Every card of a language in a few fields, for the free binders' search (loaded on demand) */
+  index: Partial<Record<CardLang, IndexCard[]>>;
   assets: string;
 }
 
 /** Card data, downloaded from /sets as binders need it. Not persisted: the files are cached by the browser. */
-export const useSets = create<Sets>(() => ({ sets: {}, cards: {}, index: null, assets: "" }));
+export const useSets = create<Sets>(() => ({ sets: {}, cards: {}, index: {}, assets: "" }));
 
 const pending = new Map<string, Promise<SetData>>();
 
-const usd = (n: number | null) => (n == null ? null : Math.round(n * eurUsd.rate * 100) / 100);
-function inDollars(p: CardPrice): CardPrice {
-  const priced = p.low != null || p.trend != null || p.lowHolo != null || p.trendHolo != null;
-  return { ...p, low: usd(p.low), trend: usd(p.trend), lowHolo: usd(p.lowHolo), trendHolo: usd(p.trendHolo), ...(priced ? { cm: true as const } : {}) };
-}
-
-/**
- * The English site counts in dollars (TCGplayer). A file still in Cardmarket euros (a set only in French, an English
- * extra set fetched before the dollars): its prices converted, flagged as Cardmarket's.
- */
-function inSiteCurrency(set: SetData): SetData {
-  if (!english() || set.currency === "USD") return set;
-  return { ...set, currency: "USD", cards: set.cards.map((c) => ({ ...c, price: inDollars(c.price) })) };
-}
-
-export function loadSet(id: string): Promise<SetData> {
-  const done = useSets.getState().sets[id];
+export function loadSet(key: string): Promise<SetData> {
+  const done = useSets.getState().sets[key];
   if (done) return Promise.resolve(done);
-  let p = pending.get(id);
+  let p = pending.get(key);
   if (!p) {
-    p = fetch(dataUrl(`${id}.json`))
-      // a set that only exists in French: its French file
-      .then((r) => (r.ok || !english() ? r : fetch(`/sets/${id}.json`)))
+    const lang = langOfKey(key);
+    p = fetch(dataUrl(lang, `${bareId(key)}.json`))
       .then((r) => {
-        if (!r.ok) throw new Error(`set ${id}: ${r.status}`);
+        if (!r.ok) throw new Error(`set ${key}: ${r.status}`);
         return r.json() as Promise<SetData>;
       })
-      .then(inSiteCurrency)
-      .then((set) => {
+      .then((raw) => {
+        const set: SetData = { ...raw, id: key, cards: raw.cards.map((c) => ({ ...c, id: keyOf(lang, c.id) })) };
         useSets.setState((s) => {
           const cards = { ...s.cards };
           set.cards.forEach((c) => (cards[c.id] = c));
-          return { sets: { ...s.sets, [id]: set }, cards };
+          return { sets: { ...s.sets, [key]: set }, cards };
         });
         return set;
       })
-      .finally(() => pending.delete(id));
-    pending.set(id, p);
+      .finally(() => pending.delete(key));
+    pending.set(key, p);
   }
   return p;
 }
 
-let indexPending: Promise<IndexCard[]> | null = null;
+const indexPending: Partial<Record<CardLang, Promise<IndexCard[]>>> = {};
 
-export function loadIndex(): Promise<IndexCard[]> {
-  const done = useSets.getState().index;
+export function loadIndex(lang: CardLang): Promise<IndexCard[]> {
+  const done = useSets.getState().index[lang];
   if (done) return Promise.resolve(done);
-  indexPending ??= fetch(dataUrl("index.json"))
-    .then((r) => (r.ok ? r : fetch("/sets/index.json")))
+  indexPending[lang] ??= fetch(dataUrl(lang, "index.json"))
     .then((r) => r.json() as Promise<{ assets: string; cards: IndexCard[] }>)
     .then(({ assets, cards }) => {
-      useSets.setState({ index: cards, assets });
-      return cards;
+      const list = cards.map(([id, name, num, set, img, trend]): IndexCard => [keyOf(lang, id), name, num, keyOf(lang, set), img, trend]);
+      useSets.setState((s) => ({ index: { ...s.index, [lang]: list }, assets }));
+      return list;
     })
     .catch((e) => {
-      indexPending = null;
+      delete indexPending[lang];
       throw e;
     });
-  return indexPending;
+  return indexPending[lang];
 }
 
 /** Sets needed to draw the shelf: those of the set binders and of every card owned. */

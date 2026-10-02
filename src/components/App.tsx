@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { shelfBinders } from "@/lib/binders";
+import { bareId, keyOf } from "@/lib/cardLang";
 import { loadSet, loadSets, neededSets, setIdOfCard } from "@/lib/catalog";
 import { returningFromSignIn, startCloud, useCloud } from "@/lib/cloud";
 import { setMuted, sfx, startAmbient, stopAmbient } from "@/lib/sound";
@@ -20,7 +21,7 @@ import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
 import { Tour } from "./shelf/Tour";
 import { Welcome } from "./shelf/Welcome";
 import styles from "./App.module.css";
-import { LANG_COOKIE, useLang, useT } from "@/lib/lang";
+import { LANG_COOKIE, currentLang, useLang, useT } from "@/lib/lang";
 
 interface Open {
   binderId: string;
@@ -77,9 +78,11 @@ export function App() {
     if (process.env.NODE_ENV === "production") return;
     const q = new URLSearchParams(window.location.search);
     const demo = async () => {
-      if (!useStore.getState().binders.length) useStore.getState().addBinder({ kind: "set", setId: "swsh12" });
+      // the demo binder in the site's language
+      const demoSet = keyOf(currentLang(), "swsh12");
+      if (!useStore.getState().binders.length) useStore.getState().addBinder({ kind: "set", setId: demoSet });
       if (Object.keys(useStore.getState().collection).length) return;
-      const set = await loadSet("swsh12");
+      const set = await loadSet(demoSet);
       const { addCard, addCopy, updateCopy } = useStore.getState();
       set.cards.forEach((c, i) => {
         if ((i * 7) % 10 < 6) addCard(c.id, c.variants[0]);
@@ -96,7 +99,7 @@ export function App() {
       if (q.has("demo")) await demo();
       if (q.has("skip") || q.has("open") || q.has("os")) setEntered(true);
       const want = q.get("open");
-      const b = want ? shelfBinders(useStore.getState().binders).find((x) => x.setId === want || x.id === want) : undefined;
+      const b = want ? shelfBinders(useStore.getState().binders).find((x) => x.setId === want || (x.setId && bareId(x.setId) === want) || x.id === want) : undefined;
       if (b) {
         if (b.setId) await loadSet(b.setId);
         setOpen({ binderId: b.id });

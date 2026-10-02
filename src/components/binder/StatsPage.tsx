@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { BINDER_COLORS, type Pocket } from "@/lib/binders";
-import { formatMoney, type SetStats } from "@/lib/price";
+import { formatMoney, marketName, type SetStats } from "@/lib/price";
 import { SORT_LABEL, SORT_LABEL_EN } from "@/lib/rarity";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
@@ -137,7 +137,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
       </div>
       {stats.pricesUpdated && (
         <p className={styles.foot}>
-          {t("Prix Cardmarket du", "TCGplayer prices of")} {new Date(stats.pricesUpdated).toLocaleDateString(t("fr-FR", "en-GB"))}
+          {t("Prix", "")} {marketName(binder.lang ?? "fr")} {t("du", "prices of")} {new Date(stats.pricesUpdated).toLocaleDateString(t("fr-FR", "en-GB"))}
         </p>
       )}
     </div>

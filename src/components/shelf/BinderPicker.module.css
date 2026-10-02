@@ -61,6 +61,11 @@
   transform: rotate(90deg) scale(1.08);
 }
 
+.langs {
+  margin-left: auto;
+  align-self: center;
+}
+
 /* ---------- series tabs: binder dividers ---------- */
 
 .tabs {
@@ -338,6 +343,19 @@
 @media (max-width: 560px) {
   .sheet {
     font-size: 18px;
+  }
+  /* title and ✕ on the first line, the language stamps on their own below */
+  .head {
+    flex-wrap: wrap;
+  }
+  .head > div:first-child {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .langs {
+    order: 3;
+    flex-basis: 100%;
+    margin-left: 0;
   }
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -1,3 +1,4 @@
+import { bareId, langOfKey } from "./cardLang";
 import { catalogSet } from "./catalog";
 import { SCENE } from "./scene";
 import type { BinderDef, CardData, Copy, UserBinder } from "./types";
@@ -41,16 +42,17 @@ export function shelfBinders(binders: UserBinder[]): BinderDef[] {
   return binders.slice(0, MAX_BINDERS).map((b, i) => {
     const color = b.color ?? BINDER_COLORS[i % BINDER_COLORS.length];
     const paint = { slot: i, color, dark: shade(color, -0.48), ink: light(color) ? "#241c26" : "#fff3e6", sort: b.sort ?? "num" };
-    if (b.kind === "free") return { ...paint, id: b.id, kind: "free", code: "LIBRE", name: b.name, logo: null, setId: null };
+    if (b.kind === "free") return { ...paint, id: b.id, kind: "free", code: "LIBRE", name: b.name, logo: null, setId: null, lang: null };
     const set = catalogSet(b.setId);
     return {
       ...paint,
       id: b.id,
       kind: "set",
-      code: set?.code ?? b.setId.toUpperCase(),
-      name: set?.name ?? b.setId,
+      code: set?.code ?? bareId(b.setId).toUpperCase(),
+      name: set?.name ?? bareId(b.setId),
       logo: set?.logo ?? null,
       setId: b.setId,
+      lang: langOfKey(b.setId),
     };
   });
 }

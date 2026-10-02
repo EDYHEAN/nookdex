@@ -35,7 +35,7 @@ interface CloudState {
 
 export const useCloud = create<CloudState>(() => ({ ready: false, email: null, firstName: null, status: "off", conflict: null, savedAt: null, error: null, restored: 0 }));
 
-type Synced = Pick<Backup, "profile" | "binders" | "collection">;
+type Synced = Pick<Backup, "profile" | "currency" | "binders" | "collection">;
 
 /** Stable JSON: Postgres jsonb does not keep key order. */
 const canon = (x: unknown): string => {
@@ -49,7 +49,8 @@ const canon = (x: unknown): string => {
   return JSON.stringify(x ?? null);
 };
 
-const fingerprint = (s: Synced) => canon({ profile: s.profile ?? null, binders: s.binders ?? [], collection: s.collection });
+// no currency (saves from before it) leaves the key out: same fingerprint as then, no false conflict
+const fingerprint = (s: Synced) => canon({ profile: s.profile ?? null, currency: s.currency ?? undefined, binders: s.binders ?? [], collection: s.collection });
 
 /** What was last in agreement with the server, per account: tells who changed since. */
 const baseKey = (userId: string) => `nookdex:cloud-base:${userId}`;
@@ -178,7 +179,7 @@ export function startCloud() {
   });
 
   useStore.subscribe((s, prev) => {
-    if (!user || (s.collection === prev.collection && s.binders === prev.binders && s.profile === prev.profile)) return;
+    if (!user || (s.collection === prev.collection && s.binders === prev.binders && s.profile === prev.profile && s.currency === prev.currency)) return;
     const status = useCloud.getState().status;
     if (status === "loading" || status === "conflict") return;
     clearTimeout(timer);

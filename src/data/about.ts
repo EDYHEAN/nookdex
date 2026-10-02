@@ -24,7 +24,7 @@ export const ABOUT = {
     {
       heading: "Petites lignes",
       paragraphs: [
-        "Données des cartes : TCGdex. Prix : guide de prix Cardmarket, mis à jour chaque jour.",
+        "Données des cartes : TCGdex. Prix : Cardmarket (cartes françaises) et TCGplayer (cartes anglaises), mis à jour chaque jour.",
         "Ce site est un projet de fan, sans lien avec Nintendo, Creatures, GAME FREAK ni The Pokémon Company. Pokémon et les noms des cartes appartiennent à leurs propriétaires.",
       ],
     },
@@ -55,7 +55,7 @@ export const ABOUT_EN: typeof ABOUT = {
     {
       heading: "Small print",
       paragraphs: [
-        "Card data: TCGdex. Prices: TCGplayer market prices (US), updated every day.",
+        "Card data: TCGdex. Prices: TCGplayer (English cards) and Cardmarket (French cards), updated every day.",
         "This is a fan project, not affiliated with Nintendo, Creatures, GAME FREAK or The Pokémon Company. Pokémon and card names belong to their owners.",
       ],
     },

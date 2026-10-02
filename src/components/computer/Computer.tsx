@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { pocketsOf, shelfBinders } from "@/lib/binders";
 import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { resolveConflict, signIn, signInWithGoogle, signOut, useCloud } from "@/lib/cloud";
-import { variantLabel, copiesTotals, formatMoney, formatPrice, priceOf, setStats, unitPrice } from "@/lib/price";
+import { variantLabel, copiesTotals, formatMoney, formatPrice, playerCurrency, priceOf, setStats, unitPrice } from "@/lib/price";
 import { OS_NAME, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { isBackup, makeBackup, useStore } from "@/lib/store";
@@ -13,7 +13,8 @@ import type { CardData, Copy, SetData } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
 import styles from "./Computer.module.css";
-import { LANG_COOKIE, useLang, useT } from "@/lib/lang";
+import { LANG_LABEL, langOfKey } from "@/lib/cardLang";
+import { LANG_COOKIE, currentLang, useLang, useT } from "@/lib/lang";
 
 type Tab = "home" | "wish" | "dupes" | "search" | "save";
 
@@ -41,6 +42,11 @@ interface Entry {
 }
 
 const cardLabel = (e: Entry) => (/^\d+$/.test(e.card.num) && e.set.official ? `${e.card.num}/${e.set.official}` : e.card.num);
+/** " [EN]" after a card that isn't in the site's language: a shared list says which print is wanted */
+const langNote = (e: Entry) => {
+  const l = langOfKey(e.card.id);
+  return l !== currentLang() ? ` [${LANG_LABEL[l]}]` : "";
+};
 
 export function Computer({ origin, onClose, onGoToCard }: Props) {
   const tr = useT();
@@ -233,7 +239,10 @@ function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void 
         {rows.map(({ b, pct, count, trend }) => (
           <div key={b.id} className={styles.setRow}>
             {b.logo ? <img src={`${b.logo}.png`} alt="" /> : <span className={styles.freeIcon}>✎</span>}
-            <span className={styles.setName}>{b.name}</span>
+            <span className={styles.setName}>
+              {b.name}
+              {b.lang && b.lang !== currentLang() && <small className={styles.langTag}>{LANG_LABEL[b.lang]}</small>}
+            </span>
             {pct != null ? (
               <span className={styles.bar} aria-label={count}>
                 <span style={{ width: `${pct * 100}%` }} />
@@ -303,7 +312,7 @@ function Wishlist({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: stri
   const total = missing.reduce((n, e) => n + price(e), 0);
 
   const text = () =>
-    [tr(`Je recherche (${missing.length} cartes) :`, `Looking for (${missing.length} cards):`), ...list.map((e) => `- ${e.set.name} ${cardLabel(e)} ${e.card.name}`)].join("\n");
+    [tr(`Je recherche (${missing.length} cartes) :`, `Looking for (${missing.length} cards):`), ...list.map((e) => `- ${e.set.name} ${cardLabel(e)} ${e.card.name}${langNote(e)}`)].join("\n");
 
   return (
     <div className={styles.listTab}>
@@ -348,7 +357,7 @@ function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string)
   const detail = (e: Entry) =>
     (e.copies ?? []).map((c) => `${c.qty}× ${variantLabel(c.variant)} ${c.condition}`).join(" · ");
   const text = () =>
-    [tr(`À échanger (${dupes.length} cartes) :`, `For trade (${dupes.length} cards):`), ...dupes.map((d) => `- ${d.e.set.name} ${cardLabel(d.e)} ${d.e.card.name} ×${d.extra} (${detail(d.e)})`)].join(
+    [tr(`À échanger (${dupes.length} cartes) :`, `For trade (${dupes.length} cards):`), ...dupes.map((d) => `- ${d.e.set.name} ${cardLabel(d.e)} ${d.e.card.name}${langNote(d.e)} ×${d.extra} (${detail(d.e)})`)].join(
       "\n",
     );
 
@@ -463,6 +472,7 @@ function Save({ say }: { say: (m: string) => void }) {
     <div className={styles.save}>
       <Account say={say} />
       <LangSwitch />
+      <CurrencySwitch say={say} />
       {tr(
         <p>
           {profile && (
@@ -566,7 +576,37 @@ const CLOUD_LABEL = {
   conflict: ["deux versions différentes", "two different versions"],
 } as const;
 
-/** Language of the site and of the card names (the page reloads: the cards are downloaded in that language). */
+/**
+ * The player's money: purchase prices are typed in it, values and gains are added up in it (each card's own price stays
+ * in its market's currency). Switching converts the purchase prices at the rate of the last price update.
+ */
+function CurrencySwitch({ say }: { say: (m: string) => void }) {
+  const tr = useT();
+  const currency = useStore((s) => s.currency) ?? playerCurrency();
+  return (
+    <p className={styles.langRow} role="radiogroup" aria-label={tr("Devise", "Currency")}>
+      <span>{tr("Devise", "Currency")}</span>
+      {(["EUR", "USD"] as const).map((c) => (
+        <button
+          key={c}
+          role="radio"
+          aria-checked={currency === c}
+          className={`${styles.btn} ${currency === c ? styles.langOn : ""}`}
+          onClick={() => {
+            if (currency === c) return;
+            sfx.coin();
+            useStore.getState().setCurrency(c);
+            say(tr("prix d'achat convertis au taux du jour", "purchase prices converted at today's rate"));
+          }}
+        >
+          {c === "EUR" ? "€ euro" : "$ dollar"}
+        </button>
+      ))}
+    </p>
+  );
+}
+
+/** Language of the site (the page reloads: server pages follow it). Each binder keeps its own card language. */
 function LangSwitch() {
   const lang = useLang();
   return (

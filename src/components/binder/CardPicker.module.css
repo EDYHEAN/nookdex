@@ -44,6 +44,9 @@
 .head b {
   color: var(--ink);
 }
+.langs {
+  margin: 0 12px 0 auto;
+}
 
 .close {
   width: 36px;

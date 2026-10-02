@@ -1,13 +1,25 @@
+import eurUsd from "@/data/eur-usd.json";
+import { type CardLang, type Currency, currencyOf, langOfKey } from "./cardLang";
 import { currentLang } from "./lang";
+import { useStore } from "./store";
 import type { CardData, Copy, SetData, Variant } from "./types";
 
 type Kind = "low" | "trend";
 
+/** The player's money (NookDex OS → Save): purchase prices, values and gains. By default the site's: € or $. */
+export const playerCurrency = (): Currency => useStore.getState().currency ?? (currentLang() === "en" ? "USD" : "EUR");
+export const currencySign = () => (playerCurrency() === "USD" ? "$" : "€");
+/** A card is priced on its language's market: Cardmarket euros (French) or TCGplayer dollars (English). */
+export const cardCurrency = (card: CardData): Currency => currencyOf(langOfKey(card.id));
+/** Euros <-> dollars at the ECB rate of the last price update (src/data/eur-usd.json). */
+const convert = (n: number, from: Currency, to: Currency) => (from === to ? n : from === "EUR" ? n * eurUsd.rate : n / eurUsd.rate);
+
 /**
- * Price of a variant (Cardmarket in French, TCGplayer in English), or null when the card isn't for sale there.
- * Both list reverse holos as the "holo" version of the product, and so the holo of a card that also comes plain.
+ * Price of a variant on the card's own market and in its currency, or null when the card isn't for sale there.
+ * Cardmarket and TCGplayer list reverse holos as the "holo" version of the product, and so the holo of a card that
+ * also comes plain.
  */
-export function priceOf(card: CardData, variant: Variant, kind: Kind): number | null {
+export function marketPrice(card: CardData, variant: Variant, kind: Kind): number | null {
   const p = card.price;
   if (variant === "reverse" || (variant === "holo" && card.variants.includes("normal"))) {
     const holo = kind === "low" ? p.lowHolo : p.trendHolo;
@@ -16,10 +28,16 @@ export function priceOf(card: CardData, variant: Variant, kind: Kind): number | 
   return (kind === "low" ? p.low : p.trend) ?? null;
 }
 
+/** The same price in the player's currency: what every value, total and gain adds up. */
+export function priceOf(card: CardData, variant: Variant, kind: Kind): number | null {
+  const n = marketPrice(card, variant, kind);
+  return n == null ? null : convert(n, cardCurrency(card), playerCurrency());
+}
+
 /** For sums: a card without a price adds nothing. */
 export const unitPrice = (card: CardData, variant: Variant, kind: Kind): number => priceOf(card, variant, kind) ?? 0;
 
-/** A card's price is known (it's sold on Cardmarket, or TCGplayer in English). */
+/** A card's price is known (it's sold on its market). */
 export const hasPrice = (card: CardData, variant: Variant) => priceOf(card, variant, "trend") != null;
 
 /** Where the price is heading: last 7 days' average against the last 30 days' (null when too flat or unknown). */
@@ -88,16 +106,24 @@ export function setStats(set: SetData, collection: Record<string, Copy[]>): SetS
   return s;
 }
 
-// French cards: Cardmarket euros (12,50 €). English cards: TCGplayer dollars ($12.50). A French card and its English
-// twin don't sell for the same price, so each language keeps its own market and currency.
-const MONEY = {
-  fr: new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }),
-  en: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }),
-};
-export const formatMoney = (n: number) => MONEY[currentLang()].format(n);
-/** A card's price, or a dash when it isn't for sale (never "0,00 €", which reads as worthless). */
-export const formatPrice = (n: number | null) => (n == null ? "—" : formatMoney(n));
-export const noPriceText = () => (currentLang() === "en" ? "Not for sale on TCGplayer right now" : "Pas en vente sur Cardmarket en ce moment");
+// Written the visitor's way: 12,50 € / 12,50 $US in French, €12.50 / $12.50 in English.
+const formats = new Map<string, Intl.NumberFormat>();
+function format(n: number, currency: Currency) {
+  const locale = currentLang() === "en" ? "en-US" : "fr-FR";
+  const key = `${locale}:${currency}`;
+  let f = formats.get(key);
+  if (!f) formats.set(key, (f = new Intl.NumberFormat(locale, { style: "currency", currency })));
+  return f.format(n);
+}
+/** An amount in the player's currency (values, totals, purchase prices). */
+export const formatMoney = (n: number) => format(n, playerCurrency());
+/** A price, or a dash when it isn't for sale (never "0,00 €", which reads as worthless). Player's currency by default. */
+export const formatPrice = (n: number | null, currency: Currency = playerCurrency()) => (n == null ? "—" : format(n, currency));
+
+/** Where a card in this language is priced. */
+export const marketName = (lang: CardLang) => (lang === "en" ? "TCGplayer" : "Cardmarket");
+export const noPriceText = (card: CardData) =>
+  currentLang() === "en" ? `Not for sale on ${marketName(langOfKey(card.id))} right now` : `Pas en vente sur ${marketName(langOfKey(card.id))} en ce moment`;
 
 export type Tier = "common" | "rare" | "legend";
 
@@ -105,7 +131,7 @@ export function cardTier(card: CardData): Tier {
   const trend = card.price.trend ?? 0;
   if (trend >= 50) return "legend";
   const r = card.rarity ?? "";
-  if (trend >= 5 || /V|Ultra|Magnifique|Radieux|Full Art/.test(r)) return "rare";
+  if (trend >= 5 || /V|Ultra|Magnifique|Radieux|Full Art|Illustration|Double|Secret|Hyper|Radiant/.test(r)) return "rare";
   return "common";
 }
 
