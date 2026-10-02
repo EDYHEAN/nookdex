@@ -32,11 +32,13 @@ interface Props {
   onClosed: () => void;
   /** Called instead of onClosed once the binder was taken off the shelf. */
   onRemoved: () => void;
+  /** The binder has landed and fills the screen (true), or starts leaving (false). */
+  onCover?: (covering: boolean) => void;
 }
 
 const ASPECT = 0.74; // page width / height for a 3x3 pocket page
 
-export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) {
+export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }: Props) {
   const t = useT();
   const free = binder.kind === "free";
   const set = useSets((s) => (binder.setId ? s.sets[binder.setId] : undefined));
@@ -197,9 +199,10 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
       sfx.coverOpen();
       go(1);
       setPhase("open");
+      onCover?.(true);
     }, 560);
     return () => clearTimeout(t);
-  }, [go]);
+  }, [go, onCover]);
 
   // Closing drops the open binder out of the screen: no riffling back, so pages never overlap.
   const close = useCallback(() => {
@@ -208,9 +211,10 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved }: Props) 
     setInspect(null);
     setPicking(null);
     setPhase("closing");
+    onCover?.(false);
     sfx.drop();
     setLeaving(true);
-  }, [phase]);
+  }, [phase, onCover]);
 
   const remove = useCallback(() => {
     setRemoving(true);

@@ -33,6 +33,8 @@ export function App() {
   const compact = isCompact(vp);
   const tr = useT();
   const [open, setOpen] = useState<Open | null>(null);
+  /** the open binder has landed: on a phone, the room behind it is let go */
+  const [covered, setCovered] = useState(false);
   const [computer, setComputer] = useState<{ x: number; y: number } | null>(null);
   /** The guided tour, after the first binder is picked (and replayable from the notebook). */
   const [tour, setTour] = useState(false);
@@ -158,6 +160,7 @@ export function App() {
         onAddBinder={() => setAdding(true)}
         onOpenAbout={() => setAbout(true)}
         veiled={!entered && !revealed}
+        behind={compact && !!openBinder && covered}
       />
 
       {openBinder && (
@@ -165,6 +168,7 @@ export function App() {
           key={openBinder.id}
           binder={openBinder}
           focusCardId={open?.focusCardId}
+          onCover={setCovered}
           onClosed={() => setOpen(null)}
           onRemoved={() => {
             setOpen(null);
