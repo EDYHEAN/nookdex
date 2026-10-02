@@ -13,7 +13,7 @@ export default async function Home() {
           <p>{SITE_DESCRIPTION_EN}</p>
           <p>
             Pick a set (Sword &amp; Shield, Scarlet &amp; Violet, Mega Evolution) or create a free binder, tick the cards you own, follow your
-            collection&apos;s value with Cardmarket prices updated every day, and share your wanted list.
+            collection&apos;s value with TCGplayer prices updated every day, and share your wanted list.
           </p>
           <nav>
             <Link href="/a-propos">About</Link> · <Link href="/confidentialite">Privacy policy</Link> · <Link href="/conditions">Terms of use</Link> ·{" "}

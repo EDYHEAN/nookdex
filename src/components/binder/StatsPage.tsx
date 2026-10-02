@@ -137,7 +137,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
       </div>
       {stats.pricesUpdated && (
         <p className={styles.foot}>
-          {t("Prix Cardmarket du", "Cardmarket prices of")} {new Date(stats.pricesUpdated).toLocaleDateString(t("fr-FR", "en-GB"))}
+          {t("Prix Cardmarket du", "TCGplayer prices of")} {new Date(stats.pricesUpdated).toLocaleDateString(t("fr-FR", "en-GB"))}
         </p>
       )}
     </div>

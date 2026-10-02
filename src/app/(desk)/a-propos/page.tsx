@@ -86,7 +86,7 @@ function En() {
           condition, duplicates, price paid.
         </li>
         <li>
-          <b>Follow your collection&apos;s value</b> with Cardmarket prices (low and trend) updated every day.
+          <b>Follow your collection&apos;s value</b> with TCGplayer prices (low and market) updated every day.
         </li>
         <li>
           <b>NookDex OS</b>, on the computer screen: dashboard, wishlist, duplicates to trade, card search, save.
@@ -102,7 +102,7 @@ function En() {
 
       <h2>Who makes {SITE_NAME}</h2>
       <p>
-        A fan project, made by a collector. Card data: <a href="https://tcgdex.dev">TCGdex</a>. Prices: Cardmarket price guide. {SITE_NAME} has no
+        A fan project, made by a collector. Card data: <a href="https://tcgdex.dev">TCGdex</a>. Prices: TCGplayer market prices. {SITE_NAME} has no
         link with Nintendo, Creatures, GAME FREAK or The Pokémon Company.
       </p>
 
