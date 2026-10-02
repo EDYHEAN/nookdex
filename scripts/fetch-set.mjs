@@ -170,6 +170,8 @@ function cardmarketPrice(cm) {
     avg30: round(cm.avg30),
     avg7Holo: round(cm["avg7-holo"]),
     avg30Holo: round(cm["avg30-holo"]),
+    // Cardmarket product id: "voir sur Cardmarket" opens the card's own page (…/Products?idProduct=)
+    ...(cm.idProduct ? { cmId: cm.idProduct } : {}),
   };
 }
 
@@ -201,6 +203,7 @@ function tcgplayerPrice(tp, cm) {
     avg7Holo: p.avg7Holo,
     avg30Holo: p.avg30Holo,
     tp: (base ?? holo).productId,
+    ...(p.cmId ? { cmId: p.cmId } : {}),
   };
 }
 
