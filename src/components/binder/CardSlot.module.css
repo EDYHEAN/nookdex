@@ -23,7 +23,8 @@
   inset: 0;
   display: block;
   border-radius: 4.5%;
-  transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  /* flat at rest: a perspective here made every pocket its own 3D layer (the tilt comes with the hover, below) */
+  transform: none;
   transition:
     transform 0.25s cubic-bezier(0.34, 1.6, 0.5, 1),
     box-shadow 0.25s;

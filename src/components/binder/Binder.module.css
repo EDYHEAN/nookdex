@@ -784,6 +784,11 @@
 /* ---------- compact (phones) ---------- */
 
 @media (max-width: 820px), (max-aspect-ratio: 105/100) {
+  /* no blurred backdrop: the room fades out behind a phone's binder, and the blur is two screen-sized copies in memory */
+  .overlay {
+    backdrop-filter: none;
+  }
+
   /* the corner buttons step aside on small screens: the header gets the whole width */
   .title {
     padding: 0 12px;

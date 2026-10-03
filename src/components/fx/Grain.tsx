@@ -25,13 +25,16 @@ function noiseTile(): string {
  * Film grain + faint projector flicker over the whole site at 12 fps.
  * The noise is painted once; each frame only moves the layer (GPU compositing, no repaint).
  */
-export function Grain() {
+export function Grain({ off = false }: { off?: boolean }) {
   const grain = useRef<HTMLDivElement>(null);
   const flicker = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (grain.current) grain.current.style.backgroundImage = `url(${noiseTile()})`;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  }, []);
+
+  useEffect(() => {
+    if (off || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const t = setInterval(() => {
       const x = Math.floor(Math.random() * TILE);
       const y = Math.floor(Math.random() * TILE);
@@ -39,10 +42,11 @@ export function Grain() {
       if (flicker.current) flicker.current.style.opacity = (Math.random() * 0.035).toFixed(3);
     }, 83);
     return () => clearInterval(t);
-  }, []);
+  }, [off]);
 
+  // display: none (not just hidden) so its layers are freed
   return (
-    <div className={styles.wrap} aria-hidden>
+    <div className={styles.wrap} aria-hidden style={off ? { display: "none" } : undefined}>
       <div ref={flicker} className={styles.flicker} />
       <div ref={grain} className={styles.grain} />
     </div>

@@ -33,7 +33,7 @@ export function App() {
   const compact = isCompact(vp);
   const tr = useT();
   const [open, setOpen] = useState<Open | null>(null);
-  /** the open binder has landed: on a phone, the room behind it is let go */
+  /** the open binder covers the room: on a phone, the room behind it is let go */
   const [covered, setCovered] = useState(false);
   const [computer, setComputer] = useState<{ x: number; y: number } | null>(null);
   /** The guided tour, after the first binder is picked (and replayable from the notebook). */
@@ -289,7 +289,8 @@ export function App() {
         )}
       {tour && <Tour onDone={() => setTour(false)} />}
       {!entered && <Loader onLeave={() => setRevealed(true)} onEnter={() => setEntered(true)} />}
-      <Grain />
+      {/* on a phone, the full-screen grain layers are memory a binder or the OS needs (their paper has its own grain) */}
+      <Grain off={compact && busy} />
     </>
   );
 }

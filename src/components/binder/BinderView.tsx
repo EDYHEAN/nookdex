@@ -32,7 +32,7 @@ interface Props {
   onClosed: () => void;
   /** Called instead of onClosed once the binder was taken off the shelf. */
   onRemoved: () => void;
-  /** The binder has landed and fills the screen (true), or starts leaving (false). */
+  /** The binder rises over the room (true), or starts leaving (false). */
   onCover?: (covering: boolean) => void;
 }
 
@@ -193,16 +193,19 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
     if (riffleTimer.current) clearInterval(riffleTimer.current);
   }, []);
 
+  // The room can go as soon as the binder rises: on a phone, its pictures and layers next to the binder's opening were
+  // enough to run Safari out of memory (the tab reloads, showing the loader again, or crashes).
+  useEffect(() => onCover?.(true), [onCover]);
+
   // Open the cover once the binder has landed in front of us.
   useEffect(() => {
     const t = setTimeout(() => {
       sfx.coverOpen();
       go(1);
       setPhase("open");
-      onCover?.(true);
     }, 560);
     return () => clearTimeout(t);
-  }, [go, onCover]);
+  }, [go]);
 
   // Closing drops the open binder out of the screen: no riffling back, so pages never overlap.
   const close = useCallback(() => {
@@ -364,15 +367,20 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   const left = (vp.w - spreadW) / 2;
   const top = titleH + (vp.h - titleH - navH - pageH) / 2;
   const closedShift = single ? 0 : -(pageW + gap) / 2;
-  // The binder rises from the bottom of the screen, with a touch of motion blur.
+  // The binder rises from the bottom of the screen, with a touch of motion blur. Not on a phone: the blur keeps an
+  // offscreen copy of the whole binder, memory Safari can't spare while the binder's pages are drawn.
   const below = {
     y: vp.h - top + 40,
     rotateX: 32,
     scale: 0.84,
     opacity: 0,
-    filter: "blur(10px)",
+    ...(single ? {} : { filter: "blur(10px)" }),
   };
-  const dropped = { ...below, rotateX: -14, filter: "blur(8px)" };
+  const dropped = { ...below, rotateX: -14, ...(single ? {} : { filter: "blur(8px)" }) };
+  // no filter left once landed: even blur(0px) keeps the whole binder in an offscreen copy and flattens its 3D in Safari
+  const landed = single
+    ? { y: 0, rotateX: 0, scale: 1, opacity: 1 }
+    : { y: 0, rotateX: 0, scale: 1, opacity: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } };
 
   const renderFace = (face: Face, side: "front" | "back", leafIndex: number): ReactNode => {
     if (!face) return null;
@@ -493,8 +501,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
         className={styles.wrapper}
         style={{ left, top, width: spreadW, height: pageH, ["--pw" as string]: `${pageW}px`, ["--ph" as string]: `${pageH}px` }}
         initial={below}
-        // no filter left once landed: even blur(0px) keeps the whole binder in an offscreen copy and flattens its 3D in Safari
-        animate={leaving ? dropped : { y: 0, rotateX: 0, scale: 1, opacity: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } }}
+        animate={leaving ? dropped : landed}
         transition={
           leaving
             ? { duration: 0.42, ease: [0.55, 0, 0.8, 0.2] }
@@ -546,6 +553,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
               covered={covered(i)}
               onTurn={onTurn}
               fast={fast}
+              blurry={!single}
               left={single ? 0 : pageW + gap}
               pivot={single ? 0 : -gap / 2}
               width={pageW}
@@ -617,6 +625,8 @@ interface LeafProps {
   covered: boolean;
   onTurn: (index: number, flipped: boolean, done: boolean) => void;
   fast: boolean;
+  /** motion blur while turning: not on a phone, where each blurred face is a page-sized offscreen copy and a riffle has several in flight */
+  blurry: boolean;
   left: number;
   pivot: number;
   width: number;
@@ -625,7 +635,7 @@ interface LeafProps {
   back: ReactNode;
 }
 
-function Leaf({ index, total, flipped, moving, covered, onTurn, fast, left, pivot, width, color, front, back }: LeafProps) {
+function Leaf({ index, total, flipped, moving, covered, onTurn, fast, blurry, left, pivot, width, color, front, back }: LeafProps) {
   const rot = useMotionValue(flipped ? -180 : 0);
   const shade = useTransform(rot, [0, -90, -180], [0, 0.5, 0]);
   const blur = useTransform(rot, [0, -90, -180], ["blur(0px)", "blur(1.4px)", "blur(0px)"]);
@@ -665,14 +675,14 @@ function Leaf({ index, total, flipped, moving, covered, onTurn, fast, left, pivo
       }}
     >
       <div className={styles.face}>
-        <motion.div className={styles.faceInner} style={moving ? { filter: blur } : undefined}>
+        <motion.div className={styles.faceInner} style={moving && blurry ? { filter: blur } : undefined}>
           {front}
         </motion.div>
         <motion.div className={styles.shade} style={{ opacity: shade }} />
         {moving && <motion.div className={styles.sheen} style={{ left: sheen }} />}
       </div>
       <div className={`${styles.face} ${styles.back}`}>
-        <motion.div className={styles.faceInner} style={moving ? { filter: blur } : undefined}>
+        <motion.div className={styles.faceInner} style={moving && blurry ? { filter: blur } : undefined}>
           {back}
         </motion.div>
         <motion.div className={styles.shade} style={{ opacity: shade }} />
