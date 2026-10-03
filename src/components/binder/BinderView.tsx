@@ -37,6 +37,7 @@ interface Props {
 }
 
 const ASPECT = 0.74; // page width / height for a 3x3 pocket page
+const SCROLL_GAP = 14; // phone: space between two pages of the column
 
 export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }: Props) {
   const t = useT();
@@ -97,14 +98,9 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   /** Cards you can page through in the inspector, in binder order. */
   const browsable = useMemo(() => pages.flat().filter((p): p is Pocket & { card: CardData } => !!p.card), [pages]);
 
+  // Leaves of the spread (a phone has no leaves: its pages scroll, see `scroller`)
   const leaves = useMemo<LeafDef[]>(() => {
-    if (single) {
-      return [
-        { front: { type: "cover" }, back: null },
-        { front: { type: "stats" }, back: null },
-        ...pages.map((_, i) => ({ front: { type: "page", index: i } as Face, back: null })),
-      ];
-    }
+    if (single) return [];
     const out: LeafDef[] = [{ front: { type: "cover" }, back: { type: "stats" } }];
     for (let i = 0; i < pages.length; i += 2) {
       out.push({
@@ -115,7 +111,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
     return out;
   }, [pages, single]);
 
-  const maxF = single ? leaves.length - 1 : leaves.length;
+  const maxF = leaves.length;
   const [f, setF] = useState(0);
   const fRef = useRef(0);
   const [fast, setFast] = useState(false);
@@ -143,6 +139,12 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   const [removing, setRemoving] = useState(false);
   const [focused, setFocused] = useState<number | null>(null);
   const riffleTimer = useRef<number | null>(null);
+  /** Phone: the summary and the pages scroll in a column (no leaves turning: their 3D layers ran Safari out of memory) */
+  const scroller = useRef<HTMLDivElement>(null);
+  /** Phone: the item in view, 0 = the summary, then page n at n */
+  const [inView, setInView] = useState(0);
+  const inViewRef = useRef(0);
+  const scrollStep = pageH + SCROLL_GAP;
 
   const summary = useMemo<BinderSummary>(() => {
     if (set) {
@@ -225,22 +227,46 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   }, [close]);
 
 
+  /** Phone: scroll the column to an item (0 = summary, n = page n) */
+  const scrollTo = useCallback(
+    (item: number) => {
+      const el = scroller.current;
+      if (!el) return;
+      sfx.flip();
+      el.scrollTo({ top: Math.min(pages.length, Math.max(0, item)) * scrollStep, behavior: "smooth" });
+    },
+    [pages.length, scrollStep],
+  );
+  const onScroll = () => {
+    const el = scroller.current;
+    if (!el) return;
+    const i = Math.min(pages.length, Math.max(0, Math.round(el.scrollTop / scrollStep)));
+    if (i === inViewRef.current) return;
+    inViewRef.current = i;
+    setInView(i);
+  };
+
   const next = useCallback(() => {
-    if (phase !== "open" || fRef.current >= maxF) return;
+    if (phase !== "open") return;
+    if (single) return scrollTo(inViewRef.current + 1);
+    if (fRef.current >= maxF) return;
     riffleTo(fRef.current + 1);
-  }, [phase, maxF, riffleTo]);
+  }, [phase, single, maxF, riffleTo, scrollTo]);
   const prev = useCallback(() => {
-    if (phase !== "open" || fRef.current <= 1) return;
+    if (phase !== "open") return;
+    if (single) return scrollTo(inViewRef.current - 1);
+    if (fRef.current <= 1) return;
     riffleTo(fRef.current - 1);
-  }, [phase, riffleTo]);
+  }, [phase, single, riffleTo, scrollTo]);
 
   const jumpToPage = useCallback(
     (pageIndex: number, force = false) => {
       if (phase !== "open" && !force) return;
-      const target = single ? pageIndex + 2 : Math.floor(pageIndex / 2) + 1 + (pageIndex % 2);
+      if (single) return scrollTo(pageIndex + 1);
+      const target = Math.floor(pageIndex / 2) + 1 + (pageIndex % 2);
       riffleTo(Math.min(maxF, Math.max(1, target)));
     },
-    [phase, single, maxF, riffleTo],
+    [phase, single, maxF, riffleTo, scrollTo],
   );
 
   // Coming from the PC: riffle to the card and make it pulse.
@@ -284,7 +310,8 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
     };
     let lastWheel = 0;
     const onWheel = (e: WheelEvent) => {
-      if (inspect != null || picking != null) return;
+      // the phone's column scrolls by itself
+      if (single || inspect != null || picking != null) return;
       const now = performance.now();
       if (now - lastWheel < 380 || Math.abs(e.deltaY) < 8) return;
       lastWheel = now;
@@ -297,7 +324,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("wheel", onWheel);
     };
-  }, [next, prev, close, inspect, picking]);
+  }, [next, prev, close, inspect, picking, single]);
 
   // swipe
   const swipe = useRef<{ x: number; y: number } | null>(null);
@@ -365,7 +392,9 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   // geometry
   const spreadW = single ? pageW : pageW * 2 + gap;
   const left = (vp.w - spreadW) / 2;
-  const top = titleH + (vp.h - titleH - navH - pageH) / 2;
+  // a phone's column takes the whole height between the title and the nav
+  const wrapH = single ? vp.h - titleH - navH - 16 : pageH;
+  const top = titleH + (vp.h - titleH - navH - wrapH) / 2;
   const closedShift = single ? 0 : -(pageW + gap) / 2;
   // The binder rises from the bottom of the screen, with a touch of motion blur. Not on a phone: the blur keeps an
   // offscreen copy of the whole binder, memory Safari can't spare while the binder's pages are drawn.
@@ -382,9 +411,9 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
     ? { y: 0, rotateX: 0, scale: 1, opacity: 1 }
     : { y: 0, rotateX: 0, scale: 1, opacity: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } };
 
-  const renderFace = (face: Face, side: "front" | "back", leafIndex: number): ReactNode => {
+  /** near: the pockets are drawn (only around the page in view, the others stay bare sheets) */
+  const renderFace = (face: Face, side: "front" | "back", near: boolean): ReactNode => {
     if (!face) return null;
-    const near = Math.abs(leafIndex - f) <= 2 || (leafIndex === 0 && f <= 2);
     if (face.type === "cover") return <Cover binder={binder} name={set?.name ?? binder.name} count={summary.count} />;
     if (face.type === "stats")
       return (
@@ -427,19 +456,21 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   };
 
   let pageLabel = "";
-  if (f === 0) pageLabel = t("fermé", "closed");
-  else if (single) pageLabel = f === 1 ? t("sommaire", "summary") : `page ${f - 1} / ${pages.length}`;
+  if (single) pageLabel = inView === 0 ? t("sommaire", "summary") : `page ${inView} / ${pages.length}`;
+  else if (f === 0) pageLabel = t("fermé", "closed");
   else if (f === 1) pageLabel = `${t("sommaire", "summary")} · page 1 / ${pages.length}`;
   else if (f > leaves.length - 1) pageLabel = `page ${pages.length} / ${pages.length}`;
   else pageLabel = `pages ${2 * (f - 1)}–${Math.min(2 * (f - 1) + 1, pages.length)} / ${pages.length}`;
+
+  const atStart = single ? inView <= 0 : f <= 1;
+  const atEnd = single ? inView >= pages.length : f >= maxF;
 
   const inspectIndex = inspect == null ? -1 : browsable.findIndex((p) => p.index === inspect);
 
   // A leaf turns from the render that flips it (not a frame later, when its animation starts) until it lands:
   // in between it must stay drawn and on top, or it vanishes for a frame and then turns over itself.
   const turning = leaves.map((_, i) => anim.has(i) || i < f !== rest.has(i));
-  // Leaves lying flat under another one are hidden: on a phone each drawn leaf is a full-screen 3D layer,
-  // and the 20-odd pages of a big set were enough to run Safari out of memory.
+  // Leaves lying flat under another one are hidden: each drawn leaf is a full-page 3D layer.
   let topRight = leaves.length;
   let topLeft = -1;
   turning.forEach((moving, i) => {
@@ -447,7 +478,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
     if (i >= f) topRight = Math.min(topRight, i);
     else topLeft = i;
   });
-  const covered = (i: number) => !turning[i] && (i >= f ? i > topRight : single || i < topLeft);
+  const covered = (i: number) => !turning[i] && (i >= f ? i > topRight : i < topLeft);
 
   return (
     <motion.div
@@ -499,7 +530,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
 
       <motion.div
         className={styles.wrapper}
-        style={{ left, top, width: spreadW, height: pageH, ["--pw" as string]: `${pageW}px`, ["--ph" as string]: `${pageH}px` }}
+        style={{ left, top, width: spreadW, height: wrapH, ["--pw" as string]: `${pageW}px`, ["--ph" as string]: `${pageH}px` }}
         initial={below}
         animate={leaving ? dropped : landed}
         transition={
@@ -517,58 +548,82 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
           if (removing) onRemoved();
           else onClosed();
         }}
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
+        onPointerDown={single ? undefined : onPointerDown}
+        onPointerUp={single ? undefined : onPointerUp}
       >
-        <motion.div
-          className={styles.book}
-          initial={{ x: closedShift }}
-          animate={{ x: f === 0 ? closedShift : 0 }}
-          transition={{ duration: 0.75, ease: [0.45, 0, 0.2, 1] }}
-        >
-          {/* inside of the back cover */}
-          <div
-            className={styles.board}
-            style={{ left: single ? 0 : pageW + gap, width: pageW, background: binder.dark }}
-          >
-            <div className={styles.endPage}>
-              <span>✦</span>
-              <p>{t("fin du classeur", "end of binder")}</p>
+        {single ? (
+          <>
+            {/* the summary, then the pages, in a column scrolled by hand: flat sheets, nothing turns */}
+            <div ref={scroller} className={styles.scroller} style={{ gap: SCROLL_GAP }} onScroll={onScroll}>
+              {[{ type: "stats" } as Face, ...pages.map((_, i): Face => ({ type: "page", index: i }))].map((face, i) => (
+                <div key={i} className={styles.scrollPage} style={{ height: pageH }}>
+                  {renderFace(face, "front", phase !== "enter" && Math.abs(i - inView) <= 1)}
+                </div>
+              ))}
             </div>
-          </div>
-          {!single && (
+            {/* the closed cover, lifted off once the binder has landed */}
+            <AnimatePresence>
+              {phase === "enter" && (
+                <motion.div
+                  key="cover"
+                  className={styles.scrollCover}
+                  style={{ height: pageH }}
+                  exit={{ opacity: 0, y: -24, scale: 1.04 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                >
+                  <Cover binder={binder} name={set?.name ?? binder.name} count={summary.count} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        ) : (
+          <motion.div
+            className={styles.book}
+            initial={{ x: closedShift }}
+            animate={{ x: f === 0 ? closedShift : 0 }}
+            transition={{ duration: 0.75, ease: [0.45, 0, 0.2, 1] }}
+          >
+            {/* inside of the back cover */}
+            <div className={styles.board} style={{ left: pageW + gap, width: pageW, background: binder.dark }}>
+              <div className={styles.endPage}>
+                <span>✦</span>
+                <p>{t("fin du classeur", "end of binder")}</p>
+              </div>
+            </div>
             <div className={styles.rings} style={{ left: pageW, width: gap }}>
               {[0.2, 0.5, 0.8].map((p) => (
                 <span key={p} style={{ top: `${p * 100}%` }} />
               ))}
             </div>
-          )}
-          {leaves.map((leaf, i) => (
-            <Leaf
-              key={i}
-              index={i}
-              total={leaves.length}
-              flipped={i < f}
-              moving={turning[i]}
-              covered={covered(i)}
-              onTurn={onTurn}
-              fast={fast}
-              blurry={!single}
-              left={single ? 0 : pageW + gap}
-              pivot={single ? 0 : -gap / 2}
-              width={pageW}
-              color={binder.dark}
-              front={renderFace(leaf.front, "front", i)}
-              back={renderFace(leaf.back, "back", i)}
-            />
-          ))}
-          {phase === "open" && f < maxF && (
-            <button className={`${styles.corner} ${styles.cornerRight}`} onClick={next} aria-label={t("Page suivante", "Next page")} />
-          )}
-          {phase === "open" && f > 1 && !single && (
-            <button className={`${styles.corner} ${styles.cornerLeft}`} onClick={prev} aria-label={t("Page précédente", "Previous page")} />
-          )}
-        </motion.div>
+            {leaves.map((leaf, i) => {
+              const near = Math.abs(i - f) <= 2 || (i === 0 && f <= 2);
+              return (
+                <Leaf
+                  key={i}
+                  index={i}
+                  total={leaves.length}
+                  flipped={i < f}
+                  moving={turning[i]}
+                  covered={covered(i)}
+                  onTurn={onTurn}
+                  fast={fast}
+                  left={pageW + gap}
+                  pivot={-gap / 2}
+                  width={pageW}
+                  color={binder.dark}
+                  front={renderFace(leaf.front, "front", near)}
+                  back={renderFace(leaf.back, "back", near)}
+                />
+              );
+            })}
+            {phase === "open" && f < maxF && (
+              <button className={`${styles.corner} ${styles.cornerRight}`} onClick={next} aria-label={t("Page suivante", "Next page")} />
+            )}
+            {phase === "open" && f > 1 && (
+              <button className={`${styles.corner} ${styles.cornerLeft}`} onClick={prev} aria-label={t("Page précédente", "Previous page")} />
+            )}
+          </motion.div>
+        )}
       </motion.div>
 
       <motion.nav
@@ -578,11 +633,11 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
         animate={{ y: phase === "open" ? 0 : 40, opacity: phase === "open" ? 1 : 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 22 }}
       >
-        <button className={styles.arrow} onClick={prev} disabled={f <= 1} onPointerEnter={sfx.hover} aria-label={t("Précédent", "Previous")}>
+        <button className={styles.arrow} onClick={prev} disabled={atStart} onPointerEnter={sfx.hover} aria-label={t("Précédent", "Previous")}>
           ◀
         </button>
         <span className={styles.pageLabel}>{pageLabel}</span>
-        <button className={styles.arrow} onClick={next} disabled={f >= maxF} onPointerEnter={sfx.hover} aria-label={t("Suivant", "Next")} data-tour="next-page">
+        <button className={styles.arrow} onClick={next} disabled={atEnd} onPointerEnter={sfx.hover} aria-label={t("Suivant", "Next")} data-tour="next-page">
           ▶
         </button>
       </motion.nav>
@@ -625,8 +680,6 @@ interface LeafProps {
   covered: boolean;
   onTurn: (index: number, flipped: boolean, done: boolean) => void;
   fast: boolean;
-  /** motion blur while turning: not on a phone, where each blurred face is a page-sized offscreen copy and a riffle has several in flight */
-  blurry: boolean;
   left: number;
   pivot: number;
   width: number;
@@ -635,7 +688,7 @@ interface LeafProps {
   back: ReactNode;
 }
 
-function Leaf({ index, total, flipped, moving, covered, onTurn, fast, blurry, left, pivot, width, color, front, back }: LeafProps) {
+function Leaf({ index, total, flipped, moving, covered, onTurn, fast, left, pivot, width, color, front, back }: LeafProps) {
   const rot = useMotionValue(flipped ? -180 : 0);
   const shade = useTransform(rot, [0, -90, -180], [0, 0.5, 0]);
   const blur = useTransform(rot, [0, -90, -180], ["blur(0px)", "blur(1.4px)", "blur(0px)"]);
@@ -675,14 +728,14 @@ function Leaf({ index, total, flipped, moving, covered, onTurn, fast, blurry, le
       }}
     >
       <div className={styles.face}>
-        <motion.div className={styles.faceInner} style={moving && blurry ? { filter: blur } : undefined}>
+        <motion.div className={styles.faceInner} style={moving ? { filter: blur } : undefined}>
           {front}
         </motion.div>
         <motion.div className={styles.shade} style={{ opacity: shade }} />
         {moving && <motion.div className={styles.sheen} style={{ left: sheen }} />}
       </div>
       <div className={`${styles.face} ${styles.back}`}>
-        <motion.div className={styles.faceInner} style={moving && blurry ? { filter: blur } : undefined}>
+        <motion.div className={styles.faceInner} style={moving ? { filter: blur } : undefined}>
           {back}
         </motion.div>
         <motion.div className={styles.shade} style={{ opacity: shade }} />
