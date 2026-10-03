@@ -41,7 +41,7 @@ Les **30 Pikachu Rare** sont le fil rouge : chaque booster en cache un, et les s
 
 ## Quelles cartes chasser ?
 
-Pas de surprise, ce sont les deux Futuristic Rare qu'on veut tous. Juste derrière, les **dix illustrations spéciales rares** (147 à 156) : Fuecoco-ex, Greninja-ex, deux Pikachu-ex, Mewtwo-ex, Mew-ex, Sylveon-ex, Gengar-ex, Jirachi-ex et Salamence-ex.
+Pas de surprise, ce sont les deux Futuristic Rare qu'on veut tous. Juste derrière, les **dix illustrations spéciales rares** (147 à 156) : Chochodile-ex, Amphinobi-ex, deux Pikachu-ex, Mewtwo-ex, Mew-ex, Nymphali-ex, Ectoplasma-ex, Jirachi-ex et Drattak-ex.
 
 ::card[30th-158]
 ::card[30th-151]
@@ -49,7 +49,7 @@ Pas de surprise, ce sont les deux Futuristic Rare qu'on veut tous. Juste derriè
 
 ## Vaut-il le coup d'ouvrir ?
 
-Tout est brillant et chaque pack a son Pikachu : le plaisir de l'ouverture est garanti, même sans gros hit. Pour une collection, c'est un set à part, plutôt de célébration que de compétition. Côté produits, le Display de six boosters (Booster Bundle) et le coffret Dresseur d'élite (9 boosters) existent côté anglais ; les formats français peuvent différer.
+Tout est brillant et chaque pack a son Pikachu : le plaisir de l'ouverture est garanti, même sans gros hit. Pour une collection, c'est un set à part, plutôt de célébration que de compétition. Côté produits, le bundle de six boosters (Booster Bundle) et le coffret Dresseur d'élite (9 boosters) existent côté anglais ; les formats français peuvent différer.
 
 Côté prix, patience : Cardmarket n'a pas encore de tendance pour ces cartes, et son guide mélange toutes les langues. On met à jour dès que les chiffres tombent.
 

@@ -104,7 +104,10 @@ One short paragraph on following this in NookDex.
   jokes, no hype words ("incroyable", "must-have"), no clickbait.
 - Still exact: prices with their date, card numbers, release dates. No invented facts, quotes or "experts say". If
   something can't be checked, leave it out. Use each language's official names (Lugia V / Lugia V, Braségali / Blaziken,
-  Tempête Argentée / Silver Tempest); French prices in euros from the French files, English prices in dollars from the
-  English files.
+  Tempête Argentée / Silver Tempest): **take every card and set name of the French post from the French files**
+  (`public/sets/<id>.json`, `src/data/catalog.json`), never from an English source (Chochodile, not Fuecoco; Ectoplasma,
+  not Gengar). French prices in euros from the French files, English prices in dollars from the English files.
+- French collectors' words: a "display" is a box of 36 boosters, a "bundle" holds 6, an "ETB" is a "coffret Dresseur
+  d'élite".
 - 600 to 1,000 words.
 - NookDex has no link with Nintendo, Creatures, GAME FREAK or The Pokémon Company: never suggest otherwise.
