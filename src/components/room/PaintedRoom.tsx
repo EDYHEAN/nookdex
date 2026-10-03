@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MAX_BINDERS, pocketsOf, shelfBinders } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
@@ -60,6 +61,8 @@ const rowEnd = (i: number) => {
 };
 /** The books at the end of the bottom shelf (scene px): one of them is the "about" notebook. */
 const BOOKS = { x: 2378, y: 515, w: 305, h: 272 };
+/** the cork board under the shelf, its sticky notes: the blog */
+const BOARD = { x: 1944, y: 846, w: 328, h: 250 };
 const SCREEN_QUAD = SCENE.screenQuad.map(([x, y]) => [x - SCENE.screen.x, y - SCENE.screen.y] as [number, number]);
 
 function useCamera(compact: boolean) {
@@ -77,6 +80,7 @@ function useCamera(compact: boolean) {
 
 export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, veiled, behind }: Props) {
   const uiLang = useLang();
+  const router = useRouter();
   /** "EN" on an English binder of the French site (and the other way round): the language it isn't in */
   const langTag = (b: BinderDef) => (b.lang && b.lang !== uiLang ? langLabel(b.lang, uiLang) : null);
   const tr = useT();
@@ -513,6 +517,22 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
               lavaTheme.current = n;
               setLavaIdx(n);
               showTip(SCENE.lava.x + SCENE.lava.w / 2, SCENE.lava.y, tr("Lampe à lave", "Lava lamp"), tr(LAVA_THEMES[n].name, LAVA_THEMES[n].nameEn));
+            }}
+          />
+          {/* before the lamp: where the lamp's arm crosses the board, the lamp wins */}
+          <button
+            className={`${styles.hotspot} ${styles.bookSpot}`}
+            style={place(BOARD)}
+            aria-label={tr("Le tableau : le blog", "The pinboard: the blog")}
+            onPointerEnter={() => {
+              sfx.hover();
+              showTip(BOARD.x + BOARD.w / 2, BOARD.y - 8, tr("Le tableau", "The pinboard"), tr("le blog : actus & prix du JCC", "the blog: TCG news & prices"));
+            }}
+            onPointerLeave={() => setTip(null)}
+            onClick={() => {
+              sfx.pop();
+              setTip(null);
+              router.push("/blog");
             }}
           />
           <button
