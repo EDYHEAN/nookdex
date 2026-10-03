@@ -238,6 +238,42 @@
   pointer-events: none;
 }
 
+/* ---------- phone: the pages scroll in a column ---------- */
+
+.scroller {
+  position: absolute;
+  inset: 0;
+  /* its own stacking context: the summary's search box (z-index 3) stays under the cover */
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y proximity;
+  scrollbar-width: none;
+  border-radius: 3px 12px 12px 3px;
+}
+
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollPage {
+  position: relative;
+  flex: none;
+  scroll-snap-align: start;
+  border-radius: 3px 12px 12px 3px;
+  overflow: hidden;
+}
+
+.scrollCover {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+
 /* a plastic 9-pocket page */
 .sheet {
   position: absolute;
