@@ -17,7 +17,7 @@ export default async function Home() {
             your wanted list.
           </p>
           <nav>
-            <Link href="/a-propos">About</Link> · <Link href="/confidentialite">Privacy policy</Link> · <Link href="/conditions">Terms of use</Link> ·{" "}
+            <Link href="/a-propos">About</Link> · <Link href="/blog">Blog</Link> ·<Link href="/confidentialite">Privacy policy</Link> · <Link href="/conditions">Terms of use</Link> ·{" "}
             <Link href="/contact">Contact</Link>
           </nav>
         </div>
@@ -31,7 +31,7 @@ export default async function Home() {
             TCGplayer), et partage ta liste de recherche.
           </p>
           <nav>
-            <Link href="/a-propos">À propos</Link> · <Link href="/confidentialite">Règles de confidentialité</Link> ·{" "}
+            <Link href="/a-propos">À propos</Link> · <Link href="/blog">Blog</Link> ·<Link href="/confidentialite">Règles de confidentialité</Link> ·{" "}
             <Link href="/conditions">Conditions d&apos;utilisation</Link> · <Link href="/contact">Contact</Link>
           </nav>
         </div>

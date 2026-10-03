@@ -6,6 +6,7 @@ import styles from "./LegalPage.module.css";
 
 const TABS = [
   { href: "/a-propos", label: ["À propos", "About"] },
+  { href: "/blog", label: ["Blog", "Blog"] },
   { href: "/confidentialite", label: ["Vie privée", "Privacy"] },
   { href: "/conditions", label: ["CGU", "Terms"] },
   { href: "/contact", label: ["Contact", "Contact"] },

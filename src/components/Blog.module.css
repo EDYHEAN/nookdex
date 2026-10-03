@@ -1,0 +1,177 @@
+/* The blog in the notebook (LegalPage): the posts are sticky notes pinned on the ruled paper. */
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 22px;
+  margin: 24px 0 !important;
+  padding: 0 !important;
+  list-style: none;
+}
+
+.note {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 22px 16px 16px;
+  background: #fff3a8;
+  color: var(--ink) !important;
+  text-decoration: none;
+  line-height: 1.15;
+  box-shadow:
+    0 0 0 2px rgba(43, 34, 48, 0.25),
+    4px 5px 0 rgba(43, 34, 48, 0.18);
+  transform: rotate(-1.2deg);
+  transition: transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.list li:nth-child(3n + 2) .note {
+  background: #ffd6e0;
+  transform: rotate(1deg);
+}
+
+.list li:nth-child(3n + 3) .note {
+  background: #d4f0ff;
+  transform: rotate(-0.4deg);
+}
+
+/* the pin */
+.note::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: #d9473c;
+  box-shadow:
+    inset -2px -2px 0 rgba(0, 0, 0, 0.25),
+    1px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.note:hover,
+.list li .note:hover {
+  transform: rotate(0) translateY(-4px) scale(1.02);
+}
+
+.note time {
+  color: var(--ink-soft);
+  font-size: 0.8em;
+}
+
+.note b {
+  font-weight: normal;
+  font-size: 1.05em;
+  color: var(--ink-red);
+}
+
+.note span {
+  font-size: 0.85em;
+}
+
+.meta {
+  color: var(--ink-soft);
+}
+
+/* the post's Markdown */
+.body h2 {
+  margin: 32px 0 0;
+}
+
+.body h3 {
+  margin: 24px 0 0;
+  font-weight: normal;
+  font-size: 1em;
+  color: var(--ink-gold);
+}
+
+.body p,
+.body ul,
+.body ol,
+.body table,
+.body blockquote {
+  margin: 0 0 16px;
+}
+
+.body ul,
+.body ol {
+  padding-left: 1.1em;
+}
+
+.body img {
+  max-width: 100%;
+  height: auto;
+}
+
+.body blockquote {
+  padding-left: 14px;
+  border-left: 3px solid var(--ink-gold);
+  color: var(--ink-soft);
+}
+
+.body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+  line-height: 1.2;
+}
+
+.body th,
+.body td {
+  padding: 4px 8px;
+  border-bottom: 1px dashed rgba(43, 34, 48, 0.3);
+  text-align: left;
+}
+
+.body th {
+  font-weight: normal;
+  color: var(--ink-red);
+}
+
+/* a card of the site's data (::card[...] in the post) */
+.body :global(.blog-card) {
+  float: right;
+  width: 150px;
+  margin: 4px 0 16px 20px;
+  line-height: 1.1;
+  font-size: 0.8em;
+  text-align: center;
+}
+
+.body :global(.blog-card) img {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+  box-shadow: 3px 4px 0 rgba(43, 34, 48, 0.25);
+  transform: rotate(1.5deg);
+}
+
+.body :global(.blog-card) figcaption {
+  margin-top: 8px;
+}
+
+.body :global(.blog-card) b {
+  font-weight: normal;
+  color: var(--ink-red);
+}
+
+.body h2,
+.body h3 {
+  clear: both;
+}
+
+.cta {
+  clear: both;
+  margin-top: 28px !important;
+}
+
+@media (max-width: 560px) {
+  .body :global(.blog-card) {
+    width: 118px;
+    margin-left: 12px;
+  }
+}

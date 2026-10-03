@@ -96,6 +96,17 @@ doesn't show.
 - `/api/contact`: contact form → e-mail to Johan (topics are sent in French whatever the visitor's language).
 - The English waiting list (Brevo list 12, `BREVO_WAITLIST_LIST_ID`) is gone since the English version exists.
 
+## Blog (SEO/GEO)
+
+- `/blog` (index, the visitor's language) and `/blog/<slug>` (one post, its own language), notebook pages like
+  `/a-propos`, opened from the cork board above the desk (`BOARD` hotspot in PaintedRoom) and the notebook's "Blog" tab.
+- Posts are Markdown files: `content/blog/<fr|en>/<slug>.md`, frontmatter `title, description, date, key, tags`; the
+  two languages of a post share `key` (hreflang). `::card[<id>]` on its own line draws a card from `public/sets` with
+  today's price. `lib/blog.ts` reads them at request time (next.config traces `content/blog` and `public/sets`).
+  Also: `BlogPosting` JSON-LD, sitemap entries, RSS (`/blog/rss.xml`, `/blog/rss-en.xml`), `/llms.txt`.
+- Written by a scheduled Claude routine, twice a week, straight to `main`, following `docs/blog.md` (subjects, data,
+  format, tone). Change the editorial line there, not in the routine's prompt.
+
 ## GitHub Actions
 
 - `prices.yml` (daily 11:00 UTC): `fetch-set --force` then `--force --lang=en` refresh binder-set prices and cards
