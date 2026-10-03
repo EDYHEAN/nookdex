@@ -53,12 +53,12 @@
     1px 2px 0 rgba(0, 0, 0, 0.3);
 }
 
-.note:hover,
 .list li .note:hover {
   transform: rotate(0) translateY(-4px) scale(1.02);
 }
 
-.note time {
+.note time,
+.note small {
   color: var(--ink-soft);
   font-size: 0.8em;
 }
@@ -73,13 +73,53 @@
   font-size: 0.85em;
 }
 
+/* ---------- a post's header ---------- */
+
 .meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
   color: var(--ink-soft);
 }
 
-/* the post's Markdown */
+.langSwitch {
+  margin-left: auto;
+  padding: 0 10px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--ink) !important;
+  text-decoration: none;
+  line-height: 26px;
+}
+
+.langSwitch:hover {
+  background: #ffd35a;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 20px !important;
+  padding: 0 !important;
+  list-style: none;
+}
+
+.tags li {
+  padding: 0 8px;
+  border-radius: 4px;
+  background: rgba(232, 161, 58, 0.18);
+  color: var(--ink);
+  font-size: 0.85em;
+  line-height: 26px;
+}
+
+/* ---------- the post's Markdown ---------- */
+
 .body h2 {
-  margin: 32px 0 0;
+  margin: 36px 0 4px;
 }
 
 .body h3 {
@@ -92,7 +132,6 @@
 .body p,
 .body ul,
 .body ol,
-.body table,
 .body blockquote {
   margin: 0 0 16px;
 }
@@ -102,27 +141,69 @@
   padding-left: 1.1em;
 }
 
+.body li + li {
+  margin-top: 4px;
+}
+
 .body img {
   max-width: 100%;
   height: auto;
 }
 
+/* a quote is a sticky note: the "En bref" summary at the top of a post */
 .body blockquote {
-  padding-left: 14px;
-  border-left: 3px solid var(--ink-gold);
-  color: var(--ink-soft);
+  position: relative;
+  margin: 8px 0 28px;
+  padding: 18px 22px 6px;
+  background: #fff3a8;
+  box-shadow:
+    0 0 0 2px rgba(43, 34, 48, 0.2),
+    5px 6px 0 rgba(43, 34, 48, 0.16);
+  transform: rotate(-0.4deg);
+}
+
+.body blockquote::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 70px;
+  height: 18px;
+  margin-left: -35px;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 0 1px rgba(43, 34, 48, 0.12);
+  transform: rotate(-2deg);
+}
+
+/* off the ruled lines, the note can be tighter */
+.body blockquote p,
+.body blockquote ul {
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.body blockquote li + li {
+  margin-top: 8px;
+}
+
+.body :global(.blog-table) {
+  /* width 0 + min-width 100 %: the table's own width can't widen the notebook, it scrolls inside its box */
+  width: 0;
+  min-width: 100%;
+  margin: 0 0 20px;
+  overflow-x: auto;
 }
 
 .body table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9em;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .body th,
 .body td {
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-bottom: 1px dashed rgba(43, 34, 48, 0.3);
   text-align: left;
 }
@@ -130,48 +211,226 @@
 .body th {
   font-weight: normal;
   color: var(--ink-red);
+  white-space: nowrap;
 }
 
-/* a card of the site's data (::card[...] in the post) */
+.body tbody tr:hover {
+  background: rgba(255, 211, 90, 0.18);
+}
+
+/* ---------- a card the post talks about (::card[…]): its scan beside its sheet ---------- */
+
 .body :global(.blog-card) {
-  float: right;
-  width: 150px;
-  margin: 4px 0 16px 20px;
-  line-height: 1.1;
-  font-size: 0.8em;
-  text-align: center;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+  margin: 24px 0 28px;
+  padding: 18px 20px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow:
+    inset 0 0 0 2px rgba(43, 34, 48, 0.14),
+    4px 5px 0 rgba(43, 34, 48, 0.1);
 }
 
 .body :global(.blog-card) img {
   display: block;
   width: 100%;
   border-radius: 6px;
-  box-shadow: 3px 4px 0 rgba(43, 34, 48, 0.25);
-  transform: rotate(1.5deg);
+  box-shadow: 4px 5px 0 rgba(43, 34, 48, 0.25);
+  transform: rotate(-2deg);
+  transition: transform 0.25s cubic-bezier(0.34, 1.6, 0.5, 1);
+}
+
+.body :global(.blog-card):hover img {
+  transform: rotate(0) scale(1.04);
 }
 
 .body :global(.blog-card) figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.body :global(.blog-card-set),
+.body :global(.blog-card-rarity) {
+  color: var(--ink-soft);
+  font-size: 0.85em;
+}
+
+.body :global(.blog-card-name) {
+  font-weight: normal;
+  font-size: 1.35em;
+  color: var(--ink-red);
+}
+
+.body :global(.blog-card-price) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
   margin-top: 8px;
 }
 
-.body :global(.blog-card) b {
+.body :global(.blog-card-price) b {
+  font-weight: normal;
+  font-size: 1.5em;
+  color: var(--ink-gold);
+}
+
+.body :global(.blog-card-price) small {
+  width: 100%;
+  color: var(--ink-soft);
+  font-size: 0.75em;
+}
+
+.body :global(.blog-card) a {
+  margin-top: 10px;
+  padding: 2px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-size: 0.85em;
+  white-space: nowrap;
+  text-decoration: none;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.body :global(.blog-card) a:hover {
+  transform: translate(-1px, -2px);
+}
+
+.body :global(.blog-up) {
+  font-style: normal;
+  color: var(--ink-green);
+}
+
+.body :global(.blog-down) {
+  font-style: normal;
+  color: var(--ink-red);
+}
+
+/* the price's companions: cheapest offer, the 7-day and 30-day sales averages */
+.body :global(.blog-card-stats) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin: 6px 0 0;
+  padding: 0;
+  font-size: 0.8em;
+  line-height: 1.2;
+}
+
+.body :global(.blog-card-stats) div {
+  display: flex;
+  flex-direction: column;
+}
+
+.body :global(.blog-card-stats) dt {
+  color: var(--ink-soft);
+}
+
+.body :global(.blog-card-stats) dd {
+  margin: 0;
+}
+
+/* several cards in a row: a small gallery, in centred columns of a fixed size (two or three cards leave no hole) */
+.body :global(.blog-gallery) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 170px));
+  justify-content: center;
+  gap: 22px;
+  margin: 24px 0 28px;
+}
+
+.body :global(.blog-mini) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--ink);
+  line-height: 1.15;
+  text-decoration: none;
+}
+
+.body :global(.blog-mini) img {
+  width: 100%;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  box-shadow: 3px 4px 0 rgba(43, 34, 48, 0.22);
+  transition: transform 0.25s cubic-bezier(0.34, 1.6, 0.5, 1);
+}
+
+.body :global(.blog-mini):hover img {
+  transform: translateY(-4px) rotate(-1.5deg);
+}
+
+.body :global(.blog-mini) b {
   font-weight: normal;
   color: var(--ink-red);
 }
 
-.body h2,
-.body h3 {
-  clear: both;
+.body :global(.blog-mini) span {
+  color: var(--ink-soft);
+  font-size: 0.8em;
 }
 
+.body :global(.blog-mini) :global(.blog-mini-price) {
+  color: var(--ink-gold);
+  font-size: 1em;
+}
+
+/* ---------- after the post ---------- */
+
 .cta {
-  clear: both;
-  margin-top: 28px !important;
+  margin-top: 32px !important;
+}
+
+.more {
+  margin-top: 36px;
+}
+
+.more h2 {
+  margin: 0;
 }
 
 @media (max-width: 560px) {
   .body :global(.blog-card) {
-    width: 118px;
-    margin-left: 12px;
+    grid-template-columns: 104px minmax(0, 1fr);
+    gap: 14px;
+    padding: 12px;
+  }
+
+  .body :global(.blog-card-name) {
+    font-size: 1.2em;
+  }
+
+  .body :global(.blog-card) a {
+    padding: 2px 8px;
+    font-size: 0.75em;
+  }
+
+  .body :global(.blog-gallery) {
+    /* minmax(0, …): a scan's own 245 px width must not widen the page */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  /* on a phone a table keeps its columns and scrolls sideways */
+  .body td {
+    white-space: nowrap;
+  }
+
+  .body blockquote {
+    padding: 16px 14px 4px;
+  }
+
+  .langSwitch {
+    margin-left: 0;
   }
 }

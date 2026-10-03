@@ -8,12 +8,24 @@ import blog from "@/components/Blog.module.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const en = (await serverLang()) === "en";
+  const title = `Blog · ${SITE_NAME}`;
+  const description = en
+    ? "Pokémon TCG news, set guides and card prices followed every day: the blog of the NookDex desk."
+    : "Actus du JCC Pokémon, guides des extensions et prix des cartes suivis chaque jour : le blog du bureau NookDex.";
   return {
-    title: `Blog · ${SITE_NAME}`,
-    description: en
-      ? "Pokémon TCG news, set guides and card prices followed every day: the blog of the NookDex desk."
-      : "Actus du JCC Pokémon, guides des extensions et prix des cartes suivis chaque jour : le blog du bureau NookDex.",
+    title,
+    description,
     alternates: { canonical: "/blog", types: { "application/rss+xml": en ? "/blog/rss-en.xml" : "/blog/rss.xml" } },
+    // its own title and address, with the site's painted desk as the picture
+    openGraph: {
+      type: "website",
+      url: "/blog",
+      siteName: SITE_NAME,
+      title,
+      description,
+      locale: en ? "en_GB" : "fr_FR",
+      images: [{ url: "/opengraph-image.jpg", width: 1200, height: 630, alt: SITE_NAME }],
+    },
   };
 }
 
@@ -34,7 +46,9 @@ export default async function BlogIndex() {
           {posts.map((p) => (
             <li key={p.slug}>
               <Link href={`/blog/${p.slug}`} className={blog.note}>
-                <time dateTime={p.date}>{formatDate(p.date, lang)}</time>
+                <time dateTime={p.date}>
+                  {formatDate(p.date, lang)} · {p.minutes} min
+                </time>
                 <b>{p.title}</b>
                 <span>{p.description}</span>
               </Link>
