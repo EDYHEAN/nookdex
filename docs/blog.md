@@ -7,7 +7,7 @@ the Pokémon TCG, that lead collectors to the desk. Read the repo's CLAUDE.md fi
 ## One run = one article, in French and English
 
 1. `git pull` on `main`.
-2. Pick a subject (see below) that no post in `content/blog/` already covers: read the titles first. Never repeat a
+2. Update the release calendar first (step 5), then pick a subject (see below) that no post in `content/blog/` already covers: read the titles first. Never repeat a
    subject with the same angle; a price update of the same set is fine if a month or more has passed and the numbers moved.
 3. Gather the facts. **Every number comes from the repo's data or from a source you read during this run.**
 4. Write `content/blog/fr/<slug-fr>.md` and `content/blog/en/<slug-en>.md` (same `key`, same date: today).
@@ -22,7 +22,23 @@ the Pokémon TCG, that lead collectors to the desk. Read the repo's CLAUDE.md fi
 
 ## Subjects
 
-Up next, in this order (take the first one no post covers yet, then go back to the rotation):
+**Releases come first.** After updating the calendar (step 5, do it before choosing), check these in order; the first
+one that applies is today's subject:
+
+- **Monthly releases**: on the first run of a month, if no post covers this month yet: "Sorties Pokémon de <mois>
+  <année>" / "Pokémon TCG releases in <month> <year>": every release of the month from `src/data/releases.json`
+  (sets, products, prereleases, Japan apart), what each is, and what came out last month with a link to its set page.
+  Slug with the month (`sorties-pokemon-novembre-2026`, `pokemon-tcg-releases-november-2026`).
+- **Set preview**: a set of the calendar (international, `kind: "set"`) comes out in 21 days or less and no post is
+  about it: its guide before release (date, size, the cards revealed, products, prerelease date), confirmed facts only.
+  Its cards aren't in the repo yet: no `::card`, describe them.
+- **First prices**: a set released 7 to 30 days ago is in `src/data/catalog.json` with prices, and no post gives its
+  prices: its most valuable cards and the cost of the set (the usual price post), with `::card` sheets.
+
+When a post is about a calendar entry, add `"post": { "fr": "<slug-fr>", "en": "<slug-en>" }` to that entry: the
+calendar links to it.
+
+Otherwise, up next, in this order (take the first one no post covers yet, then go back to the rotation):
 
 1. **The 30th Anniversary set** ("30ᵉ Anniversaire" / "30th Celebration", out September 16, 2026, set id `30th`): what's
    in it, its rarities, the chase cards and their prices. Its 30 classic reprints are not in TCGdex's data yet (shown as

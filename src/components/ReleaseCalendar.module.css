@@ -95,6 +95,12 @@
   color: var(--ink-gold);
 }
 
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
 .source {
   font-size: 0.8em;
 }
