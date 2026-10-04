@@ -46,19 +46,71 @@
   font-size: 0.9em;
 }
 
-/* the long card list: number and price never wrap */
-.list td:first-child,
-.list td:last-child {
+/* every card of the set: its scan and its little label, like the pockets of a binder page */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 20px 14px;
+  margin: 12px 0 28px;
+  padding: 0 !important;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  line-height: 1.1;
+}
+
+.card img,
+.back {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 245 / 342;
+  margin-bottom: 6px;
+  border-radius: 5px;
+  box-shadow: 3px 4px 0 rgba(43, 34, 48, 0.22);
+  transition: transform 0.25s cubic-bezier(0.34, 1.6, 0.5, 1);
+}
+
+.card:hover img {
+  transform: translateY(-4px) rotate(-1.5deg);
+}
+
+/* a card TCGdex took out for now: a paper card back with the binders' stamp */
+.back {
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  border: 2px dashed var(--ink-soft);
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  font-size: 0.75em;
+  text-align: center;
+}
+
+.card b {
+  overflow: hidden;
+  font-weight: normal;
+  font-size: 0.85em;
+  color: var(--ink-red);
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.list td:last-child {
-  color: var(--ink-gold);
-  text-align: right;
+.card small {
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 0.65em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.list th:last-child {
-  text-align: right;
+.price {
+  color: var(--ink-gold);
+  font-size: 0.85em;
 }
 
 .series ul {

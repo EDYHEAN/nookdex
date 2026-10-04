@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cardGallery, formatDate } from "@/lib/blog";
+import { cardGallery, formatDate, num } from "@/lib/blog";
 import { keyOf } from "@/lib/cardLang";
 import { type PageLang, SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
 import { cardCount, money, setFaq, setPage, trendOf } from "@/lib/setPages";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import type { CardData } from "@/lib/types";
 import blog from "./Blog.module.css";
 import legal from "./LegalPage.module.css";
 import { LegalPage } from "./LegalPage";
@@ -62,6 +63,8 @@ export function SetPageView({ lang, slug }: { lang: PageLang; slug: string }) {
   const url = `${SITE_URL}${p.path}`;
   const root = SET_PAGES_ROOT[lang];
   const logo = p.set.logo ? `${p.set.logo}.png` : null;
+  /** "186/195": the number as printed on the card */
+  const numOf = (c: CardData) => num(c, p.data);
   const gallery = cardGallery(
     p.top.slice(0, 8).map((c) => keyOf(lang, c.id)),
     lang,
@@ -180,31 +183,28 @@ export function SetPageView({ lang, slug }: { lang: PageLang; slug: string }) {
         )}
 
         <h2>{t(`Liste des ${n} cartes de ${name}`, `All ${n} ${name} cards`)}</h2>
-        <div className="blog-table">
-          <table className={styles.list}>
-            <thead>
-              <tr>
-                <th>{t("N°", "No.")}</th>
-                <th>{t("Carte", "Card")}</th>
-                <th>{t("Rareté", "Rarity")}</th>
-                <th>{t(`Prix ${market}`, `${market} price`)}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {p.data.cards.map((c) => {
-                const price = trendOf(c);
-                return (
-                  <tr key={c.id}>
-                    <td>{c.num}</td>
-                    <td>{c.name}</td>
-                    <td>{c.rarity ?? "—"}</td>
-                    <td>{price != null ? money(price, p) : "—"}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <p className={styles.other}>{t(`Prix tendance ${market} du ${day}.`, `${market} market prices, ${day}.`)}</p>
+        {/* every card with its scan: what people come to see (and what image search finds), loaded as the page scrolls */}
+        <ul className={styles.cards}>
+          {p.data.cards.map((c) => {
+            const price = trendOf(c);
+            const label = `${c.name} ${numOf(c)}`;
+            return (
+              <li key={c.id} className={styles.card}>
+                {c.img ? (
+                  <img src={`${c.img}/low.webp`} alt={`${label} · ${name}`} width={245} height={342} loading="lazy" decoding="async" />
+                ) : (
+                  // taken out by TCGdex for now (see CardBack in the binders)
+                  <span className={styles.back}>{t("Bientôt de retour", "Back soon")}</span>
+                )}
+                <small>{numOf(c)}</small>
+                <b>{c.name}</b>
+                {c.rarity && <small>{c.rarity}</small>}
+                <span className={styles.price}>{price != null ? money(price, p) : "—"}</span>
+              </li>
+            );
+          })}
+        </ul>
 
         <h2>{t("Questions fréquentes", "FAQ")}</h2>
         {faq.map((f) => (
