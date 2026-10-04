@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
     "/en/sets/**": ["./public/sets/en/*.json", "./content/blog/**/*"],
     // the sitemap dates each set page with its prices' last refresh
     "/sitemap.xml": ["./public/sets/*.json", "./public/sets/en/*.json", "./content/blog/**/*"],
+    // a binder's share picture: the set's cards, the fonts and the painted desk
+    "/share/**": ["./public/sets/**/*.json", "./src/assets/fonts/*.ttf", "./src/assets/share-desk.jpg"],
   },
 };
 

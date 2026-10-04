@@ -124,6 +124,14 @@ doesn't show.
 - `src/proxy.ts` tags `/en…` and `/extensions…` with their language (`x-nookdex-lang`), which `serverLang` reads before
   the cookie: `<html lang>` and metadata follow the address there.
 
+## Sharing a binder
+
+- "Partager ↗" in a set binder's header (once it holds a card) opens `binder/ShareSheet.tsx`: a progress picture drawn by
+  `app/share/progress/route.tsx` (1080×1350, next/og; set, count, value, nickname and the 3 best owned cards are all in
+  the address and checked against the set's file; noindex), then the phone's share sheet (picture + a link to the set's
+  page), or download / copy the link. The picture is fetched before the tap: Safari refuses a share after a wait. Its
+  background is `src/assets/share-desk.jpg`, a portrait cut of `img/scene.jpg`.
+
 ## Tips (support)
 
 - `SUPPORT_URL` (`lib/site.ts`, Johan's PayPal.me). The cat asks once the player owns 10 cards, in the calm room

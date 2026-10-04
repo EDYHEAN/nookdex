@@ -15,6 +15,7 @@ import { CardPicker } from "./CardPicker";
 import { CardSlot, EmptyPocket, LoadingPocket, type AddResult } from "./CardSlot";
 import { Celebration } from "./Celebration";
 import { Inspector } from "./Inspector";
+import { ShareSheet } from "./ShareSheet";
 import { HoldToRemove, StatsPage, type BinderSummary } from "./StatsPage";
 import styles from "./Binder.module.css";
 import { useT } from "@/lib/lang";
@@ -58,6 +59,8 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   }, [vp.w, vp.h, single, titleH, navH]);
 
   const collection = useStore((s) => s.collection);
+  /** the "show my binder" sheet (set binders) */
+  const [sharing, setSharing] = useState(false);
   const userBinders = useStore((s) => s.binders);
   const addCard = useStore((s) => s.addCard);
   const placeCard = useStore((s) => s.placeCard);
@@ -302,7 +305,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   // keyboard + wheel
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (inspect != null || picking != null) return;
+      if (inspect != null || picking != null || sharing) return;
       if ((e.target as HTMLElement)?.tagName === "INPUT") return;
       if (e.key === "ArrowRight") next();
       else if (e.key === "ArrowLeft") prev();
@@ -324,7 +327,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("wheel", onWheel);
     };
-  }, [next, prev, close, inspect, picking, single]);
+  }, [next, prev, close, inspect, picking, sharing, single]);
 
   // swipe
   const swipe = useRef<{ x: number; y: number } | null>(null);
@@ -505,6 +508,20 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
           </p>
         </div>
         <div className={styles.titleActions}>
+          {set && binder.setId && summary.owned > 0 && (
+            <button
+              className={`${styles.pixelBtn} ${styles.shareBtn}`}
+              onClick={() => {
+                sfx.pop();
+                setSharing(true);
+              }}
+              onPointerEnter={sfx.hover}
+              aria-label={t("Partager ma progression", "Share my progress")}
+              title={t("Partager ma progression", "Share my progress")}
+            >
+              <span className={styles.shareLabel}>{t("Partager", "Share")}</span> ↗
+            </button>
+          )}
           <HoldToRemove
             label={free ? t("Jeter", "Bin it") : t("Retirer", "Remove")}
             hint={
@@ -527,6 +544,12 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
           </button>
         </div>
       </motion.header>
+
+      <AnimatePresence>
+        {sharing && set && binder.setId && (
+          <ShareSheet key="share" setKey={binder.setId} set={set} owned={summary.owned} value={summary.trend} onClose={() => setSharing(false)} />
+        )}
+      </AnimatePresence>
 
       <motion.div
         className={styles.wrapper}
