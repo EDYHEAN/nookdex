@@ -100,11 +100,14 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
                   </p>
                   <h3>{r.name}</h3>
                   {r.note && <p>{r.note}</p>}
-                  {r.source && (
-                    <a className={styles.source} href={r.source} target="_blank" rel="noopener">
-                      {t("Source", "Source")} ↗
-                    </a>
-                  )}
+                  <p className={styles.links}>
+                    {r.post && <Link href={`/blog/${r.post}`}>{t("Lire le guide →", "Read the guide →")}</Link>}
+                    {r.source && (
+                      <a className={styles.source} href={r.source} target="_blank" rel="noopener">
+                        {t("Source", "Source")} ↗
+                      </a>
+                    )}
+                  </p>
                 </div>
               </li>
             );
@@ -122,6 +125,12 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
             <span>
               {r.href ? <Link href={r.href}>{r.name}</Link> : r.name}
               {r.code && <small> · {r.code}</small>}
+              {r.post && (
+                <small>
+                  {" · "}
+                  <Link href={`/blog/${r.post}`}>{t("le guide", "the guide")}</Link>
+                </small>
+              )}
             </span>
             <small>
               {kind(r)} · {region(r)}

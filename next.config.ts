@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
     "/en/sets/**": ["./public/sets/en/*.json", "./content/blog/**/*"],
     // the sitemap dates each set page with its prices' last refresh
     "/sitemap.xml": ["./public/sets/*.json", "./public/sets/en/*.json", "./content/blog/**/*"],
+    // the release calendar links each release to the blog post about it (lib/releases)
+    "/calendrier-des-sorties": ["./content/blog/**/*"],
+    "/en/release-calendar": ["./content/blog/**/*"],
     // a binder's share picture: the set's cards, the fonts and the painted desk
     "/share/**": ["./public/sets/**/*.json", "./src/assets/fonts/*.ttf", "./src/assets/share-desk.jpg"],
   },

@@ -126,7 +126,10 @@ doesn't show.
 - Release calendar: `/calendrier-des-sorties` and `/en/release-calendar` (notebook tab "Sorties / Releases",
   `components/ReleaseCalendar.tsx`, `lib/releases.ts`). Coming up = `src/data/releases.json` (official announcements
   only, with their source, kept up to date by the blog routine, see docs/blog.md); the past year = the catalogs'
-  binder sets, linked to their pages. Generated FAQ ("next set", "latest set") for AI answers.
+  binder sets, linked to their pages. Generated FAQ ("next set", "latest set") for AI answers. An entry's `post`
+  (`{ fr, en }` slugs) links it to its blog post. The routine writes about releases on its own (docs/blog.md
+  "Releases come first": the month's releases on the first run of a month, a set preview 21 days before, its first
+  prices 7-30 days after).
 - `src/proxy.ts` tags `/en…`, `/extensions…` and `/calendrier-des-sorties` with their language (`x-nookdex-lang`), which `serverLang` reads before
   the cookie: `<html lang>` and metadata follow the address there.
 

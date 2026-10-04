@@ -2,6 +2,7 @@ import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
 import rawJa from "@/data/catalog-ja.json";
 import data from "@/data/releases.json";
+import { postBySlug } from "./blog";
 import { type PageLang, setPagePath } from "./setPath";
 import type { CatalogSet } from "./types";
 
@@ -23,13 +24,21 @@ export interface Release {
   href?: string | null;
   /** out already: from the catalogs */
   out?: boolean;
+  /** the blog post about it (published), in the page's language */
+  post?: string;
 }
 
 /** setId: the TCGdex id the set will have, so it shows once when it reaches the catalog */
-type Item = (typeof data.items)[number] & { code?: string; setId?: string };
+type Item = (typeof data.items)[number] & { code?: string; setId?: string; post?: { fr?: string; en?: string } };
 
 export function releases(lang: PageLang, today = new Date().toISOString().slice(0, 10)) {
   const fr = lang === "fr";
+  // a post the routine linked, once it's published (allPosts hides tomorrow's)
+  const postOf = (i: Item) => {
+    const slug = fr ? i.post?.fr : i.post?.en;
+    return slug && postBySlug(slug) ? slug : undefined;
+  };
+  const postOfSet = new Map((data.items as Item[]).filter((i) => i.setId).map((i) => [i.setId!, postOf(i)]));
   const announced: Release[] = (data.items as Item[]).map((i) => ({
     date: i.date,
     region: i.region as Release["region"],
@@ -38,6 +47,7 @@ export function releases(lang: PageLang, today = new Date().toISOString().slice(
     code: i.code,
     note: fr ? i.noteFr : i.noteEn,
     source: i.source,
+    post: postOf(i),
   }));
   const yearAgo = new Date(Date.parse(`${today}T12:00:00Z`) - 365 * 86_400_000).toISOString().slice(0, 10);
   const recent = (sets: CatalogSet[]) => sets.filter((s) => !s.extra && s.releaseDate && s.releaseDate <= today && s.releaseDate >= yearAgo);
@@ -50,6 +60,7 @@ export function releases(lang: PageLang, today = new Date().toISOString().slice(
       code: s.code,
       href: setPagePath(lang, s.id),
       out: true,
+      post: postOfSet.get(s.id),
     })),
     // Japanese sets have no page of their own (their names are Japanese)
     ...recent(rawJa as CatalogSet[]).map((s) => ({ date: s.releaseDate!, region: "jp" as const, kind: "set" as const, name: s.name, code: s.code, out: true })),
