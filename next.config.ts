@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   // fonts and painted desk: ship all of it with those functions.
   outputFileTracingIncludes: {
     "/blog/**": ["./content/blog/**/*", "./public/sets/**/*.json", "./src/assets/fonts/*.ttf", "./src/app/opengraph-image.jpg"],
+    // the set pages read the sets' files the same way, and the posts that show their cards (lib/setPages)
+    "/extensions/**": ["./public/sets/*.json", "./content/blog/**/*"],
+    "/en/sets/**": ["./public/sets/en/*.json", "./content/blog/**/*"],
   },
 };
 

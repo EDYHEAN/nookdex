@@ -1,0 +1,45 @@
+/* The home page's title, written in ink at the top of the loader's paper (the loader is z-index 200) */
+.tagline {
+  position: fixed;
+  z-index: 201;
+  top: max(3vh, 14px);
+  left: 16px;
+  right: 16px;
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-vt), monospace;
+  font-weight: normal;
+  font-size: clamp(20px, 2.4vw, 30px);
+  line-height: 1.1;
+  color: #8a5a4a;
+  pointer-events: none;
+  animation: taglineIn 0.5s steps(4);
+}
+
+@keyframes taglineIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* on a phone the logo is small, in the middle: the title sits just above it */
+@media (max-width: 560px) {
+  .tagline {
+    top: calc(50% - 120px);
+  }
+}
+
+/* the room is in (set by App): the title goes with the paper, and stays for screen readers */
+:global(html[data-room]) .tagline {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.text {
+  display: contents;
+}

@@ -91,6 +91,11 @@ One short paragraph on following this in NookDex.
 - Slug = file name: lowercase, ASCII, words separated by `-`, in the post's language, with the set name and month when
   it's about prices (`tempete-argentee-cartes-les-plus-cheres-octobre-2026`, `silver-tempest-most-valuable-cards-october-2026`).
 - `key`: the same in both languages, links the two versions (hreflang).
+- **Set pages**: every set has its own page with all its cards and today's prices: `/extensions/<slug>` for French
+  cards, `/en/sets/<slug>` for English ones, the slug being the set's name in that language, lowercase ASCII with `-`
+  (`/extensions/tempete-argentee`, `/en/sets/silver-tempest`; the list is on `/extensions` and `/en/sets`). The card
+  sheets already link there; in the text, link the set's page once, the first time you name the set
+  (`[Tempête Argentée](/extensions/tempete-argentee)`).
 - Markdown only: `##` / `###` headings, lists, one table when there are numbers to compare, bold. No HTML.
 
 ## Voice

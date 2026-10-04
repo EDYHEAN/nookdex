@@ -110,6 +110,27 @@ doesn't show.
 - Written by a scheduled Claude routine, twice a week, straight to `main`, following `docs/blog.md` (subjects, data,
   format, tone). Change the editorial line there, not in the routine's prompt.
 
+## Set pages and addresses with a language (SEO)
+
+- One notebook page per set, from the same files as the binders (prices of the day): `/extensions/<slug>` (French
+  cards, Cardmarket €) and `/en/sets/<slug>` (English cards, TCGplayer $), indexes `/extensions` and `/en/sets` (the
+  notebook's "Extensions / Sets" tab). Slug = the set's name in that language (`lib/setPath.ts`); the two pages of a set
+  share its TCGdex id (hreflang). Card list, rarities, most expensive cards, "one of each" value, generated FAQ
+  (FAQPage), blog posts showing its cards (`lib/setPages.ts`, `components/SetPageView.tsx`). No pages for Japanese sets.
+  Blog card sheets link to their set's page.
+- `/` is the French home for search engines (they send no language), `/en` the English one (hreflang between them). The
+  home text (`HomeText`) carries `WebApplication` JSON-LD; its title is written visibly on the loader's paper (hidden
+  once the room is in: `html[data-room]`, set by App). Landing on `/en…` starts the room in English (`resolveLang`).
+- `src/proxy.ts` tags `/en…` and `/extensions…` with their language (`x-nookdex-lang`), which `serverLang` reads before
+  the cookie: `<html lang>` and metadata follow the address there.
+
+## Tips (support)
+
+- `SUPPORT_URL` (`lib/site.ts`, Johan's PayPal.me). The cat asks once the player owns 10 cards, in the calm room
+  (nothing open, no tour, on `/` or `/en`), 20 s into the visit at the earliest: a pop-in on a computer, a strip at the
+  bottom on a phone (`room/SupportCat.tsx`). Then it waits 21 days (180 after a tip); per device, localStorage
+  `nookdex:support-next`, outside the save. Also linked from the shelf notebook and `/a-propos`.
+
 ## GitHub Actions
 
 - `prices.yml` (daily 11:00 UTC): `fetch-set --force` then `--force --lang=en` refresh binder-set prices and cards

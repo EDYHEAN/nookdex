@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { useEffect } from "react";
 import { ABOUT, ABOUT_EN } from "@/data/about";
+import { SUPPORT_URL } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import styles from "./AboutBook.module.css";
 import { useT } from "@/lib/lang";
@@ -88,7 +89,11 @@ export function AboutBook({ onClose, onTour }: { onClose: () => void; onTour: ()
           ·{" "}
           <Link href="/contact" onClick={onClose}>
             Contact
-          </Link>
+          </Link>{" "}
+          ·{" "}
+          <a href={SUPPORT_URL} target="_blank" rel="noopener" onClick={() => sfx.coin()}>
+            {t("Soutenir NookDex ♥", "Support NookDex ♥")}
+          </a>
         </nav>
       </motion.article>
     </motion.div>

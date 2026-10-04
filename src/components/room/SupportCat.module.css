@@ -1,0 +1,268 @@
+/* The cat's tip request: a paper card over the room (computer), a strip at the bottom (phone); under the corner buttons. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(24, 16, 36, 0.35);
+}
+
+.card {
+  position: relative;
+  width: min(420px, 100%);
+  padding: 22px 28px 26px;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+  color: var(--ink);
+  text-align: center;
+  font-family: var(--font-vt), monospace;
+  font-size: 21px;
+  line-height: 1.2;
+  box-shadow:
+    8px 10px 0 rgba(20, 12, 28, 0.45),
+    0 24px 60px rgba(0, 0, 0, 0.4);
+}
+
+.card h2 {
+  margin: 6px 0 8px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-red);
+}
+
+.card p {
+  margin: 0 0 18px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px 18px;
+}
+
+.tip {
+  display: inline-block;
+  padding: 9px 18px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-family: var(--font-press), monospace;
+  font-size: 12px;
+  text-decoration: none;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.tip:hover {
+  transform: translate(-1px, -3px) rotate(-2deg);
+}
+
+.tip:active {
+  transform: scale(0.92);
+}
+
+.later {
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* the cat beside its bowl, a tear on its cheek */
+.cat {
+  position: relative;
+  width: 150px;
+  height: 140px;
+  margin: -70px auto 0;
+}
+
+.cat img {
+  position: absolute;
+  left: 0;
+  bottom: 6px;
+  width: 112px;
+  height: auto;
+  transform-origin: 50% 100%;
+  user-select: none;
+}
+
+.bowl {
+  position: absolute;
+  right: -6px;
+  bottom: 0;
+  width: 66px;
+  height: auto;
+  overflow: visible;
+}
+
+.tear {
+  position: absolute;
+  left: 30px;
+  top: 63px;
+  width: 7px;
+  height: 10px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: #7cc4ef;
+  box-shadow: 0 0 0 1.5px #2b2230;
+  animation: tear 2.2s steps(8) infinite;
+}
+
+@keyframes tear {
+  0%,
+  20% {
+    transform: translateY(0) scale(0.3);
+    opacity: 0;
+  }
+  35% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  90% {
+    transform: translateY(var(--fall, 22px)) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(var(--fall, 22px) + 4px)) scale(0.6);
+    opacity: 0;
+  }
+}
+
+.hearts i {
+  position: absolute;
+  left: 50px;
+  top: 10px;
+  color: var(--ink-red);
+  font-style: normal;
+  font-size: 20px;
+  animation: heart 1.2s steps(8) forwards;
+}
+
+.hearts i:nth-child(2) {
+  left: 24px;
+  animation-delay: 0.15s;
+}
+
+.hearts i:nth-child(3) {
+  left: 78px;
+  animation-delay: 0.3s;
+}
+
+@keyframes heart {
+  from {
+    transform: translateY(10px) scale(0.4);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-40px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* phone: a strip of paper at the bottom of the room, the cat peeking from its left end */
+.toast {
+  position: fixed;
+  z-index: 75;
+  left: 10px;
+  right: 10px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 40px 12px 8px;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+  color: var(--ink);
+  font-family: var(--font-vt), monospace;
+  font-size: 19px;
+  line-height: 1.15;
+  box-shadow: 5px 6px 0 rgba(20, 12, 28, 0.45);
+}
+
+.toast .cat {
+  flex: none;
+  width: 92px;
+  height: 78px;
+  margin: -34px 0 0;
+}
+
+.toast .cat img {
+  width: 68px;
+  bottom: 4px;
+}
+
+.toast .bowl {
+  width: 40px;
+  right: -4px;
+}
+
+.toast .tear {
+  --fall: 12px;
+  left: 18px;
+  top: 32px;
+  width: 5px;
+  height: 7px;
+}
+
+.toast .hearts i {
+  left: 30px;
+  font-size: 16px;
+}
+
+.toast .hearts i:nth-child(2) {
+  left: 12px;
+}
+
+.toast .hearts i:nth-child(3) {
+  left: 48px;
+}
+
+.toastText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.toastText b {
+  font-weight: normal;
+  color: var(--ink-red);
+}
+
+.toast .tip {
+  padding: 6px 12px;
+  white-space: nowrap;
+  font-size: 10px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 13px;
+  cursor: pointer;
+}

@@ -1,41 +1,12 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import { HomeText } from "@/components/HomeText";
 import { serverLang } from "@/lib/serverLang";
-import { SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME } from "@/lib/site";
+
+// "/" is the French home for search engines (they send no language); "/en" is its English twin.
+export const metadata: Metadata = {
+  alternates: { canonical: "/", languages: { fr: "/", en: "/en", "x-default": "/" } },
+};
 
 export default async function Home() {
-  const en = (await serverLang()) === "en";
-  return (
-    <>
-      {/* The room is drawn in the browser only: this text is what search engines and screen readers read first. */}
-      {en ? (
-        <div className="sr-only">
-          <h1>{SITE_NAME}, your Pokémon card collection filed on your desk</h1>
-          <p>{SITE_DESCRIPTION_EN}</p>
-          <p>
-            Pick a set (Sword &amp; Shield, Scarlet &amp; Violet, Mega Evolution) in English, French or Japanese, or create a free binder,
-            tick the cards you own, follow your collection&apos;s value with prices updated every day (TCGplayer, Cardmarket), and share
-            your wanted list.
-          </p>
-          <nav>
-            <Link href="/a-propos">About</Link> · <Link href="/blog">Blog</Link> ·<Link href="/confidentialite">Privacy policy</Link> · <Link href="/conditions">Terms of use</Link> ·{" "}
-            <Link href="/contact">Contact</Link>
-          </nav>
-        </div>
-      ) : (
-        <div className="sr-only">
-          <h1>{SITE_NAME}, ta collection de cartes Pokémon rangée sur ton bureau</h1>
-          <p>{SITE_DESCRIPTION}</p>
-          <p>
-            Choisis une extension (Épée et Bouclier, Écarlate et Violet, Méga-Évolution) en français, en anglais ou en japonais, ou crée un classeur
-            libre, coche les cartes que tu possèdes, suis la valeur de ta collection avec les prix mis à jour chaque jour (Cardmarket,
-            TCGplayer), et partage ta liste de recherche.
-          </p>
-          <nav>
-            <Link href="/a-propos">À propos</Link> · <Link href="/blog">Blog</Link> ·<Link href="/confidentialite">Règles de confidentialité</Link> ·{" "}
-            <Link href="/conditions">Conditions d&apos;utilisation</Link> · <Link href="/contact">Contact</Link>
-          </nav>
-        </div>
-      )}
-    </>
-  );
+  return <HomeText en={(await serverLang()) === "en"} />;
 }
