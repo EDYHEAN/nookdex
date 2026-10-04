@@ -117,7 +117,8 @@ function Fr() {
       <p>
         Tu peux à tout moment accéder à tes données, les corriger, les récupérer, t&apos;opposer à leur traitement ou demander la suppression de ton
         compte et de ta sauvegarde, via le <Link href="/contact">formulaire de contact</Link> (sujet « Supprimer mon compte / mes données »). Ta
-        collection peut aussi être exportée à tout moment depuis NookDex OS → Sauvegarde.
+        collection peut aussi être exportée à tout moment depuis NookDex OS → Sauvegarde. Si tu estimes que tes droits ne sont pas respectés, tu peux
+        saisir la <a href="https://www.cnil.fr/fr/plaintes">CNIL</a>.
       </p>
 
       <h2>9. Enfants</h2>
@@ -231,7 +232,8 @@ function En() {
       <p>
         You can at any time access your data, correct it, get a copy, object to its processing or ask for your account and save to be deleted,
         through the <Link href="/contact">contact form</Link> (subject &laquo; Delete my account / my data &raquo;). Your collection can also be
-        exported at any time from NookDex OS → Save.
+        exported at any time from NookDex OS → Save. If you feel your rights are not respected, you can complain to the{" "}
+        <a href="https://www.cnil.fr/en">CNIL</a> (French data protection authority).
       </p>
 
       <h2>9. Children</h2>
