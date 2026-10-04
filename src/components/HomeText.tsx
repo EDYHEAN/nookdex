@@ -35,7 +35,7 @@ export function HomeText({ en }: { en: boolean }) {
               your wanted list.
             </p>
             <nav>
-              <Link href="/a-propos">About</Link> · <Link href="/en/sets">Sets: card lists and prices</Link> · <Link href="/blog">Blog</Link> ·{" "}
+              <Link href="/a-propos">About</Link> · <Link href="/en/sets">Sets: card lists and prices</Link> · <Link href="/en/release-calendar">Release calendar</Link> · <Link href="/blog">Blog</Link> ·{" "}
               <Link href="/confidentialite">Privacy policy</Link> · <Link href="/conditions">Terms of use</Link> · <Link href="/contact">Contact</Link> ·{" "}
               <Link href="/" hrefLang="fr">
                 En français
@@ -55,6 +55,7 @@ export function HomeText({ en }: { en: boolean }) {
             </p>
             <nav>
               <Link href="/a-propos">À propos</Link> · <Link href="/extensions">Extensions : listes des cartes et prix</Link> ·{" "}
+              <Link href="/calendrier-des-sorties">Calendrier des sorties</Link> ·{" "}
               <Link href="/blog">Blog</Link> · <Link href="/confidentialite">Règles de confidentialité</Link> ·{" "}
               <Link href="/conditions">Conditions d&apos;utilisation</Link> · <Link href="/contact">Contact</Link> ·{" "}
               <Link href="/en" hrefLang="en">

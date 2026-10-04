@@ -35,6 +35,7 @@ English ones), wishlist, duplicates and online save.
 - [English home](${SITE_URL}/en)
 - [Pokémon TCG sets](${SITE_URL}/en/sets): every set's card list, rarities and TCGplayer prices (English cards), updated daily
 - [Extensions](${SITE_URL}/extensions): the same for French cards, with Cardmarket prices
+- [Release calendar](${SITE_URL}/en/release-calendar): upcoming Pokémon TCG sets, products and prereleases, officially announced, with sources ([in French](${SITE_URL}/calendrier-des-sorties))
 - [Blog](${SITE_URL}/blog): Pokémon TCG news, set guides and card prices
 - [Contact](${SITE_URL}/contact)
 

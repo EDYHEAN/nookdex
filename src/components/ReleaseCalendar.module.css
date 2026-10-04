@@ -1,0 +1,153 @@
+/* The release calendar: each coming release on a torn calendar leaf, the year's releases as a list */
+.upcoming {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 12px 0 8px;
+  padding: 0 !important;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.item h3 {
+  margin: 4px 0 2px;
+  font-family: var(--font-vt), monospace;
+  font-weight: normal;
+  font-size: 1.15em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.item p {
+  margin: 0 0 4px !important;
+  line-height: 1.25;
+}
+
+/* the leaf of a wall calendar: red band, big day */
+.leaf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fffaf0;
+  line-height: 1;
+  box-shadow: 4px 4px 0 rgba(43, 34, 48, 0.25);
+  transform: rotate(-2deg);
+}
+
+.item:nth-child(2n) .leaf {
+  transform: rotate(1.5deg);
+}
+
+.leaf small:first-child {
+  width: 100%;
+  padding: 5px 0 4px;
+  background: var(--ink-red);
+  color: #fffaf0;
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 0.8em;
+}
+
+.leaf b {
+  padding: 8px 0 2px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 26px;
+}
+
+.leaf small:last-child {
+  padding-bottom: 6px;
+  color: var(--ink-soft);
+  font-size: 0.7em;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 0.75em;
+}
+
+.tags span {
+  padding: 0 8px;
+  border: 1.5px solid rgba(43, 34, 48, 0.35);
+  border-radius: 10px;
+  color: var(--ink-soft);
+}
+
+.tags .set {
+  border-color: var(--ink-red);
+  color: var(--ink-red);
+}
+
+.tags .count {
+  border: 0;
+  padding: 0;
+  color: var(--ink-gold);
+}
+
+.source {
+  font-size: 0.8em;
+}
+
+.past {
+  padding: 0 !important;
+  list-style: none;
+}
+
+.past li {
+  display: grid;
+  grid-template-columns: 9.5em 1fr auto;
+  gap: 4px 14px;
+  align-items: baseline;
+  padding: 2px 0;
+  border-bottom: 1px dashed rgba(80, 110, 160, 0.2);
+}
+
+.past time,
+.past li > small {
+  color: var(--ink-soft);
+  font-size: 0.8em;
+}
+
+.past span small {
+  color: var(--ink-soft);
+}
+
+.q {
+  margin: 14px 0 0;
+  font-weight: normal;
+  font-size: 1em;
+  color: var(--ink);
+}
+
+.updated {
+  margin-top: 28px !important;
+  color: var(--ink-soft);
+  font-size: 0.85em;
+}
+
+@media (max-width: 560px) {
+  .item {
+    grid-template-columns: 70px 1fr;
+    gap: 12px;
+  }
+
+  .leaf b {
+    font-size: 20px;
+  }
+
+  .past li {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

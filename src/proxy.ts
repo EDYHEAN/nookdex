@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { PATH_LANG_HEADER } from "@/lib/site";
 
 /**
- * Pages whose address says their language (/en…: English, /extensions…: French cards): the server renders them in it,
+ * Pages whose address says their language (/en…: English, /extensions… and /calendrier-des-sorties: French): the server renders them in it,
  * <html lang> included, whatever the cookie or the browser says (lib/serverLang reads this header first).
  */
 export function proxy(request: NextRequest) {
@@ -12,5 +12,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/en", "/en/:path*", "/extensions", "/extensions/:path*"],
+  matcher: ["/en", "/en/:path*", "/extensions", "/extensions/:path*", "/calendrier-des-sorties"],
 };

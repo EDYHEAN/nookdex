@@ -11,8 +11,14 @@ the Pokémon TCG, that lead collectors to the desk. Read the repo's CLAUDE.md fi
    subject with the same angle; a price update of the same set is fine if a month or more has passed and the numbers moved.
 3. Gather the facts. **Every number comes from the repo's data or from a source you read during this run.**
 4. Write `content/blog/fr/<slug-fr>.md` and `content/blog/en/<slug-en>.md` (same `key`, same date: today).
-5. Check: `npm ci` if needed, `npx tsc --noEmit`, then `npx next build` must pass.
-6. Commit on `main` with the message `Blog: <English title>` and push. Vercel deploys it.
+5. **The release calendar** (`src/data/releases.json`, shown on `/calendrier-des-sorties` and `/en/release-calendar`):
+   look for official announcements since its `updated` date (pokemon.com news, pokemon.fr, pokemon-card.com for Japan,
+   or reliable news sites quoting them). Add each newly confirmed set, product or prerelease with its date, French and
+   English names, a one-line note in each language and the source; give a set its future TCGdex id (`setId`, e.g.
+   `me07`) when it's predictable. Fix a moved date. Remove an entry whose date is more than a month past. Never add a
+   rumor or a trademark filing. Set `updated` to today, even when nothing changed.
+6. Check: `npm ci` if needed, `npx tsc --noEmit`, then `npx next build` must pass.
+7. Commit on `main` with the message `Blog: <English title>` and push. Vercel deploys it.
 
 ## Subjects
 

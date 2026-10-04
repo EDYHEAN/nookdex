@@ -123,7 +123,11 @@ doesn't show.
 - `/` is the French home for search engines (they send no language), `/en` the English one (hreflang between them). The
   home text (`HomeText`) carries `WebApplication` JSON-LD; its title is written visibly on the loader's paper (hidden
   once the room is in: `html[data-room]`, set by App). Landing on `/en…` starts the room in English (`resolveLang`).
-- `src/proxy.ts` tags `/en…` and `/extensions…` with their language (`x-nookdex-lang`), which `serverLang` reads before
+- Release calendar: `/calendrier-des-sorties` and `/en/release-calendar` (notebook tab "Sorties / Releases",
+  `components/ReleaseCalendar.tsx`, `lib/releases.ts`). Coming up = `src/data/releases.json` (official announcements
+  only, with their source, kept up to date by the blog routine, see docs/blog.md); the past year = the catalogs'
+  binder sets, linked to their pages. Generated FAQ ("next set", "latest set") for AI answers.
+- `src/proxy.ts` tags `/en…`, `/extensions…` and `/calendrier-des-sorties` with their language (`x-nookdex-lang`), which `serverLang` reads before
   the cookie: `<html lang>` and metadata follow the address there.
 
 ## Sharing a binder

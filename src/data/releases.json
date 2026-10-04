@@ -1,0 +1,38 @@
+{
+  "_": "Upcoming Pokémon TCG releases for the calendar page (lib/releases.ts). Only what an official source confirmed, with that source. Released sets come from the catalogs by themselves: an entry can go once its set is in the catalog. Kept up to date by the blog routine (docs/blog.md).",
+  "updated": "2026-10-04",
+  "items": [
+    {
+      "date": "2026-10-16",
+      "region": "jp",
+      "kind": "product",
+      "fr": "30th CELEBRATION : coffrets des 9 régions",
+      "en": "30th CELEBRATION card sets (9 regions)",
+      "noteFr": "9 coffrets japonais (un par région, de Kanto à Paldea) : les 3 starters de la région, 2 boosters 30th CELEBRATION et un présentoir.",
+      "noteEn": "9 Japanese sets (one per region, Kanto to Paldea): the region's 3 starters, 2 30th CELEBRATION packs and a card stand.",
+      "source": "https://www.oricon.co.jp/news/2459568/full/"
+    },
+    {
+      "date": "2026-10-24",
+      "region": "intl",
+      "kind": "event",
+      "fr": "Avant-premières Règne Delta",
+      "en": "Delta Reign prerelease events",
+      "noteFr": "Tournois d'avant-première et coffrets Build & Battle en boutiques Play! Pokémon, deux semaines avant la sortie.",
+      "noteEn": "Prerelease tournaments and Build & Battle Boxes at Play! Pokémon stores, two weeks before the release.",
+      "source": "https://www.pokemon.com/us/news/play-at-a-pokemon-tcg-mega-evolution-delta-reign-prerelease-event"
+    },
+    {
+      "date": "2026-11-06",
+      "region": "intl",
+      "kind": "set",
+      "code": "ME06",
+      "fr": "Méga-Évolution : Règne Delta (ME06)",
+      "en": "Mega Evolution: Delta Reign (ME06)",
+      "noteFr": "Plus de 135 cartes, dont plus de 35 illustrations spéciales, avec Méga-Rayquaza-ex en tête. En France et dans le monde le même jour.",
+      "noteEn": "Over 135 cards, including over 35 special illustrations, led by Mega Rayquaza ex. Worldwide on the same day.",
+      "source": "https://www.pokemon.com/us/news/the-pokemon-tcg-mega-evolution-delta-reign-expansion-arrives-november-6-2026",
+      "setId": "me06"
+    }
+  ]
+}
