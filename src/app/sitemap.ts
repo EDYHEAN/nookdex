@@ -25,6 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // the home and the indexes show today's prices too: the newest refresh of any set
   const prices = pages.reduce<string | undefined>((max, p) => (typeof p.lastModified === "string" && (!max || p.lastModified > max) ? p.lastModified : max), undefined);
   const home = { languages: { fr: SITE_URL, en: `${SITE_URL}/en` } };
+  const calendar = { languages: { fr: `${SITE_URL}/calendrier-des-sorties`, en: `${SITE_URL}/en/release-calendar` } };
   const sets = { languages: { fr: `${SITE_URL}/extensions`, en: `${SITE_URL}/en/sets` } };
   return [
     { url: SITE_URL, lastModified: prices, changeFrequency: "daily", priority: 1, alternates: home },
@@ -32,6 +33,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/extensions`, lastModified: prices, changeFrequency: "weekly", priority: 0.8, alternates: sets },
     { url: `${SITE_URL}/en/sets`, lastModified: prices, changeFrequency: "weekly", priority: 0.8, alternates: sets },
     ...pages,
+    // the calendar moves with each announcement (the blog routine)
+    { url: `${SITE_URL}/calendrier-des-sorties`, changeFrequency: "weekly", priority: 0.8, alternates: calendar },
+    { url: `${SITE_URL}/en/release-calendar`, changeFrequency: "weekly", priority: 0.8, alternates: calendar },
     { url: `${SITE_URL}/a-propos`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/blog`, lastModified: posts[0]?.date, changeFrequency: "weekly", priority: 0.7 },
     ...posts.map((p) => {

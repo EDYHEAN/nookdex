@@ -8,6 +8,7 @@ import styles from "./LegalPage.module.css";
 const TABS = [
   { href: ["/a-propos", "/a-propos"], label: ["À propos", "About"] },
   { href: ["/extensions", "/en/sets"], label: ["Extensions", "Sets"] },
+  { href: ["/calendrier-des-sorties", "/en/release-calendar"], label: ["Sorties", "Releases"] },
   { href: ["/blog", "/blog"], label: ["Blog", "Blog"] },
   { href: ["/confidentialite", "/confidentialite"], label: ["Vie privée", "Privacy"] },
   { href: ["/conditions", "/conditions"], label: ["CGU", "Terms"] },
