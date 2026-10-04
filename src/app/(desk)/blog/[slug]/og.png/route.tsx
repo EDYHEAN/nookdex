@@ -20,8 +20,8 @@ export async function GET(_: Request, { params }: RouteContext<"/blog/[slug]/og.
     readFile(path.join(process.cwd(), "src/assets/fonts/PressStart2P-Regular.ttf")),
     readFile(path.join(process.cwd(), "src/app/opengraph-image.jpg")),
   ]);
-  const cards = post.cards
-    .map((key) => findCard(key)?.card)
+  const cards = (await Promise.all(post.cards.map(findCard)))
+    .map((found) => found?.card)
     .filter((c) => !!c?.img)
     .slice(0, 2);
   const title = post.title;

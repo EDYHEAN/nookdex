@@ -3,20 +3,24 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   devIndicators: false,
   // The blog pages read their posts from disk at request time (lib/blog; the root layout reads the language cookie, so
-  // nothing under it is prerendered), a post draws its cards from the sets' files, and its share image uses the site's
-  // fonts and painted desk: ship all of it with those functions.
+  // nothing under it is prerendered), and its share image uses the site's fonts and painted desk: ship all of it with
+  // those functions.
   outputFileTracingIncludes: {
-    "/blog/**": ["./content/blog/**/*", "./public/sets/**/*.json", "./src/assets/fonts/*.ttf", "./src/app/opengraph-image.jpg"],
-    // the set pages read the sets' files the same way, and the posts that show their cards (lib/setPages)
-    "/extensions/**": ["./public/sets/*.json", "./content/blog/**/*"],
-    "/en/sets/**": ["./public/sets/en/*.json", "./content/blog/**/*"],
-    // the sitemap dates each set page with its prices' last refresh
-    "/sitemap.xml": ["./public/sets/*.json", "./public/sets/en/*.json", "./content/blog/**/*"],
+    "/blog/**": ["./content/blog/**/*", "./src/assets/fonts/*.ttf", "./src/app/opengraph-image.jpg"],
+    // the set pages list the posts that show their cards (lib/setPages)
+    "/extensions/**": ["./content/blog/**/*"],
+    "/en/sets/**": ["./content/blog/**/*"],
+    "/sitemap.xml": ["./content/blog/**/*"],
     // the release calendar links each release to the blog post about it (lib/releases)
     "/calendrier-des-sorties": ["./content/blog/**/*"],
     "/en/release-calendar": ["./content/blog/**/*"],
-    // a binder's share picture: the set's cards, the fonts and the painted desk
-    "/share/**": ["./public/sets/**/*.json", "./src/assets/fonts/*.ttf", "./src/assets/share-desk.jpg"],
+    // a binder's share picture: the fonts and the painted desk
+    "/share/**": ["./src/assets/fonts/*.ttf", "./src/assets/share-desk.jpg"],
+  },
+  // The sets' files (30 MB) stay out of every function: lib/setFiles fetches them from the site's static files.
+  // Each function carried its own copy, and Vercel's Hobby plan keeps every deploy of the last 30 days within 10 GB.
+  outputFileTracingExcludes: {
+    "/**": ["./public/**/*"],
   },
 };
 
