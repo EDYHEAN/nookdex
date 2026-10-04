@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
     // the set pages read the sets' files the same way, and the posts that show their cards (lib/setPages)
     "/extensions/**": ["./public/sets/*.json", "./content/blog/**/*"],
     "/en/sets/**": ["./public/sets/en/*.json", "./content/blog/**/*"],
+    // the sitemap dates each set page with its prices' last refresh
+    "/sitemap.xml": ["./public/sets/*.json", "./public/sets/en/*.json", "./content/blog/**/*"],
   },
 };
 

@@ -20,6 +20,9 @@ function setFile(lang: PageLang, id: string): SetData | null {
   return files.get(file) ?? null;
 }
 
+/** When a set's prices were last refreshed (its page's lastmod in the sitemap); null when its file is missing. */
+export const pricesUpdatedOf = (lang: PageLang, id: string) => setFile(lang, id)?.pricesUpdated ?? null;
+
 /** A card's price on its market (trend), as the binders read it: null when the market doesn't sell it. */
 export const trendOf = (card: CardData) => (card.unavailable ? null : card.price.trend || card.price.trendHolo || null);
 
