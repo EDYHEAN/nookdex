@@ -4,12 +4,14 @@ import { SITE_NAME } from "@/lib/site";
 import { NotebookBackdrop } from "./NotebookBackdrop";
 import styles from "./LegalPage.module.css";
 
+// [French page, English page] when the two languages have their own address (the set pages)
 const TABS = [
-  { href: "/a-propos", label: ["À propos", "About"] },
-  { href: "/blog", label: ["Blog", "Blog"] },
-  { href: "/confidentialite", label: ["Vie privée", "Privacy"] },
-  { href: "/conditions", label: ["CGU", "Terms"] },
-  { href: "/contact", label: ["Contact", "Contact"] },
+  { href: ["/a-propos", "/a-propos"], label: ["À propos", "About"] },
+  { href: ["/extensions", "/en/sets"], label: ["Extensions", "Sets"] },
+  { href: ["/blog", "/blog"], label: ["Blog", "Blog"] },
+  { href: ["/confidentialite", "/confidentialite"], label: ["Vie privée", "Privacy"] },
+  { href: ["/conditions", "/conditions"], label: ["CGU", "Terms"] },
+  { href: ["/contact", "/contact"], label: ["Contact", "Contact"] },
 ] as const;
 
 /**
@@ -36,13 +38,16 @@ export function LegalPage({
     <NotebookBackdrop>
       <main className={styles.book}>
         <nav className={styles.tabs} aria-label="Pages">
-          {TABS.map((tab) => (
-            <Link key={tab.href} href={tab.href} className={tab.href === path ? styles.tabOn : undefined} aria-current={tab.href === path ? "page" : undefined}>
-              {t(tab.label[0], tab.label[1])}
-            </Link>
-          ))}
+          {TABS.map((tab) => {
+            const href = t(tab.href[0], tab.href[1]);
+            return (
+              <Link key={href} href={href} className={href === path ? styles.tabOn : undefined} aria-current={href === path ? "page" : undefined}>
+                {t(tab.label[0], tab.label[1])}
+              </Link>
+            );
+          })}
         </nav>
-        <Link href="/" className={styles.close} aria-label={t(`Retour au bureau ${SITE_NAME}`, `Back to the ${SITE_NAME} desk`)}>
+        <Link href={t("/", "/en")} className={styles.close} aria-label={t(`Retour au bureau ${SITE_NAME}`, `Back to the ${SITE_NAME} desk`)}>
           ✕
         </Link>
         <article className={styles.sheet}>
@@ -54,7 +59,7 @@ export function LegalPage({
           )}
           {children}
           <p className={styles.back}>
-            <Link href="/">{t(`← retour au bureau ${SITE_NAME}`, `← back to the ${SITE_NAME} desk`)}</Link>
+            <Link href={t("/", "/en")}>{t(`← retour au bureau ${SITE_NAME}`, `← back to the ${SITE_NAME} desk`)}</Link>
           </p>
         </article>
       </main>

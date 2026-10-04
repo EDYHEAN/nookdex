@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { serverLang } from "@/lib/serverLang";
 import { LegalPage } from "@/components/LegalPage";
-import { SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME, SUPPORT_URL } from "@/lib/site";
 import styles from "@/components/LegalPage.module.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -48,6 +48,15 @@ function Fr() {
         Connecte-toi avec ton e-mail (un lien de connexion, sans mot de passe) ou avec Google : ta collection est sauvegardée en ligne et te suit sur
         tous tes appareils. Avec Google, {SITE_NAME} ne reçoit que ton e-mail, ton nom et ta photo de profil, rien d&apos;autre. Tu peux aussi jouer
         sans compte : ta collection reste alors dans ton navigateur.
+      </p>
+
+      <h2>Soutenir {SITE_NAME}</h2>
+      <p>
+        {SITE_NAME} est gratuit et sans pub. Si le bureau te plaît et que tu veux aider à payer le serveur, tu peux remplir la gamelle du chat :{" "}
+        <a href={SUPPORT_URL} target="_blank" rel="noopener">
+          un petit don sur PayPal ♥
+        </a>
+        . Merci !
       </p>
 
       <h2>Qui fait {SITE_NAME}</h2>
@@ -100,6 +109,15 @@ function En() {
         Sign in with your e-mail (a sign-in link, no password) or with Google: your collection is saved online and follows you on all your devices.
         With Google, {SITE_NAME} only gets your e-mail, name and profile picture, nothing else. You can also play without an account: your
         collection then stays in your browser.
+      </p>
+
+      <h2>Support {SITE_NAME}</h2>
+      <p>
+        {SITE_NAME} is free and ad-free. If you like the desk and want to help pay for the server, you can fill the cat&apos;s bowl:{" "}
+        <a href={SUPPORT_URL} target="_blank" rel="noopener">
+          a small tip on PayPal ♥
+        </a>
+        . Thank you!
       </p>
 
       <h2>Who makes {SITE_NAME}</h2>

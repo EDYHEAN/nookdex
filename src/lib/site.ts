@@ -20,3 +20,9 @@ export const SITE_DESCRIPTION_EN =
 
 /** Server pages (the legal notebook, the page text) read the language from this cookie, kept in step with the app. */
 export const LANG_COOKIE = "nookdex-lang";
+
+/** Set by the proxy on pages whose address carries their language (/en, /extensions): it wins over the cookie. */
+export const PATH_LANG_HEADER = "x-nookdex-lang";
+
+/** Tips for the project (the cat's bowl, the about pages). */
+export const SUPPORT_URL = "https://paypal.me/JohanTrigeard";

@@ -306,6 +306,17 @@
   transform: translate(-1px, -2px);
 }
 
+/* the set's page: a plain ink link under the market button */
+.body :global(.blog-card) a:global(.blog-card-setlink) {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  white-space: normal;
+  text-decoration: underline;
+}
+
 .body :global(.blog-up) {
   font-style: normal;
   color: var(--ink-green);

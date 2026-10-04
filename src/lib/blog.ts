@@ -5,6 +5,7 @@ import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
 import rawJa from "@/data/catalog-ja.json";
 import { bareId, currencyOf, langOfKey, type CardLang } from "./cardLang";
+import { setPagePath } from "./setPath";
 import type { CardData, CatalogSet, SetData } from "./types";
 
 /**
@@ -123,13 +124,13 @@ export function findCard(key: string): { card: CardData; set: SetData; setName: 
   return set && card && !card.unavailable ? { card, set, setName: owner.name } : null;
 }
 
-const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+export const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
-const money = (n: number | null | undefined, currency: string, lang: BlogLang) =>
+export const money = (n: number | null | undefined, currency: string, lang: BlogLang) =>
   n ? new Intl.NumberFormat(lang === "fr" ? "fr-FR" : "en-US", { style: "currency", currency }).format(n) : "—";
 
 /** What the card's price says, in the post's language: the amount, its market, its date, where it's heading, and the link to buy. */
-function priceOf(key: string, card: CardData, set: SetData, lang: BlogLang) {
+export function priceOf(key: string, card: CardData, set: SetData, lang: BlogLang) {
   const fr = lang === "fr";
   // English cards: the TCGplayer market price, unless TCGplayer doesn't sell it (`cm`: Cardmarket's, converted)
   const tcgplayer = langOfKey(key) === "en" && !card.price.cm;
@@ -150,7 +151,7 @@ function priceOf(key: string, card: CardData, set: SetData, lang: BlogLang) {
 }
 
 /** "234/091": the number as printed on the card */
-const num = (card: CardData, set: SetData) =>
+export const num = (card: CardData, set: SetData) =>
   /^\d+$/.test(card.num) && set.official ? `${card.num}/${String(set.official).padStart(card.num.length, "0")}` : card.num;
 /** One card the text talks about: the scan beside its sheet (set, number, rarity, today's price, a link to its market). */
 function cardFeature(key: string, lang: BlogLang) {
@@ -173,12 +174,19 @@ function cardFeature(key: string, lang: BlogLang) {
     `<div><dt>${fr ? "Moy. 30 j" : "30-day avg"}</dt><dd>${money(card.price.avg30, "EUR", lang)}</dd></div>` +
     `</dl>` +
     `<a href="${esc(pr.href)}" target="_blank" rel="noopener nofollow">${fr ? `Voir sur ${pr.market}` : `See on ${pr.market}`} ↗</a>` +
+    setLink(key, set, setName, lang) +
     `</figcaption></figure>`
   );
 }
 
+/** Under a card: every card of its set, on the set's own page (French and English cards). */
+function setLink(key: string, set: SetData, setName: string, lang: BlogLang) {
+  const href = setPagePath(langOfKey(key), set.id);
+  return href ? `<a class="blog-card-setlink" href="${href}">${lang === "fr" ? `Toutes les cartes de ${esc(setName)}` : `Every ${esc(setName)} card`} →</a>` : "";
+}
+
 /** Several cards in a row: a small gallery, each with its name and price. */
-function cardGallery(keys: string[], lang: BlogLang) {
+export function cardGallery(keys: string[], lang: BlogLang) {
   const items = keys.flatMap((key) => {
     const found = findCard(key);
     if (!found) return [];

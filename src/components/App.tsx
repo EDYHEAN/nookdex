@@ -17,6 +17,7 @@ import { BoilFilter } from "./fx/Boil";
 import { Grain } from "./fx/Grain";
 import { AboutBook } from "./room/AboutBook";
 import { PaintedRoom } from "./room/PaintedRoom";
+import { SupportCat } from "./room/SupportCat";
 import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
 import { Tour } from "./shelf/Tour";
 import { Welcome } from "./shelf/Welcome";
@@ -67,6 +68,11 @@ export function App() {
     document.documentElement.lang = lang;
     document.cookie = `${LANG_COOKIE}=${lang}; path=/; max-age=31536000; samesite=lax`;
   }, [lang]);
+
+  // The home page's tagline (app/(desk)/page) is written on the loader's paper: it leaves with it.
+  useEffect(() => {
+    if (entered || revealed) document.documentElement.dataset.room = "in";
+  }, [entered, revealed]);
 
   useEffect(startCloud, []);
 
@@ -147,6 +153,14 @@ export function App() {
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
   const busy = !!openBinder || !!computer || adding || about;
+  // Sign in (or play offline, warned), then a nickname, then a first binder.
+  const showWelcome =
+    entered &&
+    cloud.ready &&
+    // While the online save is looked up, nothing pops: a returning player would see the card flash, then close.
+    cloud.status !== "loading" &&
+    !devBypass &&
+    ((!cloud.email && !offline) || !profile || (welcome && !userBinders.length));
 
   return (
     <>
@@ -268,13 +282,7 @@ export function App() {
         )}
       </div>
 
-      {/* Sign in (or play offline, warned), then a nickname, then a first binder. */}
-      {entered &&
-        cloud.ready &&
-        // While the online save is looked up, nothing pops: a returning player would see the card flash, then close.
-        cloud.status !== "loading" &&
-        !devBypass &&
-        ((!cloud.email && !offline) || !profile || (welcome && !userBinders.length)) && (
+      {showWelcome && (
           <Welcome
             onPick={async (choice) => {
               // The first binder: once the welcome card is gone, it opens and the tour starts.
@@ -288,6 +296,8 @@ export function App() {
           />
         )}
       {tour && <Tour onDone={() => setTour(false)} />}
+      {/* a tip for the project, asked by the cat once the player has a few cards (never over a binder, the OS or the tour) */}
+      {entered && <SupportCat compact={compact} calm={!busy && !tour && !showWelcome} />}
       {!entered && <Loader onLeave={() => setRevealed(true)} onEnter={() => setEntered(true)} />}
       {/* on a phone, the full-screen grain layers are memory a binder or the OS needs (their paper has its own grain) */}
       <Grain off={compact && busy} />
