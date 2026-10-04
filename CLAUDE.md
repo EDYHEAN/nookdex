@@ -62,8 +62,10 @@ doesn't show.
 - **Prices follow the card's language**: French cards → Cardmarket (euros, all languages mixed), Japanese cards →
   Cardmarket (euros, and for once per language: Japanese prints are products of their own), English cards → TCGplayer (US market, English
   cards, dollars: `marketPrice` as the trend, `lowPrice` as the low, `tp` = product id for the link; the arrow keeps
-  Cardmarket's averages). An English card TCGplayer doesn't sell (Trainer Galleries, Shiny Vault, 30th for now) gets
-  Cardmarket's price converted at the ECB rate (`src/data/eur-usd.json`, refreshed by fetch-set), flagged `cm`.
+  Cardmarket's averages). An English card TCGdex doesn't link to TCGplayer (Trainer Galleries, Shiny Vault, 30th…) is
+  looked up on TCGCSV (tcgcsv.com, TCGplayer's catalog and prices, daily; matched by set name, number and name; their
+  rules: a named User-Agent, ~100 ms between requests, one sync a day). Still nothing: Cardmarket's price converted at
+  the ECB rate (`src/data/eur-usd.json`, refreshed by fetch-set), flagged `cm`. TCGCSV has no French cards.
 - **The player's money** (`currency` in zustand and in the save, NookDex OS → Save « Devise »): purchase prices are typed
   in it; values, totals and gains are added up in it (`priceOf` converts). Only the card sheet's price table shows the
   card's own market price and currency (`marketPrice`). Switching the currency converts the purchase prices.

@@ -213,6 +213,77 @@ function priceOf(d) {
   return tcgplayerPrice(d?.pricing?.tcgplayer, cm) ?? cardmarketInDollars(cardmarketPrice(cm));
 }
 
+/*
+ * TCGCSV (tcgcsv.com): TCGplayer's own catalog and prices, refreshed every day around 20:00 UTC. TCGdex doesn't link
+ * some English cards to TCGplayer (Trainer Galleries, Shiny Vault, the 30th Celebration…): they got Cardmarket's price
+ * in dollars, or none. Their TCGplayer price is found here by set name, card number and name.
+ */
+const TCGCSV = "https://tcgcsv.com/tcgplayer/3"; // 3 = Pokémon (85 would be Pokémon Japan)
+let tcgGroups = null;
+/** Their rules (tcgcsv.com/docs): a named User-Agent, ~100 ms between requests, one sync a day (the daily Action). */
+async function tcgcsv(path) {
+  await new Promise((r) => setTimeout(r, 120));
+  const res = await fetch(`${TCGCSV}${path}`, { headers: { "User-Agent": "NookDex/1.0 (+https://nookdex.com)" } });
+  if (!res.ok) throw new Error(`TCGCSV ${res.status} ${path}`);
+  return res.json();
+}
+const plain = (s) =>
+  String(s ?? "")
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+/** "TG05/TG30" -> "TG5", "007" -> "7": the printed number, compared without its leading zeros */
+const numKey = (n) => String(n ?? "").split("/")[0].trim().toUpperCase().replace(/(^|[A-Z])0+(\d)/g, "$1$2");
+
+/** The card's TCGplayer price from TCGCSV's rows (one per print: Normal, Holofoil, Reverse Holofoil). */
+function tcgcsvPrice(rows, old) {
+  const by = new Map(rows.map((r) => [r.subTypeName, r]));
+  const base = by.get("Normal") ?? by.get("Holofoil") ?? rows.find((r) => r.subTypeName !== "Reverse Holofoil") ?? null;
+  const holo = by.get("Reverse Holofoil") ?? (by.get("Normal") ? by.get("Holofoil") : null) ?? null;
+  const trend = round(base?.marketPrice ?? base?.midPrice);
+  const trendHolo = round(holo?.marketPrice ?? holo?.midPrice);
+  if (trend == null && trendHolo == null) return null;
+  // the ↗ ↘ arrow keeps Cardmarket's averages (only their ratio is used)
+  const { cm: _, ...rest } = old;
+  return { ...rest, low: round(base?.lowPrice), trend, lowHolo: round(holo?.lowPrice), trendHolo, tp: (base ?? holo).productId };
+}
+
+/** Fills the set's English cards that have no TCGplayer price; returns how many were found. */
+async function fillFromTcgcsv(setName, cards) {
+  const gaps = cards.filter((c) => c.price.cm || (c.price.trend == null && c.price.trendHolo == null));
+  if (!gaps.length) return 0;
+  tcgGroups ??= (await tcgcsv("/groups")).results ?? [];
+  // "SWSH12: Silver Tempest", "SWSH12: Silver Tempest Trainer Gallery", "ME: 30th Celebration Classic Collection"…
+  const name = plain(setName);
+  const groups = tcgGroups.filter((g) => plain(g.name.replace(/^[^:]*:\s*/, "")).startsWith(name) || plain(g.name).startsWith(name));
+  const products = [];
+  for (const g of groups) {
+    const list = await tcgcsv(`/${g.groupId}/products`);
+    const prices = await tcgcsv(`/${g.groupId}/prices`);
+    const rows = new Map();
+    for (const r of prices?.results ?? []) rows.set(r.productId, [...(rows.get(r.productId) ?? []), r]);
+    for (const p of list?.results ?? []) {
+      const number = p.extendedData?.find((e) => e.name === "Number")?.value;
+      // sealed products have no number
+      if (number && rows.has(p.productId)) products.push({ key: numKey(number), name: plain(p.name), rows: rows.get(p.productId) });
+    }
+  }
+  let found = 0;
+  for (const card of gaps) {
+    let hits = products.filter((p) => p.key === numKey(card.num));
+    // the same number in two groups (main set and its gallery): the name decides
+    if (hits.length > 1) hits = hits.filter((p) => p.name.startsWith(plain(card.name).split(" ")[0]));
+    if (hits.length !== 1) continue;
+    const price = tcgcsvPrice(hits[0].rows, card.price);
+    if (!price) continue;
+    card.price = price;
+    found++;
+  }
+  return found;
+}
+
 async function exists(url) {
   const res = await fetch(url, { method: "HEAD" });
   return res.ok;
@@ -326,8 +397,15 @@ async function fetchSet(mainId, subIds) {
     cards: [...main.cards, ...subs.flatMap((s) => s.cards)],
   };
   const gone = await keepVanished(mainId, out.cards, nums);
+  let filled = 0;
+  try {
+    if (EN) filled = await fillFromTcgcsv(out.name, out.cards);
+  } catch (e) {
+    // TCGCSV down: the Cardmarket prices in dollars stay
+    console.warn(`${mainId}: TCGCSV skipped (${e.message})`);
+  }
   await writeFile(`${OUT}/${mainId}.json`, JSON.stringify(out));
-  console.log(`${mainId}: ${out.cards.length} cards${gone ? ` (${gone} no longer on TCGdex, kept)` : ""}`);
+  console.log(`${mainId}: ${out.cards.length} cards${gone ? ` (${gone} no longer on TCGdex, kept)` : ""}${filled ? ` (${filled} priced by TCGCSV)` : ""}`);
   return out;
 }
 
