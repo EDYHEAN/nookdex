@@ -11,6 +11,7 @@ import { CONDITIONS, CONDITION_LABEL, useStore } from "@/lib/store";
 import type { CardData, Condition, Copy, Variant } from "@/lib/types";
 import type { AddResult } from "./CardSlot";
 import { CardBack } from "./CardBack";
+import { PriceChart } from "./PriceChart";
 import styles from "./Inspector.module.css";
 import { useT } from "@/lib/lang";
 
@@ -212,6 +213,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
             </div>
           ))}
           {!priced && <p className={styles.noPrice}>{noPriceText(card)}{t(" : pas de prix pour l'instant.", ": no price for now.")}</p>}
+          <PriceChart card={card} />
         </section>
 
         {owned ? (
