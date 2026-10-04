@@ -71,6 +71,11 @@
   gap: 10px;
 }
 
+/* "Partager ↗": the binder's progress picture (ShareSheet) */
+.shareBtn {
+  background: #ffd35a;
+}
+
 .pixelBtn kbd {
   font-family: inherit;
   font-size: 15px;
@@ -867,6 +872,11 @@
   }
 
   .pixelBtn kbd {
+    display: none;
+  }
+
+  /* a phone header has room for the arrow only */
+  .shareLabel {
     display: none;
   }
 
