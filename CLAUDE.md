@@ -9,8 +9,8 @@ doesn't show.
 ## Working conventions
 
 - Answer Johan in French, short and concrete. Code, comments and commit messages in English.
-- Changes go on a branch, then a PR merged (squash) into `main`. Vercel deploys `main` to nookdex.com and every branch
-  to a preview.
+- Changes go on a branch, then a PR merged (squash) into `main`. Vercel deploys `main` only (nookdex.com): no
+  previews (`vercel.json`), the Hobby plan keeps every deploy of the last 30 days within 10 GB of storage.
 - Before a PR: `npx tsc --noEmit`, `npx eslint src`, and for anything visual, look at it (Playwright + Chromium, desktop
   1400×900 and phone 390×800). Dev shortcuts: `?skip`, `?open=<setId>`, `?os`, `?demo` (they also skip the sign-in).
 - Match the style around: no reformatting (Prettier with default options reflows whole files: don't run it), comments
@@ -28,6 +28,9 @@ doesn't show.
   mobile 44 → 76 (Lighthouse).
 - `src/app/(desk)/` shares one layout for `/` and the notebook pages (`/a-propos`, `/confidentialite`, `/conditions`,
   `/contact`): the room stays mounted, those pages open as a notebook over it and are server-rendered (Google reads them).
+- Server code reads the sets' files through `lib/setFiles` (async): from disk in dev and at build, else fetched from
+  the site's own static files. They're kept out of the functions (next.config `outputFileTracingExcludes`): 30 MB in
+  each one: 430 MB of traced files in all, 88 MB without.
 - Card data is static JSON from TCGdex, built by `scripts/fetch-set.mjs` into `public/sets/` (one file per set +
   `index.json` for the free-binder search), `public/logos/`, `src/data/catalog.json`. Binder sets = recent series
   (`me`, `sv`, `swsh`); every other set is `extra` (search only).

@@ -5,6 +5,7 @@ import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
 import rawJa from "@/data/catalog-ja.json";
 import { bareId, currencyOf, langOfKey, type CardLang } from "./cardLang";
+import { setFile } from "./setFiles";
 import { setPagePath } from "./setPath";
 import type { CardData, CatalogSet, SetData } from "./types";
 
@@ -105,21 +106,18 @@ export function formatDate(date: string, lang: BlogLang) {
 
 /* ---------- cards in a post: ::card[sv08-001] on its own line ---------- */
 
-const sets = new Map<string, SetData | null>();
 /** Sub-set id (a Trainer Gallery…) -> the catalog set whose file holds it, per card language (as lib/catalog, server side) */
 const OWNER = new Map<string, CatalogSet>();
 for (const [lang, raw] of [["fr", rawFr], ["en", rawEn], ["ja", rawJa]] as [CardLang, CatalogSet[]][])
   for (const s of raw) for (const id of [s.id, ...s.subs]) OWNER.set(`${lang}:${id}`, s);
 
 /** A card of the site's data (public/sets), French by default, `en:` / `ja:` like the rest of the site, with its set. */
-export function findCard(key: string): { card: CardData; set: SetData; setName: string } | null {
+export async function findCard(key: string): Promise<{ card: CardData; set: SetData; setName: string } | null> {
   const lang = langOfKey(key);
   const id = bareId(key);
   const owner = OWNER.get(`${lang}:${id.slice(0, id.lastIndexOf("-"))}`);
   if (!owner) return null;
-  const file = path.join(process.cwd(), "public", "sets", ...(lang === "fr" ? [] : [lang]), `${owner.id}.json`);
-  if (!sets.has(file)) sets.set(file, fs.existsSync(file) ? (JSON.parse(fs.readFileSync(file, "utf8")) as SetData) : null);
-  const set = sets.get(file);
+  const set = await setFile(lang, owner.id);
   const card = set?.cards.find((c) => bareId(c.id) === id);
   return set && card && !card.unavailable ? { card, set, setName: owner.name } : null;
 }
@@ -154,8 +152,8 @@ export function priceOf(key: string, card: CardData, set: SetData, lang: BlogLan
 export const num = (card: CardData, set: SetData) =>
   /^\d+$/.test(card.num) && set.official ? `${card.num}/${String(set.official).padStart(card.num.length, "0")}` : card.num;
 /** One card the text talks about: the scan beside its sheet (set, number, rarity, today's price, a link to its market). */
-function cardFeature(key: string, lang: BlogLang) {
-  const found = findCard(key);
+async function cardFeature(key: string, lang: BlogLang) {
+  const found = await findCard(key);
   if (!found) return "";
   const { card, set, setName } = found;
   const fr = lang === "fr";
@@ -186,10 +184,10 @@ function setLink(key: string, set: SetData, setName: string, lang: BlogLang) {
 }
 
 /** Several cards in a row: a small gallery, each with its name and price. */
-export function cardGallery(keys: string[], lang: BlogLang) {
-  const items = keys.flatMap((key) => {
-    const found = findCard(key);
+export async function cardGallery(keys: string[], lang: BlogLang) {
+  const items = (await Promise.all(keys.map(findCard))).flatMap((found, i) => {
     if (!found) return [];
+    const key = keys[i];
     const { card, set, setName } = found;
     const pr = priceOf(key, card, set, lang);
     const img = card.img ? `<img src="${esc(card.img)}/low.webp" alt="${esc(`${card.name} ${num(card, set)}`)}" width="245" height="342" loading="lazy">` : "";
@@ -202,12 +200,17 @@ export function cardGallery(keys: string[], lang: BlogLang) {
 }
 
 /** The post's HTML: Markdown (the routine's own text, from this repo) with its cards drawn from the site's data. */
-export function renderPost(post: Post) {
+export async function renderPost(post: Post) {
   // a run of ::card lines (blank lines between them allowed) is one block: a single card, or a gallery
-  const md = post.body.replace(/^::card\[[^\]]+\][ \t]*(?:\n(?:[ \t]*\n)*::card\[[^\]]+\][ \t]*)*/gm, (run) => {
-    const keys = [...run.matchAll(CARD_LINE)].map((m) => m[1].trim());
-    return `${keys.length === 1 ? cardFeature(keys[0], post.lang) : cardGallery(keys, post.lang)}\n\n`;
-  });
+  const RUN = /^::card\[[^\]]+\][ \t]*(?:\n(?:[ \t]*\n)*::card\[[^\]]+\][ \t]*)*/gm;
+  const blocks = await Promise.all(
+    [...post.body.matchAll(RUN)].map((run) => {
+      const keys = [...run[0].matchAll(CARD_LINE)].map((m) => m[1].trim());
+      return keys.length === 1 ? cardFeature(keys[0], post.lang) : cardGallery(keys, post.lang);
+    }),
+  );
+  let i = 0;
+  const md = post.body.replace(RUN, () => `${blocks[i++]}\n\n`);
   const html = new Marked({ gfm: true }).parse(md, { async: false });
   // wide tables scroll sideways on a phone instead of squeezing their columns
   return html.replace(/<table>/g, '<div class="blog-table"><table>').replace(/<\/table>/g, "</table></div>");

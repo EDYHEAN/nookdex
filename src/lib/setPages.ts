@@ -1,7 +1,6 @@
-import fs from "node:fs";
-import path from "node:path";
 import { allPosts, formatDate, type Post } from "./blog";
 import { bareId, currencyOf, langOfKey } from "./cardLang";
+import { setFile } from "./setFiles";
 import { type PageLang, SET_PAGES_ROOT, setBySlug, setPageEntries } from "./setPath";
 import type { CardData, CatalogSet, SetData } from "./types";
 
@@ -10,18 +9,8 @@ import type { CardData, CatalogSet, SetData } from "./types";
  * same files as the binders (public/sets, refreshed every day by the prices Action), and a few figures drawn from them.
  */
 
-const files = new Map<string, SetData | null>();
-
-function setFile(lang: PageLang, id: string): SetData | null {
-  const file = path.join(process.cwd(), "public", "sets", ...(lang === "fr" ? [] : [lang]), `${id}.json`);
-  // read once per server instance in production: the daily prices come with a new deploy
-  if (!files.has(file) || process.env.NODE_ENV !== "production")
-    files.set(file, fs.existsSync(file) ? (JSON.parse(fs.readFileSync(file, "utf8")) as SetData) : null);
-  return files.get(file) ?? null;
-}
-
 /** When a set's prices were last refreshed (its page's lastmod in the sitemap); null when its file is missing. */
-export const pricesUpdatedOf = (lang: PageLang, id: string) => setFile(lang, id)?.pricesUpdated ?? null;
+export const pricesUpdatedOf = async (lang: PageLang, id: string) => (await setFile(lang, id))?.pricesUpdated ?? null;
 
 /** A card's price on its market (trend), as the binders read it: null when the market doesn't sell it. */
 export const trendOf = (card: CardData) => (card.unavailable ? null : card.price.trend || card.price.trendHolo || null);
@@ -46,10 +35,10 @@ export interface SetPage {
   posts: Post[];
 }
 
-export function setPage(lang: PageLang, slug: string): SetPage | null {
+export async function setPage(lang: PageLang, slug: string): Promise<SetPage | null> {
   const entry = setBySlug(lang, slug);
   if (!entry) return null;
-  const data = setFile(lang, entry.set.id);
+  const data = await setFile(lang, entry.set.id);
   if (!data || !data.cards.length) return null;
   const { set } = entry;
   const otherLang: PageLang = lang === "fr" ? "en" : "fr";

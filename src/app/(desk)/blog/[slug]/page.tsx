@@ -106,7 +106,7 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
         </ul>
       )}
 
-      <div className={blog.body} lang={post.lang} dangerouslySetInnerHTML={{ __html: renderPost(post) }} />
+      <div className={blog.body} lang={post.lang} dangerouslySetInnerHTML={{ __html: await renderPost(post) }} />
 
       <p className={blog.cta}>
         <Link href="/" className={legal.cta}>

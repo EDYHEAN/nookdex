@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
@@ -7,8 +6,9 @@ import rawFr from "@/data/catalog.json";
 import rawJa from "@/data/catalog-ja.json";
 import { findCard } from "@/lib/blog";
 import { bareId, type CardLang, langOfKey } from "@/lib/cardLang";
+import { setFile } from "@/lib/setFiles";
 import { SITE_DOMAIN, SITE_NAME } from "@/lib/site";
-import type { CatalogSet, SetData } from "@/lib/types";
+import type { CatalogSet } from "@/lib/types";
 
 /**
  * A player's progress in a set binder, as a picture to share (stories, WhatsApp, Discord): the painted desk dimmed, a paper
@@ -21,11 +21,6 @@ const H = 1350;
 const SEGMENTS = 20;
 
 const CATALOGS: Record<CardLang, CatalogSet[]> = { fr: rawFr as CatalogSet[], en: rawEn as CatalogSet[], ja: rawJa as CatalogSet[] };
-
-function setFile(lang: CardLang, id: string): SetData | null {
-  const file = path.join(process.cwd(), "public", "sets", ...(lang === "fr" ? [] : [lang]), `${id}.json`);
-  return fs.existsSync(file) ? (JSON.parse(fs.readFileSync(file, "utf8")) as SetData) : null;
-}
 
 /**
  * A picture fetched before drawing, as a data URL: the drawing waits for it with a time limit, and a picture that doesn't
@@ -47,7 +42,7 @@ export async function GET(req: Request) {
   const key = q.get("s") ?? "";
   const lang = langOfKey(key);
   const set = CATALOGS[lang].find((s) => s.id === bareId(key));
-  const data = set && setFile(lang, set.id);
+  const data = set && (await setFile(lang, set.id));
   if (!set || !data) return new Response("Unknown set", { status: 404 });
 
   const en = q.get("l") === "en";
@@ -59,10 +54,7 @@ export async function GET(req: Request) {
   const value = Math.max(0, Number(q.get("v")) || 0);
   const name = (q.get("p") ?? "").trim().slice(0, 24);
   // only cards of this set, with a scan
-  const cards = (q.get("k") ?? "")
-    .split(",")
-    .slice(0, 3)
-    .map((k) => findCard(k.trim()))
+  const cards = (await Promise.all((q.get("k") ?? "").split(",").slice(0, 3).map((k) => findCard(k.trim()))))
     .filter((f) => f && f.set.id === set.id && f.card.img)
     .map((f) => f!.card);
   // the small scans (245 px wide) are enough for cards drawn 200 px wide, and come fast

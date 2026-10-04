@@ -18,8 +18,8 @@ import styles from "./SetPages.module.css";
  */
 export const setPageParams = (lang: PageLang) => setPageEntries(lang).map((e) => ({ slug: e.slug }));
 
-export function setPageMetadata(lang: PageLang, slug: string): Metadata {
-  const p = setPage(lang, slug);
+export async function setPageMetadata(lang: PageLang, slug: string): Promise<Metadata> {
+  const p = await setPage(lang, slug);
   if (!p) return {};
   const fr = lang === "fr";
   const { n } = cardCount(p);
@@ -50,8 +50,8 @@ export function setPageMetadata(lang: PageLang, slug: string): Metadata {
 
 const ld = (data: object) => <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 
-export function SetPageView({ lang, slug }: { lang: PageLang; slug: string }) {
-  const p = setPage(lang, slug);
+export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string }) {
+  const p = await setPage(lang, slug);
   if (!p) notFound();
   const fr = lang === "fr";
   const t = (f: string, e: string) => (fr ? f : e);
@@ -65,7 +65,7 @@ export function SetPageView({ lang, slug }: { lang: PageLang; slug: string }) {
   const logo = p.set.logo ? `${p.set.logo}.png` : null;
   /** "186/195": the number as printed on the card */
   const numOf = (c: CardData) => num(c, p.data);
-  const gallery = cardGallery(
+  const gallery = await cardGallery(
     p.top.slice(0, 8).map((c) => keyOf(lang, c.id)),
     lang,
   );
