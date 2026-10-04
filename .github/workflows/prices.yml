@@ -43,11 +43,15 @@ jobs:
       - name: Cartes et prix japonais
         run: node scripts/fetch-set.mjs --force --lang=ja
 
+      # la courbe des prix de la fiche carte : le prix du jour de chaque carte, ajouté à l'historique de son extension
+      - name: Historique des prix
+        run: node scripts/price-history.mjs
+
       - name: Enregistrer les prix s'ils ont changé
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/sets public/logos src/data/catalog.json src/data/catalog-en.json src/data/catalog-ja.json src/data/eur-usd.json
+          git add public/sets public/history public/logos src/data/catalog.json src/data/catalog-en.json src/data/catalog-ja.json src/data/eur-usd.json
           if git diff --cached --quiet; then
             echo "Aucun prix n'a bougé aujourd'hui."
             exit 0

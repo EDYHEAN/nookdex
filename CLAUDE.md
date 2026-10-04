@@ -143,8 +143,11 @@ doesn't show.
 
 ## GitHub Actions
 
-- `prices.yml` (daily 11:00 UTC): `fetch-set --force` then `--force --lang=en` refresh binder-set prices and cards
-  in both languages (+ missing extra sets), commit to `main` when something moved.
+- `prices.yml` (daily 11:00 UTC): `fetch-set --force` then `--force --lang=en` / `--lang=ja` refresh binder-set prices
+  and cards (+ missing extra sets), then `scripts/price-history.mjs` adds the day's column to
+  `public/history/<lang>/<set>.json` (each card's trend, the card sheet's curve: `lib/history.ts`, `binder/PriceChart`),
+  commit to `main`. The history started 2026-10-04 (no source keeps old prices: TCGCSV's archive is closed) and grows
+  ~120 KB a day: thin old days to weekly if it gets heavy.
 - `watch.yml` (Mondays): re-checks cards shown with an English scan or as a card back, re-downloads sets with news,
   watches TCGdex for new price fields (French Cardmarket prices would show up there); anything new opens or comments
   the issue labelled `veille`.
