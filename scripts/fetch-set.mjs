@@ -311,9 +311,12 @@ function alike(a, b) {
   return both / (new Set([...x, ...y]).size || 1);
 }
 let sharp;
-async function makeScans(id, imageUrl) {
+async function makeScans(id, product) {
   const dir = `${SCANS}/${id}`;
-  if (existsSync(`${dir}/high.webp`)) return true;
+  // made already, from the same TCGplayer card
+  const made = existsSync(`${dir}/product.txt`) ? (await readFile(`${dir}/product.txt`, "utf8")).trim() : null;
+  if (made === String(product.productId)) return true;
+  const imageUrl = product.imageUrl;
   sharp ??= (await import("sharp")).default;
   // the biggest picture TCGplayer has, else the one TCGCSV gives
   let buf = null;
@@ -328,11 +331,12 @@ async function makeScans(id, imageUrl) {
   await mkdir(dir, { recursive: true });
   // TCGdex's sizes: 245 and 600 px wide
   for (const [name, width] of [["low", 245], ["high", 600]]) {
-    const img = sharp(buf).resize({ width, height: Math.round(width * 1.395), fit: "cover" });
-    await img.clone().webp({ quality: 82 }).toFile(`${dir}/${name}.webp`);
-    // the share pictures (next/og) read png: a palette keeps them small
-    await img.clone().png({ palette: true, quality: 85 }).toFile(`${dir}/${name}.png`);
+    const img = (w) => sharp(buf).resize({ width: w, height: Math.round(w * 1.395), fit: "cover" });
+    await img(width).webp({ quality: 80 }).toFile(`${dir}/${name}.webp`);
+    // the share pictures (next/og) read png and draw it 300 px wide at most: smaller, with a palette
+    await img(Math.min(width, 400)).png({ palette: true, quality: 80 }).toFile(`${dir}/${name}.png`);
   }
+  await writeFile(`${dir}/product.txt`, `${product.productId}\n`);
   return true;
 }
 async function scansFromTcgcsv(mainId, cards) {
@@ -345,11 +349,15 @@ async function scansFromTcgcsv(mainId, cards) {
     const setId = card.id.slice(0, card.id.lastIndexOf("-"));
     if (!products.has(setId)) {
       const setName = plain((await get(`${API}/en/sets/${setId}`))?.name);
-      // its own group ("ME: 30th Celebration Classic Collection"), else every group of the main set's name
+      // its own group ("ME: 30th Celebration Classic Collection"), else the groups of the main set's name: the main
+      // set's own one for its cards, the others for a sub-set's (a sub-set's "Pikachu" is not the main set's)
       let groups = tcgGroups.filter((g) => groupName(g) === setName);
       if (!groups.length) {
         const main = plain((await get(`${API}/en/sets/${mainId}`))?.name);
-        groups = tcgGroups.filter((g) => main && groupName(g).startsWith(main));
+        const family = tcgGroups.filter((g) => main && groupName(g).startsWith(main));
+        const own = family.filter((g) => groupName(g) === main);
+        groups = setId === mainId ? own : family.filter((g) => !own.includes(g));
+        if (!groups.length) groups = family;
       }
       const list = [];
       for (const g of groups) {
@@ -375,7 +383,7 @@ async function scansFromTcgcsv(mainId, cards) {
       const within = list.filter((p) => [...words(card.enName)].every((w) => words(p.name).has(w)));
       if (within.length === 1) hit = within[0];
     }
-    if (!hit || !(await makeScans(card.id, hit.imageUrl))) continue;
+    if (!hit || !(await makeScans(card.id, hit))) continue;
     used.add(hit.productId);
     card.img = `${SITE}/scans/${card.id}`;
     if (EN) card.price = tcgcsvPrice(hit.rows, card.price) ?? card.price;
