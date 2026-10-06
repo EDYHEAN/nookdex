@@ -31,6 +31,10 @@ jobs:
         with:
           node-version: 22
 
+      # sharp, pour fetch-set (scans TCGplayer)
+      - name: Installer les dépendances
+        run: npm ci --no-audit --no-fund
+
       - name: Vérifier les visuels et les champs de prix
         run: node scripts/watch.mjs
 
@@ -41,7 +45,7 @@ jobs:
           node scripts/fetch-set.mjs $sets
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/sets public/logos src/data/catalog.json
+          git add public/sets public/logos public/scans src/data/catalog.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Nouveaux visuels FR : $sets"
           git push

@@ -1,16 +1,27 @@
-# Temporary: what TCGdex and TCGCSV hold for the 30th Celebration (removed before merge)
+# Temporary: runs fetch-set on the 30th Celebration from this branch and commits the result (removed before merge)
 name: Probe
 on:
   push:
     branches: [claude/nice-carson-h2c6kh]
-    paths: [.github/workflows/probe.yml, scripts/probe.mjs]
+    paths: [.github/workflows/probe.yml]
+permissions:
+  contents: write
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - run: node scripts/probe.mjs
+      - run: npm ci --no-audit --no-fund
+      - run: node scripts/fetch-set.mjs 30th
+      - run: node scripts/fetch-set.mjs 30th --lang=en
+      - run: |
+          du -sh public/scans; ls public/scans | head -40
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/sets public/logos public/scans src/data
+          git commit -m "30th Celebration: TCGplayer scans for the Classic Collection; Wizards logos" || exit 0
+          git push

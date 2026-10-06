@@ -156,7 +156,7 @@
 }
 
 .logo {
-  height: 64px;
+  height: 84px;
   width: 100%;
   display: grid;
   place-items: center;
@@ -366,7 +366,7 @@
     padding: 14px 14px 20px;
   }
   .logo {
-    height: 48px;
+    height: 64px;
   }
   .setName {
     font-size: 18px;

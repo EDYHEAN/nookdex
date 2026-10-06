@@ -187,7 +187,8 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
                   title={`${name} · ${labels.get(setId)?.label} ${num}`}
                 >
                   {img ? (
-                    <img src={`${assets}${img}/low.webp`} alt={name} loading="lazy" draggable={false} />
+                    // a TCGplayer scan is the site's own file, a full address
+                    <img src={`${img.startsWith("http") ? "" : assets}${img}/low.webp`} alt={name} loading="lazy" draggable={false} />
                   ) : (
                     <span className={styles.back}>
                       <CardBack />

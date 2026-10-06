@@ -25,9 +25,16 @@ const TWIN: Record<string, string> = { M: "me", SV: "sv", S: "swsh" };
 const twinOf = (serie: string, to: CardLang) =>
   to === "ja" ? (Object.keys(TWIN).find((k) => TWIN[k] === serie) ?? serie) : (TWIN[serie] ?? serie);
 
+/** The Wizards era's series (Base, Gym, Neo, Legendary Collection, e-Card): one tab, they're a few sets each. */
+const WIZARDS = new Set(["base", "gym", "neo", "lc", "ecard"]);
+const tabOf = (serie: string) => (WIZARDS.has(serie) ? "wizards" : serie);
+
 function seriesOf(lang: CardLang, site: "fr" | "en") {
-  const names = new Map(binderSets(site).map((s) => [s.serie, s.serieName]));
-  return [...new Map(binderSets(lang).map((s) => [s.serie, names.get(twinOf(s.serie, site)) ?? s.serieName])).entries()].map(([id, name]) => ({ id, name }));
+  const names = new Map(binderSets(site).map((s) => [tabOf(s.serie), WIZARDS.has(s.serie) ? "Wizards" : s.serieName]));
+  return [...new Map(binderSets(lang).map((s) => [tabOf(s.serie), names.get(twinOf(tabOf(s.serie), site)) ?? s.serieName])).entries()].map(([id, name]) => ({
+    id,
+    name,
+  }));
 }
 type Tab = string | "free";
 
@@ -81,7 +88,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
     }
   };
 
-  const sets = binderSets(cardLang).filter((s) => s.serie === tab);
+  const sets = binderSets(cardLang).filter((s) => tabOf(s.serie) === tab);
 
   return (
     <motion.div
@@ -146,11 +153,12 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
                 onPointerEnter={() => !have && sfx.hover()}
                 onClick={() => pick({ kind: "set", setId: s.id }, s.id)}
               >
+                {/* the logo says the name: written under it, a long name ran over the logo */}
                 <span className={styles.logo}>
-                  {/* no logo (Japanese sets): the set code, big */}
-                  {s.logo ? <img src={`${s.logo}.png`} alt="" loading="lazy" draggable={false} /> : <b>{s.code}</b>}
+                  {/* no logo (Japanese sets): the set code, big, and the name under it */}
+                  {s.logo ? <img src={`${s.logo}.png`} alt={s.name} loading="lazy" draggable={false} /> : <b>{s.code}</b>}
                 </span>
-                <span className={styles.setName}>{s.name}</span>
+                {!s.logo && <span className={styles.setName}>{s.name}</span>}
                 <span className={styles.meta}>
                   <kbd>{s.code}</kbd> {s.releaseDate?.slice(0, 4)} · {s.total} {t("cartes", "cards")}
                 </span>

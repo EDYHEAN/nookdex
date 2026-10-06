@@ -7,13 +7,14 @@
 //   add --lang=en                  the same in English, priced on TCGplayer in dollars
 //   add --lang=ja                  the same in Japanese (Cardmarket prices, which are per language for Japanese cards)
 //
-// Binder sets: the main sets of the recent series, offered as binders.
+// Binder sets: the main sets of the recent series and of the Wizards era (1999-2003), offered as binders.
 // Extra sets: everything else in French (older series, promos, energies…), only for the free binders' search.
 //
 // Output:
 //   public/sets/<id>.json    one set, loaded when its binder is opened
 //   public/sets/index.json   every card in a few fields, for the free binders' search
 //   src/data/catalog.json    the sets offered in the "new binder" menu
+//   public/scans/<card id>/  scans of cards TCGdex has none of (TCGplayer's picture, see scansFromTcgcsv)
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
@@ -30,12 +31,14 @@ const ASSETS = "https://assets.tcgdex.net/";
 // its Cardmarket price converted at the ECB rate, kept here for the site (it converts the player's money too).
 const RATE_FILE = "src/data/eur-usd.json";
 
+/** The Wizards of the Coast era (1999-2003): one tab of the "new binder" menu (BinderPicker), a few series at TCGdex. */
+const WIZARDS = ["ecard", "lc", "neo", "gym", "base"];
 /** Series offered as binders, newest first (Japanese ids: MEGA, Scarlet & Violet, Sword & Shield). */
-const SERIES = JA ? ["M", "SV", "S"] : ["me", "sv", "swsh"];
+const SERIES = JA ? ["M", "SV", "S"] : ["me", "sv", "swsh", ...WIZARDS];
 /** TCGdex "series" that aren't cards you collect. */
 const SKIP_SERIES = new Set(["tcgp"]);
 /** Promos and energies: not a set you open boosters of. */
-const SKIP = new Set(["swshp", "svp", "sve", "mep", "mee"]);
+const SKIP = new Set(["swshp", "svp", "sve", "mep", "mee", "basep"]);
 /** Japanese: promos, starter decks, collections, and the Chinese "CS" sets TCGdex files under Japanese. */
 const SKIP_JA = /-P$|^CS|^SVL|^SVK$|^MC$|^MF$/;
 const skipped = (id) => SKIP.has(id) || (JA && SKIP_JA.test(id));
@@ -289,6 +292,99 @@ async function exists(url) {
   return res.ok;
 }
 
+/*
+ * Cards TCGdex lists without a scan in any language (the 30th Celebration's Classic Collection, for months): TCGplayer
+ * has their picture. Found on TCGCSV in the group of the card's set (its English name), by name (the Classic
+ * Collection keeps the original cards' numbers: "4/102", not "001"), and made into the scans the site reads
+ * (<img>/low.webp, high.webp, low.png, high.png) under public/scans/<card id>/, served by the site itself. The same
+ * English picture for every card language; English cards take TCGplayer's price with it. The day TCGdex has a scan,
+ * fetchCards takes it and this one is no longer used.
+ */
+const SITE = "https://nookdex.com";
+const SCANS = "public/scans";
+const words = (s) => new Set(plain(String(s ?? "").replace(/\(.*?\)|\s-\s.*$/g, "")).split(" ").filter(Boolean));
+/** how alike two card names are, 0 to 1 ("Metagross (Delta Species)" ~ "Metagross", "M Gardevoir EX" ~ "M Gardevoir-EX") */
+function alike(a, b) {
+  const x = words(a);
+  const y = words(b);
+  const both = [...x].filter((w) => y.has(w)).length;
+  return both / (new Set([...x, ...y]).size || 1);
+}
+let sharp;
+async function makeScans(id, imageUrl) {
+  const dir = `${SCANS}/${id}`;
+  if (existsSync(`${dir}/high.webp`)) return true;
+  sharp ??= (await import("sharp")).default;
+  // the biggest picture TCGplayer has, else the one TCGCSV gives
+  let buf = null;
+  for (const url of [imageUrl.replace(/_\d+w\.jpg$/, "_in_1000x1000.jpg"), imageUrl.replace(/_\d+w\.jpg$/, "_400w.jpg")]) {
+    const res = await fetch(url).catch(() => null);
+    if (res?.ok) {
+      buf = Buffer.from(await res.arrayBuffer());
+      break;
+    }
+  }
+  if (!buf) return false;
+  await mkdir(dir, { recursive: true });
+  // TCGdex's sizes: 245 and 600 px wide
+  for (const [name, width] of [["low", 245], ["high", 600]]) {
+    const img = sharp(buf).resize({ width, height: Math.round(width * 1.395), fit: "cover" });
+    await img.clone().webp({ quality: 82 }).toFile(`${dir}/${name}.webp`);
+    // the share pictures (next/og) read png: a palette keeps them small
+    await img.clone().png({ palette: true, quality: 85 }).toFile(`${dir}/${name}.png`);
+  }
+  return true;
+}
+async function scansFromTcgcsv(mainId, cards) {
+  tcgGroups ??= (await tcgcsv("/groups")).results ?? [];
+  const groupName = (g) => plain(g.name.replace(/^[^:]*:\s*/, ""));
+  const products = new Map(); // set id -> TCGCSV cards of its group, numbered order
+  const used = new Set();
+  let found = 0;
+  for (const card of cards.filter((c) => !c.img).sort((a, b) => a.id.localeCompare(b.id))) {
+    const setId = card.id.slice(0, card.id.lastIndexOf("-"));
+    if (!products.has(setId)) {
+      const setName = plain((await get(`${API}/en/sets/${setId}`))?.name);
+      // its own group ("ME: 30th Celebration Classic Collection"), else every group of the main set's name
+      let groups = tcgGroups.filter((g) => groupName(g) === setName);
+      if (!groups.length) {
+        const main = plain((await get(`${API}/en/sets/${mainId}`))?.name);
+        groups = tcgGroups.filter((g) => main && groupName(g).startsWith(main));
+      }
+      const list = [];
+      for (const g of groups) {
+        const items = (await tcgcsv(`/${g.groupId}/products`))?.results ?? [];
+        const prices = (await tcgcsv(`/${g.groupId}/prices`))?.results ?? [];
+        for (const p of items) {
+          const number = p.extendedData?.find((e) => e.name === "Number")?.value;
+          if (number && p.imageUrl) list.push({ ...p, number, rows: prices.filter((r) => r.productId === p.productId) });
+        }
+      }
+      list.sort((a, b) => parseInt(a.number, 10) - parseInt(b.number, 10));
+      products.set(setId, list);
+    }
+    // the same number and name, else the closest name (two alike: the lower number first, like TCGdex's order)
+    const list = products.get(setId).filter((p) => !used.has(p.productId));
+    let hit = list.find((p) => numKey(p.number) === numKey(card.num) && alike(p.name, card.enName) >= 0.5);
+    if (!hit) {
+      const best = Math.max(0, ...list.map((p) => alike(p.name, card.enName)));
+      hit = best >= 0.5 ? list.find((p) => alike(p.name, card.enName) === best) : null;
+    }
+    if (!hit) {
+      // one name inside the other ("Palkia" and "Palkia LV.X"), when only one card is so
+      const within = list.filter((p) => [...words(card.enName)].every((w) => words(p.name).has(w)));
+      if (within.length === 1) hit = within[0];
+    }
+    if (!hit || !(await makeScans(card.id, hit.imageUrl))) continue;
+    used.add(hit.productId);
+    card.img = `${SITE}/scans/${card.id}`;
+    if (EN) card.price = tcgcsvPrice(hit.rows, card.price) ?? card.price;
+    console.log(`  ${card.id} ${card.enName}: TCGplayer scan (${hit.name}, ${hit.number})`);
+    found++;
+  }
+  return found;
+}
+
 /** Some logos are on the asset server but not listed by the API (ex: 30th): look for them, French first. */
 async function logoOf(set, serie) {
   if (set.logo) return set.logo;
@@ -328,10 +424,12 @@ async function fetchCards(setId, main) {
         }
       }
     }
+    let enName = EN ? c.name : null;
     if (!image && !JA) {
       // Still nothing -> the English card. Its French scan is sometimes on the asset server all the same (the API
       // just doesn't list it): same path, "fr" instead of "en". Else the English scan.
       const en = await get(`${API}/en/cards/${c.id}`);
+      enName = en?.name ?? enName;
       image = en?.image ?? null;
       const fr = image?.replace("/en/", `/${LANG}/`);
       if (fr && fr !== image && (await exists(`${fr}/low.webp`))) image = fr;
@@ -348,9 +446,12 @@ async function fetchCards(setId, main) {
       variants: variants.length ? variants : ["normal"],
       price: priceOf(d),
       ...(JA && akaOf(d) ? { aka: akaOf(d) } : {}),
+      // no scan at all: its English name, to find it on TCGCSV (scansFromTcgcsv); dropped from the file
+      ...(!image && enName ? { enName } : {}),
     };
   });
-  return { set, cards: cards.filter((c) => c.img) };
+  // Japanese cards without a scan wait for TCGdex; the others get a chance on TCGCSV first
+  return { set, cards: cards.filter((c) => c.img || (!JA && c.enName)) };
 }
 
 /**
@@ -396,6 +497,12 @@ async function fetchSet(mainId, subIds) {
     ...(EN ? { currency: "USD" } : {}),
     cards: [...main.cards, ...subs.flatMap((s) => s.cards)],
   };
+  try {
+    if (out.cards.some((c) => !c.img)) await scansFromTcgcsv(mainId, out.cards);
+  } catch (e) {
+    console.warn(`${mainId}: TCGCSV scans skipped (${e.message})`);
+  }
+  out.cards = out.cards.filter((c) => c.img).map(({ enName: _, ...c }) => c);
   const gone = await keepVanished(mainId, out.cards, nums);
   let filled = 0;
   try {
