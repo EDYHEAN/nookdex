@@ -1,53 +1,91 @@
 # NookDex
 
-Ta collection de cartes Pokémon TCG, rangée dans des classeurs sur un bureau peint façon film d'animation (animations en « low fps », grain de pellicule).
+**A Pokémon TCG collection tracker drawn as a cosy painted desk.**
+Your sets are binders on a shelf, the old computer on the desk runs your stats, and the cat sleeps next to your boosters.
 
-- Chaque extension = un classeur sur l'étagère. Clic : il sort, s'ouvre, et on tourne les pages.
-- Cartes grises = manquantes. Clic sur une carte grise = tu l'as. Clic sur une carte possédée = sa fiche
-  (variante normale / reverse / holo, état Cardmarket, doublons, prix d'achat — 0 € si opening).
-- L'écran du PC ouvre **NookDex OS** : tableau de bord, wishlist, doublons, recherche, sauvegarde (export/import JSON).
-- Prix Cardmarket (prix bas + tendance) via [TCGdex](https://tcgdex.dev), totaux par classeur.
-- Sauvegarde locale (localStorage), et compte en ligne optionnel (Supabase, lien magique par e-mail) pour la retrouver sur tous ses appareils.
+**→ [nookdex.com](https://nookdex.com)** · free, in French and English, on desktop and phone
 
-## Lancer
+![The desk: binders on the shelf, NookDex OS on the computer, the cat](docs/readme/room.webp)
+
+## What it does
+
+- **One binder per set.** Pick a set (French, English or Japanese cards), it goes on the shelf. Open it, turn the pages:
+  grey cards are the ones you're missing, a tap marks a card as owned.
+- **Every copy, in detail.** Variant (normal, reverse, holo), Cardmarket condition, duplicates, price paid or "pulled
+  from a booster". The card sheet shows today's market price, the 7-day trend and a price curve.
+- **Free binders** for whatever you like: favourites, a deck, cards to trade. You can search all ~43,000 cards to fill them.
+- **NookDex OS**, the desk computer: collection value, spending and gains, **all cards** (search, filter by rarity,
+  year and set, sort by price), wishlist, duplicates to trade, save and account.
+- **Prices in the card's own market.** French and Japanese cards are priced on Cardmarket (€), English cards on
+  TCGplayer ($). Totals are added up in your currency. Prices are refreshed every day.
+- **Your collection follows you.** You can sign in with an e-mail link or Google to sync across devices, or play
+  without an account and export a file.
+- **Share your progress**: a picture of a binder (completion, value, best cards) ready for social media.
+- **Made to feel like a little game**: hand-painted scene, low-fps "boil" animation, film grain, sounds synthesized in
+  the browser, a lofi radio, and a guided tour on your first visit.
+
+The site also has a blog (price analyses, upcoming sets), one page per set with its most valuable cards, and a release
+calendar.
+
+| | |
+| --- | --- |
+| ![A binder open on a set's summary page](docs/readme/binder.webp) | ![A card sheet: prices, curve, "Got it!"](docs/readme/sheet.webp) |
+| ![NookDex OS home: value, spending, gains](docs/readme/os-home.webp) | ![NookDex OS, all cards: search and filters](docs/readme/os-cards.webp) |
+
+## How it's built
+
+| | |
+| --- | --- |
+| App | [Next.js](https://nextjs.org) (App Router), React, [zustand](https://zustand.docs.pmnd.rs) (state, saved in the browser), [motion](https://motion.dev) |
+| Accounts and sync | [Supabase](https://supabase.com) (magic link and Google sign-in, one JSON save per player, asks which one to keep when two devices disagree) |
+| Card data | [TCGdex](https://tcgdex.dev): cards, scans and Cardmarket prices. English prices from TCGplayer, with [TCGCSV](https://tcgcsv.com) for the cards TCGdex doesn't link. |
+| Data pipeline | Scripts turn the card data into static JSON (`public/sets/`). A daily GitHub Action refreshes prices and appends to a price history. |
+| Hosting | [Vercel](https://vercel.com), with e-mails sent through [Brevo](https://brevo.com) |
+| Visuals | A painted scene, cut into layers (binders, cat, lamp…) by `scripts/build-scene.mjs` |
+
+There's no card database server: every set is a static file the browser downloads when it needs it. The room is
+client-only. The notebook pages (about, blog, set pages, release calendar) are server-rendered for search engines.
+
+## Run it locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Ajouter / mettre à jour une extension
+Dev-only URL shortcuts: `?skip` (skip the loader), `?open=<setId>` (open a binder), `?os` (open the computer),
+`?demo` (fill a test collection).
 
-Les données (cartes FR, images, prix) sont figées dans `src/data/sets/<id>.json` :
+### Card data
 
 ```bash
-npm run fetch-set swsh12 swsh12tg   # set principal + sous-sets (Trainer Gallery…)
+npm run fetch-set                     # sets not downloaded yet
+npm run fetch-set -- --force          # refresh every binder set's prices
+npm run fetch-set -- sv08             # one set (and its sub-sets)
+npm run fetch-set -- --lang=en        # the same in English (TCGplayer prices); --lang=ja for Japanese
+npm run build-scene                   # cut the painted scene into layers (public/scene, src/data/scene.json)
 ```
 
-Puis branche le JSON sur le bon classeur dans `src/lib/binders.ts` (`set: null` = classeur placeholder).
-Relancer la commande rafraîchit aussi les prix.
+## Where things are
 
-## Où est quoi
-
-| Dossier | Rôle |
+| Path | What |
 | --- | --- |
-| `src/components/room/` | Le bureau peint : calques, classeurs, animations 12 fps (`sceneAnim.ts`) |
-| `src/components/fx/` | Grain de pellicule et « boil » (trait qui frémit façon dessin animé) |
-| `src/components/binder/` | Le classeur : ouverture, pages qui tournent, cartes, fiche |
-| `src/components/computer/` | NookDex OS (l'écran du PC en plein écran) |
-| `src/lib/sound.ts` | Tous les sons, synthétisés en WebAudio (+ radio lofi) |
-| `src/lib/store.ts` | Collection (zustand + localStorage) |
-| `src/lib/cloud.ts` | Compte en ligne et synchro Supabase (table : [docs/supabase.sql](docs/supabase.sql)) |
-| `src/lib/price.ts` | Calculs de prix / stats |
+| `src/components/room/` | The painted desk, its layers and animations |
+| `src/components/binder/` | A binder: cover, pages, card slots, the card sheet |
+| `src/components/computer/` | NookDex OS |
+| `src/components/shelf/` | First visit (welcome, guided tour), new-binder menu |
+| `src/app/(desk)/` | The room, plus the notebook pages opened over it (about, blog, sets, release calendar) |
+| `src/lib/` | Store, cloud sync, catalog, prices, search, sounds |
+| `scripts/` | Card data, price history, scene and icon builders |
+| `content/blog/` | Blog posts (Markdown, French and English) |
+| `docs/` | Supabase schema, e-mail templates, blog guidelines, plans |
 
-En dev, raccourcis d'URL : `?skip` (passe le loader), `?open=swsh12` (ouvre un classeur), `?os` (ouvre le PC), `?demo` (remplit une collection de test).
+## Credits
 
-## Visuels
+Card data, scans and Cardmarket prices: [TCGdex](https://tcgdex.dev). English prices: TCGplayer, via TCGdex and
+[TCGCSV](https://tcgcsv.com).
 
-Les images sources (Gemini) sont dans `img/`. Le script découpe la scène en calques (fond, chat, chaise, 14 classeurs, tête de lampe…) par différence entre la scène maître et ses éditions :
+NookDex is a fan project. It isn't affiliated with, endorsed or sponsored by Nintendo, The Pokémon Company, Creatures,
+GAME FREAK, Cardmarket or TCGplayer. Pokémon and the card images are trademarks and © of their respective owners.
 
-```bash
-npm run build-scene   # -> public/scene/*.webp + src/data/scene.json
-```
-
-Prompts pour générer les visuels avec Gemini : [docs/prompts-gemini.md](docs/prompts-gemini.md).
+Made by Johan. If you like it, [you can buy the cat a treat](https://paypal.me/JohanTrigeard) 🐈
