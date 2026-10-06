@@ -249,7 +249,7 @@
   "serieName": "Scarlet & Violet",
   "name": "Scarlet & Violet",
   "code": "SVI",
-  "logo": "https://assets.tcgdex.net/en/sv/sv01/logo",
+  "logo": null,
   "releaseDate": "2023-03-31",
   "total": 258,
   "subs": []
@@ -349,7 +349,7 @@
   "code": "CEL",
   "logo": "/logos/en/cel25",
   "releaseDate": "2021-10-08",
-  "total": 24,
+  "total": 30,
   "subs": [
    "cel25cc"
   ]
@@ -474,7 +474,7 @@
   "code": "SK",
   "logo": "/logos/en/ecard3",
   "releaseDate": "2003-05-12",
-  "total": 150,
+  "total": 182,
   "subs": []
  },
  {
@@ -485,7 +485,7 @@
   "code": "AQ",
   "logo": "/logos/en/ecard2",
   "releaseDate": "2003-01-15",
-  "total": 146,
+  "total": 186,
   "subs": []
  },
  {
