@@ -40,15 +40,15 @@ export function setIdOfCard(cardKey: string) {
 /** Files of a set or of the search index, in a card language. */
 const dataUrl = (lang: CardLang, file: string) => (lang === "fr" ? `/sets/${file}` : `/sets/${lang}/${file}`);
 
-/** A card of the search index: [card key, name, num, set key, image path, trend, (Japanese cards) French and English names] */
-export type IndexCard = [string, string, string, string, string, number | null, string?];
+/** A card of the search index: [card key, name, num, set key, image path, trend, rarity, (Japanese cards) French and English names] */
+export type IndexCard = [string, string, string, string, string, number | null, string | null, string?];
 
 interface Sets {
   /** Set files downloaded so far, by set key */
   sets: Record<string, SetData>;
   /** Cards of those sets, by card key */
   cards: Record<string, CardData>;
-  /** Every card of a language in a few fields, for the free binders' search (loaded on demand) */
+  /** Every card of a language in a few fields, for the searches (loaded on demand) */
   index: Partial<Record<CardLang, IndexCard[]>>;
   assets: string;
 }
@@ -92,7 +92,7 @@ export function loadIndex(lang: CardLang): Promise<IndexCard[]> {
   indexPending[lang] ??= fetch(dataUrl(lang, "index.json"))
     .then((r) => r.json() as Promise<{ assets: string; cards: IndexCard[] }>)
     .then(({ assets, cards }) => {
-      const list = cards.map(([id, name, num, set, img, trend, aka]): IndexCard => [keyOf(lang, id), name, num, keyOf(lang, set), img, trend, aka]);
+      const list = cards.map(([id, name, num, set, img, trend, rarity, aka]): IndexCard => [keyOf(lang, id), name, num, keyOf(lang, set), img, trend, rarity, aka]);
       useSets.setState((s) => ({ index: { ...s.index, [lang]: list }, assets }));
       return list;
     })

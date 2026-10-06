@@ -12,7 +12,7 @@ export const currencySign = () => (playerCurrency() === "USD" ? "$" : "€");
 /** A card is priced on its language's market: Cardmarket euros (French) or TCGplayer dollars (English). */
 export const cardCurrency = (card: CardData): Currency => currencyOf(langOfKey(card.id));
 /** Euros <-> dollars at the ECB rate of the last price update (src/data/eur-usd.json). */
-const convert = (n: number, from: Currency, to: Currency) => (from === to ? n : from === "EUR" ? n * eurUsd.rate : n / eurUsd.rate);
+export const convert = (n: number, from: Currency, to: Currency) => (from === to ? n : from === "EUR" ? n * eurUsd.rate : n / eurUsd.rate);
 
 /**
  * Price of a variant on the card's own market and in its currency, or null when the card isn't for sale there.

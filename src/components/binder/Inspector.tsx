@@ -9,6 +9,7 @@ import {
 import { sfx } from "@/lib/sound";
 import { CONDITIONS, CONDITION_LABEL, useStore } from "@/lib/store";
 import type { CardData, Condition, Copy, Variant } from "@/lib/types";
+import { AddTo } from "./AddTo";
 import type { AddResult } from "./CardSlot";
 import { CardBack } from "./CardBack";
 import { PriceChart } from "./PriceChart";
@@ -21,10 +22,13 @@ interface Props {
   binderId: string | null;
   onClose: () => void;
   onNavigate: (delta: number) => void;
-  onAdd: (card: CardData) => AddResult;
+  /** "Got it!" inside a binder; without it (a card found in NookDex OS), the player picks the binder it goes in */
+  onAdd?: (card: CardData) => AddResult;
+  /** A card looked at from NookDex OS that a binder on the shelf holds: open that binder */
+  onOpenBinder?: () => void;
 }
 
-export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props) {
+export function Inspector({ card, binderId, onClose, onNavigate, onAdd, onOpenBinder }: Props) {
   const t = useT();
   // a card is priced on its language's market: Cardmarket for French cards, TCGplayer for English ones
   const cardLang = langOfKey(card.id);
@@ -37,10 +41,12 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
   const binders = useStore((s) => s.binders);
   const { addCopy, updateCopy, removeCopy, removeCard } = useStore.getState();
   const owned = !!copies?.length;
-  const keptHere = copies?.some((c) => (c.at?.binder ?? null) === binderId);
+  // looked at from NookDex OS: no binder is "here", every copy says where it is
+  const browsing = !onAdd;
+  const keptHere = !browsing && copies?.some((c) => (c.at?.binder ?? null) === binderId);
   /** Where each copy is kept, when it's not this binder */
   const placeOf = (copy: Copy) => {
-    const here = (copy.at?.binder ?? null) === binderId;
+    const here = !browsing && (copy.at?.binder ?? null) === binderId;
     if (here) return undefined;
     if (!copy.at) return t("dans son classeur", "in its binder");
     const b = binders.find((x) => x.id === copy.at!.binder);
@@ -126,8 +132,9 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
         onPointerMove={tilt}
         onPointerLeave={untilt}
       >
-        <div ref={cardRef} className={`${styles.card} ${owned ? "" : styles.cardMissing}`}>
-          {card.img ? <img src={`${card.img}/high.webp`} alt={card.name} draggable={false} /> : <CardBack />}
+        {/* grey in a binder: a missing card; found in NookDex OS, a card to discover */}
+        <div ref={cardRef} className={`${styles.card} ${owned || browsing ? "" : styles.cardMissing}`}>
+          {card.img && !card.unavailable ? <img src={`${card.img}/high.webp`} alt={card.name} draggable={false} /> : <CardBack />}
           {owned && hasFoil && <span className={styles.foil} />}
           <span className={styles.glare} />
         </div>
@@ -270,12 +277,14 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
               </div>
             </dl>
           </section>
+        ) : browsing ? (
+          <AddTo card={card} />
         ) : (
           <section className={styles.copies}>
             <button
               className={styles.gotIt}
               onClick={() => {
-                onAdd(card);
+                onAdd?.(card);
               }}
               onPointerEnter={sfx.hover}
             >
@@ -302,6 +311,18 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd }: Props)
           >
             {t("Voir sur", "See on")} {onCardmarket ? "Cardmarket" : "TCGplayer"} ↗
           </a>
+          {onOpenBinder && (
+            <button
+              className={styles.toBinder}
+              onClick={() => {
+                sfx.click();
+                onOpenBinder();
+              }}
+              onPointerEnter={sfx.hover}
+            >
+              {t("Ouvrir son classeur ▸", "Open its binder ▸")}
+            </button>
+          )}
           {keptHere && (
             <HoldButton
               onConfirm={() => {

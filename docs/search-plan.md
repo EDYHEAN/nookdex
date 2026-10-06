@@ -1,7 +1,23 @@
 # Search and wishlist over every card: plan
 
-Handoff for the next session (VS Code). Read the repo's CLAUDE.md first. Status: **not started**, decided with Johan on
-2026-10-06 (his answers are in "Decisions" at the end). Nothing here is built yet.
+Handoff for the next session (VS Code). Read the repo's CLAUDE.md first. Decided with Johan on 2026-10-06 (his answers
+are in "Decisions" at the end). Status: **steps 1 and 2 are built** (PR "All cards"), the wishlist (step 3) is next.
+
+## Built (2026-10-06)
+
+- `lib/search.ts`: `rowsOf(index)` (rows read once per index, memoised), `matcher`, `relevance`, `searchRows` (CardPicker).
+- The index rows carry the rarity: `[key, name, num, set, img, trend, rarity, aka?]` (fetch-set; `aka` moved to the end).
+- `lib/rarity.ts`: the binder sort's rank ladder (0-13, -1 unknown) grouped in 9 tiers (`RARITY_TIERS`) for the filter.
+- NookDex OS tab "Toutes les cartes / All cards" (`computer/AllCards.tsx`, replaces "Recherche"): card grid, FR/EN/JAP
+  toggles, menus Tri / Rareté / Année / Extension / Collection. The year and set menus only list what the search and
+  the other filters leave. Opens on "most valuable first". Search and filters are kept while the page lives.
+- Card sheet over the OS for any card (`App` `openCards`, Inspector without `onAdd`): arrows walk the result list,
+  in colour (not greyed), "Ouvrir son classeur ▸" when a binder holds it. "Je l'ai !" asks where the copy goes
+  (`binder/AddTo.tsx`): its set binder, a free binder (first empty pocket), a new set binder (not for extra sets), or a
+  new free binder "Mes cartes". `goToCard` falls back to that sheet.
+- Welcome, step 3: "Pas encore de collection ? Explore d'abord toutes les cartes" opens the OS on that tab. Their first
+  binder, from the shelf's +, then starts the guided tour.
+- Not done: drop rates (no source gives them per card; a hand-made table per recent set, maybe later).
 
 ## Why
 

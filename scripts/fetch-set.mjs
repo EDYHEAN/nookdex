@@ -12,7 +12,7 @@
 //
 // Output:
 //   public/sets/<id>.json    one set, loaded when its binder is opened
-//   public/sets/index.json   every card in a few fields, for the free binders' search
+//   public/sets/index.json   every card in a few fields, for the searches (free binders, NookDex OS "All cards")
 //   src/data/catalog.json    the sets offered in the "new binder" menu
 //   public/scans/<card id>/  scans of cards TCGdex has none of (TCGplayer's picture, see scansFromTcgcsv)
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -634,9 +634,9 @@ for (const c of catalog) {
   // English extra sets fetched before the dollars: their Cardmarket euros, converted
   const toUsd = EN && data.currency !== "USD" ? RATE.rate : 1;
   for (const card of data.cards) {
-    // [id, name, num, set, image path, trend, (Japanese cards) French and English names]
+    // [id, name, num, set, image path, trend, rarity, (Japanese cards) French and English names]
     const trend = card.price.trend == null ? null : round(card.price.trend * toUsd);
-    const row = [card.id, card.name, card.num, c.id, (card.img ?? "").replace(ASSETS, ""), trend];
+    const row = [card.id, card.name, card.num, c.id, (card.img ?? "").replace(ASSETS, ""), trend, card.rarity ?? null];
     index.push(card.aka ? [...row, card.aka] : row);
   }
 }
