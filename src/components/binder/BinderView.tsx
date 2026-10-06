@@ -469,6 +469,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   const atEnd = single ? inView >= pages.length : f >= maxF;
 
   const inspectIndex = inspect == null ? -1 : browsable.findIndex((p) => p.index === inspect);
+  const overlay = inspect != null || picking != null;
 
   // A leaf turns from the render that flips it (not a frame later, when its animation starts) until it lands:
   // in between it must stay drawn and on top, or it vanishes for a frame and then turns over itself.
@@ -639,10 +640,11 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
                 />
               );
             })}
-            {phase === "open" && f < maxF && (
+            {/* no page turning behind the card sheet or the card search: their arrows (and focus ring) showed through */}
+            {phase === "open" && !overlay && f < maxF && (
               <button className={`${styles.corner} ${styles.cornerRight}`} onClick={next} aria-label={t("Page suivante", "Next page")} />
             )}
-            {phase === "open" && f > 1 && (
+            {phase === "open" && !overlay && f > 1 && (
               <button className={`${styles.corner} ${styles.cornerLeft}`} onClick={prev} aria-label={t("Page précédente", "Previous page")} />
             )}
           </motion.div>
@@ -651,9 +653,9 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
 
       <motion.nav
         className={styles.nav}
-        style={{ height: navH }}
+        style={{ height: navH, pointerEvents: overlay ? "none" : undefined }}
         initial={{ y: 40, opacity: 0 }}
-        animate={{ y: phase === "open" ? 0 : 40, opacity: phase === "open" ? 1 : 0 }}
+        animate={{ y: phase === "open" && !overlay ? 0 : 40, opacity: phase === "open" && !overlay ? 1 : 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 22 }}
       >
         <button className={styles.arrow} onClick={prev} disabled={atStart} onPointerEnter={sfx.hover} aria-label={t("Précédent", "Previous")}>
