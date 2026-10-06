@@ -159,6 +159,8 @@
   height: 84px;
   width: 100%;
   display: grid;
+  /* a definite cell: a tall logo (Neo Revelation, Jungle) shrinks into it instead of spilling over */
+  grid-template: 100% / 100%;
   place-items: center;
 }
 

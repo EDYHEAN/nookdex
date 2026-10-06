@@ -494,7 +494,7 @@
   "serieName": "E-Card",
   "name": "Expedition Base Set",
   "code": "EX",
-  "logo": "https://assets.tcgdex.net/en/ecard/ecard1/logo",
+  "logo": null,
   "releaseDate": "2002-09-15",
   "total": 165,
   "subs": []

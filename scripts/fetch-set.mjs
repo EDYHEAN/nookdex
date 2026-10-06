@@ -568,7 +568,11 @@ await pool(catalog, 6, async (c) => {
   const file = `${LOGOS}/${c.id}.png`;
   if (!existsSync(file)) {
     try {
-      const res = await fetch(`${c.logo}.png`);
+      let res = await fetch(`${c.logo}.png`);
+      // listed but not on the asset server (English Expedition): the English one for another language, else none
+      // (the menu writes the set's name instead of a broken picture)
+      if (res.status === 404 && !EN) res = await fetch(`${c.logo.replace(`/${LANG}/`, "/en/")}.png`);
+      if (res.status === 404) c.logo = null;
       if (!res.ok) return;
       await writeFile(file, Buffer.from(await res.arrayBuffer()));
     } catch {
