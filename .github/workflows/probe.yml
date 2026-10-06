@@ -1,0 +1,16 @@
+# Temporary: what TCGdex and TCGCSV hold for the 30th Celebration (removed before merge)
+name: Probe
+on:
+  push:
+    branches: [claude/nice-carson-h2c6kh]
+    paths: [.github/workflows/probe.yml, scripts/probe.mjs]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: node scripts/probe.mjs
