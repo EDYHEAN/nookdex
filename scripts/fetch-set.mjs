@@ -328,6 +328,9 @@ async function makeScans(id, product) {
     }
   }
   if (!buf) return false;
+  // a LEGEND half is pictured lying down: stood up like the card, not cropped
+  const { width: w, height: h } = await sharp(buf).metadata();
+  if (w > h) buf = await sharp(buf).rotate(270).toBuffer();
   await mkdir(dir, { recursive: true });
   // TCGdex's sizes: 245 and 600 px wide
   for (const [name, width] of [["low", 245], ["high", 600]]) {
