@@ -27,10 +27,10 @@ interface Filters {
   own: Own;
 }
 
-/** French cards by default, whatever the site's language (Johan's call: Cardmarket's guide is the reference). */
-const START: Filters = { q: "", langs: ["fr"], sort: "price", tier: null, year: null, set: null, own: "all" };
+/** The cards of the site's language by default (the other ones one tap away). */
+const START: Omit<Filters, "langs"> = { q: "", sort: "price", tier: null, year: null, set: null, own: "all" };
 /** Kept while the page lives: back in the tab, the player finds the search as they left it. */
-let kept = START;
+let kept: Filters | null = null;
 
 const PAGE = 120;
 
@@ -60,7 +60,7 @@ function sortRows(rows: Row[], sort: Sort, q: string, money: Currency): Row[] {
 export function AllCards({ onOpen }: { onOpen: (keys: string[], index: number) => void }) {
   const tr = useT();
   const site = useLang();
-  const [f, setF] = useState<Filters>(kept);
+  const [f, setF] = useState<Filters>(() => kept ?? { ...START, langs: [site] });
   const change = (patch: Partial<Filters>) =>
     setF((x) => {
       kept = { ...x, ...patch };

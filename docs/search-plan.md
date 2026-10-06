@@ -64,8 +64,8 @@ converted when the index is built). About 2,000 cards have no price: they show "
 
 ### 2. The "Recherche" tab
 - Same field (≥ 16 px on mobile), plus:
-  - language stamps that can be combined (FR / EN / JAP; default = **French only**, whatever the site's language:
-    Johan's call). Reuse `LangStamps` if it can take several values, else small toggles;
+  - language stamps that can be combined (FR / EN / JAP; default = **the site's language**: Johan's call,
+    2026-10-06). Reuse `LangStamps` if it can take several values, else small toggles;
   - a sort button that cycles like the wishlist's ("Tri : pertinence / prix ↓ / prix ↑ / récentes");
   - a filter "toutes / possédées / manquantes".
 - Row: scan, set code + number, name, a small language tag when it isn't the site's (`langLabel`), price in the
@@ -143,5 +143,5 @@ It counts once in the value and in the set's completion. A second copy can go in
 ## Decisions (Johan, 2026-10-06)
 
 - A wishlist card leaves the wishlist once owned (with the undo toast above).
-- Search languages: French by default; English and Japanese one tap away.
+- Search languages: the site's language by default (French site → FR cards, English site → EN cards); the others one tap away.
 - "Add to my collection" in the browse sheet from v1, with the choice of binder above.
