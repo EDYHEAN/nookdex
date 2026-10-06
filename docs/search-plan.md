@@ -1,7 +1,7 @@
 # Search and wishlist over every card: plan
 
 Handoff for the next session (VS Code). Read the repo's CLAUDE.md first. Status: **not started**, decided with Johan on
-2026-10-06. Nothing here is built yet.
+2026-10-06 (his answers are in "Decisions" at the end). Nothing here is built yet.
 
 ## Why
 
@@ -48,8 +48,8 @@ converted when the index is built). About 2,000 cards have no price: they show "
 
 ### 2. The "Recherche" tab
 - Same field (≥ 16 px on mobile), plus:
-  - language stamps that can be combined (FR / EN / JAP; default = site language). Reuse `LangStamps` if it can take
-    several values, else small toggles;
+  - language stamps that can be combined (FR / EN / JAP; default = **French only**, whatever the site's language:
+    Johan's call). Reuse `LangStamps` if it can take several values, else small toggles;
   - a sort button that cycles like the wishlist's ("Tri : pertinence / prix ↓ / prix ↑ / récentes");
   - a filter "toutes / possédées / manquantes".
 - Row: scan, set code + number, name, a small language tag when it isn't the site's (`langLabel`), price in the
@@ -61,8 +61,8 @@ converted when the index is built). About 2,000 cards have no price: they show "
 - Click on a result:
   - if a binder holds the card, keep today's `goToCard`;
   - else `await loadSet(setIdOfCard(key))` and open the Inspector over the OS in a **browse** mode.
-- Browse mode: `binderId` null and no binder actions. Shown: price table, curve, market link, ★ wishlist. Also
-  "+ l'ajouter à un classeur libre" (pick one of the free binders; the first free pocket), if it's simple.
+- Browse mode: `binderId` null and no binder actions. Shown: price table, curve, market link, ★ wishlist, and
+  "+ Ajouter à ma collection" with a choice of where the copy goes (see "Adding from the sheet" below).
 - `onNavigate` walks the result list.
 - Fix `goToCard`'s silent `return` at the same time: it should open the browse sheet.
 
@@ -71,7 +71,9 @@ converted when the index is built). About 2,000 cards have no price: they show "
   - Persisted (`version: 5`, `migrate`: `wishlist: []`).
   - Added to `makeBackup` (version 5), `isBackup` (accept 2-5) and `importBackup`.
   - `cloud.ts` syncs the backup JSON, so it follows. Check its fingerprint includes the new field.
-- A card leaves the wishlist when a copy of it is added (in the store's add-copy action): wanted, then got.
+- A card leaves the wishlist when a copy of it is added (in the store's add-copy action): wanted, then got. A toast
+  says so with an undo ("Retirée de ta wishlist · annuler"), rather than a pop-up that asks: one tap less for the
+  usual case, and the rare "I want a second one" is one tap to undo.
 - "Wishlist" tab = ★ cards + the cards missing from set binders. Filter "tout / ★ / manquantes de mes classeurs",
   the same sorts, total cost in the player's currency, "Copier la liste" (with `langNote`).
 - Draw rows from the index rows (name, scan, trend), not set files: no need to download every wished card's set.
@@ -106,9 +108,24 @@ converted when the index is built). About 2,000 cards have no price: they show "
 - Before each PR: `npx tsc --noEmit` (run `npx next typegen` first on a fresh clone), `npx eslint src`, and
   screenshots at 1400×900 and 390×800 (`?skip&os` opens the OS).
 
-## Open questions for Johan
+## Adding from the sheet: where the copy goes
 
-- Wishlist ★ cards: leave automatically when owned (proposed), or stay ticked "✓ obtenue"?
-- Should the default search languages be all three, or the site's language with the others one tap away (proposed:
-  site language, lighter)?
-- Browse sheet: "add to a free binder" in v1, or later?
+How copies work today (`Copy.at`, `lib/binders.ts`): a copy lives in **one** place. Without `at` it's in its own set's
+binder; with `at: { binder, pocket }` it sits in a free binder's pocket. A set binder still shows a card as owned when
+its only copy is in a free binder, tagged "dans <free binder>" (`tagOf` in BinderView). Totals count the copy once.
+
+So "+ Ajouter à ma collection" asks where the copy goes:
+- **"Dans son classeur <set>"**, when the player has that set's binder in the card's language. Default when it exists.
+- **"Dans un classeur libre : <name>"**, one line per free binder. The copy goes in the first empty pocket.
+- No set binder and no free binder: offer to create the set's binder (same as the "new binder" sheet does).
+
+Johan's example: the Silver Tempest binder (French) is on the shelf, and he puts his alt-art Lugia in a free binder
+"Favorites". The copy sits in "Favorites"; the Silver Tempest binder shows the Lugia as owned, tagged "dans Favorites".
+It counts once in the value and in the set's completion. A second copy can go in the set binder: the sheet then shows
+×2, one in each.
+
+## Decisions (Johan, 2026-10-06)
+
+- A wishlist card leaves the wishlist once owned (with the undo toast above).
+- Search languages: French by default; English and Japanese one tap away.
+- "Add to my collection" in the browse sheet from v1, with the choice of binder above.
