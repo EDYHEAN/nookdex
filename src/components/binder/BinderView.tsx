@@ -533,10 +533,12 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
                       `Hold: the binder goes in the bin with its ${summary.owned} card${summary.owned > 1 ? "s" : ""}`,
                     )
                   : t("Maintiens pour jeter ce classeur vide", "Hold to bin this empty binder")
-                : t(
-                    "Maintiens pour retirer le classeur de l'étagère : tes cartes restent dans ta collec, tu pourras le remettre",
-                    "Hold to take the binder off the shelf: your cards stay in your collection, you can put it back",
-                  )
+                : summary.owned
+                  ? t(
+                      `Maintiens pour retirer le classeur de l'étagère : ses ${summary.owned} carte${summary.owned > 1 ? "s" : ""} restent dans ta collec (NookDex OS, « hors étagère »), à remettre ou supprimer`,
+                      `Hold to take the binder off the shelf: its ${summary.owned} card${summary.owned > 1 ? "s" : ""} stay in your collection (NookDex OS, "off the shelf"), to put back or delete`,
+                    )
+                  : t("Maintiens pour retirer ce classeur vide de l'étagère", "Hold to take this empty binder off the shelf")
             }
             onConfirm={remove}
           />

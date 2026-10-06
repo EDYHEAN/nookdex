@@ -322,6 +322,19 @@
   opacity: 0.55;
 }
 
+/* under the name of a set taken off the shelf: put it back, delete its cards */
+.offActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.offActions .btn {
+  padding: 1px 8px 3px;
+  font-size: 0.8em;
+}
+
 .bar {
   height: 14px;
   background: rgba(141, 255, 192, 0.12);
@@ -687,7 +700,8 @@
   }
 
   .setRow .bar,
-  .setRow .money {
+  .setRow .money,
+  .setRow .freeTag {
     display: none;
   }
 

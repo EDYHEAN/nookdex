@@ -2,14 +2,14 @@
 
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { pocketsOf, shelfBinders } from "@/lib/binders";
-import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
+import { MAX_BINDERS, pocketsOf, shelfBinders } from "@/lib/binders";
+import { catalogSet, loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { resolveConflict, signIn, signInWithGoogle, signOut, useCloud } from "@/lib/cloud";
 import { variantLabel, copiesTotals, formatMoney, formatPrice, playerCurrency, priceOf, setStats, unitPrice } from "@/lib/price";
 import { OS_NAME, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { isBackup, makeBackup, useStore } from "@/lib/store";
-import type { CardData, Copy, SetData } from "@/lib/types";
+import type { CardData, CatalogSet, Copy, SetData } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
 import styles from "./Computer.module.css";
@@ -206,6 +206,21 @@ function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void 
     return { b, pct: null, count: `${s.cards} ${tr("carte", "card")}${s.cards > 1 ? "s" : ""}`, trend: s.trend };
   });
   const gain = t.spentTrend - t.spent;
+  // Set binders taken off the shelf keep their cards (owned, counted in the value): shown here, to put back or delete
+  const offShelf = useMemo(() => {
+    const onShelf = new Set(userBinders.flatMap((b) => (b.kind === "set" ? [b.setId] : [])));
+    const bySet = new Map<string, { ids: string[]; items: { card: CardData; copies: Copy[] }[] }>();
+    for (const [id, copies] of Object.entries(collection)) {
+      const loose = copies.filter((c) => !c.at);
+      const setId = setIdOfCard(id);
+      if (!loose.length || !setId || onShelf.has(setId)) continue;
+      const g = bySet.get(setId) ?? { ids: [], items: [] };
+      g.ids.push(id);
+      if (cards[id]) g.items.push({ card: cards[id], copies: loose });
+      bySet.set(setId, g);
+    }
+    return [...bySet].map(([setId, g]) => ({ setId, set: catalogSet(setId), ids: g.ids, trend: copiesTotals(g.items).trend }));
+  }, [collection, userBinders, cards]);
   const recent = entries
     .flatMap((e) => (e.copies ?? []).map((c) => ({ e, c })))
     .sort((a, b) => b.c.addedAt - a.c.addedAt)
@@ -255,6 +270,9 @@ function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void 
           </div>
         ))}
         {!rows.length && <p className={styles.muted}>{tr("Aucun classeur : clique sur le + de l'étagère.", "No binder: click the + on the shelf.")}</p>}
+        {offShelf.map((o) => (
+          <OffShelfRow key={o.setId} {...o} shelfFull={userBinders.length >= MAX_BINDERS} />
+        ))}
       </section>
 
       <section>
@@ -270,6 +288,63 @@ function Home({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void 
           ))}
         </div>
       </section>
+    </div>
+  );
+}
+
+/** A set binder taken off the shelf whose cards are still owned: put the binder back, or delete those cards. */
+function OffShelfRow({ setId, set, ids, trend, shelfFull }: { setId: string; set: CatalogSet | undefined; ids: string[]; trend: number; shelfFull: boolean }) {
+  const tr = useT();
+  const [arming, setArming] = useState(false);
+  useEffect(() => {
+    if (!arming) return;
+    const t = setTimeout(() => setArming(false), 3000);
+    return () => clearTimeout(t);
+  }, [arming]);
+  const n = ids.length;
+  const lang = langOfKey(setId);
+  return (
+    <div className={styles.setRow}>
+      {set?.logo ? <img src={`${set.logo}.png`} alt="" /> : <span className={styles.freeIcon}>?</span>}
+      <span className={styles.setName}>
+        {set?.name ?? setId}
+        {lang !== currentLang() && <small className={styles.langTag}>{langLabel(lang, currentLang())}</small>}
+        <span className={styles.offActions}>
+          <button
+            className={styles.btn}
+            disabled={shelfFull}
+            title={shelfFull ? tr("L'étagère est pleine", "The shelf is full") : undefined}
+            onClick={() => {
+              sfx.stamp();
+              useStore.getState().addBinder({ kind: "set", setId });
+            }}
+          >
+            {tr("Remettre sur l'étagère", "Put back on the shelf")}
+          </button>
+          <button
+            className={`${styles.btn} ${arming ? styles.btnDanger : ""}`}
+            onClick={() => {
+              if (!arming) {
+                sfx.click();
+                setArming(true);
+                return;
+              }
+              sfx.locked();
+              useStore.getState().removeLooseCopies(ids);
+            }}
+          >
+            {arming
+              ? tr(`Sûr ? supprimer ${n} carte${n > 1 ? "s" : ""}`, `Sure? delete ${n} card${n > 1 ? "s" : ""}`)
+              : tr("Supprimer ces cartes", "Delete these cards")}
+          </button>
+        </span>
+      </span>
+      <span className={styles.freeTag}>{tr("hors étagère", "off the shelf")}</span>
+      <span className={styles.num}>
+        {n} {tr("carte", "card")}
+        {n > 1 ? "s" : ""}
+      </span>
+      <span className={styles.money}>{formatMoney(trend)}</span>
     </div>
   );
 }

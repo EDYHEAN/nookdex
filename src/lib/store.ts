@@ -115,6 +115,8 @@ interface State {
   placeCard: (binderId: string, pocket: number, cardId: string, variant: Variant) => void;
   /** Removes the copies of a card kept in one place: a free binder, or its set binder (null). */
   removeCard: (cardId: string, binderId: string | null) => void;
+  /** Deletes the copies of these cards that live in their set's binder (not those in a free binder): a set taken off the shelf. */
+  removeLooseCopies: (cardIds: string[]) => void;
   addCopy: (cardId: string, variant: Variant) => void;
   updateCopy: (cardId: string, copyId: string, patch: Partial<Omit<Copy, "id">>) => void;
   removeCopy: (cardId: string, copyId: string) => void;
@@ -187,6 +189,11 @@ export const useStore = create<State>()(
             [cardId]: [...(s.collection[cardId] ?? []), newCopy(variant, { binder: binderId, pocket })],
           },
         })),
+      removeLooseCopies: (cardIds) =>
+        set((s) => {
+          const ids = new Set(cardIds);
+          return { collection: filterCopies(s.collection, (c, cardId) => !ids.has(cardId) || !!c.at) };
+        }),
       removeCard: (cardId, binderId) =>
         set((s) => ({
           collection: filterCopies(s.collection, (c, id) => id !== cardId || (c.at?.binder ?? null) !== binderId),
