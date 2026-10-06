@@ -33,13 +33,17 @@ doesn't show.
   each one: 430 MB of traced files in all, 88 MB without.
 - Card data is static JSON from TCGdex, built by `scripts/fetch-set.mjs` into `public/sets/` (one file per set +
   `index.json` for the free-binder search), `public/logos/`, `src/data/catalog.json`. Binder sets = recent series
-  (`me`, `sv`, `swsh`); every other set is `extra` (search only).
+  (`me`, `sv`, `swsh`) and the Wizards era (`base`, `gym`, `neo`, `lc`, `ecard`: one "Wizards" tab in BinderPicker);
+  every other set is `extra` (search only).
 - Prices: Cardmarket via TCGdex (`low`, `trend`, `-holo` variants, `avg7`/`avg30` for the ↗ ↘ arrow). A card TCGdex
   doesn't price shows "—", never "0,00 €", and stays out of gains. Cardmarket's guide is per product: it mixes every
   language. No API gives Cardmarket prices per card language (the official API is closed to new apps; the "FR prices"
   of resellers are the seller's country). English cards are priced on TCGplayer instead (see Languages).
 - A card TCGdex stops listing is never dropped: kept with its last prices, `unavailable: true`, shown as a painted card
-  back stamped "Bientôt de retour" (`CardBack`). The 30 classic cards of the 30th Anniversary are in that state.
+  back stamped "Bientôt de retour" (`CardBack`).
+- A card TCGdex lists with no scan in any language (the 30th's Classic Collection, `30th-c`) gets TCGplayer's picture,
+  found on TCGCSV by set group and name (`scansFromTcgcsv`), made into `public/scans/<card id>/` (sharp: the Actions
+  run `npm ci`) and served as `https://nookdex.com/scans/<id>`. TCGdex's own scan wins the day it has one.
 
 ## Languages: the site, the cards, the money (three separate things)
 

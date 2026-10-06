@@ -1,5 +1,6 @@
 // Weekly watch (GitHub Action "Veille cartes et prix"):
-//   1. French scans: cards shown with an English scan, or as a card back (taken out by TCGdex),
+//   1. French scans: cards shown with an English scan (TCGdex's, or TCGplayer's when TCGdex has none), or as a card back
+//      (taken out by TCGdex),
 //      checked against TCGdex again. Sets with news are downloaded again (npm run fetch-set -- <ids>).
 //   2. Prices: the Cardmarket fields TCGdex gives, compared with the ones we know. A new field
 //      (French-only prices, a new market…) is reported.
@@ -8,6 +9,7 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 
 const API = "https://api.tcgdex.net/v2";
 const OUT = "public/sets";
+const SITE = "https://nookdex.com/";
 
 /** pricing fields already known (see https://tcgdex.dev/markets-prices) */
 const KNOWN_MARKETS = new Set(["cardmarket", "tcgplayer"]);
@@ -54,14 +56,16 @@ for (const f of await readdir(OUT)) {
   const set = JSON.parse(await readFile(`${OUT}/${f}`, "utf8"));
   for (const c of set.cards) {
     if (c.unavailable || !c.img) todo.push({ set: set.id, card: c, kind: "back" });
-    else if (c.img.includes("/en/")) todo.push({ set: set.id, card: c, kind: "en" });
+    else if (c.img.includes("/en/") || c.img.startsWith(SITE)) todo.push({ set: set.id, card: c, kind: "en" });
   }
 }
 
 const found = new Map(); // set id -> { fr: n, back: n }
 await pool(todo, 12, async ({ set, card, kind }) => {
   let ok = false;
-  if (kind === "en") ok = await exists(`${card.img.replace("/en/", "/fr/")}/low.webp`);
+  // a TCGplayer scan (fetch-set's scansFromTcgcsv): has TCGdex one now?
+  if (kind === "en" && card.img.startsWith(SITE)) ok = !!(await get(`${API}/fr/cards/${card.id}`))?.image;
+  else if (kind === "en") ok = await exists(`${card.img.replace("/en/", "/fr/")}/low.webp`);
   else {
     const d = await get(`${API}/fr/cards/${card.id}`);
     ok = !!d?.image;
