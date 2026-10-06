@@ -528,6 +528,8 @@ const only = args.filter((a) => !a.startsWith("--"));
 const catalog = [];
 for (const serie of SERIES) {
   const s = await get(`${API}/${LANG}/series/${serie}`);
+  // a series that wasn't printed in this language (Gym, Legendary Collection in French)
+  if (!s) continue;
   const sets = s.sets.filter((x) => !skipped(x.id) && !PARENT[x.id]);
   const detailed = await pool(sets, 6, (x) => get(`${API}/${LANG}/sets/${x.id}`));
   for (const set of detailed) {
