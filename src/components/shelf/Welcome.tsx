@@ -16,6 +16,8 @@ interface Props {
   /** Adds the first binder (loads its cards first). */
   onPick: (choice: BinderChoice) => Promise<unknown>;
   onDone: () => void;
+  /** No binder yet: look around every card first (NookDex OS, "All cards") */
+  onExplore: () => void;
 }
 
 /**
@@ -23,7 +25,7 @@ interface Props {
  * Playing without an account is allowed after a warning: no online save, the player exports it by hand.
  * A player coming back on a new device gets their save from the cloud, and App closes this screen on its own.
  */
-export function Welcome({ onPick, onDone }: Props) {
+export function Welcome({ onPick, onDone, onExplore }: Props) {
   const profile = useStore((s) => s.profile);
   const binders = useStore((s) => s.binders);
   const { email, firstName, status } = useCloud();
@@ -360,10 +362,25 @@ export function Welcome({ onPick, onDone }: Props) {
           <motion.div key="binder" className={styles.pickerWrap} exit={{ opacity: 0, y: 40, transition: { duration: 0.25 } }}>
             <BinderPicker
               title={t(`${profile?.name ?? "Dresseur"}, choisis ton premier classeur`, `${profile?.name ?? "Trainer"}, pick your first binder`)}
-              subtitle={t(
-                "Une extension à compléter, ou un classeur libre où tu ranges ce que tu veux. Tu pourras en ajouter d'autres sur l'étagère.",
-                "A set to complete, or a free binder for whatever you like. You can add more on the shelf later.",
-              )}
+              subtitle={
+                <>
+                  {t(
+                    "Une extension à compléter, ou un classeur libre où tu ranges ce que tu veux. Tu pourras en ajouter d'autres sur l'étagère.",
+                    "A set to complete, or a free binder for whatever you like. You can add more on the shelf later.",
+                  )}
+                  <button
+                    className={styles.explore}
+                    onClick={() => {
+                      sfx.click();
+                      onExplore();
+                      finish();
+                    }}
+                    onPointerEnter={sfx.hover}
+                  >
+                    {t("Pas encore de collection ? Explore d'abord toutes les cartes ▸", "No collection yet? Look around every card first ▸")}
+                  </button>
+                </>
+              }
               onPick={async (choice) => {
                 await onPick(choice);
                 finish();

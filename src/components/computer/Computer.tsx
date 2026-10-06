@@ -12,17 +12,18 @@ import { isBackup, makeBackup, useStore } from "@/lib/store";
 import type { CardData, CatalogSet, Copy, SetData } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
+import { AllCards } from "./AllCards";
 import styles from "./Computer.module.css";
 import { langLabel, langOfKey } from "@/lib/cardLang";
 import { LANG_COOKIE, currentLang, useLang, useT } from "@/lib/lang";
 
-type Tab = "home" | "wish" | "dupes" | "search" | "save";
+export type Tab = "home" | "cards" | "wish" | "dupes" | "save";
 
 const TABS: { id: Tab; label: [string, string]; hint: [string, string] }[] = [
   { id: "home", label: ["Accueil", "Home"], hint: ["ta collec en un coup d'œil", "your collection at a glance"] },
+  { id: "cards", label: ["Toutes les cartes", "All cards"], hint: ["prix, raretés, extensions…", "prices, rarities, sets…"] },
   { id: "wish", label: ["Wishlist", "Wishlist"], hint: ["les cartes qui te manquent", "the cards you're missing"] },
   { id: "dupes", label: ["Doublons", "Duplicates"], hint: ["ce que tu peux échanger", "what you can trade"] },
-  { id: "search", label: ["Recherche", "Search"], hint: ["trouver une carte", "find a card"] },
   { id: "save", label: ["Sauvegarde", "Save"], hint: ["compte / exporter", "account / export"] },
 ];
 
@@ -31,6 +32,11 @@ interface Props {
   origin: { x: number; y: number };
   onClose: () => void;
   onGoToCard: (cardId: string) => void;
+  /** Opens the sheet of a card from a list (arrows walk the list), over the OS */
+  onOpenCards: (keys: string[], index: number) => void;
+  /** A card sheet is open over the OS: its keys are the sheet's */
+  paused?: boolean;
+  startTab?: Tab;
 }
 
 interface Entry {
@@ -48,13 +54,13 @@ const langNote = (e: Entry) => {
   return l !== currentLang() ? ` [${langLabel(l, currentLang())}]` : "";
 };
 
-export function Computer({ origin, onClose, onGoToCard }: Props) {
+export function Computer({ origin, onClose, onGoToCard, onOpenCards, paused, startTab = "home" }: Props) {
   const tr = useT();
   const collection = useStore((s) => s.collection);
   const binders = useStore((s) => s.binders);
   const sets = useSets((s) => s.sets);
   const cards = useSets((s) => s.cards);
-  const [tab, setTab] = useState<Tab>("home");
+  const [tab, setTab] = useState<Tab>(startTab);
   const [toast, setToast] = useState<string | null>(null);
 
   // Every card of the set binders, plus every card owned elsewhere (free binders).
@@ -93,6 +99,7 @@ export function Computer({ origin, onClose, onGoToCard }: Props) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (paused) return;
       if ((e.target as HTMLElement)?.tagName === "INPUT") {
         if (e.key === "Escape") (e.target as HTMLInputElement).blur();
         return;
@@ -108,7 +115,7 @@ export function Computer({ origin, onClose, onGoToCard }: Props) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, paused]);
 
   return (
     <motion.div
@@ -158,9 +165,9 @@ export function Computer({ origin, onClose, onGoToCard }: Props) {
 
               <main key={tab} className={styles.panel} role="tabpanel">
                 {tab === "home" && <Home entries={entries} onGo={onGoToCard} />}
+                {tab === "cards" && <AllCards onOpen={onOpenCards} />}
                 {tab === "wish" && <Wishlist entries={entries} onGo={onGoToCard} onCopy={copy} />}
                 {tab === "dupes" && <Dupes entries={entries} onGo={onGoToCard} onCopy={copy} />}
-                {tab === "search" && <Search entries={entries} onGo={onGoToCard} />}
                 {tab === "save" && <Save say={say} />}
               </main>
             </div>
@@ -456,49 +463,6 @@ function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string)
       <div className={styles.rows}>
         {dupes.map(({ e, extra }) => (
           <CardRow key={e.card.id} e={e} right={`×${extra}`} extra={detail(e)} onGo={onGo} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Search({ entries, onGo }: { entries: Entry[]; onGo: (id: string) => void }) {
-  const tr = useT();
-  const [q, setQ] = useState("");
-  const input = useRef<HTMLInputElement>(null);
-  useEffect(() => input.current?.focus(), []);
-  const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const nq = norm(q.trim());
-  const results = nq ? entries.filter((e) => norm(e.card.name).includes(nq) || norm(e.card.aka ?? "").includes(nq) || e.card.num.toLowerCase().replace(/^0+/, "") === nq.replace(/^0+/, "")).slice(0, 60) : [];
-
-  return (
-    <div className={styles.listTab}>
-      <label className={styles.searchBox}>
-        <span>&gt;</span>
-        <input
-          ref={input}
-          value={q}
-          placeholder={tr("nom ou numéro (ex : lugia, 186, TG20)", "name or number (e.g. lugia, 186, TG20)")}
-          onChange={(e) => {
-            setQ(e.target.value);
-            sfx.hover();
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && results[0]) onGo(results[0].card.id);
-          }}
-          aria-label={tr("Rechercher une carte", "Search a card")}
-        />
-      </label>
-      {nq && <p className={styles.muted}>{results.length} {tr("résultat", "result")}
-          {results.length > 1 ? "s" : ""} · {tr("Entrée = ouvrir le premier", "Enter = open the first")}</p>}
-      <div className={styles.rows}>
-        {results.map((e) => (
-          <CardRow
-            key={e.card.id}
-            e={e}
-            right={e.copies?.length ? tr("✓ possédée", "✓ owned") : formatPrice(priceOf(e.card, e.card.variants[0], "trend"))}
-            onGo={onGo}
-          />
         ))}
       </div>
     </div>

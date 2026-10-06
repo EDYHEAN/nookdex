@@ -6,6 +6,9 @@ const RANK: Record<string, number> = {
   "Peu Commune": 1,
   Rare: 2,
   "Holo Rare": 3,
+  "Rare Holo LV.X": 3,
+  "Rare Prime": 3,
+  LÉGENDE: 3,
   "Pikachu Rare": 3,
   "Double rare": 4,
   "Holo Rare V": 4,
@@ -37,6 +40,7 @@ const RANK_EN: Record<string, number> = {
   Uncommon: 1,
   Rare: 2,
   "Rare Holo": 3,
+  LEGEND: 3,
   "Classic Collection": 3,
   "Double rare": 4,
   "Rare Holo V": 4,
@@ -53,14 +57,46 @@ const RANK_EN: Record<string, number> = {
   "Illustration rare": 8,
   "Shiny rare VMAX": 8,
   "Rare Secret": 9,
+  "Secret Rare": 9,
   "Special illustration rare": 10,
   "Hyper rare": 11,
   "Mega Hyper Rare": 12,
   "Black White Rare": 12,
 };
-const RANKS = new Map([...Object.entries(RANK), ...Object.entries(RANK_EN)].map(([k, v]) => [k.toLowerCase(), v]));
 
-export const rarityRank = (card: CardData) => RANKS.get((card.rarity ?? "").toLowerCase()) ?? 0;
+/** Japanese prints' own names (TCGdex Japanese data, in English). */
+const RANK_JA: Record<string, number> = {
+  "Triple Rare": 4,
+  "Character Rare": 8,
+  "Character Super Rare": 10,
+};
+const RANKS = new Map([...Object.entries(RANK), ...Object.entries(RANK_EN), ...Object.entries(RANK_JA)].map(([k, v]) => [k.toLowerCase(), v]));
+
+/** Rank of a TCGdex rarity name; -1 when it has none we know (promos, "no rarity"…). */
+export const rankOf = (rarity: string | null | undefined) => RANKS.get((rarity ?? "").toLowerCase()) ?? -1;
+
+export const rarityRank = (card: CardData) => Math.max(0, rankOf(card.rarity));
+
+/**
+ * The ranks grouped in a few tiers a collector knows, for the filter of NookDex OS → "All cards" (the card sheet keeps
+ * the exact name). Listed from the rarest.
+ */
+export const RARITY_TIERS = [
+  { id: "secret", label: ["Secrète · Gold", "Secret · Gold"], ranks: [9, 11, 12, 13] },
+  { id: "special", label: ["Illustration spéciale", "Special illustration"], ranks: [10] },
+  { id: "illus", label: ["Illustration rare", "Illustration rare"], ranks: [8] },
+  { id: "ultra", label: ["Ultra rare · Shiny", "Ultra rare · Shiny"], ranks: [6, 7] },
+  { id: "double", label: ["Double rare · V · ex", "Double rare · V · ex"], ranks: [4, 5] },
+  { id: "rare", label: ["Rare · Holo", "Rare · Holo"], ranks: [2, 3] },
+  { id: "uncommon", label: ["Peu commune", "Uncommon"], ranks: [1] },
+  { id: "common", label: ["Commune", "Common"], ranks: [0] },
+  { id: "other", label: ["Promo · sans rareté", "Promo · no rarity"], ranks: [-1] },
+] as const satisfies readonly { id: string; label: readonly [string, string]; ranks: readonly number[] }[];
+
+export type RarityTier = (typeof RARITY_TIERS)[number]["id"];
+
+const TIER_OF = new Map<number, RarityTier>(RARITY_TIERS.flatMap((t) => t.ranks.map((r) => [r, t.id] as const)));
+export const tierOf = (rank: number): RarityTier => TIER_OF.get(rank) ?? "other";
 
 export const SORT_LABEL_EN: Record<BinderSort, string> = { num: "No.", rarity: "Rarity", name: "A → Z" };
 

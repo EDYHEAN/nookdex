@@ -227,3 +227,23 @@
 .small a {
   color: #b8433d;
 }
+
+/* under the first binder's choice: look around every card first */
+.explore {
+  display: block;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #b8433d;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.explore:hover {
+  transform: translateX(4px);
+}

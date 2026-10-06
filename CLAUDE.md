@@ -93,7 +93,12 @@ doesn't show.
 ## Onboarding
 
 - Welcome (`src/components/shelf/Welcome.tsx`): 1. sign in (or "jouer sans compte", after a warning: no online save,
-  export from NookDex OS) → 2. nickname → 3. first binder.
+  export from NookDex OS) → 2. nickname → 3. first binder, or "explore every card first" (NookDex OS → "Toutes les
+  cartes"; their first binder from the shelf's + then starts the tour).
+- NookDex OS → "Toutes les cartes" (`computer/AllCards.tsx`): every card of the indexes (FR/EN/JAP), filters (rarity
+  tiers of `lib/rarity`, year, set, owned) and sorts (price in the player's money first). A card opens its sheet over
+  the OS; "Je l'ai !" there asks which binder the copy goes in (`binder/AddTo.tsx`). Plan and next steps (wishlist of
+  any card): `docs/search-plan.md`.
 - Then the guided tour (`src/components/shelf/Tour.tsx`): a spotlight on elements tagged `data-tour="…"`, can't be
   skipped, waits for the player on the key gestures. Replayable from the shelf notebook. Renaming or removing a
   `data-tour` attribute breaks a step.

@@ -14,7 +14,7 @@ export type BinderChoice = { kind: "set"; setId: string } | { kind: "free"; name
 
 interface Props {
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   /** Resolves once the binder is ready to go on the shelf. */
   onPick: (choice: BinderChoice) => Promise<void>;
   onClose?: () => void;
