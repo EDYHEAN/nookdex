@@ -461,7 +461,7 @@
   "serieName": "e-cards",
   "name": "Aquapolis",
   "code": "AQ",
-  "logo": "https://assets.tcgdex.net/fr/ecard/ecard2/logo",
+  "logo": "/logos/ecard2",
   "releaseDate": "2003-01-15",
   "total": 172,
   "subs": []
@@ -472,7 +472,7 @@
   "serieName": "e-cards",
   "name": "Expedition",
   "code": "EX",
-  "logo": "https://assets.tcgdex.net/fr/ecard/ecard1/logo",
+  "logo": "/logos/ecard1",
   "releaseDate": "2002-09-15",
   "total": 165,
   "subs": []
@@ -483,7 +483,7 @@
   "serieName": "Neo",
   "name": "Neo Destiny",
   "code": "N4",
-  "logo": "https://assets.tcgdex.net/fr/neo/neo4/logo",
+  "logo": "/logos/neo4",
   "releaseDate": "2002-02-28",
   "total": 113,
   "subs": []
@@ -494,7 +494,7 @@
   "serieName": "Neo",
   "name": "Neo Revelation",
   "code": "N3",
-  "logo": "https://assets.tcgdex.net/fr/neo/neo3/logo",
+  "logo": "/logos/neo3",
   "releaseDate": "2001-09-21",
   "total": 66,
   "subs": []
@@ -505,7 +505,7 @@
   "serieName": "Neo",
   "name": "Neo Discovery",
   "code": "N2",
-  "logo": "https://assets.tcgdex.net/fr/neo/neo2/logo",
+  "logo": "/logos/neo2",
   "releaseDate": "2001-06-01",
   "total": 75,
   "subs": []
@@ -516,7 +516,7 @@
   "serieName": "Neo",
   "name": "Neo Genesis",
   "code": "N1",
-  "logo": "https://assets.tcgdex.net/fr/neo/neo1/logo",
+  "logo": "/logos/neo1",
   "releaseDate": "2000-12-16",
   "total": 111,
   "subs": []
@@ -527,7 +527,7 @@
   "serieName": "Base",
   "name": "Team Rocket",
   "code": "RO",
-  "logo": "https://assets.tcgdex.net/fr/base/base5/logo",
+  "logo": "/logos/base5",
   "releaseDate": "2000-04-24",
   "total": 83,
   "subs": []
@@ -538,7 +538,7 @@
   "serieName": "Base",
   "name": "Fossile",
   "code": "FO",
-  "logo": "https://assets.tcgdex.net/fr/base/base3/logo",
+  "logo": "/logos/base3",
   "releaseDate": "1999-10-10",
   "total": 62,
   "subs": []
@@ -549,7 +549,7 @@
   "serieName": "Base",
   "name": "Jungle",
   "code": "JU",
-  "logo": "https://assets.tcgdex.net/fr/base/base2/logo",
+  "logo": "/logos/base2",
   "releaseDate": "1999-06-16",
   "total": 64,
   "subs": []
@@ -560,7 +560,7 @@
   "serieName": "Base",
   "name": "Set de Base",
   "code": "BS",
-  "logo": "https://assets.tcgdex.net/en/base/base1/logo",
+  "logo": "/logos/base1",
   "releaseDate": "1999-01-09",
   "total": 102,
   "subs": []
