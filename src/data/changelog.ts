@@ -52,6 +52,10 @@ export const CHANGELOG: Release[] = [
         fr: "Cartes japonaises : Black Bolt, White Flare et tout le bloc Méga-Évolution (M1L à M6a) arrivent, plus de 1 500 cartes.",
         en: "Japanese cards: Black Bolt, White Flare and the whole Mega Evolution block (M1L to M6a) are in, over 1,500 cards.",
       },
+      {
+        fr: "Sur téléphone, le choix du classeur se lit mieux : une extension par ligne, et les séries toujours visibles en haut.",
+        en: "On a phone, the binder picker reads better: one set per line, and the series always in view at the top.",
+      },
     ],
   },
   {

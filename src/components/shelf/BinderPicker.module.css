@@ -73,6 +73,9 @@
   gap: 6px;
   padding: 0 20px;
   overflow-x: auto;
+  /* the tabs sit 6 px low: without this the strip also scrolls up and down under a finger */
+  overflow-y: hidden;
+  touch-action: pan-x;
   scrollbar-width: none;
   border-bottom: 3px solid var(--ink);
   flex: none;
@@ -177,6 +180,10 @@
   color: var(--accent);
   text-shadow: 2px 2px 0 var(--ink);
   rotate: -3deg;
+}
+
+.info {
+  display: contents;
 }
 
 .setName {
@@ -346,8 +353,44 @@
 }
 
 @media (max-width: 560px) {
+  /* A phone: the whole sheet scrolls (the title goes away), the series stay at the top as stamps on two lines */
   .sheet {
     font-size: 18px;
+    display: block;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .head p {
+    font-size: 17px;
+    line-height: 1.15;
+  }
+  .tabs {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    flex-wrap: wrap;
+    gap: 7px 6px;
+    padding: 10px 12px 12px;
+    overflow: visible;
+    touch-action: auto;
+    background: var(--paper);
+  }
+  .tab {
+    flex: none;
+    padding: 4px 10px 3px;
+    border-bottom: 3px solid var(--ink);
+    border-radius: 999px;
+    translate: none;
+    font-size: 16px;
+  }
+  .tab:hover {
+    translate: none;
+  }
+  .tabOn {
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .free {
+    overflow: visible;
   }
   /* title and ✕ on the first line, the language stamps on their own below */
   .head {
@@ -362,15 +405,46 @@
     flex-basis: 100%;
     margin-left: 0;
   }
+  /* one set per line: the logo on the left, what it is on the right */
   .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    padding: 14px 14px 20px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px 14px 22px;
+    overflow: visible;
+  }
+  .set {
+    flex-direction: row;
+    gap: 14px;
+    padding: 10px 14px;
+    text-align: left;
   }
   .logo {
-    height: 64px;
+    flex: none;
+    width: 46%;
+    height: 62px;
+  }
+  .info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
   }
   .setName {
-    font-size: 18px;
+    font-size: 19px;
+  }
+  .meta {
+    font-size: 17px;
+    line-height: 1.3;
+  }
+  /* the count on its own line */
+  .count {
+    display: block;
+  }
+  .sep {
+    display: none;
+  }
+  .stamp {
+    left: 72%;
+    font-size: 17px;
   }
 }

@@ -158,9 +158,16 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
                   {/* no logo (Japanese sets): the set code, big, and the name under it */}
                   {s.logo ? <img src={`${s.logo}.png`} alt={s.name} loading="lazy" draggable={false} /> : <b>{s.code}</b>}
                 </span>
-                {!s.logo && <span className={styles.setName}>{s.name}</span>}
-                <span className={styles.meta}>
-                  <kbd>{s.code}</kbd> {s.releaseDate?.slice(0, 4)} · {s.total} {t("cartes", "cards")}
+                {/* under the logo on a computer, beside it on a phone (one set per line) */}
+                <span className={styles.info}>
+                  {!s.logo && <span className={styles.setName}>{s.name}</span>}
+                  <span className={styles.meta}>
+                    <kbd>{s.code}</kbd> {s.releaseDate?.slice(0, 4)}
+                    <span className={styles.count}>
+                      <span className={styles.sep}> · </span>
+                      {s.total} {t("cartes", "cards")}
+                    </span>
+                  </span>
                 </span>
                 {have && <span className={styles.stamp}>{t("déjà sur l'étagère", "already on the shelf")}</span>}
                 {loading && <span className={styles.stamp}>{t("on déballe…", "unpacking…")}</span>}
