@@ -47,6 +47,7 @@ export const CHANGELOG: Release[] = [
         fr: "Sur ordinateur, Warwick attend dans le coin de la pièce : un clic pour lui offrir un bonbon (un petit don pour NookDex).",
         en: "On a computer, Warwick waits in the corner of the room: one click to give him a treat (a small tip for NookDex).",
       },
+      { fr: "NookDex est sur Instagram : @_nookdex (lien dans le carnet de Johan).", en: "NookDex is on Instagram: @_nookdex (link in Johan's notebook)." },
     ],
   },
   {

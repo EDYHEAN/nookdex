@@ -7,7 +7,7 @@ import rawJa from "@/data/catalog-ja.json";
 import { findCard } from "@/lib/blog";
 import { bareId, type CardLang, langOfKey } from "@/lib/cardLang";
 import { setFile } from "@/lib/setFiles";
-import { SITE_DOMAIN, SITE_NAME } from "@/lib/site";
+import { INSTAGRAM_HANDLE, SITE_DOMAIN, SITE_NAME } from "@/lib/site";
 import type { CatalogSet } from "@/lib/types";
 
 /**
@@ -160,7 +160,9 @@ export async function GET(req: Request) {
             </div>
           )}
 
-          <div style={{ display: "flex", marginTop: scans.length ? 26 : "auto", fontFamily: "Press", fontSize: 24, color: "#2b2230" }}>{SITE_DOMAIN}</div>
+          <div style={{ display: "flex", marginTop: scans.length ? 26 : "auto", fontFamily: "Press", fontSize: 24, color: "#2b2230" }}>
+            {SITE_DOMAIN} · {INSTAGRAM_HANDLE}
+          </div>
           <div style={{ display: "flex", marginTop: 8, fontSize: 32, color: "#6f6068" }}>
             {t("ta collection de cartes Pokémon, rangée sur ton bureau", "your Pokémon card collection, filed on your desk")}
           </div>

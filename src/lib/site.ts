@@ -24,5 +24,9 @@ export const LANG_COOKIE = "nookdex-lang";
 /** Set by the proxy on pages whose address carries their language (/en, /extensions): it wins over the cookie. */
 export const PATH_LANG_HEADER = "x-nookdex-lang";
 
+/** NookDex on Instagram: linked from the shelf notebook and /a-propos, in the home page's JSON-LD, on the share picture. */
+export const INSTAGRAM_URL = "https://www.instagram.com/_nookdex/";
+export const INSTAGRAM_HANDLE = "@_nookdex";
+
 /** Tips for the project (the cat's bowl, the about pages). */
 export const SUPPORT_URL = "https://paypal.me/JohanTrigeard";

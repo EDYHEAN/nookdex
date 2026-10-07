@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME, SITE_URL } from "@/lib/site";
+import { INSTAGRAM_URL, SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME, SITE_URL } from "@/lib/site";
 import styles from "./HomeText.module.css";
 
 const ld = (data: object) => <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
@@ -23,6 +23,7 @@ export function HomeText({ en }: { en: boolean }) {
         isAccessibleForFree: true,
         offers: { "@type": "Offer", price: 0, priceCurrency: en ? "USD" : "EUR" },
         image: `${SITE_URL}/opengraph-image.jpg`,
+        sameAs: [INSTAGRAM_URL],
       })}
       {en ? (
         <div className={styles.text}>
