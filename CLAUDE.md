@@ -121,6 +121,11 @@ doesn't show.
 
 - Domain nookdex.com authenticated in Brevo. Vercel env: `BREVO_API_KEY`, optional `CONTACT_TO` (default Johan's
   Gmail), `CONTACT_FROM` (default `contact@nookdex.com`).
+- Receiving: nookdex.com has its DNS at Vercel, which doesn't forward mail. **ImprovMX** (free, Johan's account) forwards
+  `*@nookdex.com` to Johan's Gmail: MX `mx1.improvmx.com` (10) and `mx2.improvmx.com` (20), and SPF TXT
+  `v=spf1 include:spf.improvmx.com include:spf.brevo.com ~all` in Vercel DNS. Don't remove them: before 2026-10-07 the
+  domain had no MX and every mail to contact@ bounced. Johan sends as contact@ from Gmail through Brevo SMTP
+  (`smtp-relay.brevo.com:587`, its own SMTP key "Gmail"; Supabase's auth e-mails use another key, leave it alone).
 - `/api/contact`: contact form → e-mail to Johan (topics are sent in French whatever the visitor's language).
 - The English waiting list (Brevo list 12, `BREVO_WAITLIST_LIST_ID`) is gone since the English version exists.
 
