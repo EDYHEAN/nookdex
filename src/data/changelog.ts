@@ -39,6 +39,14 @@ export const CHANGELOG: Release[] = [
         en: "Cardmarket prices are last night's, and the older sets are kept up to date too.",
       },
       { fr: "Ce carnet de route, et un numéro de version en bas à gauche.", en: "This road log, and a version number in the bottom-left corner." },
+      {
+        fr: "Le carnet de Johan et ce carnet de route s'ouvrent en largeur sur ordinateur : leurs liens et boutons restent toujours visibles.",
+        en: "Johan's notebook and this road log open wide on a computer: their links and buttons always stay in view.",
+      },
+      {
+        fr: "Sur ordinateur, Warwick attend dans le coin de la pièce : un clic pour lui offrir un bonbon (un petit don pour NookDex).",
+        en: "On a computer, Warwick waits in the corner of the room: one click to give him a treat (a small tip for NookDex).",
+      },
     ],
   },
   {
