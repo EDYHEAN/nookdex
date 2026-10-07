@@ -686,6 +686,18 @@
   "extra": true
  },
  {
+  "id": "sm7.5",
+  "serie": "sm",
+  "serieName": "Soleil et Lune",
+  "name": "Majesté Des Dragons",
+  "code": "DRM",
+  "logo": "https://assets.tcgdex.net/fr/sm/sm7.5/logo",
+  "releaseDate": "2018-09-07",
+  "total": 78,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "sm7",
   "serie": "sm",
   "serieName": "Soleil et Lune",
@@ -730,6 +742,18 @@
   "logo": "https://assets.tcgdex.net/fr/sm/sm4/logo",
   "releaseDate": "2017-11-03",
   "total": 125,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sm3.5",
+  "serie": "sm",
+  "serieName": "Soleil et Lune",
+  "name": "Légendes Brillantes",
+  "code": "SLG",
+  "logo": "https://assets.tcgdex.net/fr/sm/sm3.5/logo",
+  "releaseDate": "2017-10-06",
+  "total": 78,
   "subs": [],
   "extra": true
  },

@@ -763,6 +763,18 @@
   "extra": true
  },
  {
+  "id": "sm7.5",
+  "serie": "sm",
+  "serieName": "Sun & Moon",
+  "name": "Dragon Majesty",
+  "code": "DRM",
+  "logo": null,
+  "releaseDate": "2018-09-07",
+  "total": 78,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "sm7",
   "serie": "sm",
   "serieName": "Sun & Moon",
@@ -807,6 +819,18 @@
   "logo": "https://assets.tcgdex.net/en/sm/sm4/logo",
   "releaseDate": "2017-11-03",
   "total": 125,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sm3.5",
+  "serie": "sm",
+  "serieName": "Sun & Moon",
+  "name": "Shining Legends",
+  "code": "SLG",
+  "logo": null,
+  "releaseDate": "2017-10-06",
+  "total": 78,
   "subs": [],
   "extra": true
  },
@@ -1322,7 +1346,7 @@
   "code": "RR",
   "logo": "https://assets.tcgdex.net/en/pl/pl2/logo",
   "releaseDate": "2009-05-16",
-  "total": 119,
+  "total": 120,
   "subs": [],
   "extra": true
  },
@@ -1442,7 +1466,7 @@
   "code": "P6",
   "logo": "https://assets.tcgdex.net/en/pop/pop6/logo",
   "releaseDate": "2007-09-01",
-  "total": 15,
+  "total": 17,
   "subs": [],
   "extra": true
  },
