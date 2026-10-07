@@ -103,6 +103,16 @@ doesn't show.
   skipped, waits for the player on the key gestures. Replayable from the shelf notebook. Renaming or removing a
   `data-tour` attribute breaks a step.
 
+## Versions and the road log
+
+- `src/data/changelog.ts` (`CHANGELOG`, newest first, FR + EN): the version shown in the room's bottom-left corner
+  (`APP_VERSION`) and the « Carnet de route » it opens (`room/RoadLog.tsx`, also linked from the shelf notebook).
+- A returning player (a profile on that device) gets the notebook once per version, in the calm room; a newcomer
+  starts on the current version (localStorage `nookdex:seen-version`, outside the save).
+- A PR players would notice adds a line to the top version (written for the player, not how it's built). A new version
+  number (0.8, …) only when the release is worth popping the notebook for: every bump shows it to everyone. Pure fixes
+  don't bump.
+
 ## E-mails and forms (Brevo)
 
 - Domain nookdex.com authenticated in Brevo. Vercel env: `BREVO_API_KEY`, optional `CONTACT_TO` (default Johan's

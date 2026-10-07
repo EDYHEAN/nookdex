@@ -1,0 +1,242 @@
+/* The road log: a small ruled notebook over the room, the newest version open, the older ones folded. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 72;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(24, 16, 36, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.book {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 28px 30px 26px 52px;
+  border-radius: 6px 12px 12px 6px;
+  background-color: var(--paper);
+  background-image:
+    var(--paper-grain),
+    var(--paper-wash),
+    repeating-linear-gradient(transparent 0 29px, rgba(80, 110, 160, 0.16) 29px 30px);
+  background-attachment: local;
+  color: var(--ink);
+  box-shadow:
+    -12px 0 0 #6b3f2a,
+    -12px 0 0 3px var(--ink),
+    0 0 0 3px var(--ink),
+    9px 11px 0 3px rgba(20, 12, 28, 0.45),
+    0 30px 80px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-vt), monospace;
+  font-size: 20px;
+  line-height: 30px;
+}
+
+/* red margin line */
+.book::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 36px;
+  width: 2px;
+  background: rgba(200, 80, 80, 0.35);
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.close:hover {
+  transform: rotate(90deg) scale(1.08);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 30px;
+}
+
+.intro {
+  margin: 0 0 6px;
+  color: var(--ink-soft);
+}
+
+/* the version, stamped in red ink beside the title */
+.stamp {
+  position: absolute;
+  top: 22px;
+  right: 58px;
+  padding: 4px 10px 2px;
+  border: 3px solid var(--ink-red);
+  border-radius: 6px;
+  color: var(--ink-red);
+  font-family: var(--font-press), monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  transform: rotate(8deg);
+  opacity: 0.85;
+  mix-blend-mode: multiply;
+}
+
+.latest h3,
+.older h3 {
+  margin: 0;
+  font-weight: normal;
+  font-size: 1.1em;
+  color: var(--ink-red);
+}
+
+.date {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.date b {
+  font-weight: normal;
+  color: var(--ink);
+}
+
+.book ul {
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.book li {
+  position: relative;
+  padding-left: 22px;
+}
+
+.book li::before {
+  content: "✦";
+  position: absolute;
+  left: 0;
+  color: var(--ink-gold);
+}
+
+.olderTitle {
+  margin: 12px 0 0;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 11px;
+  line-height: 30px;
+  color: var(--ink-soft);
+}
+
+.older summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.older summary::-webkit-details-marker {
+  display: none;
+}
+
+.older summary::before {
+  content: "▸ ";
+  color: var(--ink-gold);
+}
+
+.older[open] summary::before {
+  content: "▾ ";
+}
+
+.older summary b {
+  font-weight: normal;
+  color: var(--ink-red);
+}
+
+.older summary:hover {
+  color: var(--ink-red);
+}
+
+.older .date,
+.older ul {
+  padding-left: 18px;
+}
+
+.actions {
+  margin-top: 14px;
+  text-align: center;
+}
+
+.ok {
+  padding: 9px 18px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-family: var(--font-press), monospace;
+  font-size: 12px;
+  box-shadow: 4px 4px 0 var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.ok:hover {
+  transform: translate(-1px, -3px) rotate(-2deg);
+}
+
+.ok:active {
+  transform: scale(0.92);
+}
+
+@media (max-width: 560px) {
+  /* leave room for the sound button in the corner */
+  .backdrop {
+    padding-top: 68px;
+  }
+  .book {
+    padding: 24px 18px 22px 40px;
+    font-size: 19px;
+  }
+  .book::before {
+    left: 26px;
+  }
+  .stamp {
+    top: 54px;
+    right: 18px;
+    font-size: 12px;
+  }
+}
+
+/* Scrollbar: a leather strap in the paper margin, like the about notebook */
+.book::-webkit-scrollbar {
+  width: 14px;
+}
+
+.book::-webkit-scrollbar-track {
+  margin: 14px 0;
+  background: transparent;
+}
+
+.book::-webkit-scrollbar-thumb {
+  border: 4px solid transparent;
+  border-radius: 8px;
+  background: #6b3f2a padding-box;
+}
+
+@supports (-moz-appearance: none) {
+  .book {
+    scrollbar-width: thin;
+    scrollbar-color: #6b3f2a transparent;
+  }
+}

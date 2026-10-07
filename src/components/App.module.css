@@ -86,3 +86,28 @@
   font-size: 10px;
   color: #8dffc0;
 }
+
+/* the version in the room's bottom-left corner, quiet ink on the wall: it opens the road log */
+.version {
+  position: fixed;
+  left: 12px;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  z-index: 60;
+  padding: 5px 8px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(21, 15, 31, 0.55);
+  color: #b9afd6;
+  font-family: var(--font-press), monospace;
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1),
+    color 0.15s;
+}
+
+.version:hover {
+  color: #ffd35a;
+  transform: translateY(-2px);
+}
