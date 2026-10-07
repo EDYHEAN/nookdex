@@ -67,8 +67,11 @@ doesn't show.
   (same TCGdex ids).
 - Japanese: `fetch-set --lang=ja` → `public/sets/ja/`, `src/data/catalog-ja.json`. Japanese sets are their own (ids
   `SV8`, `S12a`…; binder series `M`, `SV`, `S`, shown under the site's series names; promos, decks and the "CS"
-  sets are search-only). TCGdex has no logos and few scans for them: no MEGA scans yet, so those sets stay out until it
-  does (the daily Action picks them up). Names are Japanese: `aka` holds the Pokémon's French and English names
+  sets are search-only). TCGdex has no logos and few scans for them. A Japanese card TCGdex has no scan of (the MEGA
+  block, Black Bolt, White Flare: 1,542 cards on 2026-10-07) shows TCGplayer's picture: found on TCGCSV's Pokémon Japan
+  category (85) by set code and printed number, the plain print, not its Poké/Master Ball pattern (`scansFromTcgcsvJa`).
+  Not downloaded (~150 MB): its `img` is `https://nookdex.com/scans/tp/<TCGplayer product id>`, which next.config
+  `redirects` sends to TCGplayer's image server at our two sizes. TCGdex's own scan wins the day it has one. Names are Japanese: `aka` holds the Pokémon's French and English names
   (PokéAPI by dex number) so searches find "pikachu", "dracaufeu", and the card sheet shows them.
 - **Prices follow the card's language**: French cards → Cardmarket (euros, all languages mixed), Japanese cards →
   Cardmarket (euros, and for once per language: Japanese prints are products of their own), English cards → TCGplayer (US market, English

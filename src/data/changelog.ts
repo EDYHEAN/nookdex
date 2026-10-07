@@ -48,6 +48,10 @@ export const CHANGELOG: Release[] = [
         en: "On a computer, Warwick waits in the corner of the room: one click to give him a treat (a small tip for NookDex).",
       },
       { fr: "NookDex est sur Instagram : @_nookdex (lien dans le carnet de Johan).", en: "NookDex is on Instagram: @_nookdex (link in Johan's notebook)." },
+      {
+        fr: "Cartes japonaises : Black Bolt, White Flare et tout le bloc Méga-Évolution (M1L à M6a) arrivent, plus de 1 500 cartes.",
+        en: "Japanese cards: Black Bolt, White Flare and the whole Mega Evolution block (M1L to M6a) are in, over 1,500 cards.",
+      },
     ],
   },
   {
