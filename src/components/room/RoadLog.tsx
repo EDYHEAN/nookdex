@@ -93,25 +93,32 @@ export function RoadLog({ onClose }: { onClose: () => void }) {
         <button className={styles.close} onClick={close} onPointerEnter={sfx.hover} aria-label={t("Refermer le carnet", "Close the notebook")}>
           ✕
         </button>
-        <h2 className={styles.title}>{t("Carnet de route", "Road log")}</h2>
-        <p className={styles.intro}>{t("Quoi de neuf sur le bureau ?", "What's new on the desk?")}</p>
-        <span className={styles.stamp} aria-hidden>
-          v{latest.version}
-        </span>
+        <header className={styles.head}>
+          <h2 className={styles.title}>{t("Carnet de route", "Road log")}</h2>
+          <p className={styles.intro}>{t("Quoi de neuf sur le bureau ?", "What's new on the desk?")}</p>
+          <span className={styles.stamp} aria-hidden>
+            v{latest.version}
+          </span>
+        </header>
 
-        <section className={styles.latest}>
-          <Entry release={latest} lang={lang} />
-        </section>
+        {/* only the pages scroll: the button below always shows (a double page on a computer, one column on a phone) */}
+        <div className={styles.pages}>
+          <section className={styles.latest}>
+            <Entry release={latest} lang={lang} />
+          </section>
 
-        <h4 className={styles.olderTitle}>{t("Les versions d'avant", "Earlier versions")}</h4>
-        {older.map((r) => (
-          <details key={r.version} className={styles.older}>
-            <summary onClick={() => sfx.click()}>
-              <b>v{r.version}</b> {r.title[lang]}
-            </summary>
-            <Entry release={r} lang={lang} folded />
-          </details>
-        ))}
+          <section className={styles.history}>
+            <h4 className={styles.olderTitle}>{t("Les versions d'avant", "Earlier versions")}</h4>
+            {older.map((r) => (
+              <details key={r.version} className={styles.older}>
+                <summary onClick={() => sfx.click()}>
+                  <b>v{r.version}</b> {r.title[lang]}
+                </summary>
+                <Entry release={r} lang={lang} folded />
+              </details>
+            ))}
+          </section>
+        </div>
 
         <div className={styles.actions}>
           <button className={styles.ok} onClick={close} onPointerEnter={sfx.hover}>
