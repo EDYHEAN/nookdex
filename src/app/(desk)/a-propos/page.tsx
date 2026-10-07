@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { serverLang } from "@/lib/serverLang";
 import { LegalPage } from "@/components/LegalPage";
-import { SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME, SUPPORT_URL } from "@/lib/site";
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL, SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME, SUPPORT_URL } from "@/lib/site";
 import styles from "@/components/LegalPage.module.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -56,7 +56,11 @@ function Fr() {
         <a href={SUPPORT_URL} target="_blank" rel="noopener">
           un petit don sur PayPal ♥
         </a>
-        . Merci !
+        . Merci ! Et pour suivre les nouveautés du bureau :{" "}
+        <a href={INSTAGRAM_URL} target="_blank" rel="noopener">
+          {INSTAGRAM_HANDLE} sur Instagram
+        </a>
+        .
       </p>
 
       <h2>Qui fait {SITE_NAME}</h2>
@@ -117,7 +121,11 @@ function En() {
         <a href={SUPPORT_URL} target="_blank" rel="noopener">
           a small tip on PayPal ♥
         </a>
-        . Thank you!
+        . Thank you! And to follow what&apos;s new on the desk:{" "}
+        <a href={INSTAGRAM_URL} target="_blank" rel="noopener">
+          {INSTAGRAM_HANDLE} on Instagram
+        </a>
+        .
       </p>
 
       <h2>Who makes {SITE_NAME}</h2>
