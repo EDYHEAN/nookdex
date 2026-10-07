@@ -35,9 +35,13 @@ doesn't show.
   `index.json` for the free-binder search), `public/logos/`, `src/data/catalog.json`. Binder sets = recent series
   (`me`, `sv`, `swsh`) and the Wizards era (`base`, `gym`, `neo`, `lc`, `ecard`: one "Wizards" tab in BinderPicker);
   every other set is `extra` (search only).
-- Prices: Cardmarket via TCGdex (`low`, `trend`, `-holo` variants, `avg7`/`avg30` for the ↗ ↘ arrow). A card TCGdex
+- Prices: Cardmarket via TCGdex (`low`, `trend`, `-holo` variants, `avg7`/`avg30` for the ↗ ↘ arrow), then, for French
+  and Japanese cards, Cardmarket's own nightly price guide (`price_guide_6.json`, the public download of their Data page,
+  same fields) by the card's `cmId` (fetch-set `applyGuide`): TCGdex copies it a day or two late, and it also reaches
+  the extra sets. A card TCGdex
   doesn't price shows "—", never "0,00 €", and stays out of gains. Cardmarket's guide is per product: it mixes every
-  language. No API gives Cardmarket prices per card language (the official API is closed to new apps; the "FR prices"
+  language. No API gives Cardmarket prices per card language (the official API is closed to new apps, confirmed by their
+  support 2026-10-07, no date to reopen; their Data page's price guide files are per product too; the "FR prices"
   of resellers are the seller's country). English cards are priced on TCGplayer instead (see Languages).
 - A card TCGdex stops listing is never dropped: kept with its last prices, `unavailable: true`, shown as a painted card
   back stamped "Bientôt de retour" (`CardBack`).
@@ -173,7 +177,8 @@ doesn't show.
 ## GitHub Actions
 
 - `prices.yml` (daily 11:00 UTC): `fetch-set --force` then `--force --lang=en` / `--lang=ja` refresh binder-set prices
-  and cards (+ missing extra sets), then `scripts/price-history.mjs` adds the day's column to
+  and cards (+ missing extra sets) and apply Cardmarket's guide; on Mondays (or "Run workflow" with « all ») `--all`
+  downloads the extra sets again too (new cards, the `cmId` the guide needs, English TCGplayer prices), then `scripts/price-history.mjs` adds the day's column to
   `public/history/<lang>/<set>.json` (each card's trend, the card sheet's curve: `lib/history.ts`, `binder/PriceChart`),
   commit to `main`. The history started 2026-10-04 (no source keeps old prices: TCGCSV's archive is closed) and grows
   ~120 KB a day: thin old days to weekly if it gets heavy.

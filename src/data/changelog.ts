@@ -34,6 +34,10 @@ export const CHANGELOG: Release[] = [
         en: "Sets taken off the shelf stay in NookDex OS, to put them back or delete their cards.",
       },
       { fr: "Le choix du classeur ne montre plus que les logos, plus lisible.", en: "The binder picker shows only the logos, easier to read." },
+      {
+        fr: "Les prix Cardmarket sont ceux de la nuit, et les anciennes extensions sont tenues à jour elles aussi.",
+        en: "Cardmarket prices are last night's, and the older sets are kept up to date too.",
+      },
       { fr: "Ce carnet de route, et un numéro de version en bas à gauche.", en: "This road log, and a version number in the bottom-left corner." },
     ],
   },
