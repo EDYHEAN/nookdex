@@ -53,6 +53,7 @@ export function AboutBook({ onClose, onTour, onRoadLog }: { onClose: () => void;
           ✕
         </button>
         <h2 className={styles.title}>{about.title}</h2>
+        {/* only the pages scroll: the links below (tour, privacy, contact, tip) always show */}
         <div className={styles.pages}>
           {about.pages.map((page, i) => (
             <motion.section

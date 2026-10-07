@@ -1,0 +1,95 @@
+/* Bottom-right corner of the room on a computer: the cat and its paper tag (under the open binder, OS and notebooks). */
+.corner {
+  position: fixed;
+  right: 14px;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.tag {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+  padding: 7px 12px 8px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+  box-shadow: 4px 4px 0 rgba(20, 12, 28, 0.45);
+  font-family: var(--font-vt), monospace;
+  line-height: 1.1;
+  transform: rotate(-2deg);
+  transform-origin: 100% 100%;
+  transition: transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.tag b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--ink-red);
+}
+
+.tag small {
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.cat {
+  position: relative;
+  width: 96px;
+  height: 86px;
+}
+
+.cat img {
+  position: absolute;
+  inset: auto 0 0 0;
+  width: 100%;
+  height: auto;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+  user-select: none;
+}
+
+.heart {
+  position: absolute;
+  top: -6px;
+  right: 6px;
+  color: #ff7aa8;
+  font-size: 18px;
+  opacity: 0;
+  transform: translateY(8px) scale(0.6);
+  transition:
+    opacity 0.2s,
+    transform 0.3s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.corner:hover .tag,
+.corner:focus-visible .tag {
+  transform: rotate(0deg) translateY(-3px);
+}
+
+.corner:hover .heart,
+.corner:focus-visible .heart {
+  opacity: 1;
+  transform: translateY(-6px) scale(1);
+}
+
+.corner:focus-visible {
+  outline: 3px dashed #ffd35a;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tag,
+  .heart {
+    transition: none;
+  }
+}

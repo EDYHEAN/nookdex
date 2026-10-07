@@ -21,6 +21,7 @@ import { AboutBook } from "./room/AboutBook";
 import { PaintedRoom } from "./room/PaintedRoom";
 import { RoadLog, markSeen, seenVersion } from "./room/RoadLog";
 import { SupportCat } from "./room/SupportCat";
+import { TipCorner } from "./room/TipCorner";
 import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
 import { Tour } from "./shelf/Tour";
 import { Welcome } from "./shelf/Welcome";
@@ -387,6 +388,8 @@ export function App() {
       {tour && <Tour onDone={() => setTour(false)} />}
       {/* a tip for the project, asked by the cat once the player has a few cards (never over a binder, the OS or the tour) */}
       {entered && <SupportCat compact={compact} calm={calm && !news} />}
+      {/* a computer: the cat and its tip tag in the corner of the calm room (a phone has the pop-in only) */}
+      {entered && !compact && <TipCorner show={calm && !news} />}
       {/* the version, in the room's corner: it opens the road log */}
       {entered && !busy && !tour && (
         <button
