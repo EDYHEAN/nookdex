@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
+import { APP_VERSION } from "@/data/changelog";
 import { shelfBinders } from "@/lib/binders";
 import { bareId, keyOf } from "@/lib/cardLang";
 import { loadSet, loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
@@ -18,6 +19,7 @@ import { BoilFilter } from "./fx/Boil";
 import { Grain } from "./fx/Grain";
 import { AboutBook } from "./room/AboutBook";
 import { PaintedRoom } from "./room/PaintedRoom";
+import { RoadLog, markSeen, seenVersion } from "./room/RoadLog";
 import { SupportCat } from "./room/SupportCat";
 import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
 import { Tour } from "./shelf/Tour";
@@ -45,6 +47,16 @@ export function App() {
   const [tour, setTour] = useState(false);
   const [adding, setAdding] = useState(false);
   const [about, setAbout] = useState(false);
+  const [roadLog, setRoadLog] = useState(false);
+  /**
+   * A returning player gets the road log once per version (per device), when the room is calm. A newcomer (no
+   * profile yet) starts on the current version: the welcome and the tour show them everything already.
+   */
+  const [news, setNews] = useState(() => {
+    if (useStore.getState().profile) return seenVersion() !== APP_VERSION;
+    markSeen(APP_VERSION);
+    return false;
+  });
   // Back from Google or the e-mail link: the player already went in, no loader again.
   const [entered, setEntered] = useState(returningFromSignIn);
   /** the loader started melting away: the room shows through */
@@ -173,7 +185,7 @@ export function App() {
   };
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
-  const busy = !!openBinder || !!computer || adding || about;
+  const busy = !!openBinder || !!computer || adding || about || roadLog;
   // Sign in (or play offline, warned), then a nickname, then a first binder.
   const showWelcome =
     entered &&
@@ -182,6 +194,18 @@ export function App() {
     cloud.status !== "loading" &&
     !devBypass &&
     ((!cloud.email && !offline) || !profile || (welcome && !userBinders.length));
+
+  const calm = entered && !busy && !tour && !showWelcome;
+  useEffect(() => {
+    if (!news || !calm) return;
+    const id = setTimeout(() => {
+      markSeen(APP_VERSION);
+      setNews(false);
+      setRoadLog(true);
+      sfx.pop();
+    }, 1200);
+    return () => clearTimeout(id);
+  }, [news, calm]);
 
   return (
     <>
@@ -251,9 +275,15 @@ export function App() {
             key="about"
             onClose={() => setAbout(false)}
             onTour={() => void startTour()}
+            onRoadLog={() => {
+              setAbout(false);
+              setRoadLog(true);
+            }}
           />
         )}
       </AnimatePresence>
+
+      <AnimatePresence>{roadLog && <RoadLog key="roadlog" onClose={() => setRoadLog(false)} />}</AnimatePresence>
 
       <AnimatePresence>
         {adding && (
@@ -356,7 +386,21 @@ export function App() {
         )}
       {tour && <Tour onDone={() => setTour(false)} />}
       {/* a tip for the project, asked by the cat once the player has a few cards (never over a binder, the OS or the tour) */}
-      {entered && <SupportCat compact={compact} calm={!busy && !tour && !showWelcome} />}
+      {entered && <SupportCat compact={compact} calm={calm && !news} />}
+      {/* the version, in the room's corner: it opens the road log */}
+      {entered && !busy && !tour && (
+        <button
+          className={styles.version}
+          onClick={() => {
+            sfx.click();
+            setRoadLog(true);
+          }}
+          onPointerEnter={sfx.hover}
+          title={tr("Carnet de route : les nouveautés", "Road log: what's new")}
+        >
+          v{APP_VERSION}
+        </button>
+      )}
       {!entered && <Loader onLeave={() => setRevealed(true)} onEnter={() => setEntered(true)} />}
       {/* on a phone, the full-screen grain layers are memory a binder or the OS needs (their paper has its own grain) */}
       <Grain off={compact && busy} />

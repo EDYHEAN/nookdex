@@ -11,7 +11,8 @@ import { useT } from "@/lib/lang";
 
 /** The notebook taken from the shelf: it rises, opens, and reads like a handwritten journal. */
 /** onTour: replays the onboarding tour. */
-export function AboutBook({ onClose, onTour }: { onClose: () => void; onTour: () => void }) {
+/** onRoadLog: opens the road log (what changed, version by version). */
+export function AboutBook({ onClose, onTour, onRoadLog }: { onClose: () => void; onTour: () => void; onRoadLog: () => void }) {
   const t = useT();
   const about = t(ABOUT, ABOUT_EN);
   useEffect(() => {
@@ -77,6 +78,10 @@ export function AboutBook({ onClose, onTour }: { onClose: () => void; onTour: ()
         <nav className={styles.links}>
           <button className={styles.linkBtn} onClick={onTour}>
             {t("Revoir la visite", "Replay the tour")}
+          </button>{" "}
+          ·{" "}
+          <button className={styles.linkBtn} onClick={onRoadLog}>
+            {t("Carnet de route", "Road log")}
           </button>{" "}
           ·{" "}
           <Link href="/confidentialite" onClick={onClose}>
