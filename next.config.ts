@@ -17,6 +17,13 @@ const nextConfig: NextConfig = {
     // a binder's share picture: the fonts and the painted desk
     "/share/**": ["./src/assets/fonts/*.ttf", "./src/assets/share-desk.jpg"],
   },
+  // Japanese cards TCGdex has no picture of yet are shown with TCGplayer's (scripts/fetch-set, scansFromTcgcsvJa): their
+  // scans, /scans/tp/<product id>/low.webp and the like, are TCGplayer's image server at the size of ours (245 and 600 px
+  // wide). Not downloaded: some 1,500 cards. Temporary redirects, so a scan TCGdex later has replaces them at once.
+  redirects: async () => [
+    { source: "/scans/tp/:id(\\d+)/low.:ext(webp|png)", destination: "https://product-images.tcgplayer.com/fit-in/245x342/:id.jpg", permanent: false },
+    { source: "/scans/tp/:id(\\d+)/high.:ext(webp|png)", destination: "https://product-images.tcgplayer.com/fit-in/600x837/:id.jpg", permanent: false },
+  ],
   // The sets' files (30 MB) stay out of every function: lib/setFiles fetches them from the site's static files.
   // Each function carried its own copy, and Vercel's Hobby plan keeps every deploy of the last 30 days within 10 GB.
   outputFileTracingExcludes: {

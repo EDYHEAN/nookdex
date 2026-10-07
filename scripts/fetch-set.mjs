@@ -223,12 +223,12 @@ function priceOf(d) {
  * some English cards to TCGplayer (Trainer Galleries, Shiny Vault, the 30th Celebration…): they got Cardmarket's price
  * in dollars, or none. Their TCGplayer price is found here by set name, card number and name.
  */
-const TCGCSV = "https://tcgcsv.com/tcgplayer/3"; // 3 = Pokémon (85 would be Pokémon Japan)
+const TCGCSV = "https://tcgcsv.com/tcgplayer/3"; // 3 = Pokémon, 85 = Pokémon Japan (scansFromTcgcsvJa)
 let tcgGroups = null;
 /** Their rules (tcgcsv.com/docs): a named User-Agent, ~100 ms between requests, one sync a day (the daily Action). */
-async function tcgcsv(path) {
+async function tcgcsv(path, base = TCGCSV) {
   await new Promise((r) => setTimeout(r, 120));
-  const res = await fetch(`${TCGCSV}${path}`, { headers: { "User-Agent": "NookDex/1.0 (+https://nookdex.com)" } });
+  const res = await fetch(`${base}${path}`, { headers: { "User-Agent": "NookDex/1.0 (+https://nookdex.com)" } });
   if (!res.ok) throw new Error(`TCGCSV ${res.status} ${path}`);
   return res.json();
 }
@@ -398,6 +398,37 @@ async function scansFromTcgcsv(mainId, cards) {
   return found;
 }
 
+/*
+ * Japanese sets TCGdex lists with every card, name and Cardmarket price but no picture yet (the MEGA block, Black Bolt,
+ * White Flare… for months): TCGplayer sells them, with a picture. Found on TCGCSV's Pokémon Japan category, in the group
+ * whose code is the set's id ("SV11B", "m1L"), by printed number ("003/086"); the plain print, not its Poké Ball or
+ * Master Ball pattern. Not downloaded (some 1,500 cards, ~150 MB): the card's scans are /scans/tp/<TCGplayer product>,
+ * which next.config sends to TCGplayer's image server at the size asked. The day TCGdex has a scan, fetchCards takes it.
+ */
+const TCGCSV_JA = "https://tcgcsv.com/tcgplayer/85";
+let tcgGroupsJa = null;
+async function scansFromTcgcsvJa(mainId, cards) {
+  tcgGroupsJa ??= (await tcgcsv("/groups", TCGCSV_JA)).results ?? [];
+  const group = tcgGroupsJa.find((g) => String(g.abbreviation ?? "").toLowerCase() === mainId.toLowerCase());
+  if (!group) return 0;
+  const byNum = new Map();
+  for (const p of (await tcgcsv(`/${group.groupId}/products`, TCGCSV_JA))?.results ?? []) {
+    const number = p.extendedData?.find((e) => e.name === "Number")?.value;
+    if (!number || !p.imageUrl) continue;
+    byNum.set(numKey(number), [...(byNum.get(numKey(number)) ?? []), p]);
+  }
+  let found = 0;
+  for (const card of cards.filter((c) => !c.img)) {
+    const hits = byNum.get(numKey(card.num)) ?? [];
+    const hit = hits.find((p) => !/pattern/i.test(p.name)) ?? hits[0];
+    if (!hit) continue;
+    card.img = `${SITE}/scans/tp/${hit.productId}`;
+    found++;
+  }
+  console.log(`  ${mainId}: ${found} TCGplayer scans (${group.name})`);
+  return found;
+}
+
 /** Some logos are on the asset server but not listed by the API (ex: 30th): look for them, French first. */
 async function logoOf(set, serie) {
   if (set.logo) return set.logo;
@@ -463,8 +494,8 @@ async function fetchCards(setId, main) {
       ...(!image && enName ? { enName } : {}),
     };
   });
-  // Japanese cards without a scan wait for TCGdex; the others get a chance on TCGCSV first
-  return { set, cards: cards.filter((c) => c.img || (!JA && c.enName)) };
+  // cards without a scan get a chance on TCGCSV first (Japanese ones by number, the others by English name)
+  return { set, cards: cards.filter((c) => c.img || JA || c.enName) };
 }
 
 /**
@@ -511,7 +542,7 @@ async function fetchSet(mainId, subIds) {
     cards: [...main.cards, ...subs.flatMap((s) => s.cards)],
   };
   try {
-    if (out.cards.some((c) => !c.img)) await scansFromTcgcsv(mainId, out.cards);
+    if (out.cards.some((c) => !c.img)) await (JA ? scansFromTcgcsvJa : scansFromTcgcsv)(mainId, out.cards);
   } catch (e) {
     console.warn(`${mainId}: TCGCSV scans skipped (${e.message})`);
   }
