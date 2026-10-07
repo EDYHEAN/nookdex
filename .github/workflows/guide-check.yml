@@ -1,0 +1,38 @@
+# Temporary: runs fetch-set on one set per language with Cardmarket's guide, to check what it changes (not committed).
+name: Vérif guide Cardmarket
+
+on:
+  push:
+    branches: [claude/charming-heisenberg-25owj0]
+    paths: [scripts/fetch-set.mjs, .github/workflows/guide-check.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: node scripts/fetch-set.mjs me05
+      - run: node scripts/fetch-set.mjs --lang=ja SV8
+      - name: What changed
+        run: |
+          git diff --stat | tail -5
+          git diff --stat -- public/sets/*.json | wc -l
+          node -e '
+            const { execSync } = require("child_process");
+            for (const f of ["public/sets/me05.json", "public/sets/sv08.json", "public/sets/ja/SV8.json"]) {
+              const old = JSON.parse(execSync("git show HEAD:" + f)); const now = require("./" + f);
+              const o = new Map(old.cards.map((c) => [c.id, c.price]));
+              const moved = now.cards.filter((c) => JSON.stringify(o.get(c.id)) !== JSON.stringify(c.price));
+              console.log(f, now.pricesUpdated, "cards", now.cards.length, "price changed", moved.length);
+              for (const c of moved.slice(0, 3)) console.log("  ", c.id, JSON.stringify(o.get(c.id)), "->", JSON.stringify(c.price));
+            }
+            const idx = require("./public/sets/index.json"); console.log("index rows", idx.cards.length, JSON.stringify(idx.cards.find((r) => r[0] === "sv08-238")));
+          '

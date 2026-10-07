@@ -2,7 +2,7 @@
 //
 //   npm run fetch-set              every set that isn't downloaded yet
 //   npm run fetch-set -- --force   every binder set (refreshes the prices), plus the extra sets not downloaded yet
-//   npm run fetch-set -- --all     every set, extra sets included (slow: thousands of cards)
+//   npm run fetch-set -- --all     every set, extra sets included (slow: thousands of cards; the Action's Monday run)
 //   npm run fetch-set -- swsh12    one set (+ its sub-sets, like the Trainer Gallery)
 //   add --lang=en                  the same in English, priced on TCGplayer in dollars
 //   add --lang=ja                  the same in Japanese (Cardmarket prices, which are per language for Japanese cards)
@@ -15,6 +15,8 @@
 //   public/sets/index.json   every card in a few fields, for the searches (free binders, NookDex OS "All cards")
 //   src/data/catalog.json    the sets offered in the "new binder" menu
 //   public/scans/<card id>/  scans of cards TCGdex has none of (TCGplayer's picture, see scansFromTcgcsv)
+//
+// French and Japanese prices then come from Cardmarket's own price guide (applyGuide), for every downloaded set.
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
@@ -620,6 +622,54 @@ for (const c of todo) {
   } catch (e) {
     // one broken set never stops the others (nor the daily prices)
     console.warn(`${c.id}: skipped (${e.message})`);
+  }
+}
+
+/*
+ * Cardmarket's own price guide (the file their Data page offers, every Pokémon product, written each night around
+ * 01:00 UTC): TCGdex copies it a day or two late, and the daily run doesn't download the extra sets again. Same fields
+ * as TCGdex's, matched by the card's Cardmarket product id (cmId). French and Japanese cards: English ones are priced on
+ * TCGplayer. A card TCGdex took out keeps its last prices (keepVanished). Checked 2026-10-07: every binder card's cmId
+ * is in it.
+ */
+const GUIDE = "https://downloads.s3.cardmarket.com/productCatalog/priceGuide/price_guide_6.json";
+async function applyGuide() {
+  const res = await fetch(GUIDE, { headers: { "User-Agent": "NookDex/1.0 (+https://nookdex.com)" } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const { createdAt, priceGuides } = await res.json();
+  // "2026-10-07T02:49:47+0200" -> an ISO date the site reads ("Prix Cardmarket du …")
+  const day = new Date(String(createdAt).replace(/([+-]\d\d)(\d\d)$/, "$1:$2")).toISOString();
+  const byId = new Map(priceGuides.map((g) => [g.idProduct, g]));
+  let cards = 0;
+  let sets = 0;
+  for (const c of catalog) {
+    const file = `${OUT}/${c.id}.json`;
+    if (!existsSync(file)) continue;
+    const before = await readFile(file, "utf8");
+    const data = JSON.parse(before);
+    let n = 0;
+    for (const card of data.cards) {
+      const g = card.price?.cmId && !card.unavailable ? byId.get(card.price.cmId) : null;
+      if (!g) continue;
+      card.price = cardmarketPrice(g);
+      n++;
+    }
+    if (!n) continue;
+    data.pricesUpdated = day;
+    const after = JSON.stringify(data);
+    if (after === before) continue;
+    await writeFile(file, after);
+    cards += n;
+    sets++;
+  }
+  console.log(`Cardmarket guide of ${createdAt}: ${cards} cards in ${sets} sets`);
+}
+if (FR || JA) {
+  try {
+    await applyGuide();
+  } catch (e) {
+    // the guide unreachable: TCGdex's prices stay
+    console.warn(`Cardmarket guide skipped (${e.message})`);
   }
 }
 

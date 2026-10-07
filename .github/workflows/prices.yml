@@ -1,4 +1,4 @@
-# Chaque matin : les prix Cardmarket du jour (via TCGdex) pour toutes les extensions du catalogue.
+# Chaque matin : les prix Cardmarket du jour (TCGdex et le guide des prix de Cardmarket) pour toutes les extensions du catalogue.
 # Si des prix ont bougé, le robot fait un commit sur main, et Vercel remet le site en ligne tout seul.
 # Lancement à la main : onglet « Actions » du repo > « Prix Cardmarket du jour » > « Run workflow ».
 name: Prix Cardmarket du jour
@@ -8,6 +8,11 @@ on:
     # tous les jours à 11 h UTC (13 h en été, 12 h en hiver) : TCGdex a mis ses prix à jour vers 10 h UTC
     - cron: "0 11 * * *"
   workflow_dispatch: # le bouton « Run workflow »
+    inputs:
+      all:
+        description: "Retélécharger aussi les vieilles extensions (hors classeurs)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write # le robot a le droit de pousser le commit des prix
@@ -34,17 +39,24 @@ jobs:
       - name: Installer les dépendances
         run: npm ci --no-audit --no-fund
 
+      # Le lundi (ou sur demande) : aussi les vieilles extensions hors classeurs, jamais retéléchargées sinon (leurs
+      # nouvelles cartes, leurs prix TCGplayer pour l'anglais, l'identifiant Cardmarket qui leur donne le prix du jour).
+      - name: Choisir les extensions
+        run: |
+          if [ "${{ inputs.all }}" = "true" ] || [ "$(date -u +%u)" = "1" ]; then echo "MODE=--all" >> "$GITHUB_ENV"; else echo "MODE=--force" >> "$GITHUB_ENV"; fi
+
+      # puis le guide des prix de Cardmarket (leur fichier de la nuit) pour les cartes françaises et japonaises
       - name: Télécharger les prix de toutes les extensions
-        run: node scripts/fetch-set.mjs --force
+        run: node scripts/fetch-set.mjs $MODE
 
       # les mêmes cartes en anglais, pour les visiteurs dont le navigateur est en anglais (prix TCGplayer en dollars,
       # + le taux euro -> dollar du jour dans src/data/eur-usd.json)
       - name: Cartes et prix en anglais
-        run: node scripts/fetch-set.mjs --force --lang=en
+        run: node scripts/fetch-set.mjs $MODE --lang=en
 
       # les cartes japonaises (prix Cardmarket des japonaises, en euros)
       - name: Cartes et prix japonais
-        run: node scripts/fetch-set.mjs --force --lang=ja
+        run: node scripts/fetch-set.mjs $MODE --lang=ja
 
       # la courbe des prix de la fiche carte : le prix du jour de chaque carte, ajouté à l'historique de son extension
       - name: Historique des prix
