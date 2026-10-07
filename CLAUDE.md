@@ -37,7 +37,8 @@ doesn't show.
   every other set is `extra` (search only).
 - Prices: Cardmarket via TCGdex (`low`, `trend`, `-holo` variants, `avg7`/`avg30` for the ↗ ↘ arrow). A card TCGdex
   doesn't price shows "—", never "0,00 €", and stays out of gains. Cardmarket's guide is per product: it mixes every
-  language. No API gives Cardmarket prices per card language (the official API is closed to new apps; the "FR prices"
+  language. No API gives Cardmarket prices per card language (the official API is closed to new apps, confirmed by their
+  support 2026-10-07, no date to reopen; their Data page's price guide files are per product too; the "FR prices"
   of resellers are the seller's country). English cards are priced on TCGplayer instead (see Languages).
 - A card TCGdex stops listing is never dropped: kept with its last prices, `unavailable: true`, shown as a painted card
   back stamped "Bientôt de retour" (`CardBack`).
