@@ -57,3 +57,38 @@ watch.
 > Kind regards,
 > David
 > Cardmarket Support Team Lead
+
+## Johan's reply (2026-10-07)
+
+Sent the same day. It asks whether we may use their data, what attribution they want, and whether they have an
+affiliate program, and it suggests per-language prices. **Waiting for their answer**: add it below when it comes.
+
+> Hello David,
+>
+> Thank you for the clear and detailed answer. I understand the API is closed for now, and I'll keep an eye on your
+> announcements.
+>
+> Following your suggestion, I looked at the catalogue and Price Guide downloads. They cover what NookDex needs today.
+> NookDex (https://nookdex.com) is a free collection tracker for Pokémon TCG players, built as a fan project: players
+> file their cards in virtual binders and follow what their collection is worth. Each card shows its Cardmarket trend
+> and low price, credited to Cardmarket, with a "See on Cardmarket" link that opens the product page (via idProduct).
+> We download the Pokémon Price Guide file once a day.
+>
+> Before going further, I'd like to make sure we're using your data the way you intend:
+>
+> - Is it fine for a free, non-commercial site like ours to download the Price Guide and product files once a day and
+>   show these prices publicly, credited to Cardmarket and linking to your product pages?
+> - Do you have any attribution requirements (wording, use of the Cardmarket name or logo)?
+> - If the project ever earns some money (ads or affiliate links), do you run a partner or affiliate program we should
+>   join?
+>
+> One suggestion, in case it helps your roadmap: language-specific prices (French, German, English printings of the
+> same card) would be very valuable to collectors. Most of our players collect French cards and often ask us for French
+> prices.
+>
+> Thanks again for your time, and for keeping these files available.
+>
+> Thanks again David !!
+>
+> Kind regards,
+> Johan
