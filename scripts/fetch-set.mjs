@@ -450,9 +450,20 @@ function codeOf(set, serie) {
   return set.abbreviation?.official ?? set.id.toUpperCase();
 }
 
-async function fetchCards(setId, main) {
+async function fetchCards(setId, main, known = []) {
   const set = await get(`${API}/${LANG}/sets/${setId}`);
   if (!set) throw new Error(`set not found: ${setId}`);
+  // Cards of the last file the set's list leaves out: asked for one by one before they're called gone (the 30th's Mew
+  // R, G and B, missing from the list GitHub's runners get since 2026-10-02 but listed from elsewhere).
+  const listed = new Set((set.cards ?? []).map((c) => c.id));
+  const asked = [];
+  for (const id of known) {
+    if (listed.has(id) || id.slice(0, id.lastIndexOf("-")) !== setId) continue;
+    const d = await get(`${API}/${LANG}/cards/${id}`);
+    if (d) asked.push({ id, localId: d.localId, name: d.name, image: d.image });
+  }
+  if (asked.length) console.log(`  ${setId}: ${asked.map((c) => c.id).join(", ")} found outside the set's list`);
+  set.cards = [...(set.cards ?? []), ...asked];
   // A set out for less than half a year: TCGdex lists some scans before they're up (the 30th's Mew R, G and B, 404 on
   // 2026-10-08). Such a card goes on as if it had none (TCGCSV's picture). Older sets aren't checked: one request a card.
   const recent = Date.now() - new Date(set.releaseDate ?? 0).getTime() < 183 * 864e5;
@@ -529,11 +540,13 @@ async function keepVanished(mainId, cards, mainNums) {
 }
 
 async function fetchSet(mainId, subIds) {
-  const main = await fetchCards(mainId, null);
+  const file = `${OUT}/${mainId}.json`;
+  const known = existsSync(file) ? JSON.parse(await readFile(file, "utf8")).cards.map((c) => c.id) : [];
+  const main = await fetchCards(mainId, null, known);
   const base = main.cards.find((c) => c.img)?.img.replace(/\/[^/]+$/, "") ?? null;
   const nums = new Set(main.cards.map((c) => c.num));
   const subs = [];
-  for (const id of subIds) subs.push(await fetchCards(id, { base, nums }));
+  for (const id of subIds) subs.push(await fetchCards(id, { base, nums }, known));
   const out = {
     id: main.set.id,
     name: main.set.name,
