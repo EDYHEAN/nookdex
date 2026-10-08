@@ -52,24 +52,23 @@ print(len(shared), 'products,', sum(map(len, shared.values())), 'cards')
 EOF
 ```
 
-## Ways to fix it (to choose)
+## The fix (2026-10-08): `fixSharedProducts` in fetch-set
 
-The fix goes in `scripts/fetch-set.mjs`: a pass over every set file of the language after `applyGuide` and before the
-index (`index.json` copies each card's trend). It runs on every Actions run, because `--force` downloads TCGdex's ids
-again each day. Note: the Claude container can't reach Cardmarket nor TCGdex, so this has to be tested through the
-Actions (or locally at home).
+Cardmarket's product list (`products_singles_6.json`, next to the price guide on their Data page) gives each
+`idProduct` its English name and its expansion (`idExpansion`). On every run, after the downloads and before the guide,
+each shared product is sorted out against the cards' English names (French cards: `public/sets/en/<set>.json`):
 
-1. **"—" for every card of a shared product** (simplest, can be tested on the files already there): drop `cmId` and the
-   prices of each card in a group. No more wrong prices, but the right card of each group (Mew) loses its price too.
-   The link falls back to a search by name. The collection values of players owning these cards go down (their
-   wrong prices leave the total).
-2. **Keep the card whose name matches the product**: download Cardmarket's product catalogue (Data page, "Singles",
-   probably `https://downloads.s3.cardmarket.com/productCatalog/productList/products_singles_6.json`: to check). It
-   gives each `idProduct`'s English name, matched against the card's English name (`public/sets/en/<set>.json`, same
-   bare id). Mew keeps its price and the Mewtwos go to "—". Same-name groups can't be split this way: "—" for them,
-   as in 1.
-3. **Only the groups with different names** (139): the same-name prints keep a price that's sometimes wrong (holo /
-   plain of the Wizards sets).
+- the card named like the product keeps it (Mew XY192: 5 550 €);
+- another card gets the product of its own name in its set's Cardmarket expansion when exactly one is free (ex4's Team
+  Aqua and Magma cards: their own products, 200 ids after ex2's; Hoopa EX XY71);
+- prints of one card (same name) get the expansion's products of that name in number order, only if that agrees with
+  the prints already holding their own product. Checked on the guide's prices: the holo is always the dearer one (Dark
+  Dragonite 5: 1 316 €, 22: 24 €);
+- anything else gets "—" (no `cmId`, no prices; the link searches by name): Mewtwo XY101, the Gym Badges, Charizard EX
+  XY17/XY29…
 
-Either way: the history (`scripts/price-history.mjs`) already writes null for a card without a trend, and the English cards only
-need `cmId`, `avg7`/`avg30` dropped (plus their prices when flagged `cm`).
+First run on the files of 2026-10-08: French 569 cards moved to their own product and 395 to "—" (out of 1 571);
+English 593 moved, 442 to "—"; Japanese 6 to "—" (no English names to match). No product is shared afterwards.
+
+English cards keep TCGplayer's prices; the guide now also fills their Cardmarket averages (the ↗ ↘ arrow) and, for those
+TCGplayer doesn't sell, their converted price. Worth reporting to TCGdex all the same (github.com/tcgdex/cards-database).

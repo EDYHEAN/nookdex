@@ -38,8 +38,9 @@ doesn't show.
 - Prices: Cardmarket via TCGdex (`low`, `trend`, `-holo` variants, `avg7`/`avg30` for the ↗ ↘ arrow), then, for French
   and Japanese cards, Cardmarket's own nightly price guide (`price_guide_6.json`, the public download of their Data page,
   same fields) by the card's `cmId` (fetch-set `applyGuide`): TCGdex copies it a day or two late, and it also reaches
-  the extra sets. A card TCGdex
-  doesn't price shows "—", never "0,00 €", and stays out of gains. Cardmarket's guide is per product: it mixes every
+  the extra sets. TCGdex sometimes gives several cards one Cardmarket product (Mew and the Mewtwos of the XY promos):
+  Cardmarket's product list sorts them out first (`fixSharedProducts`, `docs/cardmarket-shared-products.md`), a card
+  left without its own product shows "—". A card TCGdex doesn't price shows "—", never "0,00 €", and stays out of gains. Cardmarket's guide is per product: it mixes every
   language. No API gives Cardmarket prices per card language (the official API is closed to new apps, confirmed by their
   support 2026-10-07, no date to reopen: their answer is in `docs/cardmarket-api.md`; their Data page's price guide files are per product too; the "FR prices"
   of resellers are the seller's country). English cards are priced on TCGplayer instead (see Languages).

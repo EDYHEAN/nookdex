@@ -16,7 +16,7 @@
 //   src/data/catalog.json    the sets offered in the "new binder" menu
 //   public/scans/<card id>/  scans of cards TCGdex has none of (TCGplayer's picture, see scansFromTcgcsv)
 //
-// French and Japanese prices then come from Cardmarket's own price guide (applyGuide), for every downloaded set.
+// Prices then come from Cardmarket's own price guide (applyGuide), once shared products are sorted out (fixSharedProducts).
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
@@ -657,15 +657,118 @@ for (const c of todo) {
 }
 
 /*
+ * TCGdex sometimes gives several cards one Cardmarket product (2026-10-08: 1,571 French cards in 750 products): Mewtwo,
+ * Mewtwo-EX and Mew of the XY promos all on Mew's page and price, ex4's Team Aqua and Magma cards on ex2's products, the
+ * holo and plain prints of the Wizards sets on the holo's. Cardmarket's product list (their Data page, English names)
+ * sorts them out before the guide prices them:
+ *  - the card named like the product keeps it;
+ *  - another one gets the product of its own name in its set's Cardmarket expansion, when exactly one is free;
+ *  - prints of one card (same name) get that expansion's products of that name in number order: Cardmarket added them
+ *    that way (checked on the prices: the holo is always the dearer one);
+ *  - any other card loses its product and prices ("—", the link searches by name) rather than show another card's.
+ * Japanese cards have no English name here: a shared product goes to none of them (6 cards). Counts and examples:
+ * docs/cardmarket-shared-products.md.
+ */
+const CM_HEADERS = { "User-Agent": "NookDex/1.0 (+https://nookdex.com)" };
+const PRODUCTS = "https://downloads.s3.cardmarket.com/productCatalog/productList/products_singles_6.json";
+// "Mewtwo-EX [Psychic Shield | Psychic Burn]", "Mewtwo EX" -> "mewtwoex"
+const cmName = (s) => String(s ?? "").replace(/\s*[[(].*$/, "").normalize("NFD").replace(/[^a-z0-9]/gi, "").toLowerCase();
+const byNumber = (a, b) => a.num.localeCompare(b.num, "en", { numeric: true });
+
+/** A card's price once its Cardmarket product changed: what came from the old one goes, applyGuide fills the new one's. */
+function withProduct(price, id) {
+  const { cmId: _, cm: __, ...rest } = price;
+  const out = EN && price.tp ? { ...rest, avg7: null, avg30: null, avg7Holo: null, avg30Holo: null } : cardmarketPrice({});
+  return id ? { ...out, cmId: id } : out;
+}
+
+async function fixSharedProducts() {
+  const res = await fetch(PRODUCTS, { headers: CM_HEADERS });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const { products } = await res.json();
+  const byId = new Map(products.map((p) => [p.idProduct, p]));
+  const byName = new Map(); // "<expansion>|<name>" -> product ids
+  for (const p of products) {
+    const key = `${p.idExpansion}|${cmName(p.name)}`;
+    byName.set(key, [...(byName.get(key) ?? []), p.idProduct]);
+  }
+  const sets = [];
+  for (const c of catalog) {
+    const file = `${OUT}/${c.id}.json`;
+    if (!existsSync(file)) continue;
+    const data = JSON.parse(await readFile(file, "utf8"));
+    // French cards go by their English name (same ids in public/sets/en, written by yesterday's English run)
+    const enFile = `public/sets/en/${c.id}.json`;
+    const en = FR && existsSync(enFile) ? new Map(JSON.parse(await readFile(enFile, "utf8")).cards.map((x) => [x.id, x.name])) : null;
+    const names = new Map(data.cards.map((x) => [x, cmName(EN ? x.name : en?.get(x.id))]));
+    sets.push({ file, data, names, changed: false });
+  }
+  const live = (s) => s.data.cards.filter((x) => x.price?.cmId && !x.unavailable);
+  const holders = new Map(); // product id -> [{ s, card }]
+  for (const s of sets) for (const card of live(s)) holders.set(card.price.cmId, [...(holders.get(card.price.cmId) ?? []), { s, card }]);
+  const alone = (card) => holders.get(card.price?.cmId)?.length === 1;
+  const own = (s, card) => s.names.get(card) && s.names.get(card) === cmName(byId.get(card.price.cmId)?.name);
+  // a set's Cardmarket expansions: those of its cards holding a product of their own name alone
+  for (const s of sets) s.exps = new Set(live(s).filter((x) => alone(x) && own(s, x)).map((x) => byId.get(x.price.cmId).idExpansion));
+  const ofName = (s, p, name) => [...new Set([...s.exps, p.idExpansion])].flatMap((e) => byName.get(`${e}|${name}`) ?? []);
+
+  const used = new Set(holders.keys());
+  const next = new Map(); // card -> its product id, or null
+  const give = (card, id) => {
+    if (next.has(card)) return;
+    next.set(card, id);
+    if (id) used.add(id);
+  };
+  for (const [id, group] of holders) {
+    if (group.length < 2) continue;
+    const p = byId.get(id);
+    const name = cmName(p?.name);
+    const named = p ? group.filter(({ s, card }) => s.names.get(card) === name && (!s.exps.size || s.exps.has(p.idExpansion))) : [];
+    if (named.length === 1) give(named[0].card, id);
+    else if (named.length > 1 && named.every((x) => x.s === named[0].s)) {
+      const s = named[0].s;
+      const prints = s.data.cards.filter((x) => !x.unavailable && s.names.get(x) === name).sort(byNumber);
+      const ids = ofName(s, p, name).sort((a, b) => a - b);
+      // only when it agrees with the prints already holding a product alone
+      const fits = prints.length === ids.length && prints.every((x, i) => !alone(x) || x.price.cmId === ids[i]);
+      for (const [i, x] of prints.entries()) if (holders.get(x.price?.cmId)?.length > 1) give(x, fits ? ids[i] : null);
+    }
+    for (const { s, card } of group) {
+      const free = p && s.names.get(card) ? ofName(s, p, s.names.get(card)).filter((x) => !used.has(x)) : [];
+      give(card, free.length === 1 ? free[0] : null);
+    }
+  }
+
+  // a product still held twice goes to neither
+  const productOf = (card) => (next.has(card) ? next.get(card) : card.price.cmId);
+  const count = new Map();
+  for (const s of sets) for (const card of live(s)) if (productOf(card)) count.set(productOf(card), (count.get(productOf(card)) ?? 0) + 1);
+  let moved = 0;
+  let cleared = 0;
+  for (const s of sets) {
+    for (const card of live(s)) {
+      const id = count.get(productOf(card)) > 1 ? null : productOf(card);
+      if (id === card.price.cmId) continue;
+      card.price = withProduct(card.price, id);
+      s.changed = true;
+      if (id) moved++;
+      else cleared++;
+    }
+    if (s.changed) await writeFile(s.file, JSON.stringify(s.data));
+  }
+  console.log(`Cardmarket products: ${moved} cards moved to their own, ${cleared} left without one`);
+}
+
+/*
  * Cardmarket's own price guide (the file their Data page offers, every Pokémon product, written each night around
  * 01:00 UTC): TCGdex copies it a day or two late, and the daily run doesn't download the extra sets again. Same fields
- * as TCGdex's, matched by the card's Cardmarket product id (cmId). French and Japanese cards: English ones are priced on
- * TCGplayer. A card TCGdex took out keeps its last prices (keepVanished). Checked 2026-10-07: every binder card's cmId
- * is in it.
+ * as TCGdex's, matched by the card's Cardmarket product id (cmId). French and Japanese cards take its prices; English
+ * ones keep TCGplayer's and take its averages (the ↗ ↘ arrow), or its price in dollars when TCGplayer doesn't sell them.
+ * A card TCGdex took out keeps its last prices (keepVanished). Checked 2026-10-07: every binder card's cmId is in it.
  */
 const GUIDE = "https://downloads.s3.cardmarket.com/productCatalog/priceGuide/price_guide_6.json";
 async function applyGuide() {
-  const res = await fetch(GUIDE, { headers: { "User-Agent": "NookDex/1.0 (+https://nookdex.com)" } });
+  const res = await fetch(GUIDE, { headers: CM_HEADERS });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const { createdAt, priceGuides } = await res.json();
   // "2026-10-07T02:49:47+0200" -> an ISO date the site reads ("Prix Cardmarket du …")
@@ -682,11 +785,16 @@ async function applyGuide() {
     for (const card of data.cards) {
       const g = card.price?.cmId && !card.unavailable ? byId.get(card.price.cmId) : null;
       if (!g) continue;
-      card.price = cardmarketPrice(g);
+      const cm = cardmarketPrice(g);
+      if (!EN) card.price = cm;
+      else if (card.price.tp) card.price = { ...card.price, avg7: cm.avg7, avg30: cm.avg30, avg7Holo: cm.avg7Holo, avg30Holo: cm.avg30Holo };
+      // English files from before the dollars hold Cardmarket euros
+      else card.price = data.currency === "USD" ? cardmarketInDollars(cm) : cm;
       n++;
     }
     if (!n) continue;
-    data.pricesUpdated = day;
+    // the date shown is the English cards' TCGplayer one
+    if (!EN) data.pricesUpdated = day;
     const after = JSON.stringify(data);
     if (after === before) continue;
     await writeFile(file, after);
@@ -695,13 +803,17 @@ async function applyGuide() {
   }
   console.log(`Cardmarket guide of ${createdAt}: ${cards} cards in ${sets} sets`);
 }
-if (FR || JA) {
-  try {
-    await applyGuide();
-  } catch (e) {
-    // the guide unreachable: TCGdex's prices stay
-    console.warn(`Cardmarket guide skipped (${e.message})`);
-  }
+try {
+  await fixSharedProducts();
+} catch (e) {
+  // the product list unreachable: TCGdex's products stay, shared or not
+  console.warn(`Cardmarket products skipped (${e.message})`);
+}
+try {
+  await applyGuide();
+} catch (e) {
+  // the guide unreachable: TCGdex's prices stay
+  console.warn(`Cardmarket guide skipped (${e.message})`);
 }
 
 // Card counts come from the downloaded files (sub-sets included, cards without scans dropped).
