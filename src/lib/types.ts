@@ -94,7 +94,7 @@ export type UserBinder = ({ kind: "set"; setId: string } | { kind: "free"; name:
   sort?: BinderSort;
 };
 
-export type BinderSort = "num" | "rarity" | "name";
+export type BinderSort = "num" | "rarity" | "price" | "name";
 
 /** A binder as drawn in the room and opened on screen. */
 export interface BinderDef {

@@ -98,11 +98,12 @@ export type RarityTier = (typeof RARITY_TIERS)[number]["id"];
 const TIER_OF = new Map<number, RarityTier>(RARITY_TIERS.flatMap((t) => t.ranks.map((r) => [r, t.id] as const)));
 export const tierOf = (rank: number): RarityTier => TIER_OF.get(rank) ?? "other";
 
-export const SORT_LABEL_EN: Record<BinderSort, string> = { num: "No.", rarity: "Rarity", name: "A → Z" };
+export const SORT_LABEL_EN: Record<BinderSort, string> = { num: "No.", rarity: "Rarity", price: "Price", name: "A → Z" };
 
 export const SORT_LABEL: Record<BinderSort, string> = {
   num: "N°",
   rarity: "Rareté",
+  price: "Prix",
   name: "A → Z",
 };
 
@@ -114,6 +115,9 @@ export function sortCards(cards: CardData[], sort: BinderSort): CardData[] {
   const order = new Map(cards.map((c, i) => [c.id, i]));
   const tie = (a: CardData, b: CardData) => order.get(a.id)! - order.get(b.id)!;
   if (sort === "name") return [...cards].sort((a, b) => byName.compare(a.name, b.name) || tie(a, b));
+  // dearest first (one set, one currency); a card without a price goes last
+  const value = (c: CardData) => c.price.trend || c.price.trendHolo || -1;
+  if (sort === "price") return [...cards].sort((a, b) => value(b) - value(a) || tie(a, b));
   // rarest first, then the most valuable of a tier
   return [...cards].sort((a, b) => rarityRank(b) - rarityRank(a) || (b.price.trend ?? 0) - (a.price.trend ?? 0) || tie(a, b));
 }

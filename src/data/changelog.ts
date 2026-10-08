@@ -56,6 +56,15 @@ export const CHANGELOG: Release[] = [
         fr: "Sur téléphone, le choix du classeur se lit mieux : une extension par ligne, et les séries toujours visibles en haut.",
         en: "On a phone, the binder picker reads better: one set per line, and the series always in view at the top.",
       },
+      {
+        fr: "Les classeurs se rangent aussi par prix : « Ranger par → Prix », les plus chères d'abord.",
+        en: "Binders can be sorted by price too: \"Sort by → Price\", most valuable first.",
+      },
+      {
+        fr: "Des cartes affichaient le prix d'une autre (les Mewtwo des promos XY au prix de Mew, les holos et non-holos des vieux sets) : chacune a retrouvé le sien, ou « — » quand Cardmarket ne permet pas de savoir.",
+        en: "Some cards showed another card's price (the XY promo Mewtwos at Mew's, holo and non-holo prints of the old sets): each has its own back, or \"—\" when Cardmarket can't tell.",
+      },
+      { fr: "Les trois Mew RGB des 30 ans ont leur image.", en: "The three RGB Mew of the 30th Celebration have their picture." },
     ],
   },
   {
