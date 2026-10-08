@@ -450,20 +450,9 @@ function codeOf(set, serie) {
   return set.abbreviation?.official ?? set.id.toUpperCase();
 }
 
-async function fetchCards(setId, main, known = []) {
+async function fetchCards(setId, main) {
   const set = await get(`${API}/${LANG}/sets/${setId}`);
   if (!set) throw new Error(`set not found: ${setId}`);
-  // Cards of the last file the set's list leaves out: asked for one by one before they're called gone (the 30th's Mew
-  // R, G and B, missing from the list GitHub's runners get since 2026-10-02 but listed from elsewhere).
-  const listed = new Set((set.cards ?? []).map((c) => c.id));
-  const asked = [];
-  for (const id of known) {
-    if (listed.has(id) || id.slice(0, id.lastIndexOf("-")) !== setId) continue;
-    const d = await get(`${API}/${LANG}/cards/${id}`);
-    if (d) asked.push({ id, localId: d.localId, name: d.name, image: d.image });
-  }
-  if (asked.length) console.log(`  ${setId}: ${asked.map((c) => c.id).join(", ")} found outside the set's list`);
-  set.cards = [...(set.cards ?? []), ...asked];
   // A set out for less than half a year: TCGdex lists some scans before they're up (the 30th's Mew R, G and B, 404 on
   // 2026-10-08). Such a card goes on as if it had none (TCGCSV's picture). Older sets aren't checked: one request a card.
   const recent = Date.now() - new Date(set.releaseDate ?? 0).getTime() < 183 * 864e5;
@@ -533,6 +522,13 @@ async function keepVanished(mainId, cards, mainNums) {
     const folder = old.img?.split("/").at(-2);
     const borrowed = setId !== mainId && folder === mainId && mainNums.has(old.num);
     const price = euros ? cardmarketInDollars(old.price) : old.price;
+    // One with a TCGplayer picture of its own (scansFromTcgcsv) is on sale all the same: it stays a card, not a card back
+    // (the 30th's Mew R, G and B, which GitHub's runners don't get from TCGdex since 2026-10-02, though others do).
+    if (existsSync(`${SCANS}/${old.id}/product.txt`)) {
+      const { unavailable: _, ...card } = old;
+      cards.push({ ...card, price, img: `${SITE}/scans/${old.id}` });
+      continue;
+    }
     cards.push({ ...old, price, img: borrowed ? "" : (old.img ?? ""), unavailable: true });
     n++;
   }
@@ -540,13 +536,11 @@ async function keepVanished(mainId, cards, mainNums) {
 }
 
 async function fetchSet(mainId, subIds) {
-  const file = `${OUT}/${mainId}.json`;
-  const known = existsSync(file) ? JSON.parse(await readFile(file, "utf8")).cards.map((c) => c.id) : [];
-  const main = await fetchCards(mainId, null, known);
+  const main = await fetchCards(mainId, null);
   const base = main.cards.find((c) => c.img)?.img.replace(/\/[^/]+$/, "") ?? null;
   const nums = new Set(main.cards.map((c) => c.num));
   const subs = [];
-  for (const id of subIds) subs.push(await fetchCards(id, { base, nums }, known));
+  for (const id of subIds) subs.push(await fetchCards(id, { base, nums }));
   const out = {
     id: main.set.id,
     name: main.set.name,
