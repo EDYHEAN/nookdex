@@ -61,7 +61,7 @@ watch.
 ## Johan's reply (2026-10-07)
 
 Sent the same day. It asks whether we may use their data, what attribution they want, and whether they have an
-affiliate program, and it suggests per-language prices. **Waiting for their answer**: add it below when it comes.
+affiliate program, and it suggests per-language prices. Answered on 2026-10-08 (below).
 
 > Hello David,
 >
@@ -92,3 +92,30 @@ affiliate program, and it suggests per-language prices. **Waiting for their answ
 >
 > Kind regards,
 > Johan
+
+## Their second answer (2026-10-08)
+
+Support doesn't decide: any partnership, links to Cardmarket included, needs approval from their marketing. Until they
+answer nothing changes on the site: prices and "See on Cardmarket" links stay.
+
+> Hello Johan,
+>
+> Thank you for your question.
+>
+> Any partnership, such as adding links to Cardmarket on your website, is subject to approval.
+> You are welcome to email Tracy, our Head of Marketing, directly at tracy.rutkowski@cardmarket.com.
+>
+> Please inform her about all the details of your project.
+>
+> Kind regards,
+> David
+> Cardmarket Support Team Lead
+
+## Johan's mail to Tracy (2026-10-08)
+
+Sent to Tracy Rutkowski, Head of Marketing (tracy.rutkowski@cardmarket.com), in a friendly tone: who Johan is (a French
+collector on Cardmarket), what NookDex is, how Cardmarket already shows up (credited prices for French and Japanese
+cards, "See on Cardmarket" links by idProduct, the Price Guide downloaded once a day). It asks whether she approves
+these links and this use of the prices (and whether to change the wording, logo or credit), whether they have an
+affiliate or partner program, and it suggests per-language prices again. **Waiting for her answer**: add it below when
+it comes.
