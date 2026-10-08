@@ -61,7 +61,7 @@ watch.
 ## Johan's reply (2026-10-07)
 
 Sent the same day. It asks whether we may use their data, what attribution they want, and whether they have an
-affiliate program, and it suggests per-language prices. **Waiting for their answer**: add it below when it comes.
+affiliate program, and it suggests per-language prices. Answered on 2026-10-08 (below).
 
 > Hello David,
 >
@@ -92,3 +92,22 @@ affiliate program, and it suggests per-language prices. **Waiting for their answ
 >
 > Kind regards,
 > Johan
+
+## Their second answer (2026-10-08)
+
+Support doesn't decide: any partnership, links to Cardmarket included, needs approval from their marketing. **Next step**:
+Johan writes to Tracy Rutkowski, Head of Marketing (tracy.rutkowski@cardmarket.com), with the whole project. Add her
+answer below when it comes. Until then nothing changes on the site: prices and "See on Cardmarket" links stay.
+
+> Hello Johan,
+>
+> Thank you for your question.
+>
+> Any partnership, such as adding links to Cardmarket on your website, is subject to approval.
+> You are welcome to email Tracy, our Head of Marketing, directly at tracy.rutkowski@cardmarket.com.
+>
+> Please inform her about all the details of your project.
+>
+> Kind regards,
+> David
+> Cardmarket Support Team Lead
