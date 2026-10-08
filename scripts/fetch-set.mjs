@@ -453,9 +453,13 @@ function codeOf(set, serie) {
 async function fetchCards(setId, main) {
   const set = await get(`${API}/${LANG}/sets/${setId}`);
   if (!set) throw new Error(`set not found: ${setId}`);
+  // A set out for less than half a year: TCGdex lists some scans before they're up (the 30th's Mew R, G and B, 404 on
+  // 2026-10-08). Such a card goes on as if it had none (TCGCSV's picture). Older sets aren't checked: one request a card.
+  const recent = Date.now() - new Date(set.releaseDate ?? 0).getTime() < 183 * 864e5;
+  const up = async (url) => (url && recent && !(await exists(`${url}/low.webp`)) ? null : url);
   const cards = await pool(set.cards ?? [], 8, async (c) => {
     const d = await get(`${API}/${LANG}/cards/${c.id}`);
-    let image = d?.image ?? c.image;
+    let image = await up(d?.image ?? c.image);
     if (!image && main?.base) {
       // Sub-sets have their scans stored under their own folder, or under the main set (Trainer Gallery: TG05…).
       // Never the main set's when it has a card of that number: 30th-c "029" is Lugia, 30th "029" is a Pikachu.
@@ -474,7 +478,7 @@ async function fetchCards(setId, main) {
       // just doesn't list it): same path, "fr" instead of "en". Else the English scan.
       const en = await get(`${API}/en/cards/${c.id}`);
       enName = en?.name ?? enName;
-      image = en?.image ?? null;
+      image = await up(en?.image ?? null);
       const fr = image?.replace("/en/", `/${LANG}/`);
       if (fr && fr !== image && (await exists(`${fr}/low.webp`))) image = fr;
     }
