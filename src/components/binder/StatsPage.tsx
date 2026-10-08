@@ -210,7 +210,7 @@ function Finder({ pages, collection, onFind }: { pages: Pocket[][]; collection: 
   );
 }
 
-/** How the set binder is ordered: set number, rarest first, or alphabetical. */
+/** How the set binder is ordered: set number, rarest first, dearest first, or alphabetical. */
 function SortChips({ id, current }: { id: string; current: BinderSort }) {
   const t = useT();
   const setSort = useStore((s) => s.setBinderSort);
