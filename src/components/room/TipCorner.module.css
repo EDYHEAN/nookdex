@@ -1,4 +1,4 @@
-/* Bottom-right corner of the room on a computer: the cat and its paper tag (under the open binder, OS and notebooks). */
+/* Bottom-right corner of the room on a computer: Warwick's round portrait and its paper tag (under the open binder, OS and notebooks). */
 .corner {
   position: fixed;
   right: 14px;
@@ -44,24 +44,26 @@
 
 .cat {
   position: relative;
-  width: 96px;
-  height: 86px;
+  width: 72px;
+  height: 72px;
+  margin-left: 4px;
 }
 
 .cat img {
-  position: absolute;
-  inset: auto 0 0 0;
+  display: block;
   width: 100%;
-  height: auto;
-  transform-origin: 50% 100%;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+  height: 100%;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 4px 4px 0 rgba(20, 12, 28, 0.45);
   user-select: none;
 }
 
 .heart {
   position: absolute;
-  top: -6px;
-  right: 6px;
+  top: -10px;
+  right: -2px;
   color: #ff7aa8;
   font-size: 18px;
   opacity: 0;

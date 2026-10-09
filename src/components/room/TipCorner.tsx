@@ -4,13 +4,12 @@ import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useT } from "@/lib/lang";
-import { sceneImg } from "@/lib/scene";
 import { SUPPORT_URL } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import styles from "./TipCorner.module.css";
 
 /**
- * A computer's bottom-right corner: Warwick, awake and breathing, with a paper tag for a tip. Always there in the calm
+ * A computer's bottom-right corner: Warwick's portrait (the Instagram one) in a round frame, with a paper tag for a tip. Always there in the calm
  * room (the cat's pop-in, room/SupportCat, still asks once in a while); on a phone the pop-in is enough.
  */
 export function TipCorner({ show }: { show: boolean }) {
@@ -47,10 +46,10 @@ export function TipCorner({ show }: { show: boolean }) {
           <span className={styles.cat} aria-hidden>
             {/* breathing, and the head tilts now and then */}
             <motion.img
-              src={sceneImg("cat-awake.webp")}
+              src="/warwick.webp"
               alt=""
               draggable={false}
-              animate={thanks ? { y: [0, -12, 0, -6, 0] } : { scaleY: [1, 1.035, 1], rotate: [0, 0, -3, 0, 0] }}
+              animate={thanks ? { y: [0, -12, 0, -6, 0] } : { scale: [1, 1.03, 1], rotate: [0, 0, -4, 0, 0] }}
               transition={thanks ? { duration: 0.8 } : { duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
             />
             <span className={styles.heart}>♥</span>
