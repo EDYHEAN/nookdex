@@ -34,6 +34,12 @@ export function TrophyCase({ origin, onClose }: { origin: { x: number; y: number
     return fresh[0] ?? null;
   });
   const [flip, setFlip] = useState(0);
+  /** the case flies out empty (light to move), the trophies drop on their shelves once it has landed */
+  const [landed, setLanded] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setLanded(true), 380);
+    return () => clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -84,7 +90,7 @@ export function TrophyCase({ origin, onClose }: { origin: { x: number; y: number
         initial={{ x: from.x, y: from.y, scale: 0.05, opacity: 0, rotate: -8 }}
         animate={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
         exit={{ x: from.x, y: from.y, scale: 0.05, opacity: 0, rotate: 6, transition: { duration: 0.32, ease: "easeIn" } }}
-        transition={{ type: "spring", stiffness: 210, damping: 19, delay: 0.08 }}
+        transition={{ type: "spring", stiffness: 260, damping: 24, delay: 0.05 }}
       >
         <button className={styles.close} onClick={close} onPointerEnter={sfx.hover} aria-label={t("Refermer la vitrine", "Close the case")}>
           ✕
@@ -103,7 +109,7 @@ export function TrophyCase({ origin, onClose }: { origin: { x: number; y: number
         </header>
 
         <div className={styles.shelves}>
-          {shelves.map((shelf, si) => (
+          {landed && shelves.map((shelf, si) => (
             <section key={shelf.id} className={styles.shelf}>
               <h3>
                 {t(shelf.fr, shelf.en)}
@@ -115,12 +121,10 @@ export function TrophyCase({ origin, onClose }: { origin: { x: number; y: number
                 {shelf.trophies.map((x, i) => {
                   const fresh = (got[x.id] ?? 0) > seenAt;
                   return (
-                    <motion.button
+                    <button
                       key={x.id}
                       className={`${styles.slot} ${picked?.id === x.id ? styles.picked : ""}`}
-                      initial={{ y: -24, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.3 + si * 0.06 + i * 0.025, type: "spring", stiffness: 500, damping: 18 }}
+                      style={{ ["--i" as string]: si * 3 + i }}
                       onPointerEnter={sfx.hover}
                       onClick={() => {
                         if (got[x.id]) sfx.spine(TIER_NOTE[x.tier] * 2 + 2);
@@ -140,7 +144,7 @@ export function TrophyCase({ origin, onClose }: { origin: { x: number; y: number
                         <Medal trophy={x} won={!!got[x.id]} />
                       </motion.span>
                       {fresh && <span className={styles.fresh}>{t("NEW", "NEW")}</span>}
-                    </motion.button>
+                    </button>
                   );
                 })}
               </div>
