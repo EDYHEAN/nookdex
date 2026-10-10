@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useT } from "@/lib/lang";
 import { SUPPORT_URL } from "@/lib/site";
 import { sfx } from "@/lib/sound";
+import { unlock } from "@/lib/trophyStore";
 import styles from "./TipCorner.module.css";
 
 /**
@@ -34,6 +35,7 @@ export function TipCorner({ show }: { show: boolean }) {
           onPointerEnter={sfx.hover}
           onClick={() => {
             sfx.coin();
+            unlock("treat");
             setTimeout(() => sfx.purr(), 350);
             setThanks(true);
           }}

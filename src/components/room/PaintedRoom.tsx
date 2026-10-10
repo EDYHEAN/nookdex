@@ -9,6 +9,8 @@ import { SCENE, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, OS_NAME } from "@/lib/site";
 import { sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { useStore } from "@/lib/store";
+import { TROPHIES } from "@/lib/trophies";
+import { bump, unlock, useTrophyStore } from "@/lib/trophyStore";
 import type { BinderDef } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { useViewport } from "@/lib/useViewport";
@@ -30,6 +32,8 @@ interface Props {
   onAddBinder: () => void;
   /** the notebook among the books: "about" */
   onOpenAbout: () => void;
+  /** the Poké Ball on the top shelf: the trophy case (where the ball is on screen) */
+  onOpenTrophies: (at: { x: number; y: number }) => void;
   /**
    * Under the loader: drawn and downloading, but invisible. Browsers count a hidden-behind picture as the page's
    * biggest paint (the 463 KB room on phones), not an invisible one.
@@ -63,6 +67,8 @@ const rowEnd = (i: number) => {
 const BOOKS = { x: 2378, y: 515, w: 305, h: 272 };
 /** the cork board under the shelf, its sticky notes: the blog */
 const BOARD = { x: 1944, y: 846, w: 328, h: 250 };
+/** the Poké Ball on its stand, top shelf: the trophy case */
+const BALL = { x: 2372, y: 204, w: 128, h: 156, cx: 2435, cy: 267 };
 const SCREEN_QUAD = SCENE.screenQuad.map(([x, y]) => [x - SCENE.screen.x, y - SCENE.screen.y] as [number, number]);
 
 function useCamera(compact: boolean) {
@@ -78,7 +84,7 @@ function useCamera(compact: boolean) {
   }, [vp.w, vp.h, compact]);
 }
 
-export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, veiled, behind }: Props) {
+export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, onOpenTrophies, veiled, behind }: Props) {
   const uiLang = useLang();
   const router = useRouter();
   /** "EN" on an English binder of the French site (and the other way round): the language it isn't in */
@@ -118,6 +124,12 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   const [returning, setReturning] = useState<string | null>(null);
   const [petting, setPetting] = useState(0);
   const [lavaIdx, setLavaIdx] = useState(0);
+  const won = useTrophyStore((s) => s.got);
+  const fresh = useTrophyStore((s) => Object.values(s.got).filter((at) => at > s.seenAt).length);
+  const [ballHover, setBallHover] = useState(false);
+  /** the room's little games: a scale on the spines, the weather flipped on and on */
+  const scale = useRef({ last: -1, t: 0, n: 0 });
+  const weather = useRef({ t: 0, n: 0 });
   const prevOpen = useRef<string | null>(null);
   const prevIds = useRef<string[] | null>(null);
 
@@ -378,6 +390,12 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
                 aria-label={langTag(b) ? `${b.name} · ${langTag(b)}` : b.name}
                 onPointerEnter={() => {
                   sfx.spine(i);
+                  const sc = scale.current;
+                  const now = performance.now();
+                  sc.n = i === sc.last + 1 && now - sc.t < 700 ? sc.n + 1 : 1;
+                  sc.last = i;
+                  sc.t = now;
+                  if (sc.n >= 5) unlock("xylophone");
                   showTip(slot.x + slot.w / 2, slot.y - 8, langTag(b) ? `${b.name} · ${langTag(b)}` : b.name, sum.sub, slot.y + slot.h + 10);
                 }}
                 onPointerLeave={() => setTip(null)}
@@ -482,6 +500,11 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             onClick={() => {
               sfx.dayNight(!daytime);
               toggleDaytime();
+              const w = weather.current;
+              const now = performance.now();
+              w.n = now - w.t < 4000 ? w.n + 1 : 1;
+              w.t = now;
+              if (w.n >= 10) unlock("weather");
               showTip(SCENE.window.x + SCENE.window.w / 2, SCENE.window.y + 40, tr("Fenêtre", "Window"), !daytime ? tr("grand soleil ☀", "bright sun ☀") : tr("pluie de nuit ☾", "night rain ☾"));
             }}
           />
@@ -497,7 +520,10 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             onClick={() => {
               sfx.click();
               if (ambient) stopAmbient();
-              else startAmbient();
+              else {
+                startAmbient();
+                unlock("radio");
+              }
               setAmbient(!ambient);
               showTip(SCENE.radio.x + SCENE.radio.w / 2, SCENE.radio.y, !ambient ? "Radio lofi ♪" : "Radio", !ambient ? (daytime ? tr("soleil & beats", "sun & beats") : tr("pluie & beats", "rain & beats")) : tr("silence…", "silence…"));
             }}
@@ -516,6 +542,8 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
               const n = (lavaTheme.current + 1) % LAVA_THEMES.length;
               lavaTheme.current = n;
               setLavaIdx(n);
+              // back to the first colour: they were all seen
+              if (n === 0) unlock("rainbow");
               showTip(SCENE.lava.x + SCENE.lava.w / 2, SCENE.lava.y, tr("Lampe à lave", "Lava lamp"), tr(LAVA_THEMES[n].name, LAVA_THEMES[n].nameEn));
             }}
           />
@@ -532,6 +560,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             onClick={() => {
               sfx.pop();
               setTip(null);
+              unlock("blog");
               router.push("/blog");
             }}
           />
@@ -547,6 +576,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             onClick={() => {
               sfx.lamp();
               toggleLamp();
+              if (lampOn && !daytime) unlock("moonlight");
               showTip(SCENE.lampHit.x + SCENE.lampHit.w / 2, SCENE.lampHit.y, tr("Lampe", "Lamp"), !lampOn ? tr("ahh, la lumière", "ahh, light") : daytime ? tr("le soleil suffit", "the sun is enough") : tr("au clair de lune", "by moonlight"));
             }}
           />
@@ -563,6 +593,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             onClick={() => {
               sfx.coverOpen();
               setTip(null);
+              unlock("about");
               onOpenAbout();
             }}
           />
@@ -577,10 +608,46 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             onPointerLeave={() => setTip(null)}
             onClick={() => {
               sfx.purr();
+              unlock("pet");
+              if (bump("pets") >= 20) unlock("pet-20");
               const id = Date.now();
               setPetting(id);
               setTimeout(() => setPetting((p) => (p === id ? 0 : p)), 2600);
               showTip(SCENE.catSleep.x + SCENE.catSleep.w / 2, SCENE.catSleep.y, "Warwick", "rrrrrrr ♥");
+            }}
+          />
+
+          {/* the Poké Ball on the top shelf: it glows when hovered, a red bubble counts the trophies not seen yet */}
+          <span
+            className={`${styles.ballGlow} ${ballHover ? styles.ballGlowOn : ""} ${fresh ? styles.ballGlowNew : ""}`}
+            style={{ left: BALL.cx - 110, top: BALL.cy - 110 }}
+            aria-hidden
+          />
+          {fresh > 0 && (
+            <span key={fresh} className={styles.ballBadge} style={{ left: BALL.cx + 30, top: BALL.cy - 78 }} aria-hidden>
+              {fresh}
+            </span>
+          )}
+          <button
+            className={`${styles.hotspot} ${styles.bookSpot}`}
+            style={place(BALL)}
+            data-tour="trophies"
+            aria-label={tr("La Poké Ball : tes trophées", "The Poké Ball: your trophies")}
+            onPointerEnter={() => {
+              sfx.hover();
+              setBallHover(true);
+              const n = TROPHIES.filter((x) => won[x.id]).length;
+              showTip(BALL.cx, BALL.y - 8, tr("Vitrine à trophées", "Trophy case"), `${n}/${TROPHIES.length} ${tr("trophées", "trophies")}${fresh ? tr(` · ${fresh} nouveau${fresh > 1 ? "x" : ""} !`, ` · ${fresh} new!`) : ""}`, BALL.y + BALL.h + 10);
+            }}
+            onPointerLeave={() => {
+              setBallHover(false);
+              setTip(null);
+            }}
+            onClick={() => {
+              sfx.ballOpen();
+              setTip(null);
+              setBallHover(false);
+              onOpenTrophies(toScreen(BALL.cx, BALL.cy));
             }}
           />
         </div>

@@ -1,0 +1,713 @@
+/* Trophies: the medals, the toast that pops when one is won, and the case out of the Poké Ball on the shelf. */
+
+/* ---------------- Medal ---------------- */
+
+.medal {
+  --size: 56px;
+  --metal: radial-gradient(circle at 32% 28%, #ffe6c9, #e0995e 38%, #a8622f 78%, #7b4420);
+  --rim: #6e3c1c;
+  --ribbon: #3f6fb5;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: var(--size);
+  height: calc(var(--size) * 1.18);
+  vertical-align: middle;
+}
+
+.silver {
+  --metal: radial-gradient(circle at 32% 28%, #ffffff, #e3e8ef 35%, #a3afbe 75%, #75808f);
+  --rim: #5a6371;
+  --ribbon: #b8433d;
+}
+
+.gold {
+  --metal: radial-gradient(circle at 32% 28%, #fff7d1, #ffd65a 35%, #d39a1d 75%, #9a6a0c);
+  --rim: #7c560c;
+  --ribbon: #3f8a4f;
+}
+
+.platinum {
+  --metal: conic-gradient(from 30deg, #d8fbff, #f6d8ff, #d8ffe9, #fff6c8, #d4e4ff, #d8fbff);
+  --rim: #5f6b8e;
+  --ribbon: #7b4bc4;
+}
+
+/* two ribbon tails under the coin */
+.ribbon {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: calc(var(--size) * 0.5);
+  height: calc(var(--size) * 0.5);
+  translate: -50% 0;
+}
+
+.ribbon::before,
+.ribbon::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 44%;
+  height: 100%;
+  background: var(--ribbon);
+  border: 2px solid var(--ink);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+}
+
+.ribbon::before {
+  left: 4%;
+  rotate: 14deg;
+}
+
+.ribbon::after {
+  right: 4%;
+  rotate: -14deg;
+}
+
+.coin {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: var(--metal);
+  box-shadow:
+    inset 0 0 0 calc(var(--size) * 0.07) rgba(255, 255, 255, 0.35),
+    inset 0 calc(var(--size) * -0.06) 0 calc(var(--size) * 0.02) rgba(0, 0, 0, 0.18),
+    0 0 0 2px var(--rim),
+    0 0 0 4px var(--ink),
+    2px 3px 0 4px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+/* the metal's glint */
+.coin::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.65) 50%, transparent 58%);
+  translate: -60% 0;
+  animation: glint 5s ease-in-out infinite;
+}
+
+@keyframes glint {
+  0%,
+  70% {
+    translate: -60% 0;
+  }
+  100% {
+    translate: 60% 0;
+  }
+}
+
+.icon {
+  position: relative;
+  z-index: 1;
+  font-size: calc(var(--size) * 0.46);
+  line-height: 1;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.5));
+}
+
+.locked .coin {
+  background: radial-gradient(circle at 32% 28%, #5d5368, #3a3145 60%, #2a2233);
+  box-shadow:
+    inset 0 0 0 calc(var(--size) * 0.07) rgba(0, 0, 0, 0.2),
+    0 0 0 2px #4a4054,
+    0 0 0 4px var(--ink),
+    2px 3px 0 4px rgba(0, 0, 0, 0.35);
+}
+
+.locked .coin::after {
+  display: none;
+}
+
+/* not won yet: the picture as a silhouette, "?" for a secret */
+.locked .icon {
+  filter: brightness(0) invert(0.32);
+  opacity: 0.8;
+  font-family: var(--font-press), monospace;
+  color: #8a7fae;
+}
+
+.locked .ribbon::before,
+.locked .ribbon::after {
+  background: #3a3145;
+}
+
+/* ---------------- Toast ---------------- */
+
+.toast {
+  --tier: #c9824a;
+  position: fixed;
+  left: 16px;
+  bottom: 44px;
+  z-index: 520;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: min(380px, calc(100vw - 32px));
+  padding: 14px 18px 16px 14px;
+  border: 0;
+  border-radius: 10px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    inset 0 0 0 3px var(--tier),
+    6px 8px 0 3px rgba(20, 12, 28, 0.45),
+    0 20px 60px rgba(0, 0, 0, 0.45);
+  overflow: visible;
+}
+
+.toast_silver {
+  --tier: #9aa6b5;
+}
+
+.toast_gold {
+  --tier: #e0aa2a;
+}
+
+.toast_platinum {
+  --tier: #a98ae6;
+  width: min(420px, calc(100vw - 32px));
+}
+
+.toastSecret {
+  background-color: #2a2140;
+  color: #efe3c8;
+  --tier: #b28cff;
+}
+
+.toastSecret .toastText span {
+  color: #c9bde8;
+}
+
+/* a shine sweeping over the silver ones and up */
+.toast_silver::after,
+.toast_gold::after,
+.toast_platinum::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.7) 50%, transparent 65%);
+  background-size: 250% 100%;
+  background-position: 120% 0;
+  animation: sweep 1.2s 0.5s ease-in-out both;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+.toast_gold::after,
+.toast_platinum::after {
+  animation:
+    sweep 1.2s 0.5s ease-in-out both,
+    sweep 1.2s 2.4s ease-in-out both;
+}
+
+@keyframes sweep {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+.toast_gold {
+  animation: goldGlow 1.6s 0.4s ease-in-out 2;
+}
+
+.toast_platinum {
+  animation: platGlow 2s 0.3s ease-in-out 2;
+}
+
+@keyframes goldGlow {
+  50% {
+    box-shadow:
+      0 0 0 3px var(--ink),
+      inset 0 0 0 3px var(--tier),
+      6px 8px 0 3px rgba(20, 12, 28, 0.45),
+      0 0 50px 8px rgba(255, 205, 80, 0.55);
+  }
+}
+
+@keyframes platGlow {
+  33% {
+    box-shadow:
+      0 0 0 3px var(--ink),
+      inset 0 0 0 3px #6ae6ff,
+      6px 8px 0 3px rgba(20, 12, 28, 0.45),
+      0 0 60px 12px rgba(160, 230, 255, 0.55);
+  }
+  66% {
+    box-shadow:
+      0 0 0 3px var(--ink),
+      inset 0 0 0 3px #ff7aa8,
+      6px 8px 0 3px rgba(20, 12, 28, 0.45),
+      0 0 60px 12px rgba(255, 150, 210, 0.5);
+  }
+}
+
+/* platinum: the whole screen lights up for an instant */
+.flash {
+  position: fixed;
+  inset: -100vmax;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.85), rgba(200, 230, 255, 0.3) 30%, transparent 60%);
+  pointer-events: none;
+  animation: flash 1.1s ease-out both;
+}
+
+@keyframes flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.toastConfetto {
+  position: absolute;
+  left: 50px;
+  top: 40px;
+  width: 9px;
+  height: 9px;
+  pointer-events: none;
+}
+
+.toastMedal {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 72px;
+  perspective: 300px;
+}
+
+/* gold and platinum: light turning behind the medal */
+.rays {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(rgba(255, 215, 90, 0.55) 0 10deg, transparent 10deg 30deg);
+  mask-image: radial-gradient(closest-side, #000 30%, transparent);
+  -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent);
+  animation:
+    spin 6s linear infinite,
+    raysIn 0.8s 0.2s ease-out both;
+}
+
+.toast_platinum .rays {
+  background: repeating-conic-gradient(rgba(170, 220, 255, 0.6) 0 8deg, rgba(255, 170, 225, 0.45) 8deg 16deg, transparent 16deg 30deg);
+}
+
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes raysIn {
+  from {
+    opacity: 0;
+    scale: 0.2;
+  }
+}
+
+.spark {
+  position: absolute;
+  left: calc(50% - 7px);
+  top: calc(42% - 9px);
+  color: #ffd35a;
+  font-style: normal;
+  font-size: 16px;
+  text-shadow: 0 0 6px rgba(255, 210, 90, 0.9);
+  pointer-events: none;
+}
+
+.toast_silver .spark {
+  color: #ffffff;
+  text-shadow: 0 0 6px rgba(200, 220, 255, 0.9);
+}
+
+.stack {
+  display: flex;
+}
+
+.stack > * + * {
+  margin-left: -22px;
+}
+
+.toastText {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.toastText small {
+  font-family: var(--font-press), monospace;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tier);
+  line-height: 1.5;
+  filter: brightness(0.8);
+  margin-bottom: 4px;
+}
+
+.toastSecret .toastText small {
+  filter: none;
+}
+
+.toastText b {
+  font-weight: normal;
+  font-size: 24px;
+}
+
+.toastText span {
+  font-size: 18px;
+  color: var(--ink-soft);
+}
+
+.toastText em {
+  margin-top: 4px;
+  font-style: normal;
+  font-family: var(--font-press), monospace;
+  font-size: 9px;
+  color: var(--ink-gold);
+}
+
+.toastSecret .toastText em {
+  color: #ffd35a;
+}
+
+/* how long it stays: a thin line running out */
+.toastTimer {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 6px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--tier);
+  opacity: 0.6;
+  transform-origin: left;
+  animation: timer linear both;
+}
+
+@keyframes timer {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* ---------------- Case ---------------- */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 72;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(24, 16, 36, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.burst {
+  position: fixed;
+  width: 220vmax;
+  height: 220vmax;
+  margin: -110vmax 0 0 -110vmax;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.95), rgba(255, 240, 200, 0.5) 25%, transparent 60%);
+  pointer-events: none;
+}
+
+.case {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(860px, 100%);
+  max-height: calc(100dvh - 32px);
+  padding: 22px 22px 18px;
+  border-radius: 12px;
+  /* dark wood, painted */
+  background:
+    repeating-linear-gradient(92deg, rgba(0, 0, 0, 0.08) 0 3px, transparent 3px 11px),
+    linear-gradient(180deg, #7a4a30, #5b3420);
+  color: #efe3c8;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    inset 0 0 0 3px rgba(255, 220, 170, 0.18),
+    9px 11px 0 3px rgba(20, 12, 28, 0.45),
+    0 30px 80px rgba(0, 0, 0, 0.55);
+}
+
+.close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.close:hover {
+  transform: rotate(90deg) scale(1.08);
+}
+
+.caseHead {
+  flex: none;
+  padding: 0 44px 14px 4px;
+}
+
+.caseHead h2 {
+  margin: 0 0 6px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 16px;
+  color: #ffd35a;
+  text-shadow: 2px 2px 0 var(--ink);
+}
+
+.caseHead p {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: #e9d6b8;
+}
+
+.caseHead b {
+  font-weight: normal;
+  color: #ffffff;
+}
+
+.bar {
+  display: block;
+  height: 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 2px var(--ink);
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #e0995e, #ffd65a, #d8fbff);
+}
+
+/* velvet behind the glass, a shelf per family */
+.shelves {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 16px 6px;
+  border-radius: 8px;
+  background:
+    var(--paper-grain),
+    radial-gradient(ellipse at 30% 0%, rgba(255, 210, 160, 0.16), transparent 60%),
+    linear-gradient(180deg, #4a1f35, #2f1426);
+  box-shadow:
+    inset 0 0 0 3px var(--ink),
+    inset 0 10px 24px rgba(0, 0, 0, 0.45);
+  scrollbar-color: #8a5a3c transparent;
+}
+
+.shelf + .shelf {
+  margin-top: 6px;
+}
+
+.shelf h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 8px 0 2px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 10px;
+  color: #e7c78f;
+}
+
+.shelf h3 span {
+  font-family: var(--font-vt), monospace;
+  font-size: 18px;
+  color: #b89a85;
+}
+
+/* the medals stand on a wooden ledge */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  padding: 8px 2px 12px;
+  border-bottom: 8px solid #6b3f2a;
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.slot {
+  position: relative;
+  padding: 6px 6px 2px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+  perspective: 300px;
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.8, 0.5, 1),
+    background 0.15s;
+}
+
+.slot:hover {
+  transform: translateY(-4px) rotate(-4deg);
+}
+
+.slot:active {
+  transform: scale(0.92);
+}
+
+.picked {
+  background: rgba(255, 220, 150, 0.16);
+  box-shadow: 0 0 0 2px rgba(255, 211, 90, 0.65);
+}
+
+.fresh {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  z-index: 2;
+  padding: 3px 4px 2px;
+  border-radius: 4px;
+  background: #e2483d;
+  color: #fff;
+  font-family: var(--font-press), monospace;
+  font-size: 7px;
+  box-shadow: 0 0 0 2px var(--ink);
+  animation: freshBob 1.2s ease-in-out infinite;
+}
+
+@keyframes freshBob {
+  50% {
+    translate: 0 -3px;
+  }
+}
+
+/* the brass plate under the case */
+.plate {
+  flex: none;
+  min-height: 96px;
+  margin-top: 14px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #e9c97a, #c79a3e);
+  color: #3a2410;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.18);
+}
+
+.plate p {
+  margin: 0;
+}
+
+.plateName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.tierTag {
+  padding: 3px 6px 2px;
+  border-radius: 4px;
+  font-family: var(--font-press), monospace;
+  font-size: 8px;
+  color: #fff;
+  background: #a8622f;
+}
+
+.tag_silver {
+  background: #75808f;
+}
+
+.tag_gold {
+  background: #b07d0e;
+}
+
+.tag_platinum {
+  background: #7b4bc4;
+}
+
+.plateDesc {
+  font-size: 19px;
+  line-height: 1.2;
+}
+
+.plateDate {
+  font-size: 16px;
+  color: #6b4a22;
+}
+
+@media (max-width: 700px) {
+  .toast {
+    left: 12px;
+    right: 12px;
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    width: auto;
+    margin: 0 auto;
+    max-width: 420px;
+  }
+
+  .case {
+    padding: 16px 12px 12px;
+  }
+
+  .shelves {
+    padding: 6px 8px;
+  }
+
+  .row {
+    gap: 2px;
+  }
+
+  .slot {
+    padding: 4px 2px 0;
+  }
+
+  .row .medal {
+    --size: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coin::after,
+  .rays,
+  .fresh {
+    animation: none;
+  }
+}
