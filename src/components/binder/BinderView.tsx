@@ -9,6 +9,7 @@ import { sortCards } from "@/lib/rarity";
 import { SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { looseCopies, useStore } from "@/lib/store";
+import { unlock } from "@/lib/trophyStore";
 import type { BinderDef, CardData } from "@/lib/types";
 import { isCompact, useViewport } from "@/lib/useViewport";
 import { CardPicker } from "./CardPicker";
@@ -354,6 +355,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
     c.t = now;
     const tier: Tier = cardTier(card);
     sfx.add(c.n, tier);
+    if (c.n + 1 >= 10) unlock("combo");
     if (tier === "legend") setParty({ id: now, card });
     return { combo: c.n + 1, gain: unitPrice(card, card.variants[0], "trend"), tier };
   }, []);

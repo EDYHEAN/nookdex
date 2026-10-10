@@ -9,6 +9,7 @@ import { variantLabel, copiesTotals, formatMoney, formatPrice, playerCurrency, p
 import { OS_NAME, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { isBackup, makeBackup, useStore } from "@/lib/store";
+import { unlock } from "@/lib/trophyStore";
 import type { CardData, CatalogSet, Copy, SetData } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
@@ -96,6 +97,8 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, paused, sta
       say(tr("copie impossible", "couldn't copy"));
     }
   };
+
+  useEffect(() => unlock("os"), []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

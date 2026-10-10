@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { ABOUT, ABOUT_EN } from "@/data/about";
 import { INSTAGRAM_URL, SUPPORT_URL } from "@/lib/site";
 import { sfx } from "@/lib/sound";
+import { unlock } from "@/lib/trophyStore";
 import styles from "./AboutBook.module.css";
 import { useT } from "@/lib/lang";
 
@@ -101,7 +102,15 @@ export function AboutBook({ onClose, onTour, onRoadLog }: { onClose: () => void;
             Instagram
           </a>{" "}
           ·{" "}
-          <a href={SUPPORT_URL} target="_blank" rel="noopener" onClick={() => sfx.coin()}>
+          <a
+            href={SUPPORT_URL}
+            target="_blank"
+            rel="noopener"
+            onClick={() => {
+              sfx.coin();
+              unlock("treat");
+            }}
+          >
             {t("Soutenir NookDex ♥", "Support NookDex ♥")}
           </a>
         </nav>

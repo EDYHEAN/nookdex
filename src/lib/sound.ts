@@ -204,6 +204,42 @@ export const sfx = {
     for (let i = 0; i < 18; i++) noise({ dur: 0.05, vol: 0.14, type: "lowpass", freq: 220, delay: i * 0.045 + Math.floor(i / 6) * 0.12 });
     tone({ freq: 700, to: 1100, type: "sine", dur: 0.25, vol: 0.05, delay: 1.1 });
   },
+  /** A trophy is won: the higher its tier, the bigger the fanfare. A secret starts with a mysterious little riff. */
+  trophy(tier: "bronze" | "silver" | "gold" | "platinum", secret = false) {
+    let d = 0;
+    if (secret) {
+      [0, 6, 3, 9].forEach((n, i) => tone({ freq: semi(330, n), type: "sine", dur: 0.2, vol: 0.06, delay: i * 0.09 }));
+      d = 0.4;
+    }
+    const base = tier === "bronze" ? 659 : tier === "silver" ? 587 : 523;
+    if (tier === "bronze") {
+      tone({ freq: base, type: "triangle", dur: 0.12, vol: 0.09, delay: d });
+      tone({ freq: semi(base, 7), type: "triangle", dur: 0.3, vol: 0.09, delay: d + 0.1 });
+      tone({ freq: semi(base, 19), type: "sine", dur: 0.4, vol: 0.04, delay: d + 0.12 });
+      return;
+    }
+    // a rising arpeggio, then a shimmer
+    const steps = tier === "silver" ? [0, 4, 7, 12] : [0, 4, 7, 12, 16, 19];
+    steps.forEach((n, i) => tone({ freq: semi(base, n), type: "square", dur: 0.11, vol: 0.05, delay: d + i * 0.07 }));
+    const end = d + steps.length * 0.07;
+    [24, 28, 31].forEach((n, i) => tone({ freq: semi(base, n), type: "sine", dur: 0.5, vol: 0.035, delay: end + i * 0.05 }));
+    noise({ dur: 0.6, vol: 0.04, type: "highpass", freq: 7000, delay: end, attack: 0.1 });
+    if (tier === "silver") return;
+    // gold and platinum: the fanfare's chords
+    const chords = tier === "gold" ? [[0, 4, 7], [5, 9, 12], [7, 11, 14, 19]] : [[0, 4, 7], [5, 9, 12], [3, 7, 10], [7, 11, 14], [12, 16, 19, 24]];
+    chords.forEach((chord, i) => {
+      const last = i === chords.length - 1;
+      chord.forEach((n) => tone({ freq: semi(base / 2, n + 12), type: "square", dur: last ? 0.9 : 0.16, vol: 0.03, delay: end + 0.25 + i * 0.18 }));
+    });
+    tone({ freq: semi(base / 4, 12), type: "triangle", dur: 0.9, vol: 0.12, delay: end + 0.25 + (chords.length - 1) * 0.18 });
+    if (tier === "platinum") noise({ dur: 1.6, vol: 0.06, type: "highpass", freq: 5500, delay: end + 0.9, attack: 0.4 });
+  },
+  /** the Poké Ball's latch, then a burst of light */
+  ballOpen() {
+    tone({ freq: 900, to: 1400, dur: 0.03, vol: 0.06 });
+    tone({ freq: 220, to: 880, type: "sine", dur: 0.22, vol: 0.12, delay: 0.06 });
+    noise({ dur: 0.5, vol: 0.12, freq: 1800, to: 6000, q: 0.7, attack: 0.05, delay: 0.1 });
+  },
   boot() {
     tone({ freq: 60, to: 15000, type: "sine", dur: 0.3, vol: 0.02 });
     noise({ dur: 0.25, vol: 0.05, type: "highpass", freq: 4000 });

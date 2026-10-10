@@ -7,6 +7,7 @@ import { useT } from "@/lib/lang";
 import { sceneImg } from "@/lib/scene";
 import { SUPPORT_URL } from "@/lib/site";
 import { sfx } from "@/lib/sound";
+import { unlock } from "@/lib/trophyStore";
 import { useStore } from "@/lib/store";
 import styles from "./SupportCat.module.css";
 
@@ -102,6 +103,7 @@ export function SupportCat({ compact, calm }: { compact: boolean; calm: boolean 
   };
   const tip = () => {
     sfx.coin();
+    unlock("treat");
     snooze(THANKS_DAYS);
     setThanks(true);
     setTimeout(() => sfx.purr(), 350);

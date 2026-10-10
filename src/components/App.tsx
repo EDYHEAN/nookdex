@@ -3,13 +3,14 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { APP_VERSION } from "@/data/changelog";
-import { shelfBinders } from "@/lib/binders";
+import { MAX_BINDERS, shelfBinders } from "@/lib/binders";
 import { bareId, keyOf } from "@/lib/cardLang";
 import { loadSet, loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { returningFromSignIn, startCloud, useCloud } from "@/lib/cloud";
 import { setMuted, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
+import { useTrophyWatch } from "@/lib/useTrophyWatch";
 import { isCompact, useViewport } from "@/lib/useViewport";
 import { BinderView } from "./binder/BinderView";
 import { Inspector } from "./binder/Inspector";
@@ -22,6 +23,8 @@ import { PaintedRoom } from "./room/PaintedRoom";
 import { RoadLog, markSeen, seenVersion } from "./room/RoadLog";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
+import { TrophyCase } from "./room/TrophyCase";
+import { TrophyToasts } from "./room/TrophyToast";
 import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
 import { Tour } from "./shelf/Tour";
 import { Welcome } from "./shelf/Welcome";
@@ -49,6 +52,8 @@ export function App() {
   const [adding, setAdding] = useState(false);
   const [about, setAbout] = useState(false);
   const [roadLog, setRoadLog] = useState(false);
+  /** the trophy case, out of the Poké Ball (where it is on screen) */
+  const [trophies, setTrophies] = useState<{ x: number; y: number } | null>(null);
   /**
    * A returning player gets the road log once per version (per device), when the room is calm. A newcomer (no
    * profile yet) starts on the current version: the welcome and the tour show them everything already.
@@ -186,7 +191,7 @@ export function App() {
   };
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
-  const busy = !!openBinder || !!computer || adding || about || roadLog;
+  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies;
   // Sign in (or play offline, warned), then a nickname, then a first binder.
   const showWelcome =
     entered &&
@@ -197,6 +202,7 @@ export function App() {
     ((!cloud.email && !offline) || !profile || (welcome && !userBinders.length));
 
   const calm = entered && !busy && !tour && !showWelcome;
+  useTrophyWatch(entered);
   useEffect(() => {
     if (!news || !calm) return;
     const id = setTimeout(() => {
@@ -219,6 +225,7 @@ export function App() {
         onOpenComputer={(r) => setComputer({ x: r.left + r.width / 2, y: r.top + r.height / 2 })}
         onAddBinder={() => setAdding(true)}
         onOpenAbout={() => setAbout(true)}
+        onOpenTrophies={setTrophies}
         veiled={!entered && !revealed}
         behind={compact && !!openBinder && covered}
       />
@@ -286,6 +293,8 @@ export function App() {
 
       <AnimatePresence>{roadLog && <RoadLog key="roadlog" onClose={() => setRoadLog(false)} />}</AnimatePresence>
 
+      <AnimatePresence>{trophies && <TrophyCase key="trophies" origin={trophies} onClose={() => setTrophies(null)} />}</AnimatePresence>
+
       <AnimatePresence>
         {adding && (
           <motion.div
@@ -300,7 +309,7 @@ export function App() {
           >
             <BinderPicker
               title={tr("Nouveau classeur", "New binder")}
-              subtitle={tr(`Il prendra la place libre de l'étagère (${binders.length + 1}/14).`, `It takes the free spot on the shelf (${binders.length + 1}/14).`)}
+              subtitle={tr(`Il prendra la place libre de l'étagère (${binders.length + 1}/${MAX_BINDERS}).`, `It takes the free spot on the shelf (${binders.length + 1}/${MAX_BINDERS}).`)}
               onPick={async (choice) => {
                 // a player who went exploring before their first binder gets the tour with it
                 const first = !userBinders.length;
@@ -386,6 +395,14 @@ export function App() {
           />
         )}
       {tour && <Tour onDone={() => setTour(false)} />}
+      {/* a trophy won pops in the corner (it waits for the room: the loader, the welcome) */}
+      <TrophyToasts
+        ready={entered && !showWelcome}
+        onOpen={() => {
+          sfx.ballOpen();
+          setTrophies({ x: 60, y: window.innerHeight - 80 });
+        }}
+      />
       {/* a tip for the project, asked by the cat once the player has a few cards (never over a binder, the OS or the tour) */}
       {entered && <SupportCat compact={compact} calm={calm && !news} />}
       {/* a computer: the cat and its tip tag in the corner of the calm room (a phone has the pop-in only) */}

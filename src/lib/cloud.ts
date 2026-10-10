@@ -4,6 +4,7 @@ import { createClient, type User } from "@supabase/supabase-js";
 import { create } from "zustand";
 import { loadSets, neededSets } from "./catalog";
 import { type Backup, isBackup, makeBackup, useStore } from "./store";
+import { mergeTrophies, trophyKey, useTrophyStore } from "./trophyStore";
 
 // Public values (the table is guarded by row level security): env vars override them.
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://xwqhucccldraieyiycvt.supabase.co";
@@ -70,6 +71,8 @@ const writeBase = (userId: string, fp: string) => {
 let user: User | null = null;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let pending = false;
+/** The trophies the server holds (they're not in the fingerprint): a new one is worth a save of its own. */
+let cloudTrophies: string | null = null;
 
 async function push() {
   clearTimeout(timer);
@@ -78,7 +81,8 @@ async function push() {
   const u = user;
   const backup = makeBackup(useStore.getState());
   const fp = fingerprint(backup);
-  if (fp === readBase(u.id) && useCloud.getState().status === "synced") return;
+  const trophies = trophyKey(backup.trophies);
+  if (fp === readBase(u.id) && useCloud.getState().status === "synced" && trophies === cloudTrophies) return;
   useCloud.setState({ status: "saving" });
   const { error } = await supabase.from("saves").upsert({ user_id: u.id, data: backup, updated_at: new Date().toISOString() });
   if (user?.id !== u.id) return;
@@ -88,6 +92,7 @@ async function push() {
     return;
   }
   writeBase(u.id, fp);
+  cloudTrophies = trophies;
   useCloud.setState({ status: "synced", savedAt: Date.now(), error: null });
 }
 
@@ -115,6 +120,10 @@ async function pull() {
   const local = useStore.getState();
   const localFp = fingerprint(local);
   if (!remote) return push();
+  // trophies won on another device join this one's, whatever happens to the rest
+  mergeTrophies(remote.trophies);
+  cloudTrophies = trophyKey(remote.trophies);
+  const trophiesAhead = trophyKey(useTrophyStore.getState().got) !== cloudTrophies;
   const remoteFp = fingerprint(remote);
   const base = readBase(u.id);
   const localEmpty = !local.binders.length && !Object.keys(local.collection).length;
@@ -122,6 +131,7 @@ async function pull() {
   if (remoteFp === localFp) {
     writeBase(u.id, localFp);
     useCloud.setState({ status: "synced", conflict: null, error: null });
+    if (trophiesAhead) await push();
   } else if (localEmpty || localFp === base) await applyRemote(remote);
   else if (remoteFp === base) await push();
   else useCloud.setState({ status: "conflict", conflict: remote });
@@ -171,6 +181,7 @@ export function startCloud() {
     user = next;
     clearTimeout(timer);
     pending = false;
+    cloudTrophies = null;
     const meta = next?.user_metadata as { full_name?: string; name?: string } | undefined;
     const firstName = (meta?.full_name ?? meta?.name ?? "").trim().split(/\s+/)[0] || null;
     useCloud.setState({ email: next?.email ?? null, firstName, status: next ? "loading" : "off", conflict: null, savedAt: null });
@@ -180,6 +191,15 @@ export function startCloud() {
 
   useStore.subscribe((s, prev) => {
     if (!user || (s.collection === prev.collection && s.binders === prev.binders && s.profile === prev.profile && s.currency === prev.currency)) return;
+    const status = useCloud.getState().status;
+    if (status === "loading" || status === "conflict") return;
+    clearTimeout(timer);
+    pending = true;
+    timer = setTimeout(() => void push(), 1500);
+  });
+
+  useTrophyStore.subscribe((s, prev) => {
+    if (!user || s.got === prev.got) return;
     const status = useCloud.getState().status;
     if (status === "loading" || status === "conflict") return;
     clearTimeout(timer);

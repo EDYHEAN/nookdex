@@ -722,3 +722,68 @@
 .bookSpot:focus-visible {
   background: radial-gradient(closest-side, rgba(255, 226, 160, 0.3), transparent);
 }
+
+/* the Poké Ball on the top shelf (the trophy case): a soft glow when hovered, a slow pulse while trophies wait */
+.ballGlow {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 236, 170, 0.55), rgba(255, 200, 120, 0.18) 55%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+.ballGlowNew {
+  animation: ballPulse 2.4s ease-in-out infinite;
+}
+
+.ballGlowOn {
+  opacity: 1;
+  animation: none;
+}
+
+@keyframes ballPulse {
+  50% {
+    opacity: 0.75;
+  }
+}
+
+.ballBadge {
+  position: absolute;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  border-radius: 22px;
+  background: #e2483d;
+  color: #fff;
+  font-family: var(--font-press), monospace;
+  font-size: 22px;
+  line-height: 46px;
+  text-align: center;
+  box-shadow:
+    0 0 0 5px #2b2230,
+    4px 5px 0 5px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  animation: ballBadge 0.5s cubic-bezier(0.34, 1.8, 0.5, 1) both, ballBob 1.6s 0.5s ease-in-out infinite;
+}
+
+@keyframes ballBadge {
+  from {
+    scale: 0;
+  }
+}
+
+@keyframes ballBob {
+  50% {
+    translate: 0 -8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ballGlowNew,
+  .ballBadge {
+    animation: none;
+  }
+}

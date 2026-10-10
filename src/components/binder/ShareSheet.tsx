@@ -8,6 +8,7 @@ import { playerCurrency } from "@/lib/price";
 import { setPagePath, slugify } from "@/lib/setPath";
 import { SITE_DOMAIN } from "@/lib/site";
 import { sfx } from "@/lib/sound";
+import { unlock } from "@/lib/trophyStore";
 import { useStore } from "@/lib/store";
 import type { SetData } from "@/lib/types";
 import styles from "./ShareSheet.module.css";
@@ -85,6 +86,7 @@ export function ShareSheet({ setKey, set, owned, value, onClose }: { setKey: str
       // the link goes in the text: some apps drop the url field when a picture comes with it
       await navigator.share(canShareFile ? { files: [file!], text: `${text} ${link}` } : { text, url: link });
       sfx.coin();
+      unlock("share");
     } catch (e) {
       if ((e as Error).name !== "AbortError") say(t("partage impossible", "couldn't share"));
     }
@@ -93,6 +95,7 @@ export function ShareSheet({ setKey, set, owned, value, onClose }: { setKey: str
     try {
       await navigator.clipboard.writeText(`${text} ${link}`);
       sfx.pop();
+      unlock("share");
       say(t("lien copié !", "link copied!"));
     } catch {
       sfx.locked();
@@ -150,7 +153,10 @@ export function ShareSheet({ setKey, set, owned, value, onClose }: { setKey: str
             </button>
           )}
           {blobUrl && (
-            <a className={canShare ? styles.second : styles.main} href={blobUrl} download={fileName} onClick={() => sfx.pop()} onPointerEnter={sfx.hover}>
+            <a className={canShare ? styles.second : styles.main} href={blobUrl} download={fileName} onClick={() => {
+                sfx.pop();
+                unlock("share");
+              }} onPointerEnter={sfx.hover}>
               {t("Télécharger l'image", "Download the picture")}
             </a>
           )}

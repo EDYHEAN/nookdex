@@ -13,6 +13,22 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.8",
+    date: "2026-10-10",
+    title: { fr: "Les trophées", en: "Trophies" },
+    items: [
+      {
+        fr: "60 trophées à gagner : première carte, première page, classeur complet, master set, cartes rares, Pokémon cultes… et quelques secrets bien cachés dans le bureau.",
+        en: "60 trophies to win: first card, first page, complete binder, master set, rare cards, iconic Pokémon… and a few secrets hidden around the desk.",
+      },
+      {
+        fr: "Chaque trophée débloqué s'annonce en bas de l'écran, avec sa fanfare : bronze, argent, or ou platine, plus c'est dur, plus c'est la fête.",
+        en: "Every trophy won pops up at the bottom of the screen with its fanfare: bronze, silver, gold or platinum, the harder it is, the bigger the party.",
+      },
+      { fr: "Ta vitrine à trophées se cache dans la Poké Ball de l'étagère.", en: "Your trophy case hides in the Poké Ball on the shelf." },
+    ],
+  },
+  {
     version: "0.7",
     date: "2026-10-07",
     title: { fr: "Les vieux sets et toutes les cartes", en: "The old sets and every card" },
