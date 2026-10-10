@@ -111,6 +111,17 @@ doesn't show.
   skipped, waits for the player on the key gestures. Replayable from the shelf notebook. Renaming or removing a
   `data-tour` attribute breaks a step.
 
+## Trophies
+
+- `lib/trophies.ts` (the 60, `factsOf` worked out from the collection), won by `useTrophyWatch` (debounced, waits for the
+  cloud) or by `unlock(id)` on a gesture (room easter eggs, OS, share, combo, tip links). Kept in their own store
+  (`lib/trophyStore`, localStorage `nookdex:trophies`), ride in the save (`Backup.trophies`) and the cloud, merged and never
+  in the conflict fingerprint. Toasts `room/TrophyToast` (4+ at once = one summary), case `room/TrophyCase` from the
+  Poké Ball hotspot on the top shelf (`data-tour="trophies"`).
+- Their pictures: painted trinkets drawn by Gemini on one white sheet (`img/trophies.jpg`, 10×6, the order of `ORDER` in
+  `scripts/build-trophies.mjs`), cut out by that script into `public/trophies.webp` + `src/data/trophy-art.json`. A new
+  trophy needs its trinket: a new sheet (same style prompt) and the script run again.
+
 ## Versions and the road log
 
 - `src/data/changelog.ts` (`CHANGELOG`, newest first, FR + EN): the version shown in the room's bottom-left corner
