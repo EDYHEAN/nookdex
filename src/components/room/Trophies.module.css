@@ -1,143 +1,87 @@
 /* Trophies: the medals, the toast that pops when one is won, and the case out of the Poké Ball on the shelf. */
 
-/* ---------------- Medal ---------------- */
+/* ---------------- Trinket: the painted object on its plinth ---------------- */
 
 .medal {
-  --size: 56px;
-  --metal: radial-gradient(circle at 32% 28%, #ffe6c9, #e0995e 38%, #a8622f 78%, #7b4420);
+  --size: 64px;
+  /* the plinth's metal tells the tier */
+  --metal: linear-gradient(180deg, #f6c79c, #d08a52 40%, #8e5128);
   --rim: #6e3c1c;
-  --ribbon: #3f6fb5;
   position: relative;
-  display: inline-grid;
-  place-items: center;
+  display: inline-block;
   width: var(--size);
-  height: calc(var(--size) * 1.18);
+  height: calc(var(--size) * 1.12);
   vertical-align: middle;
 }
 
 .silver {
-  --metal: radial-gradient(circle at 32% 28%, #ffffff, #e3e8ef 35%, #a3afbe 75%, #75808f);
+  --metal: linear-gradient(180deg, #ffffff, #cfd6df 40%, #808a98);
   --rim: #5a6371;
-  --ribbon: #b8433d;
 }
 
 .gold {
-  --metal: radial-gradient(circle at 32% 28%, #fff7d1, #ffd65a 35%, #d39a1d 75%, #9a6a0c);
+  --metal: linear-gradient(180deg, #fff3b8, #f2c444 40%, #a8740f);
   --rim: #7c560c;
-  --ribbon: #3f8a4f;
 }
 
 .platinum {
-  --metal: conic-gradient(from 30deg, #d8fbff, #f6d8ff, #d8ffe9, #fff6c8, #d4e4ff, #d8fbff);
+  --metal: linear-gradient(100deg, #d8fbff, #f6d8ff 30%, #d8ffe9 55%, #fff6c8 80%, #d4e4ff);
   --rim: #5f6b8e;
-  --ribbon: #7b4bc4;
 }
 
-/* two ribbon tails under the coin */
-.ribbon {
+.plinth {
   position: absolute;
+  left: 8%;
+  right: 8%;
   bottom: 0;
-  left: 50%;
-  width: calc(var(--size) * 0.5);
-  height: calc(var(--size) * 0.5);
-  translate: -50% 0;
-}
-
-.ribbon::before,
-.ribbon::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  width: 44%;
-  height: 100%;
-  background: var(--ribbon);
-  border: 2px solid var(--ink);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
-}
-
-.ribbon::before {
-  left: 4%;
-  rotate: 14deg;
-}
-
-.ribbon::after {
-  right: 4%;
-  rotate: -14deg;
-}
-
-.coin {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: grid;
-  place-items: center;
-  width: var(--size);
-  height: var(--size);
+  height: calc(var(--size) * 0.24);
   border-radius: 50%;
   background: var(--metal);
   box-shadow:
-    inset 0 0 0 calc(var(--size) * 0.07) rgba(255, 255, 255, 0.35),
-    inset 0 calc(var(--size) * -0.06) 0 calc(var(--size) * 0.02) rgba(0, 0, 0, 0.18),
+    inset 0 calc(var(--size) * -0.05) 0 rgba(0, 0, 0, 0.22),
+    inset 0 calc(var(--size) * 0.03) 0 rgba(255, 255, 255, 0.5),
     0 0 0 2px var(--rim),
     0 0 0 4px var(--ink),
-    2px 3px 0 4px rgba(0, 0, 0, 0.35);
-  overflow: hidden;
+    2px 3px 0 4px rgba(0, 0, 0, 0.3);
 }
 
-/* the metal's glint */
-.coin::after {
-  content: "";
+/* the trinket stands on the plinth (one square of public/trophies.webp, see scripts/build-trophies) */
+.art {
   position: absolute;
-  inset: -40%;
-  background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.65) 50%, transparent 58%);
-  translate: -60% 0;
+  left: 0;
+  bottom: calc(var(--size) * 0.1);
+  width: var(--size);
+  height: var(--size);
+  background-image: url(/trophies.webp);
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 2px 1px rgba(20, 12, 28, 0.45));
 }
 
-/* the glint runs once: on the toast, and on a medal hovered or picked in the case (60 loops cost every frame) */
-.toast .coin::after,
-.slot:hover .coin::after,
-.picked .coin::after {
-  animation: glint 0.9s 0.2s ease-in-out both;
+/* not won yet: a dark silhouette on a dull plinth, a "?" for a secret */
+.locked .art {
+  filter: brightness(0);
+  opacity: 0.42;
 }
 
-@keyframes glint {
-  to {
-    translate: 60% 0;
-  }
-}
-
-.icon {
-  position: relative;
-  z-index: 1;
-  font-size: calc(var(--size) * 0.46);
-  line-height: 1;
-  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.5));
-}
-
-.locked .coin {
-  background: radial-gradient(circle at 32% 28%, #5d5368, #3a3145 60%, #2a2233);
+.locked .plinth {
+  background: linear-gradient(180deg, #5d5368, #3a3145);
   box-shadow:
-    inset 0 0 0 calc(var(--size) * 0.07) rgba(0, 0, 0, 0.2),
     0 0 0 2px #4a4054,
     0 0 0 4px var(--ink),
-    2px 3px 0 4px rgba(0, 0, 0, 0.35);
+    2px 3px 0 4px rgba(0, 0, 0, 0.3);
 }
 
-.locked .coin::after {
-  display: none;
-}
-
-/* not won yet: the picture as a silhouette, "?" for a secret */
-.locked .icon {
-  filter: brightness(0) invert(0.32);
-  opacity: 0.8;
+.mystery {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--size) * 0.3);
+  text-align: center;
   font-family: var(--font-press), monospace;
+  font-size: calc(var(--size) * 0.38);
+  line-height: 1;
   color: #8a7fae;
-}
-
-.locked .ribbon::before,
-.locked .ribbon::after {
-  background: #3a3145;
+  text-shadow: 2px 2px 0 var(--ink);
 }
 
 /* ---------------- Toast ---------------- */
@@ -714,12 +658,11 @@
   }
 
   .row .medal {
-    --size: 48px;
+    --size: 52px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .toast .coin::after,
   .rays,
   .fresh,
   .slot {

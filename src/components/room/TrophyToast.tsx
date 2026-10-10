@@ -33,6 +33,17 @@ const CONFETTI = Array.from({ length: 26 }, (_, i) => ({
   delay: Math.random() * 0.25,
 }));
 
+let art: Promise<void> | null = null;
+/** The trinkets' sprite, downloaded and decoded once (a failure doesn't hold the toasts back). */
+const artReady = () => {
+  if (!art) {
+    const img = new Image();
+    img.src = "/trophies.webp";
+    art = img.decode().catch(() => {});
+  }
+  return art;
+};
+
 /** Empties the queue of trophies won into toasts. */
 function takeBatches(): Toast[] {
   const { batches } = useTrophyQueue.getState();
@@ -68,11 +79,18 @@ export function TrophyToasts({ ready, onOpen }: { ready: boolean; onOpen: () => 
 
   useEffect(() => {
     if (shown || !ready || !queue.length) return;
-    const id = setTimeout(() => {
+    let live = true;
+    // the trinkets' picture first: no empty plinth on screen
+    const show = () => {
+      if (!live) return;
       setShown(queue[0]);
       setQueue((q) => q.slice(1));
-    }, 350);
-    return () => clearTimeout(id);
+    };
+    const id = setTimeout(() => void artReady().then(show), 350);
+    return () => {
+      live = false;
+      clearTimeout(id);
+    };
   }, [shown, ready, queue]);
 
   const top = shown && ("trophy" in shown ? shown.trophy : shown.batch[0]);
@@ -128,13 +146,13 @@ export function TrophyToasts({ ready, onOpen }: { ready: boolean; onOpen: () => 
                 transition={{ delay: secret ? 0.5 : 0.15, duration: tier === "bronze" ? 0.4 : big ? 1.1 : 0.8, ease: [0.2, 0.8, 0.3, 1.15] }}
                 style={{ display: "inline-block" }}
               >
-                <Medal trophy={shown.trophy} won size={big ? 64 : 56} />
+                <Medal trophy={shown.trophy} won size={big ? 80 : 70} />
               </motion.span>
             ) : (
               <span className={styles.stack}>
                 {shown.batch.slice(0, 4).map((x, i) => (
                   <motion.span key={x.id} initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 + i * 0.12, type: "spring", stiffness: 400, damping: 15 }}>
-                    <Medal trophy={x} won size={44} />
+                    <Medal trophy={x} won size={54} />
                   </motion.span>
                 ))}
               </span>
