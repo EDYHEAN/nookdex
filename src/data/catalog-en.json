@@ -79,17 +79,6 @@
   "subs": []
  },
  {
-  "id": "sv10.5b",
-  "serie": "sv",
-  "serieName": "Scarlet & Violet",
-  "name": "Black Bolt",
-  "code": "BLK",
-  "logo": "/logos/en/sv10.5b",
-  "releaseDate": "2025-07-17",
-  "total": 172,
-  "subs": []
- },
- {
   "id": "sv10.5w",
   "serie": "sv",
   "serieName": "Scarlet & Violet",
@@ -98,6 +87,17 @@
   "logo": "/logos/en/sv10.5w",
   "releaseDate": "2025-07-17",
   "total": 173,
+  "subs": []
+ },
+ {
+  "id": "sv10.5b",
+  "serie": "sv",
+  "serieName": "Scarlet & Violet",
+  "name": "Black Bolt",
+  "code": "BLK",
+  "logo": "/logos/en/sv10.5b",
+  "releaseDate": "2025-07-17",
+  "total": 172,
   "subs": []
  },
  {
@@ -691,18 +691,6 @@
   "extra": true
  },
  {
-  "id": "sma",
-  "serie": "sm",
-  "serieName": "Sun & Moon",
-  "name": "Hidden Fates Shiny Vault",
-  "code": "SMA",
-  "logo": null,
-  "releaseDate": "2019-08-23",
-  "total": 94,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "sm115",
   "serie": "sm",
   "serieName": "Sun & Moon",
@@ -711,6 +699,18 @@
   "logo": "https://assets.tcgdex.net/en/sm/sm115/logo",
   "releaseDate": "2019-08-23",
   "total": 69,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sma",
+  "serie": "sm",
+  "serieName": "Sun & Moon",
+  "name": "Hidden Fates Shiny Vault",
+  "code": "SMA",
+  "logo": null,
+  "releaseDate": "2019-08-23",
+  "total": 94,
   "subs": [],
   "extra": true
  },
@@ -871,18 +871,6 @@
   "extra": true
  },
  {
-  "id": "tk-sm-r",
-  "serie": "tk",
-  "serieName": "Trainer kits",
-  "name": "SM trainer Kit (Alolan Raichu)",
-  "code": "TK10A",
-  "logo": null,
-  "releaseDate": "2017-04-21",
-  "total": 29,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "tk-sm-l",
   "serie": "tk",
   "serieName": "Trainer kits",
@@ -895,14 +883,14 @@
   "extra": true
  },
  {
-  "id": "sm1",
-  "serie": "sm",
-  "serieName": "Sun & Moon",
-  "name": "Sun & Moon",
-  "code": "SUM",
-  "logo": "https://assets.tcgdex.net/en/sm/sm1/logo",
-  "releaseDate": "2017-02-03",
-  "total": 172,
+  "id": "tk-sm-r",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "SM trainer Kit (Alolan Raichu)",
+  "code": "TK10A",
+  "logo": null,
+  "releaseDate": "2017-04-21",
+  "total": 29,
   "subs": [],
   "extra": true
  },
@@ -915,6 +903,18 @@
   "logo": "https://assets.tcgdex.net/en/sm/smp/logo",
   "releaseDate": "2017-02-03",
   "total": 181,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sm1",
+  "serie": "sm",
+  "serieName": "Sun & Moon",
+  "name": "Sun & Moon",
+  "code": "SUM",
+  "logo": "https://assets.tcgdex.net/en/sm/sm1/logo",
+  "releaseDate": "2017-02-03",
+  "total": 172,
   "subs": [],
   "extra": true
  },
@@ -955,11 +955,11 @@
   "extra": true
  },
  {
-  "id": "tk-xy-p",
+  "id": "tk-xy-su",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "XY trainer Kit (Pikachu Libre)",
-  "code": "TK9P",
+  "name": "XY trainer Kit (Suicune)",
+  "code": "TK9S",
   "logo": null,
   "releaseDate": "2016-04-27",
   "total": 30,
@@ -967,11 +967,11 @@
   "extra": true
  },
  {
-  "id": "tk-xy-su",
+  "id": "tk-xy-p",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "XY trainer Kit (Suicune)",
-  "code": "TK9S",
+  "name": "XY trainer Kit (Pikachu Libre)",
+  "code": "TK9P",
   "logo": null,
   "releaseDate": "2016-04-27",
   "total": 30,
@@ -1039,11 +1039,11 @@
   "extra": true
  },
  {
-  "id": "tk-xy-latio",
+  "id": "tk-xy-latia",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "XY trainer Kit (Latios)",
-  "code": "TK8O",
+  "name": "XY trainer Kit (Latias)",
+  "code": "TK8A",
   "logo": null,
   "releaseDate": "2015-04-29",
   "total": 30,
@@ -1051,11 +1051,11 @@
   "extra": true
  },
  {
-  "id": "tk-xy-latia",
+  "id": "tk-xy-latio",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "XY trainer Kit (Latias)",
-  "code": "TK8A",
+  "name": "XY trainer Kit (Latios)",
+  "code": "TK8O",
   "logo": null,
   "releaseDate": "2015-04-29",
   "total": 30,
@@ -1147,18 +1147,6 @@
   "extra": true
  },
  {
-  "id": "tk-xy-n",
-  "serie": "tk",
-  "serieName": "Trainer kits",
-  "name": "XY trainer Kit (Noivern)",
-  "code": "TK6N",
-  "logo": null,
-  "releaseDate": "2014-03-12",
-  "total": 29,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "tk-xy-sy",
   "serie": "tk",
   "serieName": "Trainer kits",
@@ -1167,6 +1155,18 @@
   "logo": null,
   "releaseDate": "2014-03-12",
   "total": 30,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-xy-n",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "XY trainer Kit (Noivern)",
+  "code": "TK6N",
+  "logo": null,
+  "releaseDate": "2014-03-12",
+  "total": 29,
   "subs": [],
   "extra": true
  },
@@ -1795,11 +1795,11 @@
   "extra": true
  },
  {
-  "id": "tk-ex-m",
+  "id": "tk-ex-p",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "EX trainer Kit 2 (Minun)",
-  "code": "TK2M",
+  "name": "EX trainer Kit 2 (Plusle)",
+  "code": "TK2P",
   "logo": null,
   "releaseDate": "2006-03-01",
   "total": 12,
@@ -1807,11 +1807,11 @@
   "extra": true
  },
  {
-  "id": "tk-ex-p",
+  "id": "tk-ex-m",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "EX trainer Kit 2 (Plusle)",
-  "code": "TK2P",
+  "name": "EX trainer Kit 2 (Minun)",
+  "code": "TK2M",
   "logo": null,
   "releaseDate": "2006-03-01",
   "total": 12,
