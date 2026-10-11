@@ -31,6 +31,10 @@ export const CHANGELOG: Release[] = [
         en: "The trainer kits (EX to Sun & Moon: Latias, Latios, Plusle, Minun, Lucario…) are in the search, with their prices.",
       },
       {
+        fr: "Les promos Méga-Évolution (MEP : Méga-Lucario-ex, Méga-Gardevoir-ex…) arrivent dans la recherche, avec leurs prix.",
+        en: "The Mega Evolution promos (MEP: Mega Lucario ex, Mega Gardevoir ex…) are in the search, with their prices.",
+      },
+      {
         fr: "Dans un classeur libre, tape le numéro imprimé sur la carte (pikachu 60/106), et « Voir plus » montre toutes les cartes d'une longue recherche.",
         en: "In a free binder, type the number printed on the card (pikachu 60/106), and \"Show more\" brings every card of a long search.",
       },

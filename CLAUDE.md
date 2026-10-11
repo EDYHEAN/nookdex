@@ -51,8 +51,9 @@ doesn't show.
 - A card TCGdex lists with no scan in any language (the 30th's Classic Collection, `30th-c`) gets TCGplayer's picture,
   found on TCGCSV by set group and name (`scansFromTcgcsv`), made into `public/scans/<card id>/` (sharp: the Actions
   run `npm ci`) and served as `https://nookdex.com/scans/<id>`. TCGdex's own scan wins the day it has one.
-- The trainer kits (`tk-*`, two half decks per TCGplayer group) have no scan at all on TCGdex: `KIT_GROUPS` in fetch-set maps
-  each to its TCGCSV group, cards matched by number and name, shown as `/scans/tp/<product>` (not downloaded).
+- Sets with no scan at all on TCGdex, the trainer kits (`tk-*`, two half decks per TCGplayer group) and the Mega Evolution
+  promos (`mep`): `TCGCSV_GROUPS` in fetch-set maps each to its TCGCSV group, cards matched by number and name, shown as
+  `/scans/tp/<product>` (not downloaded). A new such set: find its group on tcgcsv.com/tcgplayer/3/groups and add it.
 
 ## Languages: the site, the cards, the money (three separate things)
 

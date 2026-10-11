@@ -5,7 +5,7 @@
   "serieName": "Méga-Évolution",
   "name": "30ᵉ Anniversaire",
   "code": "30TH",
-  "logo": null,
+  "logo": "/logos/30th",
   "releaseDate": "2026-09-16",
   "total": 191,
   "subs": [
@@ -560,10 +560,22 @@
   "serieName": "Base",
   "name": "Set de Base",
   "code": "BS",
-  "logo": null,
+  "logo": "/logos/base1",
   "releaseDate": "1999-01-09",
   "total": 102,
   "subs": []
+ },
+ {
+  "id": "mep",
+  "serie": "me",
+  "serieName": "Méga-Évolution",
+  "name": "MEP Black Star Promos",
+  "code": "MEP",
+  "logo": null,
+  "releaseDate": "2025-09-26",
+  "total": 80,
+  "subs": [],
+  "extra": true
  },
  {
   "id": "svp",

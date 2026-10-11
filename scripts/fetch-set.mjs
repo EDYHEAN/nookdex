@@ -430,21 +430,23 @@ async function scansFromTcgcsvJa(mainId, cards) {
 }
 
 /*
- * The trainer kits (two half decks sold together): TCGdex lists their cards with no picture in any language, so they
- * were all dropped and the kits never reached the searches (a friend's Latios 2/10, 2026-10-11). TCGplayer has them,
- * under other names ("EX Trainer Kit 1: Latias & Latios" for TCGdex's "EX trainer Kit (Latios)"), both halves in one
- * group: their groups by hand. A card is found by number and name (the halves share numbers; a trainer printed in both,
- * "Potion (Latios)", takes its own half's), and not downloaded: /scans/tp/<product>, like the Japanese cards.
+ * Sets TCGdex lists with no picture in any language, whose cards were all dropped (never in the searches): the trainer
+ * kits (a friend's Latios 2/10, 2026-10-11) and the Mega Evolution promos (Mega Lucario ex MEP 033, the same day).
+ * TCGplayer has them under other names ("EX Trainer Kit 1: Latias & Latios" for TCGdex's "EX trainer Kit (Latios)",
+ * both halves of a kit in one group; "ME: Mega Evolution Promo" for "MEP Black Star Promos"): their groups by hand. A
+ * card is found by number and name (a kit's halves share numbers; a trainer printed in both, "Potion (Latios)", takes
+ * its own half's), and not downloaded: /scans/tp/<product>, like the Japanese cards. TCGdex's scan wins once it has one.
  */
-const KIT_GROUPS = {
+const TCGCSV_GROUPS = {
+  mep: 24451,
   "tk-ex-latia": 1543, "tk-ex-latio": 1543, "tk-ex-p": 1542, "tk-ex-m": 1542, "tk-dp-l": 1541, "tk-dp-m": 1541,
   "tk-hs-g": 1540, "tk-hs-r": 1540, "tk-bw-e": 1538, "tk-bw-z": 1538, "tk-xy-sy": 1532, "tk-xy-n": 1532,
   "tk-xy-b": 1533, "tk-xy-w": 1533, "tk-xy-latia": 1536, "tk-xy-latio": 1536, "tk-xy-su": 1796, "tk-xy-p": 1796,
   "tk-sm-l": 2069, "tk-sm-r": 2069,
 };
-async function scansFromTcgcsvKit(mainId, cards) {
-  const group = KIT_GROUPS[mainId];
-  // the half's Pokémon, from the English set name: "EX trainer Kit (Latios)" -> "latios"
+async function scansFromTcgcsvGroup(mainId, cards) {
+  const group = TCGCSV_GROUPS[mainId];
+  // a kit's half, from the English set name: "EX trainer Kit (Latios)" -> "latios" (none for the promos)
   const half = plain(/\(([^)]+)\)/.exec((await get(`${API}/en/sets/${mainId}`))?.name ?? "")?.[1]);
   const prices = (await tcgcsv(`/${group}/prices`))?.results ?? [];
   const list = [];
@@ -589,7 +591,7 @@ async function fetchSet(mainId, subIds) {
     cards: [...main.cards, ...subs.flatMap((s) => s.cards)],
   };
   try {
-    if (out.cards.some((c) => !c.img)) await (JA ? scansFromTcgcsvJa : KIT_GROUPS[mainId] ? scansFromTcgcsvKit : scansFromTcgcsv)(mainId, out.cards);
+    if (out.cards.some((c) => !c.img)) await (JA ? scansFromTcgcsvJa : TCGCSV_GROUPS[mainId] ? scansFromTcgcsvGroup : scansFromTcgcsv)(mainId, out.cards);
   } catch (e) {
     console.warn(`${mainId}: TCGCSV scans skipped (${e.message})`);
   }
