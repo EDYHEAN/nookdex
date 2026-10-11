@@ -9,6 +9,10 @@ export const SITE_URL = IS_PRODUCTION
     ? `https://${process.env.VERCEL_URL}`
     : "http://localhost:3000";
 
+/** Supabase: public values (its tables are guarded by row level security), env vars override them. */
+export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://xwqhucccldraieyiycvt.supabase.co";
+export const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_Fn4KmAAhKl7crl-R_ZCHWw_OkFukB2i";
+
 /** The name, everywhere on the site (split in two for the two-tone lettering). */
 export const SITE_NAME = "NookDex";
 export const NAME_PARTS = ["Nook", "Dex"] as const;

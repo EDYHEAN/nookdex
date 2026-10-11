@@ -3,12 +3,10 @@
 import { createClient, type User } from "@supabase/supabase-js";
 import { create } from "zustand";
 import { loadSets, neededSets } from "./catalog";
+import { SUPABASE_KEY, SUPABASE_URL } from "./site";
 import { type Backup, isBackup, makeBackup, useStore } from "./store";
 import { mergeTrophies, trophyKey, useTrophyStore } from "./trophyStore";
 
-// Public values (the table is guarded by row level security): env vars override them.
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://xwqhucccldraieyiycvt.supabase.co";
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_Fn4KmAAhKl7crl-R_ZCHWw_OkFukB2i";
 
 /** Back from Google or the e-mail link (read before the client consumes the URL): no loader again. */
 export const returningFromSignIn =
@@ -215,5 +213,16 @@ export function startCloud() {
   // Leaving with a change still waiting: send it now.
   window.addEventListener("pagehide", () => {
     if (pending) void push();
+  });
+}
+
+/** How many players have an account, read once (the welcome says it). Null until known, or when it can't be read. */
+export const usePlayers = create<{ count: number | null }>(() => ({ count: null }));
+let playersAsked = false;
+export function askPlayers() {
+  if (playersAsked) return;
+  playersAsked = true;
+  void supabase.rpc("player_count").then(({ data }) => {
+    if (typeof data === "number") usePlayers.setState({ count: data });
   });
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { INSTAGRAM_URL, SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME, SITE_URL } from "@/lib/site";
+import { playerCount, roundPlayers } from "@/lib/players";
 import styles from "./HomeText.module.css";
 
 const ld = (data: object) => <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
@@ -8,7 +9,9 @@ const ld = (data: object) => <script type="application/ld+json" dangerouslySetIn
  * The room is drawn in the browser only: this text is what search engines, AI assistants and screen readers read on the
  * home page ("/" in French, "/en" in English). The title is written on the loader's paper, the rest stays for them.
  */
-export function HomeText({ en }: { en: boolean }) {
+export async function HomeText({ en }: { en: boolean }) {
+  // under the title: how many already file their cards here (rounded down, cached an hour)
+  const players = roundPlayers(await playerCount());
   return (
     <>
       {ld({
@@ -27,7 +30,10 @@ export function HomeText({ en }: { en: boolean }) {
       })}
       {en ? (
         <div className={styles.text}>
-          <h1 className={styles.tagline}>Your Pokémon card collection, filed on your desk</h1>
+          <h1 className={styles.tagline}>
+            Your Pokémon card collection, filed on your desk
+            {players && <span className={styles.players}>{players} collectors already file their cards here ♥</span>}
+          </h1>
           <div className="sr-only">
             <p>{SITE_DESCRIPTION_EN}</p>
             <p>
@@ -46,7 +52,10 @@ export function HomeText({ en }: { en: boolean }) {
         </div>
       ) : (
         <div className={styles.text}>
-          <h1 className={styles.tagline}>Ta collection de cartes Pokémon, rangée sur ton bureau</h1>
+          <h1 className={styles.tagline}>
+            Ta collection de cartes Pokémon, rangée sur ton bureau
+            {players && <span className={styles.players}>Déjà {players} dresseurs y rangent leurs cartes ♥</span>}
+          </h1>
           <div className="sr-only">
             <p>{SITE_DESCRIPTION}</p>
             <p>
