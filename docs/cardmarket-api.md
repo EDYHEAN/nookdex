@@ -117,5 +117,33 @@ Sent to Tracy Rutkowski, Head of Marketing (tracy.rutkowski@cardmarket.com), in 
 collector on Cardmarket), what NookDex is, how Cardmarket already shows up (credited prices for French and Japanese
 cards, "See on Cardmarket" links by idProduct, the Price Guide downloaded once a day). It asks whether she approves
 these links and this use of the prices (and whether to change the wording, logo or credit), whether they have an
-affiliate or partner program, and it suggests per-language prices again. **Waiting for her answer**: add it below when
-it comes.
+affiliate or partner program, and it suggests per-language prices again. Her answer is below.
+
+## Tracy's answer (2026-10-11): yes, with two conditions
+
+**The prices are free to use** (their Price Guide and Product List are public), and **there is no affiliate program**
+for them any more. Her two conditions, both met on 2026-10-11:
+
+1. **Say clearly that the prices are Cardmarket's.** Done: the card sheet (« Cardmarket · toutes langues »,
+   « Cardmarket · cartes japonaises », « ≈ Cardmarket »), the binder's stats page (« Prix Cardmarket du … »), the card
+   language stamps, the set pages, /a-propos, /conditions, llms.txt. Any new place showing a French or Japanese price
+   keeps saying where it comes from.
+2. **Cardmarket's branding only from their kit**: https://help.cardmarket.com/en/Downloads. Today the site only writes
+   the name, no logo; a logo, if one is ever added, comes from there.
+
+> Hi Johan,
+>
+> Thank you for your interest in integrating Cardmarket prices in your site - I really like how you built it and its
+> retro vibe!
+> As our price guides are free for public use, we actually no longer have an affiliate partnership for our price
+> points - so please go ahead and use them.
+>
+> https://www.cardmarket.com/en/Pokemon/Data/Price-Guide
+> https://www.cardmarket.com/en/Pokemon/Data/Product-List
+>
+> Our only requirements are:
+> Fully disclose to your users that you are using / they are seeing Cardmarket prices
+> Any use of Cardmarket's branding should only be from what's available here: https://help.cardmarket.com/en/Downloads
+>
+> Best regards,
+> Tracy
