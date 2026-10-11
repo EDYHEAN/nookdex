@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { loadIndex, useSets } from "@/lib/catalog";
 import { type CardLang, currencyOf } from "@/lib/cardLang";
 import { formatPrice } from "@/lib/price";
-import { rowsOf, searchRows } from "@/lib/search";
+import { relevance, rowsOf, searchRows } from "@/lib/search";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import { LangStamps } from "../shelf/LangStamps";
@@ -56,7 +56,9 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
     return () => window.removeEventListener("keydown", onKey, true);
   }, [onClose]);
 
-  const matches = useMemo(() => (index ? searchRows(rowsOf(index), q) : []), [index, q]);
+  // the cards named so first, newest sets first; those only found by their set's name ("pikachu": every card of
+  // Détective Pikachu) last
+  const matches = useMemo(() => (index ? searchRows(rowsOf(index), q).sort((x, y) => relevance(x, q) - relevance(y, q)) : []), [index, q]);
   // a new search starts again from the first page
   const sig = `${lang}:${q}`;
   const [page, setPage] = useState({ sig, n: PAGE });
