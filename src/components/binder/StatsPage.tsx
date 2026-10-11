@@ -11,9 +11,11 @@ import styles from "./Binder.module.css";
 import { useT } from "@/lib/lang";
 
 export type BinderSummary = Omit<SetStats, "copies"> & {
-  /** "112/245" for a set, "12" for a free binder */
+  /** "112/245" for a set, "12" for a free binder, "3/12" found for a wishlist */
   count: string;
   pricesUpdated: string | null;
+  /** a wishlist: what its wanted cards cost */
+  left?: number;
 };
 
 interface Props {
@@ -34,14 +36,18 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
   const segments = 20;
   const lit = Math.round(pct * segments);
   const gain = stats.spentTrend - stats.spent;
-  const filled = (p: Pocket) => (free ? !!p.cardId : !!(p.cardId && collection[p.cardId]?.length));
+  const wish = binder.wish;
+  // a wishlist's ghost is a pocket still to fill
+  const filled = (p: Pocket) => (free ? !!p.cardId && !p.wanted : !!(p.cardId && collection[p.cardId]?.length));
 
   return (
     <div className={styles.stats} style={{ ["--accent" as string]: binder.color }} data-tour="summary">
       <div className={styles.statsHead}>
         {binder.logo && <img src={`${binder.logo}.png`} alt="" draggable={false} />}
         <div>
-          <p className={styles.kicker}>{free ? t("classeur libre", "free binder") : binder.code} · {t("sommaire", "summary")}</p>
+          <p className={styles.kicker}>
+            {wish ? "★ wishlist" : free ? t("classeur libre", "free binder") : binder.code} · {t("sommaire", "summary")}
+          </p>
           {free ? <Rename id={binder.id} name={title} /> : <h2>{title}</h2>}
         </div>
       </div>
@@ -49,7 +55,22 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
       <Finder pages={pages} collection={collection} onFind={onFind} />
       {!free && <SortChips id={binder.id} current={binder.sort} />}
 
-      {free ? (
+      {wish ? (
+        <>
+          <div className={styles.bigCount}>
+            <b>{stats.owned}</b>
+            <span>
+              / {stats.total} {t("trouvées", "found")}
+            </span>
+            <em>{Math.round(pct * 100)}%</em>
+          </div>
+          <div className={styles.segBar}>
+            {Array.from({ length: segments }, (_, i) => (
+              <span key={i} className={i < lit ? styles.segOn : ""} style={{ animationDelay: `${i * 30}ms` }} />
+            ))}
+          </div>
+        </>
+      ) : free ? (
         <div className={styles.bigCount}>
           <b>{stats.owned}</b>
           <span>{t(`carte${stats.owned > 1 ? "s" : ""} rangée${stats.owned > 1 ? "s" : ""}`, `card${stats.owned > 1 ? "s" : ""} filed`)}</span>
@@ -72,6 +93,20 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
       )}
 
       <dl className={styles.kv}>
+        {wish && (
+          <>
+            <div>
+              <dt>{t("Il te manque", "Missing")}</dt>
+              <dd>
+                {stats.total - stats.owned} {t("cartes", "cards")}
+              </dd>
+            </div>
+            <div>
+              <dt>{t("Pour tout trouver ≈", "To find them all ≈")}</dt>
+              <dd className={styles.money}>{formatMoney(stats.left ?? 0)}</dd>
+            </div>
+          </>
+        )}
         {!free && (
           <>
             <div>

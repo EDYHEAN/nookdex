@@ -243,3 +243,7 @@
   width: 100%;
   aspect-ratio: 245 / 342;
 }
+
+.wishNote {
+  color: var(--ink-gold);
+}

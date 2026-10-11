@@ -42,12 +42,17 @@ export function shelfBinders(binders: UserBinder[]): BinderDef[] {
   return binders.slice(0, MAX_BINDERS).map((b, i) => {
     const color = b.color ?? BINDER_COLORS[i % BINDER_COLORS.length];
     const paint = { slot: i, color, dark: shade(color, -0.48), ink: light(color) ? "#241c26" : "#fff3e6", sort: b.sort ?? "num" };
-    if (b.kind === "free") return { ...paint, id: b.id, kind: "free", code: "LIBRE", name: b.name, logo: null, setId: null, lang: null };
+    if (b.kind === "free") {
+      const wish = !!b.wish;
+      return { ...paint, id: b.id, kind: "free", wish, wants: b.wants ?? {}, code: wish ? "WISH" : "LIBRE", name: b.name, logo: null, setId: null, lang: null };
+    }
     const set = catalogSet(b.setId);
     return {
       ...paint,
       id: b.id,
       kind: "set",
+      wish: false,
+      wants: {},
       code: set?.code ?? bareId(b.setId).toUpperCase(),
       name: set?.name ?? bareId(b.setId),
       logo: set?.logo ?? null,
@@ -68,6 +73,25 @@ export function pocketsOf(binderId: string, collection: Record<string, Copy[]>) 
 
 export const PER_PAGE = 9;
 
+/** A wishlist's wanted cards, by pocket (none for another binder). */
+export function wantsOf(b: UserBinder | BinderDef | undefined) {
+  const wants = b && "wants" in b ? (b.wants ?? {}) : {};
+  return new Map(Object.entries(wants).map(([pocket, cardId]) => [Number(pocket), cardId]));
+}
+
+/** First pocket of a free binder with neither a copy nor a wanted card. */
+export function firstEmpty(binder: UserBinder | undefined, binderId: string, collection: Record<string, Copy[]>) {
+  const used = pocketsOf(binderId, collection);
+  const wants = wantsOf(binder);
+  let i = 0;
+  while (used.has(i) || wants.has(i)) i++;
+  return i;
+}
+
+/** The player's wishlists. */
+export const wishBinders = (binders: UserBinder[]) =>
+  binders.filter((b): b is Extract<UserBinder, { kind: "free" }> => b.kind === "free" && !!b.wish);
+
 /** Pages of a free binder: up to the last one used, plus a fresh one once that one is full. */
 export function freePageCount(pockets: Map<number, unknown>) {
   if (!pockets.size) return 1;
@@ -84,4 +108,5 @@ export function freeHomes(copies: Copy[] | undefined, binders: UserBinder[]) {
   return binders.filter((b): b is Extract<UserBinder, { kind: "free" }> => b.kind === "free" && ids.has(b.id));
 }
 
-export type Pocket = { index: number; cardId: string | null; card: CardData | null };
+/** A pocket as drawn; `wanted`: a wishlist's ghost, not owned */
+export type Pocket = { index: number; cardId: string | null; card: CardData | null; wanted?: boolean };

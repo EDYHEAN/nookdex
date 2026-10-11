@@ -234,6 +234,11 @@ export const sfx = {
     tone({ freq: semi(base / 4, 12), type: "triangle", dur: 0.9, vol: 0.12, delay: end + 0.25 + (chords.length - 1) * 0.18 });
     if (tier === "platinum") noise({ dur: 1.6, vol: 0.06, type: "highpass", freq: 5500, delay: end + 0.9, attack: 0.4 });
   },
+  /** a card wished for: a falling-star twinkle */
+  wish() {
+    [24, 19, 28, 31].forEach((n, i) => tone({ freq: semi(523, n), type: "sine", dur: 0.28, vol: 0.05, delay: i * 0.06 }));
+    noise({ dur: 0.35, vol: 0.05, type: "highpass", freq: 6500, delay: 0.05, attack: 0.08 });
+  },
   /** the Poké Ball's latch, then a burst of light */
   ballOpen() {
     tone({ freq: 900, to: 1400, dur: 0.03, vol: 0.06 });

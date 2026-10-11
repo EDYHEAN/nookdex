@@ -103,10 +103,17 @@ export function loadIndex(lang: CardLang): Promise<IndexCard[]> {
   return indexPending[lang];
 }
 
-/** Sets needed to draw the shelf: those of the set binders and of every card owned. */
+/** Sets needed to draw the shelf: those of the set binders, of every card owned and of every card wished for. */
 export function neededSets(binders: UserBinder[], collection: Record<string, Copy[]>) {
   const ids = new Set<string>();
   binders.forEach((b) => b.kind === "set" && ids.add(b.setId));
+  binders.forEach((b) => {
+    if (b.kind !== "free") return;
+    for (const cardId of Object.values(b.wants ?? {})) {
+      const id = setIdOfCard(cardId);
+      if (id) ids.add(id);
+    }
+  });
   Object.keys(collection).forEach((cardId) => {
     const id = setIdOfCard(cardId);
     if (id) ids.add(id);

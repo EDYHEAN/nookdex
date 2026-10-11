@@ -516,3 +516,42 @@
 .empty .pocket:active .lift {
   transform: scale(0.94);
 }
+
+/* ---------- a wishlist's ghost: a card wanted, not owned ---------- */
+
+.wish .img {
+  filter: grayscale(0.85) sepia(0.3) contrast(0.85) brightness(1.08);
+  opacity: 0.78;
+}
+
+.wish .sleeve {
+  outline: 0.8cqw dashed rgba(201, 150, 40, 0.75);
+  outline-offset: -1.6cqw;
+}
+
+.wishStar {
+  position: absolute;
+  top: 2%;
+  left: 4%;
+  z-index: 3;
+  color: #ffd35a;
+  font-size: 13cqw;
+  line-height: 1;
+  text-shadow:
+    0 0 0.8cqw var(--ink),
+    0.6cqw 0.6cqw 0 var(--ink);
+  pointer-events: none;
+  animation: wishTwinkle 2.6s ease-in-out infinite;
+}
+
+@keyframes wishTwinkle {
+  50% {
+    transform: scale(1.15) rotate(12deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wishStar {
+    animation: none;
+  }
+}

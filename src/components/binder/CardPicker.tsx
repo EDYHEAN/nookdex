@@ -16,6 +16,8 @@ import { useLang, useT } from "@/lib/lang";
 interface Props {
   /** Pocket being filled, for the title */
   pocket: number;
+  /** filling a wishlist: the card picked is wanted, not owned */
+  wish?: boolean;
   onPick: (cardId: string) => Promise<void>;
   onClose: () => void;
 }
@@ -23,7 +25,7 @@ interface Props {
 /** cards drawn at once; "show more" adds as many (a "pikachu" has hundreds, the old ones come last) */
 const PAGE = 60;
 
-export function CardPicker({ pocket, onPick, onClose }: Props) {
+export function CardPicker({ pocket, wish, onPick, onClose }: Props) {
   const t = useT();
   // the site's language first; a binder can mix languages (a "Japanese cards" binder, French and English hits…)
   const [lang, setLang] = useState<CardLang>(useLang());
@@ -96,7 +98,9 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
       >
         <header className={styles.head}>
           <p>
+            {wish && "★ "}
             {t("Pochette", "Pocket")} <b>{(pocket % 9) + 1}</b> · page {Math.floor(pocket / 9) + 1}
+            {wish && <span className={styles.wishNote}>{t(" · une carte que tu cherches", " · a card you're after")}</span>}
           </p>
           <span className={styles.langs}>
             <LangStamps

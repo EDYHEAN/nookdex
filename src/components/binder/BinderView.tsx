@@ -2,7 +2,7 @@
 
 import { AnimatePresence, animate, motion, useMotionValue, useTransform } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { PER_PAGE, freeHomes, freePageCount, pocketsOf, type Pocket } from "@/lib/binders";
+import { PER_PAGE, freeHomes, freePageCount, pocketsOf, wantsOf, type Pocket } from "@/lib/binders";
 import { loadSet, setIdOfCard, useSets } from "@/lib/catalog";
 import { cardTier, copiesTotals, formatMoney, setStats, unitPrice, type Tier } from "@/lib/price";
 import { sortCards } from "@/lib/rarity";
@@ -44,6 +44,9 @@ const SCROLL_GAP = 14; // phone: space between two pages of the column
 export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }: Props) {
   const t = useT();
   const free = binder.kind === "free";
+  /** a wishlist: some pockets hold wanted cards, drawn as ghosts */
+  const wish = binder.wish;
+  const wants = useMemo(() => wantsOf(binder), [binder]);
   const set = useSets((s) => (binder.setId ? s.sets[binder.setId] : undefined));
   const cardData = useSets((s) => s.cards);
   const vp = useViewport();
@@ -65,6 +68,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   const userBinders = useStore((s) => s.binders);
   const addCard = useStore((s) => s.addCard);
   const placeCard = useStore((s) => s.placeCard);
+  const { wishCard, unwish, obtainWish } = useStore.getState();
 
   // A free binder's pockets hold the copies slipped in them.
   const pockets = useMemo(() => (free ? pocketsOf(binder.id, collection) : null), [free, binder.id, collection]);
@@ -72,13 +76,14 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   const pages = useMemo(() => {
     const out: Pocket[][] = [];
     if (pockets) {
-      const n = freePageCount(pockets);
+      const n = freePageCount(new Map<number, unknown>([...wants, ...pockets]));
       for (let pg = 0; pg < n; pg++) {
         out.push(
           Array.from({ length: PER_PAGE }, (_, k) => {
             const index = pg * PER_PAGE + k;
-            const cardId = pockets.get(index)?.cardId ?? null;
-            return { index, cardId, card: cardId ? (cardData[cardId] ?? null) : null };
+            const kept = pockets.get(index)?.cardId;
+            const cardId = kept ?? wants.get(index) ?? null;
+            return { index, cardId, card: cardId ? (cardData[cardId] ?? null) : null, ...(!kept && cardId ? { wanted: true } : {}) };
           }),
         );
       }
@@ -88,16 +93,16 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
     for (let i = 0; i < cards.length; i += PER_PAGE)
       out.push(cards.slice(i, i + PER_PAGE).map((card, k) => ({ index: i + k, cardId: card.id, card })));
     return out;
-  }, [pockets, set, cardData, binder.sort]);
+  }, [pockets, wants, set, cardData, binder.sort]);
 
   // Cards slipped in a free binder from a set that isn't downloaded yet.
   useEffect(() => {
     if (!pockets) return;
-    for (const { cardId } of pockets.values()) {
+    for (const cardId of [...[...pockets.values()].map((p) => p.cardId), ...wants.values()]) {
       const id = setIdOfCard(cardId);
       if (!cardData[cardId] && id) void loadSet(id).catch(() => {});
     }
-  }, [pockets, cardData]);
+  }, [pockets, wants, cardData]);
 
   /** Cards you can page through in the inspector, in binder order. */
   const browsable = useMemo(() => pages.flat().filter((p): p is Pocket & { card: CardData } => !!p.card), [pages]);
@@ -159,8 +164,15 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
       cardData[cardId] ? [{ card: cardData[cardId], copies: [copy] }] : [],
     );
     const t = copiesTotals(items);
+    if (wish) {
+      // what's still wanted, and what it costs on the market
+      const wanted = [...wants.entries()].filter(([pocket]) => !pockets?.has(pocket));
+      const left = wanted.reduce((n, [, cardId]) => n + (cardData[cardId] ? unitPrice(cardData[cardId], cardData[cardId].variants[0], "trend") : 0), 0);
+      const total = t.cards + wanted.length;
+      return { ...t, owned: t.cards, total, masterOwned: 0, masterTotal: 0, count: `${t.cards}/${total}`, pricesUpdated: null, left };
+    }
     return { ...t, owned: t.cards, total: t.cards, masterOwned: 0, masterTotal: 0, count: String(t.cards), pricesUpdated: null };
-  }, [set, pockets, collection, cardData]);
+  }, [set, pockets, wants, wish, collection, cardData]);
 
   const go = useCallback((next: number, quick = false) => {
     fRef.current = next;
@@ -367,6 +379,15 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
     [addCard, cheer],
   );
 
+  /** "Got it!" on a wanted card: a copy kept in that very pocket (never in its set's binder). */
+  const obtain = useCallback(
+    (pocket: number, card: CardData): AddResult => {
+      obtainWish(binder.id, pocket, card.variants[0]);
+      return cheer(card);
+    },
+    [obtainWish, binder.id, cheer],
+  );
+
   // Free binder: slip the card picked in the search into the pocket.
   const onPlace = useCallback(
     async (cardId: string) => {
@@ -376,13 +397,19 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
       const card = (await loadSet(setId)).cards.find((c) => c.id === cardId);
       if (!card) throw new Error("unknown card");
       const pocket = picking;
-      placeCard(binder.id, pocket, cardId, card.variants[0]);
-      cheer(card);
+      // a wishlist takes the card as wanted, a free binder as a copy
+      if (wish) {
+        wishCard(binder.id, cardId, pocket);
+        sfx.wish();
+      } else {
+        placeCard(binder.id, pocket, cardId, card.variants[0]);
+        cheer(card);
+      }
       setPicking(null);
       setFocused(pocket);
       setTimeout(() => setFocused((f) => (f === pocket ? null : f)), 1600);
     },
-    [picking, placeCard, binder.id, cheer],
+    [picking, placeCard, binder.id, cheer, wish, wishCard],
   );
 
   /** "dans Fourre-tout" on a set card that is only kept in free binders */
@@ -438,7 +465,18 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
         <div className={styles.grid}>
           {near &&
             pages[face.index].map((p) =>
-              p.card ? (
+              p.card && p.wanted ? (
+                <CardSlot
+                  key={p.index}
+                  card={p.card}
+                  copies={undefined}
+                  focused={focused === p.index}
+                  onAdd={(card) => obtain(p.index, card)}
+                  onInspect={() => setInspect(p.index)}
+                  wish
+                  tag={collection[p.card.id]?.length ? t("déjà à toi", "already yours") : undefined}
+                />
+              ) : p.card ? (
                 <CardSlot
                   key={p.index}
                   card={p.card}
@@ -507,7 +545,15 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
         <div className={styles.titleText}>
           <h1>{set?.name ?? binder.name}</h1>
           <p>
-            {summary.count} {t("cartes", "cards")} · <b>{formatMoney(summary.trend)}</b>
+            {wish ? (
+              <>
+                {summary.owned}/{summary.total} {t("trouvées", "found")} · {t("reste", "left")} <b>{formatMoney(summary.left ?? 0)}</b>
+              </>
+            ) : (
+              <>
+                {summary.count} {t("cartes", "cards")} · <b>{formatMoney(summary.trend)}</b>
+              </>
+            )}
           </p>
         </div>
         <div className={styles.titleActions}>
@@ -676,6 +722,15 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
           key={inspect}
           card={browsable[inspectIndex].card}
           binderId={free ? binder.id : null}
+          onUnwish={
+            browsable[inspectIndex].wanted
+              ? () => {
+                  sfx.remove();
+                  unwish(binder.id, browsable[inspectIndex].index);
+                  setInspect(null);
+                }
+              : undefined
+          }
           onClose={() => setInspect(null)}
           onNavigate={(d) => {
             const n = inspectIndex + d;
@@ -684,12 +739,12 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
               setInspect(browsable[n].index);
             }
           }}
-          onAdd={onAdd}
+          onAdd={browsable[inspectIndex].wanted ? (card) => obtain(browsable[inspectIndex].index, card) : onAdd}
         />
       )}
 
       <AnimatePresence>
-        {picking != null && <CardPicker key="pick" pocket={picking} onPick={onPlace} onClose={() => setPicking(null)} />}
+        {picking != null && <CardPicker key="pick" pocket={picking} wish={wish} onPick={onPlace} onClose={() => setPicking(null)} />}
       </AnimatePresence>
 
       {party && <Celebration key={party.id} card={party.card} onDone={() => setParty(null)} />}
@@ -788,8 +843,10 @@ function Cover({ binder, name, count }: { binder: BinderDef; name: string; count
         ) : (
           <p className={styles.coverTitle}>{name}</p>
         )}
-        <p className={styles.coverName}>{free ? t("classeur libre", "free binder") : name}</p>
-        <p className={styles.coverCount}>{free ? `${count} ${t("carte", "card")}${count === "1" ? "" : "s"}` : count.replace("/", " / ")}</p>
+        <p className={styles.coverName}>{binder.wish ? "★ wishlist" : free ? t("classeur libre", "free binder") : name}</p>
+        <p className={styles.coverCount}>
+          {free && !binder.wish ? `${count} ${t("carte", "card")}${count === "1" ? "" : "s"}` : count.replace("/", " / ")}
+        </p>
       </div>
       <span className={styles.coverBrand}>{SITE_NAME}</span>
     </div>

@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MAX_BINDERS, pocketsOf, shelfBinders } from "@/lib/binders";
+import { MAX_BINDERS, pocketsOf, shelfBinders, wantsOf, wishBinders } from "@/lib/binders";
 import { catalogSet, loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { resolveConflict, signIn, signInWithGoogle, signOut, useCloud } from "@/lib/cloud";
 import { variantLabel, copiesTotals, formatMoney, formatPrice, playerCurrency, priceOf, setStats, unitPrice } from "@/lib/price";
@@ -23,7 +23,7 @@ export type Tab = "home" | "cards" | "wish" | "dupes" | "save";
 const TABS: { id: Tab; label: [string, string]; hint: [string, string] }[] = [
   { id: "home", label: ["Accueil", "Home"], hint: ["ta collec en un coup d'œil", "your collection at a glance"] },
   { id: "cards", label: ["Toutes les cartes", "All cards"], hint: ["prix, raretés, extensions…", "prices, rarities, sets…"] },
-  { id: "wish", label: ["Wishlist", "Wishlist"], hint: ["les cartes qui te manquent", "the cards you're missing"] },
+  { id: "wish", label: ["Wishlist", "Wishlist"], hint: ["les cartes que tu cherches", "the cards you're after"] },
   { id: "dupes", label: ["Doublons", "Duplicates"], hint: ["ce que tu peux échanger", "what you can trade"] },
   { id: "save", label: ["Sauvegarde", "Save"], hint: ["compte / exporter", "account / export"] },
 ];
@@ -37,6 +37,8 @@ interface Props {
   onOpenCards: (keys: string[], index: number) => void;
   /** A card sheet is open over the OS: its keys are the sheet's */
   paused?: boolean;
+  /** Opens a binder at one of its cards (a wishlist's wanted card) */
+  onOpenBinder: (binderId: string, cardId: string) => void;
   startTab?: Tab;
 }
 
@@ -55,7 +57,7 @@ const langNote = (e: Entry) => {
   return l !== currentLang() ? ` [${langLabel(l, currentLang())}]` : "";
 };
 
-export function Computer({ origin, onClose, onGoToCard, onOpenCards, paused, startTab = "home" }: Props) {
+export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinder, paused, startTab = "home" }: Props) {
   const tr = useT();
   const collection = useStore((s) => s.collection);
   const binders = useStore((s) => s.binders);
@@ -169,7 +171,7 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, paused, sta
               <main key={tab} className={styles.panel} role="tabpanel">
                 {tab === "home" && <Home entries={entries} onGo={onGoToCard} />}
                 {tab === "cards" && <AllCards onOpen={onOpenCards} />}
-                {tab === "wish" && <Wishlist entries={entries} onGo={onGoToCard} onCopy={copy} />}
+                {tab === "wish" && <Wishlist entries={entries} onOpen={onOpenBinder} onCopy={copy} say={say} />}
                 {tab === "dupes" && <Dupes entries={entries} onGo={onGoToCard} onCopy={copy} />}
                 {tab === "save" && <Save say={say} />}
               </main>
@@ -388,44 +390,128 @@ function CardRow({ e, right, onGo, extra }: { e: Entry; right: string; onGo: (id
   );
 }
 
-function Wishlist({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string) => void; onCopy: (t: string, m: string) => void }) {
+/**
+ * Every card wanted in the player's wishlists (the shelf's ★ binders): what they cost, sorted, copied for traders. A
+ * wishlist starts empty; one can be made here from a set binder's missing cards.
+ */
+function Wishlist({
+  entries,
+  onOpen,
+  onCopy,
+  say,
+}: {
+  entries: Entry[];
+  onOpen: (binderId: string, cardId: string) => void;
+  onCopy: (t: string, m: string) => void;
+  say: (m: string) => void;
+}) {
   const tr = useT();
-  const [sort, setSort] = useState<"price" | "num">("price");
-  const missing = entries.filter((e) => e.tracked && !e.copies?.length);
+  const binders = useStore((s) => s.binders);
+  const collection = useStore((s) => s.collection);
+  const sets = useSets((s) => s.sets);
+  const cards = useSets((s) => s.cards);
+  const [sort, setSort] = useState<"price" | "list">("price");
+  const lists = wishBinders(binders);
+  const full = binders.length >= MAX_BINDERS;
+
+  // the wishlists' cards may come from sets no binder holds
+  useEffect(() => {
+    void loadSets(neededSets(binders, collection).filter((id) => !useSets.getState().sets[id]));
+  }, [binders, collection]);
+
+  const wanted = useMemo(
+    () =>
+      lists.flatMap((b) => {
+        const kept = pocketsOf(b.id, collection);
+        return [...wantsOf(b)].flatMap(([pocket, cardId]) => {
+          const set = sets[setIdOfCard(cardId) ?? ""];
+          const card = cards[cardId];
+          return !kept.has(pocket) && card && set ? [{ binder: b, e: { card, set, copies: collection[cardId], tracked: false } as Entry }] : [];
+        });
+      }),
+    [lists, collection, sets, cards],
+  );
   const price = (e: Entry) => unitPrice(e.card, e.card.variants[0], "trend");
-  const list = sort === "price" ? [...missing].sort((a, b) => price(b) - price(a)) : missing;
-  const total = missing.reduce((n, e) => n + price(e), 0);
+  const list = sort === "price" ? [...wanted].sort((x, y) => price(y.e) - price(x.e)) : wanted;
+  // a card wanted in two wishlists is bought once
+  const unique = [...new Map(list.map((w) => [w.e.card.id, w.e])).values()];
+  const total = unique.reduce((n, e) => n + price(e), 0);
 
   const text = () =>
-    [tr(`Je recherche (${missing.length} cartes) :`, `Looking for (${missing.length} cards):`), ...list.map((e) => `- ${e.set.name} ${cardLabel(e)} ${e.card.name}${langNote(e)}`)].join("\n");
+    [
+      tr(`Je recherche (${unique.length} cartes) :`, `Looking for (${unique.length} cards):`),
+      ...unique.map((e) => `- ${e.set.name} ${cardLabel(e)} ${e.card.name}${langNote(e)}`),
+    ].join("\n");
+
+  // a set binder's missing cards, as a wishlist
+  const fromSets = binders.flatMap((b) => {
+    if (b.kind !== "set" || !sets[b.setId]) return [];
+    const set = sets[b.setId];
+    const missing = entries.filter((e) => e.set === set && !e.copies?.length);
+    return missing.length ? [{ set, missing, cost: missing.reduce((n, e) => n + price(e), 0) }] : [];
+  });
+  const create = (set: SetData, missing: Entry[]) => {
+    const name = set.name.slice(0, 28);
+    useStore.getState().addBinder({ kind: "free", name, wish: true, wants: Object.fromEntries(missing.map((e, i) => [i, e.card.id])) });
+    sfx.wish();
+    say(tr(`★ wishlist « ${name} » posée sur l'étagère`, `★ wishlist "${name}" put on the shelf`));
+  };
 
   return (
     <div className={styles.listTab}>
       <div className={styles.toolbar}>
         <p>
-          <b>{missing.length}</b> {tr("cartes manquantes · compléter ≈", "missing cards · to complete ≈")} <b className={styles.money}>{formatMoney(total)}</b>
+          <b>{unique.length}</b> {tr("cartes cherchées · tout trouver ≈", "cards wanted · find them all ≈")}{" "}
+          <b className={styles.money}>{formatMoney(total)}</b>
         </p>
         <div className={styles.actions}>
           <button
             className={styles.btn}
             onClick={() => {
               sfx.click();
-              setSort(sort === "price" ? "num" : "price");
+              setSort(sort === "price" ? "list" : "price");
             }}
+            disabled={!wanted.length}
           >
-            {tr("Tri :", "Sort:")} {sort === "price" ? tr("prix ↓", "price ↓") : tr("numéro", "number")}
+            {tr("Tri :", "Sort:")} {sort === "price" ? tr("prix ↓", "price ↓") : tr("par wishlist", "by wishlist")}
           </button>
-          <button className={styles.btn} onClick={() => onCopy(text(), tr("liste copiée ! colle-la à tes traders", "list copied! paste it to your traders"))} disabled={!missing.length}>
+          <button className={styles.btn} onClick={() => onCopy(text(), tr("liste copiée ! colle-la à tes traders", "list copied! paste it to your traders"))} disabled={!wanted.length}>
             {tr("Copier la liste", "Copy the list")}
           </button>
         </div>
       </div>
-      {missing.length === 0 && <p className={styles.win}>{tr("★ MASTER SET COMPLET ★", "★ MASTER SET COMPLETE ★")}</p>}
+      {!wanted.length && (
+        <p className={styles.muted}>
+          {lists.length
+            ? tr("Tes wishlists sont vides… ou tout est trouvé ★", "Your wishlists are empty… or everything is found ★")
+            : tr(
+                "Pas encore de wishlist. Crée-en une avec le + de l'étagère (★ Wishlist), mets-y une carte avec ☆ sur sa fiche, ou pars des cartes qui manquent à un classeur :",
+                "No wishlist yet. Make one with the shelf's + (★ Wishlist), add a card with ☆ on its sheet, or start from a binder's missing cards:",
+              )}
+        </p>
+      )}
       <div className={styles.rows}>
-        {list.map((e) => (
-          <CardRow key={e.card.id} e={e} right={formatPrice(priceOf(e.card, e.card.variants[0], "trend"))} onGo={onGo} />
+        {list.map(({ binder, e }) => (
+          <CardRow
+            key={`${binder.id}:${e.card.id}`}
+            e={e}
+            extra={`★ ${binder.name}`}
+            right={formatPrice(priceOf(e.card, e.card.variants[0], "trend"))}
+            onGo={(id) => onOpen(binder.id, id)}
+          />
         ))}
       </div>
+      {fromSets.length > 0 && (
+        <div className={styles.wishFrom}>
+          <p className={styles.wishFromTitle}>{tr("Créer la wishlist des cartes qui manquent à…", "Make a wishlist of the cards missing from…")}</p>
+          {fromSets.map(({ set, missing, cost }) => (
+            <button key={set.id} className={styles.btnBig} disabled={full} onClick={() => create(set, missing)} onPointerEnter={sfx.hover}>
+              ★ {set.name} · {missing.length} {tr("cartes", "cards")} · ≈ {formatMoney(cost)}
+            </button>
+          ))}
+          {full && <p className={styles.muted}>{tr(`L'étagère est pleine (${MAX_BINDERS} classeurs).`, `The shelf is full (${MAX_BINDERS} binders).`)}</p>}
+        </div>
+      )}
     </div>
   );
 }

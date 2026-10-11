@@ -13,6 +13,30 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.9",
+    date: "2026-10-11",
+    title: { fr: "Les wishlists", en: "Wishlists" },
+    items: [
+      {
+        fr: "Nouveau classeur ★ Wishlist (le + de l'étagère) : les cartes que tu cherches, de n'importe quelle extension, en fantôme. Elles ne comptent ni dans ta collection ni dans sa valeur.",
+        en: "New ★ Wishlist binder (the shelf's +): the cards you're after, from any set, as ghosts. They count neither in your collection nor in its value.",
+      },
+      {
+        fr: "Tu as trouvé la carte ? Un clic sur son fantôme et elle est à toi, rangée dans cette pochette.",
+        en: "Found the card? One click on its ghost and it's yours, filed in that pocket.",
+      },
+      {
+        fr: "Autant de wishlists que tu veux : cartes de rêve, cartes roses, ta liste de Noël… Leur sommaire dit ce qu'il reste à trouver, et combien ça coûte.",
+        en: "As many wishlists as you like: dream cards, pink cards, your Christmas list… Their summary says what's left to find, and what it costs.",
+      },
+      { fr: "☆ Wishlist sur la fiche de n'importe quelle carte, pour l'ajouter à une de tes wishlists.", en: "☆ Wishlist on any card's sheet, to add it to one of your wishlists." },
+      {
+        fr: "NookDex OS → Wishlist : toutes tes cartes cherchées, leur prix total, la liste à copier pour tes échanges, et de quoi créer la wishlist des cartes qui manquent à un classeur.",
+        en: "NookDex OS → Wishlist: every card you're after, their total price, the list to copy for your trades, and a way to make the wishlist of a binder's missing cards.",
+      },
+    ],
+  },
+  {
     version: "0.8",
     date: "2026-10-10",
     title: { fr: "Les trophées", en: "Trophies" },

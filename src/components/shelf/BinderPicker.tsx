@@ -10,7 +10,7 @@ import { useStore } from "@/lib/store";
 import styles from "./BinderPicker.module.css";
 import { useLang, useT } from "@/lib/lang";
 
-export type BinderChoice = { kind: "set"; setId: string } | { kind: "free"; name: string };
+export type BinderChoice = { kind: "set"; setId: string } | { kind: "free"; name: string; wish?: boolean };
 
 interface Props {
   title: string;
@@ -18,6 +18,8 @@ interface Props {
   /** Resolves once the binder is ready to go on the shelf. */
   onPick: (choice: BinderChoice) => Promise<void>;
   onClose?: () => void;
+  /** offer a wishlist too (not for the very first binder: the guided tour needs a binder of cards) */
+  wishes?: boolean;
 }
 
 /** Japanese series ids and their international twins: same tab, and its name in the site's language. */
@@ -36,11 +38,15 @@ function seriesOf(lang: CardLang, site: "fr" | "en") {
     name,
   }));
 }
-type Tab = string | "free";
+type Tab = string | "free" | "wish";
 
 const FREE_IDEAS = { fr: ["Fourre-tout", "Openings", "Mes favorites", "À échanger", "Full Arts"], en: ["Bits & bobs", "Openings", "Favourites", "For trade", "Full Arts"] };
+const WISH_IDEAS = {
+  fr: ["Cartes de rêve", "Mes Évoli", "Cartes roses", "Illustrations rares", "Pour Noël"],
+  en: ["Dream cards", "My Eevees", "Pink cards", "Illustration rares", "For Christmas"],
+};
 
-export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
+export function BinderPicker({ title, subtitle, onPick, onClose, wishes = true }: Props) {
   const binders = useStore((s) => s.binders);
   const t = useT();
   // cards in the site's language, unless the player picks another (an English binder on a French shelf…)
@@ -51,7 +57,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
   /** Another card language: the same series' tab in it (or its first one) */
   const pickLang = (lang: CardLang) => {
     setCardLang(lang);
-    if (tab === "free") return;
+    if (tab === "free" || tab === "wish") return;
     const series = seriesOf(lang, site);
     const twin = twinOf(TWIN[tab] ?? tab, lang);
     setTab(series.some((x) => x.id === twin) ? twin : series[0].id);
@@ -71,7 +77,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
   }, [onClose, busy]);
 
   useEffect(() => {
-    if (tab === "free") input.current?.focus();
+    if (tab === "free" || tab === "wish") input.current?.focus();
   }, [tab]);
 
   const pick = async (choice: BinderChoice, key: string) => {
@@ -105,7 +111,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
           <h2>{title}</h2>
           {subtitle && <p>{subtitle}</p>}
         </div>
-        {tab !== "free" && (
+        {tab !== "free" && tab !== "wish" && (
           <div className={styles.langs}>
             <LangStamps value={cardLang} onChange={pickLang} disabled={!!busy} />
           </div>
@@ -118,12 +124,16 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
       </header>
 
       <nav className={styles.tabs} role="tablist">
-        {[...seriesOf(cardLang, site), { id: "free", name: t("Classeur libre", "Free binder") }].map((s) => (
+        {[
+          ...seriesOf(cardLang, site),
+          { id: "free", name: t("Classeur libre", "Free binder") },
+          ...(wishes ? [{ id: "wish", name: "Wishlist" }] : []),
+        ].map((s) => (
           <button
             key={s.id}
             role="tab"
             aria-selected={tab === s.id}
-            className={`${styles.tab} ${tab === s.id ? styles.tabOn : ""} ${s.id === "free" ? styles.tabFree : ""}`}
+            className={`${styles.tab} ${tab === s.id ? styles.tabOn : ""} ${s.id === "free" || s.id === "wish" ? styles.tabFree : ""}`}
             onClick={() => {
               if (tab === s.id) return;
               sfx.riffle();
@@ -131,13 +141,13 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
             }}
             onPointerEnter={sfx.hover}
           >
-            {s.id === "free" ? "✎ " : ""}
+            {s.id === "free" ? "✎ " : s.id === "wish" ? "★ " : ""}
             {s.name}
           </button>
         ))}
       </nav>
 
-      {tab !== "free" ? (
+      {tab !== "free" && tab !== "wish" ? (
         <div key={`${cardLang}:${tab}`} className={styles.grid}>
           {sets.map((s, i) => {
             const have = onShelf.has(s.id);
@@ -187,19 +197,31 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
               input.current?.focus();
               return;
             }
-            void pick({ kind: "free", name: n.slice(0, 28) }, "free");
+            void pick({ kind: "free", name: n.slice(0, 28), ...(tab === "wish" ? { wish: true } : {}) }, tab);
           }}
         >
           <p className={styles.freeIntro}>
-            {t(
-              <>
-                Un classeur sans extension imposée : tu choisis <b>quelle carte</b> va dans <b>quelle pochette</b>. Parfait pour ranger tes
-                openings ou tes coups de cœur.
-              </>,
-              <>
-                A binder with no set: you choose <b>which card</b> goes in <b>which pocket</b>. Perfect for your openings or your favourites.
-              </>,
-            )}
+            {tab === "wish"
+              ? t(
+                  <>
+                    Les cartes que tu <b>cherches</b>, de n&apos;importe quelle extension : elles s&apos;affichent en fantôme, sans compter
+                    dans ta collection. Tu l&apos;as trouvée ? Un clic, et elle est <b>à toi, dans cette pochette</b>.
+                  </>,
+                  <>
+                    The cards you&apos;re <b>after</b>, from any set: they show as ghosts and don&apos;t count in your collection. Found one?
+                    One click and it&apos;s <b>yours, in that pocket</b>.
+                  </>,
+                )
+              : t(
+                  <>
+                    Un classeur sans extension imposée : tu choisis <b>quelle carte</b> va dans <b>quelle pochette</b>. Parfait pour ranger
+                    tes openings ou tes coups de cœur.
+                  </>,
+                  <>
+                    A binder with no set: you choose <b>which card</b> goes in <b>which pocket</b>. Perfect for your openings or your
+                    favourites.
+                  </>,
+                )}
           </p>
           <label className={styles.nameField}>
             <span>{t("Nom sur la tranche", "Name on the spine")}</span>
@@ -207,7 +229,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
               ref={input}
               value={name}
               maxLength={28}
-              placeholder={t("Fourre-tout", "Bits & bobs")}
+              placeholder={tab === "wish" ? t("Cartes de rêve", "Dream cards") : t("Fourre-tout", "Bits & bobs")}
               onChange={(e) => {
                 setName(e.target.value);
                 sfx.hover();
@@ -215,7 +237,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
             />
           </label>
           <div className={styles.ideas}>
-            {t(FREE_IDEAS.fr, FREE_IDEAS.en).map((idea) => (
+            {(tab === "wish" ? t(WISH_IDEAS.fr, WISH_IDEAS.en) : t(FREE_IDEAS.fr, FREE_IDEAS.en)).map((idea) => (
               <button
                 key={idea}
                 type="button"
@@ -231,9 +253,9 @@ export function BinderPicker({ title, subtitle, onPick, onClose }: Props) {
             ))}
           </div>
           <button className={styles.create} type="submit" disabled={!!busy} onPointerEnter={sfx.hover}>
-            {busy === "free" ? t("on l'étiquette…", "labelling…") : t("Créer ce classeur ▶", "Create this binder ▶")}
+            {busy === tab ? t("on l'étiquette…", "labelling…") : tab === "wish" ? t("Créer cette wishlist ▶", "Create this wishlist ▶") : t("Créer ce classeur ▶", "Create this binder ▶")}
           </button>
-          {failed === "free" && <p className={styles.error}>{t("Oups, réessaie.", "Oops, try again.")}</p>}
+          {failed === tab && <p className={styles.error}>{t("Oups, réessaie.", "Oops, try again.")}</p>}
         </form>
       )}
     </motion.div>

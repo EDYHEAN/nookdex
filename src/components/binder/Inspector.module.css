@@ -786,3 +786,57 @@
   color: var(--ink-soft);
   font-size: 0.85em;
 }
+
+/* ☆ Wishlist on a card's sheet, and its menu of wishlists */
+.wishWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wishBtn,
+.unwish {
+  padding: 6px 12px 4px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--paper-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px var(--ink);
+  transition: transform 0.18s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.wishBtn:hover,
+.unwish:hover {
+  transform: translateY(-2px) rotate(-2deg);
+}
+
+.wishOn {
+  background: #ffd35a;
+}
+
+.wishMenu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(300px, 80vw);
+  padding: 12px;
+  border-radius: 8px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain);
+  box-shadow:
+    0 0 0 3px var(--ink),
+    5px 6px 0 3px rgba(20, 12, 28, 0.35);
+}
+
+.wishNote {
+  color: var(--ink-gold);
+  font-size: 16px;
+}

@@ -85,8 +85,12 @@ export interface CatalogSet {
 }
 
 /** A binder the player put on their shelf (shelf order). */
-/** A set binder's setId is a set key: "sv08" (French cards), "en:sv08" (English cards). */
-export type UserBinder = ({ kind: "set"; setId: string } | { kind: "free"; name: string }) & {
+/**
+ * A set binder's setId is a set key: "sv08" (French cards), "en:sv08" (English cards). A wishlist is a free binder
+ * (`wish`) whose pockets can also hold wanted cards (`wants`, pocket -> card key): drawn as ghosts, never owned nor
+ * counted. "Got it!" on one makes it a copy kept in that pocket, like any free binder's (never in its set's binder).
+ */
+export type UserBinder = ({ kind: "set"; setId: string } | { kind: "free"; name: string; wish?: boolean; wants?: Record<string, string> }) & {
   id: string;
   /** Cover color; missing on saves from before colors could be picked */
   color?: string;
@@ -100,6 +104,10 @@ export type BinderSort = "num" | "rarity" | "price" | "name";
 export interface BinderDef {
   id: string;
   kind: "set" | "free";
+  /** a wishlist (a free binder with wanted cards) */
+  wish: boolean;
+  /** a wishlist's wanted cards, pocket -> card key (empty for the others) */
+  wants: Record<string, string>;
   code: string;
   name: string;
   /** Cover color, a darker shade of it, and the text color that reads on it */
