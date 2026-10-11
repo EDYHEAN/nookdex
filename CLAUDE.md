@@ -143,6 +143,8 @@ doesn't show.
   `v=spf1 include:spf.improvmx.com include:spf.brevo.com ~all` in Vercel DNS. Don't remove them: before 2026-10-07 the
   domain had no MX and every mail to contact@ bounced. Johan sends as contact@ from Gmail through Brevo SMTP
   (`smtp-relay.brevo.com:587`, its own SMTP key "Gmail"; Supabase's auth e-mails use another key, leave it alone).
+  His Gmail signature is `docs/emails/signature.html` (open in Chrome, copy, paste in Gmail's settings); Warwick's
+  picture is `public/email/warwick.png`.
 - `/api/contact`: contact form → e-mail to Johan (topics are sent in French whatever the visitor's language).
 - The English waiting list (Brevo list 12, `BREVO_WAITLIST_LIST_ID`) is gone since the English version exists.
 
