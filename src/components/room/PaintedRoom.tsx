@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MAX_BINDERS, pocketsOf, shelfBinders } from "@/lib/binders";
+import { MAX_BINDERS, pocketsOf, shelfBinders, wantsOf } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, sceneImg } from "@/lib/scene";
@@ -239,8 +239,17 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
       const st = setStats(set, collection);
       return { sub: `${st.owned}/${st.total} ${tr("cartes", "cards")} · ${formatMoney(st.trend)}`, pct: st.total ? st.owned / st.total : 0 };
     }
-    const items = [...pocketsOf(b.id, collection).values()].flatMap(({ cardId, copy }) => (cards[cardId] ? [{ card: cards[cardId], copies: [copy] }] : []));
+    const pockets = pocketsOf(b.id, collection);
+    const items = [...pockets.values()].flatMap(({ cardId, copy }) => (cards[cardId] ? [{ card: cards[cardId], copies: [copy] }] : []));
     const t = copiesTotals(items);
+    if (b.wish) {
+      const wanted = [...wantsOf(b)].filter(([pocket]) => !pockets.has(pocket)).length;
+      const total = t.cards + wanted;
+      return {
+        sub: total ? `★ wishlist · ${t.cards}/${total} ${tr("trouvées", "found")}` : tr("★ wishlist · vide", "★ wishlist · empty"),
+        pct: total ? t.cards / total : 0,
+      };
+    }
     return { sub: t.cards ? `${t.cards} ${tr("carte", "card")}${t.cards > 1 ? "s" : ""} · ${formatMoney(t.trend)}` : tr("classeur libre · vide", "free binder · empty"), pct: null };
   };
   const plusSlot = binders.length < MAX_BINDERS ? SCENE.slots[binders.length] : null;
@@ -410,7 +419,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
                       <img src={`${b.logo}.png`} alt="" draggable={false} />
                     ) : (
                       <span className={styles.labelText} style={{ color: b.kind === "free" ? "#2b2230" : b.ink }}>
-                        {b.kind === "free" ? b.name : b.code}
+                        {b.wish ? `★ ${b.name}` : b.kind === "free" ? b.name : b.code}
                       </span>
                     )}
                     {langTag(b) && <span className={styles.langTag}>{langTag(b)}</span>}

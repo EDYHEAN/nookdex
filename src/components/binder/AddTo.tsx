@@ -2,22 +2,14 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { MAX_BINDERS, pocketsOf } from "@/lib/binders";
+import { MAX_BINDERS, firstEmpty } from "@/lib/binders";
 import { catalogSet, setIdOfCard } from "@/lib/catalog";
 import { useT } from "@/lib/lang";
 import { cardTier } from "@/lib/price";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
-import type { CardData, Copy } from "@/lib/types";
+import type { CardData } from "@/lib/types";
 import styles from "./Inspector.module.css";
-
-/** First empty pocket of a free binder. */
-function firstFree(binderId: string, collection: Record<string, Copy[]>) {
-  const used = pocketsOf(binderId, collection);
-  let i = 0;
-  while (used.has(i)) i++;
-  return i;
-}
 
 interface Place {
   id: string;
@@ -49,8 +41,9 @@ export function AddTo({ card }: { card: CardData }) {
     places.push({
       id: b.id,
       label: b.name,
-      hint: t("classeur libre", "free binder"),
-      go: () => placeCard(b.id, firstFree(b.id, useStore.getState().collection), card.id, variant),
+      hint: b.wish ? t("wishlist", "wishlist") : t("classeur libre", "free binder"),
+      // the first pocket neither holding a card nor wanted (a wishlist's ghosts keep theirs)
+      go: () => placeCard(b.id, firstEmpty(b, b.id, useStore.getState().collection), card.id, variant),
     });
   }
   // extra sets (old series, promos) are search-only: no binder of their own

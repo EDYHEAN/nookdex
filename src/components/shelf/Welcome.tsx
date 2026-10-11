@@ -361,6 +361,7 @@ export function Welcome({ onPick, onDone, onExplore }: Props) {
         {step === "binder" && (
           <motion.div key="binder" className={styles.pickerWrap} exit={{ opacity: 0, y: 40, transition: { duration: 0.25 } }}>
             <BinderPicker
+              wishes={false}
               title={t(`${profile?.name ?? "Dresseur"}, choisis ton premier classeur`, `${profile?.name ?? "Trainer"}, pick your first binder`)}
               subtitle={
                 <>

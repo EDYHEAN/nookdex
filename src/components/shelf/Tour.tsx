@@ -161,10 +161,10 @@ function buildSteps(email: string | null, en: boolean): Step[] {
       target: ["tab-wish"],
       text: t(
         <>
-          ⭐ <b>Ta wishlist</b> : toutes les cartes qui te manquent, avec leur prix. Clique !
+          ⭐ <b>Ta wishlist</b> : les cartes que tu cherches, avec leur prix. Clique !
         </>,
         <>
-          ⭐ <b>Your wishlist</b>: every card you&apos;re missing, with its price. Click!
+          ⭐ <b>Your wishlist</b>: the cards you&apos;re after, with their price. Click!
         </>,
       ),
       done: () => !!$('[data-tour="tab-wish"][aria-selected="true"]'),

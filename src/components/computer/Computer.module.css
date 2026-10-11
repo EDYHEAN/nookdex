@@ -1095,3 +1095,17 @@
   opacity: 0.8;
   vertical-align: middle;
 }
+
+/* the wishlist tab: make one from a set binder's missing cards */
+.wishFrom {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.wishFromTitle {
+  margin: 0;
+  color: #8dffc0;
+}

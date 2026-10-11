@@ -257,6 +257,12 @@ export function App() {
             }}
             onGoToCard={goToCard}
             onOpenCards={(keys, index) => void openCards(keys, index)}
+            onOpenBinder={(binderId, cardId) => {
+              sfx.shelfOut();
+              setSheet(null);
+              setComputer(null);
+              setTimeout(() => setOpen({ binderId, focusCardId: cardId }), 350);
+            }}
           />
         )}
       </AnimatePresence>

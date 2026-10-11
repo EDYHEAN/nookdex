@@ -23,6 +23,8 @@ interface Props {
   onInspect: (id: string) => void;
   /** Owned but kept elsewhere, ex: "dans Fourre-tout" */
   tag?: string;
+  /** a wishlist's wanted card: a ghost with a star */
+  wish?: boolean;
 }
 
 const BURST_COLORS: Record<Tier, string[]> = {
@@ -39,7 +41,7 @@ interface Fx {
   bits: { dx: number; dy: number; r: number; c: string; s: number }[];
 }
 
-export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, onInspect, tag }: Props) {
+export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, onInspect, tag, wish }: Props) {
   const tr = useT();
   const owned = !!copies?.length;
   const [fx, setFx] = useState<Fx | null>(null);
@@ -94,7 +96,7 @@ export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, o
 
   return (
     <div
-      className={`${styles.slot} ${owned ? styles.owned : styles.missing} ${fx ? styles.added : ""} ${focused ? styles.focused : ""}`}
+      className={`${styles.slot} ${owned ? styles.owned : styles.missing} ${wish ? styles.wish : ""} ${fx ? styles.added : ""} ${focused ? styles.focused : ""}`}
       data-tier={tier}
       data-tour={owned ? "owned" : "missing"}
     >
@@ -150,6 +152,12 @@ export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, o
         >
           🔍
         </button>
+      )}
+
+      {wish && !owned && (
+        <span className={styles.wishStar} aria-hidden>
+          ★
+        </span>
       )}
 
       {owned && (

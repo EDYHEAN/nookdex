@@ -10,6 +10,7 @@ import { sfx } from "@/lib/sound";
 import { CONDITIONS, CONDITION_LABEL, useStore } from "@/lib/store";
 import type { CardData, Condition, Copy, Variant } from "@/lib/types";
 import { AddTo } from "./AddTo";
+import { WishButton } from "./WishButton";
 import type { AddResult } from "./CardSlot";
 import { CardBack } from "./CardBack";
 import { PriceChart } from "./PriceChart";
@@ -26,9 +27,11 @@ interface Props {
   onAdd?: (card: CardData) => AddResult;
   /** A card looked at from NookDex OS that a binder on the shelf holds: open that binder */
   onOpenBinder?: () => void;
+  /** A wishlist's wanted card: take it off the list (the sheet then has no ☆ of its own) */
+  onUnwish?: () => void;
 }
 
-export function Inspector({ card, binderId, onClose, onNavigate, onAdd, onOpenBinder }: Props) {
+export function Inspector({ card, binderId, onClose, onNavigate, onAdd, onOpenBinder, onUnwish }: Props) {
   const t = useT();
   // a card is priced on its language's market: Cardmarket for French cards, TCGplayer for English ones
   const cardLang = langOfKey(card.id);
@@ -322,6 +325,17 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd, onOpenBi
             >
               {t("Ouvrir son classeur ▸", "Open its binder ▸")}
             </button>
+          )}
+          {onUnwish ? (
+            <button
+              className={styles.unwish}
+              onClick={onUnwish}
+              onPointerEnter={sfx.hover}
+            >
+              {t("☆ Retirer de la wishlist", "☆ Off the wishlist")}
+            </button>
+          ) : (
+            <WishButton card={card} />
           )}
           {keptHere && (
             <HoldButton

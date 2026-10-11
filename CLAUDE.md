@@ -116,6 +116,18 @@ doesn't show.
   skipped, waits for the player on the key gestures. Replayable from the shelf notebook. Renaming or removing a
   `data-tour` attribute breaks a step.
 
+## Wishlists
+
+- A wishlist is a free binder with `wish: true` (shelf label "★ name", the picker's "★ Wishlist" tab, not offered for the
+  very first binder). Its `wants` (pocket -> card key, any language, in the save and the cloud with the binders) are
+  ghosts: never owned, never in a value or a set's completion. "Je l'ai !" on a ghost (`obtainWish`) makes it a copy
+  kept in that pocket like any free binder's; it never shows up in its set's binder (Johan, 2026-10-11: a wishlist is
+  a way of filing cards, ticking Lugia there must not file it elsewhere). A card owned elsewhere stays wanted, tagged
+  "déjà à toi".
+- ☆ Wishlist on every card sheet (`binder/WishButton`), NookDex OS → Wishlist lists every ghost (total cost, copy the
+  list) and makes a wishlist of a set binder's missing cards. Wishlists share the 12 shelf slots (an idea for later: a
+  Collection / Wishlist switch of the shelf).
+
 ## Trophies
 
 - `lib/trophies.ts` (the 60, `factsOf` worked out from the collection), won by `useTrophyWatch` (debounced, waits for the

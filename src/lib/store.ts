@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { MAX_BINDERS, freeColor } from "./binders";
+import { MAX_BINDERS, firstEmpty, freeColor } from "./binders";
 import { setIdOfCard } from "./catalog";
 import eurUsd from "@/data/eur-usd.json";
 import { type Currency, keyOf, langOfKey } from "./cardLang";
@@ -107,7 +107,13 @@ interface State {
   /** Switches the player's money, purchase prices converted at the rate of the last price update. */
   setCurrency: (currency: Currency) => void;
   /** Puts a new binder at the end of the shelf, returns its id. */
-  addBinder: (b: { kind: "set"; setId: string } | { kind: "free"; name: string }) => string;
+  addBinder: (b: { kind: "set"; setId: string } | { kind: "free"; name: string; wish?: boolean; wants?: Record<string, string> }) => string;
+  /** A wanted card in a wishlist's pocket (the first free one by default). */
+  wishCard: (binderId: string, cardId: string, pocket?: number) => void;
+  /** Takes a wanted card out of a wishlist. */
+  unwish: (binderId: string, pocket: number) => void;
+  /** "Got it!" on a wanted card: it becomes a copy kept in that very pocket. */
+  obtainWish: (binderId: string, pocket: number, variant: Variant) => void;
   setBinderColor: (id: string, color: string) => void;
   setBinderSort: (id: string, sort: BinderSort) => void;
   /** A set binder leaves the shelf, its cards stay owned. A free binder goes with the cards it holds. */
@@ -173,6 +179,28 @@ export const useStore = create<State>()(
         if (get().binders.length >= MAX_BINDERS) return id;
         set((s) => ({ binders: [...s.binders, { id, color: freeColor(s.binders), ...b }] }));
         return id;
+      },
+      wishCard: (binderId, cardId, pocket) =>
+        set((s) => ({
+          binders: s.binders.map((b) => {
+            if (b.id !== binderId || b.kind !== "free") return b;
+            const at = pocket ?? firstEmpty(b, b.id, s.collection);
+            return { ...b, wants: { ...b.wants, [at]: cardId } };
+          }),
+        })),
+      unwish: (binderId, pocket) =>
+        set((s) => ({
+          binders: s.binders.map((b) => {
+            if (b.id !== binderId || b.kind !== "free" || !b.wants) return b;
+            return { ...b, wants: Object.fromEntries(Object.entries(b.wants).filter(([at]) => at !== String(pocket))) };
+          }),
+        })),
+      obtainWish: (binderId, pocket, variant) => {
+        const b = get().binders.find((x) => x.id === binderId);
+        const cardId = b?.kind === "free" ? b.wants?.[String(pocket)] : undefined;
+        if (!cardId) return;
+        get().unwish(binderId, pocket);
+        get().placeCard(binderId, pocket, cardId, variant);
       },
       setBinderColor: (id, color) => {
         set((s) => ({ binders: s.binders.map((b) => (b.id === id ? { ...b, color } : b)) }));
