@@ -26,6 +26,14 @@ export const CHANGELOG: Release[] = [
         en: "Every trophy won pops up at the bottom of the screen with its fanfare: bronze, silver, gold or platinum, the harder it is, the bigger the party.",
       },
       { fr: "Ta vitrine à trophées se cache dans la Poké Ball de l'étagère.", en: "Your trophy case hides in the Poké Ball on the shelf." },
+      {
+        fr: "Les kits du dresseur (EX à Soleil et Lune : Latias, Latios, Positi, Négapi, Lucario…) arrivent dans la recherche, avec leurs prix.",
+        en: "The trainer kits (EX to Sun & Moon: Latias, Latios, Plusle, Minun, Lucario…) are in the search, with their prices.",
+      },
+      {
+        fr: "Dans un classeur libre, tape le numéro imprimé sur la carte (pikachu 60/106), et « Voir plus » montre toutes les cartes d'une longue recherche.",
+        en: "In a free binder, type the number printed on the card (pikachu 60/106), and \"Show more\" brings every card of a long search.",
+      },
     ],
   },
   {

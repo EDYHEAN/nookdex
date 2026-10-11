@@ -65,12 +65,22 @@ export function rowsOf(index: IndexCard[]): Row[] {
   return rows;
 }
 
-/** "dracaufeu ev3.5", "lugia 186", "eb12 tg": every word must hit the name, the number or the set. Null for no words. */
+/**
+ * "dracaufeu ev3.5", "lugia 186", "eb12 tg", "pikachu 60/106": every word must hit the name, the number or the set. The
+ * number as printed on the card ("60/106") also checks the set's size: its total counts the secret rares on top of the
+ * printed 106, so it may be a bit more. Null for no words.
+ */
 export function matcher(q: string): ((r: Row) => boolean) | null {
   const words = norm(q).split(/\s+/).filter(Boolean);
   if (!words.length) return null;
   return (r) =>
     words.every((w) => {
+      const printed = /^([a-z]*\d+)\/(\d+)$/.exec(w);
+      if (printed) {
+        const size = r.set?.total ?? 0;
+        const of = Number(printed[2]);
+        return r.bareNum === printed[1].replace(/^([a-z]*)0+(?=\d)/, "$1") && (!size || (size >= of && size <= of * 2));
+      }
       const n = w.replace(/^0+(?=\d)/, "");
       return r.text.includes(w) || r.bareNum === n || r.num.toLowerCase() === w || r.code === w || (w.length > 3 && r.setName.includes(w));
     });
@@ -86,8 +96,8 @@ export function relevance(r: Row, q: string): number {
   return 3;
 }
 
-/** The first `limit` rows matching a search, in index order (newest sets first). */
-export function searchRows(rows: Row[], q: string, limit: number): Row[] {
+/** The first `limit` rows matching a search (all of them by default), in index order (newest sets first). */
+export function searchRows(rows: Row[], q: string, limit = Infinity): Row[] {
   const match = matcher(q);
   if (!match) return [];
   const out: Row[] = [];

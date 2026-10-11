@@ -79,17 +79,6 @@
   "subs": []
  },
  {
-  "id": "sv10.5w",
-  "serie": "sv",
-  "serieName": "Scarlet & Violet",
-  "name": "White Flare",
-  "code": "WHT",
-  "logo": "/logos/en/sv10.5w",
-  "releaseDate": "2025-07-17",
-  "total": 173,
-  "subs": []
- },
- {
   "id": "sv10.5b",
   "serie": "sv",
   "serieName": "Scarlet & Violet",
@@ -98,6 +87,17 @@
   "logo": "/logos/en/sv10.5b",
   "releaseDate": "2025-07-17",
   "total": 172,
+  "subs": []
+ },
+ {
+  "id": "sv10.5w",
+  "serie": "sv",
+  "serieName": "Scarlet & Violet",
+  "name": "White Flare",
+  "code": "WHT",
+  "logo": "/logos/en/sv10.5w",
+  "releaseDate": "2025-07-17",
+  "total": 173,
   "subs": []
  },
  {
@@ -679,18 +679,6 @@
   "extra": true
  },
  {
-  "id": "sm115",
-  "serie": "sm",
-  "serieName": "Sun & Moon",
-  "name": "Hidden Fates",
-  "code": "HIF",
-  "logo": "https://assets.tcgdex.net/en/sm/sm115/logo",
-  "releaseDate": "2019-08-23",
-  "total": 69,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "sma",
   "serie": "sm",
   "serieName": "Sun & Moon",
@@ -699,6 +687,18 @@
   "logo": null,
   "releaseDate": "2019-08-23",
   "total": 94,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sm115",
+  "serie": "sm",
+  "serieName": "Sun & Moon",
+  "name": "Hidden Fates",
+  "code": "HIF",
+  "logo": "https://assets.tcgdex.net/en/sm/sm115/logo",
+  "releaseDate": "2019-08-23",
+  "total": 69,
   "subs": [],
   "extra": true
  },
@@ -859,14 +859,26 @@
   "extra": true
  },
  {
-  "id": "smp",
-  "serie": "sm",
-  "serieName": "Sun & Moon",
-  "name": "SM Black Star Promos",
-  "code": "SMP",
-  "logo": "https://assets.tcgdex.net/en/sm/smp/logo",
-  "releaseDate": "2017-02-03",
-  "total": 181,
+  "id": "tk-sm-r",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "SM trainer Kit (Alolan Raichu)",
+  "code": "TK10A",
+  "logo": null,
+  "releaseDate": "2017-04-21",
+  "total": 29,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-sm-l",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "SM trainer Kit (Lycanroc)",
+  "code": "TK10L",
+  "logo": null,
+  "releaseDate": "2017-04-21",
+  "total": 18,
   "subs": [],
   "extra": true
  },
@@ -879,6 +891,18 @@
   "logo": "https://assets.tcgdex.net/en/sm/sm1/logo",
   "releaseDate": "2017-02-03",
   "total": 172,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "smp",
+  "serie": "sm",
+  "serieName": "Sun & Moon",
+  "name": "SM Black Star Promos",
+  "code": "SMP",
+  "logo": "https://assets.tcgdex.net/en/sm/smp/logo",
+  "releaseDate": "2017-02-03",
+  "total": 181,
   "subs": [],
   "extra": true
  },
@@ -915,6 +939,30 @@
   "logo": "https://assets.tcgdex.net/en/xy/xy10/logo",
   "releaseDate": "2016-05-02",
   "total": 129,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-xy-p",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "XY trainer Kit (Pikachu Libre)",
+  "code": "TK9P",
+  "logo": null,
+  "releaseDate": "2016-04-27",
+  "total": 30,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-xy-su",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "XY trainer Kit (Suicune)",
+  "code": "TK9S",
+  "logo": null,
+  "releaseDate": "2016-04-27",
+  "total": 30,
   "subs": [],
   "extra": true
  },
@@ -979,6 +1027,30 @@
   "extra": true
  },
  {
+  "id": "tk-xy-latio",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "XY trainer Kit (Latios)",
+  "code": "TK8O",
+  "logo": null,
+  "releaseDate": "2015-04-29",
+  "total": 30,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-xy-latia",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "XY trainer Kit (Latias)",
+  "code": "TK8A",
+  "logo": null,
+  "releaseDate": "2015-04-29",
+  "total": 30,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "dc1",
   "serie": "xy",
   "serieName": "XY",
@@ -1015,6 +1087,30 @@
   "extra": true
  },
  {
+  "id": "tk-xy-w",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "XY trainer Kit (Wigglytuff)",
+  "code": "TK7B",
+  "logo": null,
+  "releaseDate": "2014-11-01",
+  "total": 30,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-xy-b",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "XY trainer Kit (Bisharp)",
+  "code": "TK7A",
+  "logo": null,
+  "releaseDate": "2014-11-01",
+  "total": 30,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "xy3",
   "serie": "xy",
   "serieName": "XY",
@@ -1035,6 +1131,30 @@
   "logo": "https://assets.tcgdex.net/en/xy/xy2/logo",
   "releaseDate": "2014-05-07",
   "total": 110,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-xy-n",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "XY trainer Kit (Noivern)",
+  "code": "TK6N",
+  "logo": null,
+  "releaseDate": "2014-03-12",
+  "total": 29,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-xy-sy",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "XY trainer Kit (Sylveon)",
+  "code": "TK6S",
+  "logo": null,
+  "releaseDate": "2014-03-12",
+  "total": 30,
   "subs": [],
   "extra": true
  },
@@ -1195,6 +1315,30 @@
   "extra": true
  },
  {
+  "id": "tk-bw-z",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "BW trainer Kit (Zoroark)",
+  "code": "TK5Z",
+  "logo": null,
+  "releaseDate": "2011-09-01",
+  "total": 30,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-bw-e",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "BW trainer Kit (Excadrill)",
+  "code": "TK5E",
+  "logo": null,
+  "releaseDate": "2011-09-01",
+  "total": 30,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "bw2",
   "serie": "bw",
   "serieName": "Black & White",
@@ -1275,6 +1419,30 @@
   "logo": "https://assets.tcgdex.net/en/hgss/hgss2/logo",
   "releaseDate": "2010-05-12",
   "total": 96,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-hs-g",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "HS trainer Kit (Gyarados)",
+  "code": "TK4G",
+  "logo": null,
+  "releaseDate": "2010-05-01",
+  "total": 30,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-hs-r",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "HS trainer Kit (Raichu)",
+  "code": "TK4R",
+  "logo": null,
+  "releaseDate": "2010-05-01",
+  "total": 30,
   "subs": [],
   "extra": true
  },
@@ -1471,6 +1639,30 @@
   "extra": true
  },
  {
+  "id": "tk-dp-m",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "DP trainer Kit (Manaphy)",
+  "code": "TK3M",
+  "logo": null,
+  "releaseDate": "2007-09-01",
+  "total": 12,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-dp-l",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "DP trainer Kit (Lucario)",
+  "code": "TK3L",
+  "logo": null,
+  "releaseDate": "2007-09-01",
+  "total": 11,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "dp2",
   "serie": "dp",
   "serieName": "Diamond & Pearl",
@@ -1591,6 +1783,30 @@
   "extra": true
  },
  {
+  "id": "tk-ex-m",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "EX trainer Kit 2 (Minun)",
+  "code": "TK2M",
+  "logo": null,
+  "releaseDate": "2006-03-01",
+  "total": 12,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-ex-p",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "EX trainer Kit 2 (Plusle)",
+  "code": "TK2P",
+  "logo": null,
+  "releaseDate": "2006-03-01",
+  "total": 12,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "ex12",
   "serie": "ex",
   "serieName": "EX",
@@ -1695,6 +1911,30 @@
   "logo": "https://assets.tcgdex.net/en/pop/pop1/logo",
   "releaseDate": "2004-09-01",
   "total": 17,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-ex-latio",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "EX trainer Kit (Latios)",
+  "code": "TK1O",
+  "logo": null,
+  "releaseDate": "2004-07-01",
+  "total": 10,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-ex-latia",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "EX trainer Kit (Latias)",
+  "code": "TK1A",
+  "logo": null,
+  "releaseDate": "2004-07-01",
+  "total": 10,
   "subs": [],
   "extra": true
  },
