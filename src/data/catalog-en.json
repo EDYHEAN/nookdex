@@ -643,6 +643,18 @@
   "subs": []
  },
  {
+  "id": "mep",
+  "serie": "me",
+  "serieName": "Mega Evolution",
+  "name": "MEP Black Star Promos",
+  "code": "MEP",
+  "logo": null,
+  "releaseDate": "2025-09-26",
+  "total": 110,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "svp",
   "serie": "sv",
   "serieName": "Scarlet & Violet",
