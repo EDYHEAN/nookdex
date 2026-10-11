@@ -100,6 +100,9 @@ doesn't show.
   `https://xwqhucccldraieyiycvt.supabase.co/auth/v1/callback`. Supabase redirect URLs: nookdex.com/**, localhost:3000/**.
 - Sync (`src/lib/cloud.ts`): pull on sign-in and on tab focus, push 1.5 s after a change, three-way compare with the
   last agreed state (localStorage `nookdex:cloud-base:<userId>`) and a "keep which one?" choice on conflict.
+- Players count: SQL function `player_count()` (docs/supabase.sql, security definer, returns the number only), read by
+  `lib/players` for the loader's tagline (rounded down to tens, cached 1 h, hidden under 50) and by the welcome
+  (`usePlayers`, exact). If the function is missing, nothing shows.
 - Auth e-mails go through Brevo SMTP as `contact@nookdex.com`; their templates are `docs/emails/*.html` (pasted in
   Supabase → Authentication → Emails → Templates).
 

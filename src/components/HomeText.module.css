@@ -16,6 +16,15 @@
   animation: taglineIn 0.5s steps(4);
 }
 
+/* the players' count, a smaller line in gold ink under the title */
+.players {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.72em;
+  color: #a8701a;
+  animation: taglineIn 0.5s 0.4s steps(4) both;
+}
+
 @keyframes taglineIn {
   from {
     opacity: 0;

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { loadSets, neededSets } from "@/lib/catalog";
-import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
+import { askPlayers, signIn, signInWithGoogle, useCloud, usePlayers } from "@/lib/cloud";
 import { NAME_PARTS, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { useT } from "@/lib/lang";
@@ -31,6 +31,8 @@ export function Welcome({ onPick, onDone, onExplore }: Props) {
   const { email, firstName, status } = useCloud();
   const offline = useStore((s) => s.offline);
   const t = useT();
+  const players = usePlayers((p) => p.count);
+  useEffect(askPlayers, []);
   const step = (!email && !offline) || status === "loading" ? "account" : !profile ? "hello" : "binder";
   /** "Play without an account" asks once more, with what it costs. */
   const [warn, setWarn] = useState(false);
@@ -150,6 +152,11 @@ export function Welcome({ onPick, onDone, onExplore }: Props) {
             "account",
             <>
               <h1>{t("Bienvenue au bureau !", "Welcome to the desk!")}</h1>
+              {players != null && players >= 50 && (
+                <p className={styles.players}>
+                  {t(`★ Rejoins les ${players} dresseurs de NookDex`, `★ Join NookDex's ${players} collectors`)}
+                </p>
+              )}
               <p className={styles.steps}>
                 <b>{t("1. Connexion", "1. Sign in")}</b> · {t("2. Pseudo", "2. Nickname")} · {t("3. Premier classeur", "3. First binder")}
               </p>

@@ -64,6 +64,20 @@
   line-height: 1.4;
 }
 
+/* how many players already: a little gold stamp under the title */
+.players {
+  /* its own width, on its own line */
+  display: table;
+  margin: -6px 0 16px;
+  padding: 4px 10px 2px;
+  border-radius: 6px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-size: 18px;
+  box-shadow: 0 0 0 2px var(--ink);
+  transform: rotate(-1.5deg);
+}
+
 .steps {
   margin: -8px 0 0;
   color: var(--ink-soft);

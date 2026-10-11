@@ -22,3 +22,17 @@ create policy "own save: delete" on public.saves for delete using (auth.uid() = 
 grant select, insert, update, delete on table public.saves to authenticated;
 notify pgrst, 'reload schema';
 
+
+-- How many players have an account: the number only, nobody's data (the home page and the welcome show it).
+-- security definer: it reads auth.users, which the public key can't; it returns nothing but the count.
+create or replace function public.player_count()
+returns integer
+language sql
+stable
+security definer
+set search_path = ''
+as $$ select count(*)::integer from auth.users $$;
+
+revoke all on function public.player_count() from public;
+grant execute on function public.player_count() to anon, authenticated;
+notify pgrst, 'reload schema';
