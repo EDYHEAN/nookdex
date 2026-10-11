@@ -44,6 +44,8 @@ doesn't show.
   language. No API gives Cardmarket prices per card language (the official API is closed to new apps, confirmed by their
   support 2026-10-07, no date to reopen: their answer is in `docs/cardmarket-api.md`; their Data page's price guide files are per product too; the "FR prices"
   of resellers are the seller's country). English cards are priced on TCGplayer instead (see Languages).
+  Cardmarket allows this use in writing (Tracy, Head of Marketing, 2026-10-11, `docs/cardmarket-api.md`): every
+  place showing their prices says so, their logo only from their downloads kit; no affiliate program.
 - A card TCGdex stops listing is never dropped: kept with its last prices, `unavailable: true`, shown as a painted card
   back stamped "Bientôt de retour" (`CardBack`).
 - A card TCGdex lists with no scan in any language (the 30th's Classic Collection, `30th-c`) gets TCGplayer's picture,
