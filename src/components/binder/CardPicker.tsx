@@ -20,7 +20,8 @@ interface Props {
   onClose: () => void;
 }
 
-const MAX = 60;
+/** cards drawn at once; "show more" adds as many (a "pikachu" has hundreds, the old ones come last) */
+const PAGE = 60;
 
 export function CardPicker({ pocket, onPick, onClose }: Props) {
   const t = useT();
@@ -55,7 +56,12 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
     return () => window.removeEventListener("keydown", onKey, true);
   }, [onClose]);
 
-  const results = useMemo(() => (index ? searchRows(rowsOf(index), q, MAX) : []), [index, q]);
+  const matches = useMemo(() => (index ? searchRows(rowsOf(index), q) : []), [index, q]);
+  // a new search starts again from the first page
+  const sig = `${lang}:${q}`;
+  const [page, setPage] = useState({ sig, n: PAGE });
+  const shown = page.sig === sig ? page.n : PAGE;
+  const results = matches.slice(0, shown);
 
   const pick = async (id: string) => {
     if (busy) return;
@@ -135,13 +141,13 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
                   {index.length.toLocaleString("fr-FR")} cartes en {{ fr: "français", en: "anglais", ja: "japonais" }[lang]}, des toutes premières séries à
                   Méga-Évolution, promos comprises.
                   <br />
-                  Tape un nom (<i>pikachu</i>), ajoute un numéro (<i>pikachu 160</i>) ou un code d&apos;extension (<i>pikachu ev08</i>).
+                  Tape un nom (<i>pikachu</i>), ajoute le numéro imprimé sur la carte (<i>pikachu 60/106</i>) ou un code d&apos;extension (<i>pikachu ev08</i>).
                 </>,
                 <>
                   {index.length.toLocaleString("en-GB")} {{ fr: "French", en: "English", ja: "Japanese" }[lang]} cards, from the very first series to Mega
                   Evolution, promos included.
                   <br />
-                  Type a name (<i>pikachu</i>), add a number (<i>pikachu 160</i>) or a set code (<i>pikachu sit</i>).
+                  Type a name (<i>pikachu</i>), add the number printed on the card (<i>pikachu 60/106</i>) or a set code (<i>pikachu sit</i>).
                 </>,
               )}
             </p>
@@ -183,7 +189,26 @@ export function CardPicker({ pocket, onPick, onClose }: Props) {
               );
             })}
           </div>
-          {results.length >= MAX && <p className={styles.msg}>{t(`Les ${MAX} premières : précise ta recherche.`, `The first ${MAX}: narrow your search.`)}</p>}
+          {matches.length > shown && (
+            <>
+              <button
+                className={styles.more}
+                onPointerEnter={sfx.hover}
+                onClick={() => {
+                  sfx.riffle();
+                  setPage({ sig, n: shown + PAGE });
+                }}
+              >
+                {t(`Voir plus (${(matches.length - shown).toLocaleString("fr-FR")} autres)`, `Show more (${(matches.length - shown).toLocaleString("en-GB")} more)`)}
+              </button>
+              <p className={styles.msg}>
+                {t("Astuce : ajoute le numéro imprimé sur la carte ", "Tip: add the number printed on the card ")}
+                <i>60/106</i>
+                {t(" ou l'extension ", " or the set ")}
+                <i>{t("émeraude", "emerald")}</i>.
+              </p>
+            </>
+          )}
         </div>
       </motion.div>
     </motion.div>
