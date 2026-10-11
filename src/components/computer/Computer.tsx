@@ -411,6 +411,7 @@ function Wishlist({
   const sets = useSets((s) => s.sets);
   const cards = useSets((s) => s.cards);
   const [sort, setSort] = useState<"price" | "list">("price");
+  const [name, setName] = useState("");
   const lists = wishBinders(binders);
   const full = binders.length >= MAX_BINDERS;
 
@@ -450,11 +451,12 @@ function Wishlist({
     const missing = entries.filter((e) => e.set === set && !e.copies?.length);
     return missing.length ? [{ set, missing, cost: missing.reduce((n, e) => n + price(e), 0) }] : [];
   });
-  const create = (set: SetData, missing: Entry[]) => {
-    const name = set.name.slice(0, 28);
-    useStore.getState().addBinder({ kind: "free", name, wish: true, wants: Object.fromEntries(missing.map((e, i) => [i, e.card.id])) });
+  /** a new wishlist on the shelf: empty, or with a set binder's missing cards */
+  const create = (label: string, cardIds: string[] = []) => {
+    const n = label.trim().slice(0, 28);
+    useStore.getState().addBinder({ kind: "free", name: n, wish: true, wants: Object.fromEntries(cardIds.map((id, i) => [i, id])) });
     sfx.wish();
-    say(tr(`★ wishlist « ${name} » posée sur l'étagère`, `★ wishlist "${name}" put on the shelf`));
+    say(tr(`★ wishlist « ${n} » posée sur l'étagère`, `★ wishlist "${n}" put on the shelf`));
   };
 
   return (
@@ -485,8 +487,8 @@ function Wishlist({
           {lists.length
             ? tr("Tes wishlists sont vides… ou tout est trouvé ★", "Your wishlists are empty… or everything is found ★")
             : tr(
-                "Pas encore de wishlist. Crée-en une avec le + de l'étagère (★ Wishlist), mets-y une carte avec ☆ sur sa fiche, ou pars des cartes qui manquent à un classeur :",
-                "No wishlist yet. Make one with the shelf's + (★ Wishlist), add a card with ☆ on its sheet, or start from a binder's missing cards:",
+                "Pas encore de wishlist. Crée-en une ci-dessous, ou avec ☆ Wishlist sur la fiche d'une carte.",
+                "No wishlist yet. Make one below, or with ☆ Wishlist on a card's sheet.",
               )}
         </p>
       )}
@@ -501,17 +503,50 @@ function Wishlist({
           />
         ))}
       </div>
-      {fromSets.length > 0 && (
-        <div className={styles.wishFrom}>
-          <p className={styles.wishFromTitle}>{tr("Créer la wishlist des cartes qui manquent à…", "Make a wishlist of the cards missing from…")}</p>
-          {fromSets.map(({ set, missing, cost }) => (
-            <button key={set.id} className={styles.btnBig} disabled={full} onClick={() => create(set, missing)} onPointerEnter={sfx.hover}>
-              ★ {set.name} · {missing.length} {tr("cartes", "cards")} · ≈ {formatMoney(cost)}
-            </button>
-          ))}
-          {full && <p className={styles.muted}>{tr(`L'étagère est pleine (${MAX_BINDERS} classeurs).`, `The shelf is full (${MAX_BINDERS} binders).`)}</p>}
-        </div>
-      )}
+      <div className={styles.wishFrom}>
+        <p className={styles.wishFromTitle}>{tr("Nouvelle wishlist", "New wishlist")}</p>
+        <form
+          className={styles.wishNew}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!name.trim() || full) {
+              sfx.locked();
+              return;
+            }
+            create(name);
+            setName("");
+          }}
+        >
+          <label className={styles.searchBox}>
+            <span>★</span>
+            <input
+              value={name}
+              maxLength={28}
+              placeholder={tr("son nom : Cartes de rêve, Mes Évoli…", "its name: Dream cards, My Eevees…")}
+              onChange={(e) => {
+                setName(e.target.value);
+                sfx.hover();
+              }}
+            />
+          </label>
+          <button className={styles.btnBig} disabled={full || !name.trim()} onPointerEnter={sfx.hover}>
+            {tr("Créer ▶", "Create ▶")}
+          </button>
+        </form>
+        {fromSets.length > 0 && <p className={styles.wishFromTitle}>{tr("… ou celle des cartes qui manquent à :", "… or the one of the cards missing from:")}</p>}
+        {fromSets.map(({ set, missing, cost }) => (
+          <button
+            key={set.id}
+            className={styles.btnBig}
+            disabled={full}
+            onClick={() => create(set.name, missing.map((e) => e.card.id))}
+            onPointerEnter={sfx.hover}
+          >
+            ★ {set.name} · {missing.length} {tr("cartes", "cards")} · ≈ {formatMoney(cost)}
+          </button>
+        ))}
+        {full && <p className={styles.muted}>{tr(`L'étagère est pleine (${MAX_BINDERS} classeurs).`, `The shelf is full (${MAX_BINDERS} binders).`)}</p>}
+      </div>
     </div>
   );
 }

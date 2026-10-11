@@ -1109,3 +1109,22 @@
   margin: 0;
   color: #8dffc0;
 }
+
+.wishNew {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 10px;
+  width: min(720px, 100%);
+}
+
+.wishNew .searchBox {
+  flex: 1 1 260px;
+  font-size: 22px;
+}
+
+/* no zoom when typing on a phone */
+.wishNew input {
+  min-width: 0;
+  font-size: max(16px, 1em);
+}

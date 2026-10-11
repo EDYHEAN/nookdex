@@ -38,7 +38,8 @@ function seriesOf(lang: CardLang, site: "fr" | "en") {
     name,
   }));
 }
-type Tab = string | "free" | "wish";
+/** What kind of binder: one of a set (its series' tabs then), a free one, a wishlist */
+type Kind = "set" | "free" | "wish";
 
 const FREE_IDEAS = { fr: ["Fourre-tout", "Openings", "Mes favorites", "À échanger", "Full Arts"], en: ["Bits & bobs", "Openings", "Favourites", "For trade", "Full Arts"] };
 const WISH_IDEAS = {
@@ -53,11 +54,11 @@ export function BinderPicker({ title, subtitle, onPick, onClose, wishes = true }
   const site = useLang();
   const [cardLang, setCardLang] = useState<CardLang>(site);
   const onShelf = useMemo(() => new Set(binders.flatMap((b) => (b.kind === "set" ? [b.setId] : []))), [binders]);
-  const [tab, setTab] = useState<Tab>(seriesOf(cardLang, site)[0].id);
+  const [kind, setKind] = useState<Kind>("set");
+  const [tab, setTab] = useState(seriesOf(cardLang, site)[0].id);
   /** Another card language: the same series' tab in it (or its first one) */
   const pickLang = (lang: CardLang) => {
     setCardLang(lang);
-    if (tab === "free" || tab === "wish") return;
     const series = seriesOf(lang, site);
     const twin = twinOf(TWIN[tab] ?? tab, lang);
     setTab(series.some((x) => x.id === twin) ? twin : series[0].id);
@@ -77,8 +78,8 @@ export function BinderPicker({ title, subtitle, onPick, onClose, wishes = true }
   }, [onClose, busy]);
 
   useEffect(() => {
-    if (tab === "free" || tab === "wish") input.current?.focus();
-  }, [tab]);
+    if (kind !== "set") input.current?.focus();
+  }, [kind]);
 
   const pick = async (choice: BinderChoice, key: string) => {
     if (busy) return;
@@ -111,7 +112,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose, wishes = true }
           <h2>{title}</h2>
           {subtitle && <p>{subtitle}</p>}
         </div>
-        {tab !== "free" && tab !== "wish" && (
+        {kind === "set" && (
           <div className={styles.langs}>
             <LangStamps value={cardLang} onChange={pickLang} disabled={!!busy} />
           </div>
@@ -123,31 +124,62 @@ export function BinderPicker({ title, subtitle, onPick, onClose, wishes = true }
         )}
       </header>
 
-      <nav className={styles.tabs} role="tablist">
-        {[
-          ...seriesOf(cardLang, site),
-          { id: "free", name: t("Classeur libre", "Free binder") },
-          ...(wishes ? [{ id: "wish", name: "Wishlist" }] : []),
-        ].map((s) => (
-          <button
-            key={s.id}
-            role="tab"
-            aria-selected={tab === s.id}
-            className={`${styles.tab} ${tab === s.id ? styles.tabOn : ""} ${s.id === "free" || s.id === "wish" ? styles.tabFree : ""}`}
-            onClick={() => {
-              if (tab === s.id) return;
-              sfx.riffle();
-              setTab(s.id);
-            }}
-            onPointerEnter={sfx.hover}
-          >
-            {s.id === "free" ? "✎ " : s.id === "wish" ? "★ " : ""}
-            {s.name}
-          </button>
-        ))}
-      </nav>
+      <div className={`${styles.kinds} ${wishes ? "" : styles.kindsTwo}`} role="tablist" aria-label={t("Quel classeur ?", "Which binder?")}>
+        {(
+          [
+            { id: "set", icon: "▦", label: t("Extension", "Set"), hint: t("une extension à compléter", "a set to complete") },
+            { id: "free", icon: "✎", label: t("Classeur libre", "Free binder"), hint: t("tes cartes, rangées à ta façon", "your cards, filed your way") },
+            { id: "wish", icon: "★", label: "Wishlist", hint: t("les cartes que tu cherches", "the cards you're after") },
+          ] as const
+        )
+          .filter((k) => wishes || k.id !== "wish")
+          .map((k) => (
+            <motion.button
+              key={k.id}
+              role="tab"
+              aria-selected={kind === k.id}
+              className={`${styles.kind} ${kind === k.id ? styles.kindOn : ""}`}
+              whileTap={{ scale: 0.94 }}
+              onClick={() => {
+                if (kind === k.id) return;
+                sfx.stamp();
+                setKind(k.id);
+              }}
+              onPointerEnter={sfx.hover}
+            >
+              <span className={styles.kindIcon} aria-hidden>
+                {k.icon}
+              </span>
+              <span className={styles.kindText}>
+                <b>{k.label}</b>
+                <small>{k.hint}</small>
+              </span>
+            </motion.button>
+          ))}
+      </div>
 
-      {tab !== "free" && tab !== "wish" ? (
+      {kind === "set" && (
+        <nav className={styles.tabs} role="tablist">
+          {seriesOf(cardLang, site).map((s) => (
+            <button
+              key={s.id}
+              role="tab"
+              aria-selected={tab === s.id}
+              className={`${styles.tab} ${tab === s.id ? styles.tabOn : ""}`}
+              onClick={() => {
+                if (tab === s.id) return;
+                sfx.riffle();
+                setTab(s.id);
+              }}
+              onPointerEnter={sfx.hover}
+            >
+              {s.name}
+            </button>
+          ))}
+        </nav>
+      )}
+
+      {kind === "set" ? (
         <div key={`${cardLang}:${tab}`} className={styles.grid}>
           {sets.map((s, i) => {
             const have = onShelf.has(s.id);
@@ -197,11 +229,11 @@ export function BinderPicker({ title, subtitle, onPick, onClose, wishes = true }
               input.current?.focus();
               return;
             }
-            void pick({ kind: "free", name: n.slice(0, 28), ...(tab === "wish" ? { wish: true } : {}) }, tab);
+            void pick({ kind: "free", name: n.slice(0, 28), ...(kind === "wish" ? { wish: true } : {}) }, kind);
           }}
         >
           <p className={styles.freeIntro}>
-            {tab === "wish"
+            {kind === "wish"
               ? t(
                   <>
                     Les cartes que tu <b>cherches</b>, de n&apos;importe quelle extension : elles s&apos;affichent en fantôme, sans compter
@@ -229,7 +261,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose, wishes = true }
               ref={input}
               value={name}
               maxLength={28}
-              placeholder={tab === "wish" ? t("Cartes de rêve", "Dream cards") : t("Fourre-tout", "Bits & bobs")}
+              placeholder={kind === "wish" ? t("Cartes de rêve", "Dream cards") : t("Fourre-tout", "Bits & bobs")}
               onChange={(e) => {
                 setName(e.target.value);
                 sfx.hover();
@@ -237,7 +269,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose, wishes = true }
             />
           </label>
           <div className={styles.ideas}>
-            {(tab === "wish" ? t(WISH_IDEAS.fr, WISH_IDEAS.en) : t(FREE_IDEAS.fr, FREE_IDEAS.en)).map((idea) => (
+            {(kind === "wish" ? t(WISH_IDEAS.fr, WISH_IDEAS.en) : t(FREE_IDEAS.fr, FREE_IDEAS.en)).map((idea) => (
               <button
                 key={idea}
                 type="button"
@@ -253,9 +285,9 @@ export function BinderPicker({ title, subtitle, onPick, onClose, wishes = true }
             ))}
           </div>
           <button className={styles.create} type="submit" disabled={!!busy} onPointerEnter={sfx.hover}>
-            {busy === tab ? t("on l'étiquette…", "labelling…") : tab === "wish" ? t("Créer cette wishlist ▶", "Create this wishlist ▶") : t("Créer ce classeur ▶", "Create this binder ▶")}
+            {busy === kind ? t("on l'étiquette…", "labelling…") : kind === "wish" ? t("Créer cette wishlist ▶", "Create this wishlist ▶") : t("Créer ce classeur ▶", "Create this binder ▶")}
           </button>
-          {failed === tab && <p className={styles.error}>{t("Oups, réessaie.", "Oops, try again.")}</p>}
+          {failed === kind && <p className={styles.error}>{t("Oups, réessaie.", "Oops, try again.")}</p>}
         </form>
       )}
     </motion.div>

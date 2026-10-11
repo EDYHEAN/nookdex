@@ -66,6 +66,128 @@
   align-self: center;
 }
 
+/* ---------- what kind of binder: three paper cards, the one picked lifted and inked yellow ---------- */
+
+.kinds {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 4px 24px 16px;
+}
+
+.kindsTwo {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.kind {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 14px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--paper-2);
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    4px 5px 0 3px rgba(20, 12, 28, 0.3);
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.8, 0.5, 1),
+    background 0.15s,
+    box-shadow 0.15s;
+}
+
+.kind:hover {
+  transform: translateY(-2px) rotate(-0.6deg);
+}
+
+.kindOn {
+  background: #ffd35a;
+  transform: translateY(-3px) rotate(-1deg);
+  box-shadow:
+    0 0 0 3px var(--ink),
+    6px 8px 0 3px rgba(20, 12, 28, 0.35);
+}
+
+.kindOn:hover {
+  transform: translateY(-4px) rotate(-1deg);
+}
+
+.kindIcon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 0 0 2px var(--ink);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.kindOn .kindIcon {
+  animation: kindPop 0.4s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+@keyframes kindPop {
+  from {
+    transform: scale(0.6) rotate(-20deg);
+  }
+}
+
+.kindText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.1;
+}
+
+.kindText b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.kindText small {
+  color: var(--ink-soft);
+  font-size: 17px;
+}
+
+@media (max-width: 640px) {
+  .kinds {
+    gap: 8px;
+    padding: 2px 14px 12px;
+  }
+
+  /* a phone: the icon over the name, the hint left out (the panel below says it) */
+  .kind {
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 6px 8px;
+    text-align: center;
+  }
+
+  .kindText small {
+    display: none;
+  }
+
+  .kindText b {
+    font-size: 9px;
+  }
+
+  .kindIcon {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+}
+
 /* ---------- series tabs: binder dividers ---------- */
 
 .tabs {
