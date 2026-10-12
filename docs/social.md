@@ -122,6 +122,7 @@ Rumors and leaks: no.
 | `zoom` | `card`, `rect` `[x, y, w, h]` in the 600×825 scan (w:h = 4:5), `label` | a close-up |
 | `find` | `card`, `blur` `[x, y, w, h]`, `label` | a Pokémon to find, blurred, name and texts covered |
 | `reveal` | `items` (`[{ card, rect, name }]`), `label` | the answers of zooms / finds |
+| `stats` | `kicker`, `title`, `items` (`[{ n, label }]`: the first one huge, then tiles; `n` a number counts up in the video), `ending` | a milestone, a recap in numbers |
 | `end` | `kicker`, `title`, `lead` | the closing question and the address |
 
 A carousel: `cover`, 2-6 slides, an ending (`end`, `total` or `duelAnswers`). A fun page: a single `grid`. Keep 3-7 slides.
