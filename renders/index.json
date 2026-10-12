@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-12T15:28:49.845Z",
+ "updated": "2026-10-12T16:56:41.399Z",
  "posts": [
   {
    "id": "2026-10-08-bienvenue",
@@ -101,6 +101,31 @@
    "tiktok": "2026-10-12-wishlists/tiktok.mp4"
   },
   {
+   "id": "2026-10-13-100-dresseurs",
+   "date": "2026-10-13",
+   "time": "18:30",
+   "platforms": [
+    "instagram",
+    "reels"
+   ],
+   "kind": "feature",
+   "format": "post",
+   "title": "Merci aux 100 dresseurs",
+   "note": "100 comptes atteints le 12/10 : chiffres du 12/10 (3 303 cartes, 139 classeurs, 832 cartes dans la plus grosse collec).",
+   "caption": "On est 100 sur NookDex 🎉\n\nIl y a 12 jours, c'était juste mon classeur Tempête Argentée et un chat sur un bureau peint.\nAujourd'hui, vous êtes 100 dresseurs à y ranger vos cartes : plus de 3 300 cartes rangées, 139 classeurs sur les étagères, et une collec à 832 cartes différentes (respect 🫡).\n\nMerci pour vos messages, vos idées (les wishlists, c'est grâce à vous) et vos retours de bugs ♥\nNookDex reste gratuit et sans pub, et ce n'est que le début.\n\n👇 Ta carte préférée de ta collec, c'est laquelle ?\n\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #collectionpokemon #pokemonfr #merci #100 #cozygames",
+   "captionTiktok": null,
+   "prices": false,
+   "slides": [
+    "2026-10-13-100-dresseurs/slide-01.jpg",
+    "2026-10-13-100-dresseurs/slide-02.jpg",
+    "2026-10-13-100-dresseurs/slide-03.jpg"
+   ],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": "2026-10-13-100-dresseurs/tiktok.mp4"
+  },
+  {
    "id": "2026-10-13-reel-bureau",
    "date": "2026-10-13",
    "time": null,
@@ -149,31 +174,6 @@
    "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-14-nuit-noire-top5/tiktok.mp4"
-  },
-  {
-   "id": "2026-10-15-100-dresseurs",
-   "date": "2026-10-15",
-   "time": null,
-   "platforms": [
-    "instagram",
-    "reels"
-   ],
-   "kind": "feature",
-   "format": "post",
-   "title": "Merci aux 100 dresseurs",
-   "note": "Le jour où on passe 100 comptes : chiffres à mettre à jour avant.",
-   "caption": "On est 100 sur NookDex 🎉\n\nIl y a 10 jours, c'était juste mon classeur Tempête Argentée et un chat sur un bureau peint.\nAujourd'hui, vous êtes 100 dresseurs à y ranger vos cartes : plus de 3 300 cartes rangées, 136 classeurs sur les étagères, et une collec à 832 cartes différentes (respect 🫡).\n\nMerci pour vos messages, vos idées (les wishlists, c'est grâce à vous) et vos retours de bugs ♥\nNookDex reste gratuit et sans pub, et ce n'est que le début.\n\n👇 Ta carte préférée de ta collec, c'est laquelle ?\n\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #collectionpokemon #pokemonfr #merci #100 #cozygames",
-   "captionTiktok": null,
-   "prices": false,
-   "slides": [
-    "2026-10-15-100-dresseurs/slide-01.jpg",
-    "2026-10-15-100-dresseurs/slide-02.jpg",
-    "2026-10-15-100-dresseurs/slide-03.jpg"
-   ],
-   "photos": [],
-   "tiktokAs": "video",
-   "video": null,
-   "tiktok": "2026-10-15-100-dresseurs/tiktok.mp4"
   },
   {
    "id": "2026-10-15-tiktok-evoli",
