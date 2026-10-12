@@ -12,7 +12,8 @@ copied on the way). Change the editorial line here, not in the routine's prompt.
     posts » (`.github/workflows/rendu.yml` on that branch) with `scripts/social/render.mjs` from `main`, a minute or two
     after the push. `renders/index.json` is what the studio reads.
   - `assets/`: app screenshots and photos a slide may show (`room.jpg`, `wishbinder.jpg`, `case.jpg`, `search.jpg`,
-    `wishos.jpg`, `wishpick.jpg`, `toast.jpg`, `me05.jpg`, `carapuce-recto-verso.jpg`, `warwick.png`).
+    `wishos.jpg`, `wishpick.jpg`, `toast.jpg`, `me05.jpg`, `carapuce-recto-verso.jpg`, `warwick.png`; the NookBoy game:
+    `nookboy-play.jpg`, `nookboy-room.jpg`, `nookboy-boss.jpg`, `nookboy-levelup.jpg`).
 - To work on it: `git fetch origin social && git worktree add ../social social`, write the post, commit, push the
   `social` branch. Read card data from `main` (`public/sets/…`, `src/data/catalog*.json`, `public/history/…`).
 - Posts made by hand (Claude in a local session) are `"prerendered": true`: their files are in `renders/` already.
