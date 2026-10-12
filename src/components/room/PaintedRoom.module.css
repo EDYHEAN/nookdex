@@ -787,3 +787,27 @@
     animation: none;
   }
 }
+
+/* the Game Boy's screen: Pikachu trotting through the grass (public/game/attract.png, made by build-game), 8 frames */
+.gbScreen {
+  position: absolute;
+  border-radius: 2px;
+  background: url(/game/attract.png) 0 0 / 448px 52px;
+  image-rendering: pixelated;
+  opacity: 0.75;
+  animation: gbLoop 1.3s steps(8) infinite;
+  transition: opacity 0.2s steps(2), filter 0.2s steps(2);
+  pointer-events: none;
+}
+
+@keyframes gbLoop {
+  to {
+    background-position: -448px 0;
+  }
+}
+
+/* hovered: the screen lights up (the hotspot comes after it in the scene) */
+.gbScreen:has(~ .gbSpot:hover) {
+  opacity: 1;
+  filter: brightness(1.15) drop-shadow(0 0 6px rgba(190, 230, 120, 0.8));
+}

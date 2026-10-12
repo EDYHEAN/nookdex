@@ -13,6 +13,29 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.10",
+    date: "2026-10-12",
+    title: { fr: "La Game Boy s'allume", en: "The Game Boy turns on" },
+    items: [
+      {
+        fr: "La Game Boy à côté du café cache un jeu : Poké Survival. Clique dessus (sur ordinateur) et la console vient à toi.",
+        en: "The Game Boy next to the coffee hides a game: Poké Survival. Click it (on a computer) and the console comes to you.",
+      },
+      {
+        fr: "Choisis Bulbizarre, Salamèche, Carapuce ou Pikachu, et tiens face aux vagues de Pokémon sauvages. Un boss toutes les cinq vagues…",
+        en: "Pick Bulbasaur, Charmander, Squirtle or Pikachu, and hold out against waves of wild Pokémon. A boss every five waves…",
+      },
+      {
+        fr: "Bonbons, niveaux, capacités à apprendre (4 au maximum, comme dans les jeux), objets tenus, et ton Pokémon évolue en cours de partie.",
+        en: "Candies, levels, moves to learn (4 at most, like in the games), held items, and your Pokémon evolves mid-run.",
+      },
+      {
+        fr: "À la fin, ton pseudo entre au classement de tous les joueurs. Select change la palette de l'écran (vert d'origine, gris Pocket, violet lofi).",
+        en: "At the end, your name goes on everyone's ladder. Select changes the screen's palette (original green, Pocket grey, lofi violet).",
+      },
+    ],
+  },
+  {
     version: "0.9",
     date: "2026-10-11",
     title: { fr: "Les wishlists", en: "Wishlists" },

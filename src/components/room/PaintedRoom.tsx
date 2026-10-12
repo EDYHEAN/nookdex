@@ -34,6 +34,8 @@ interface Props {
   onOpenAbout: () => void;
   /** the Poké Ball on the top shelf: the trophy case (where the ball is on screen) */
   onOpenTrophies: (at: { x: number; y: number }) => void;
+  /** the Game Boy on the desk: the NookBoy game (computers only) */
+  onOpenGame: (at: { x: number; y: number }) => void;
   /**
    * Under the loader: drawn and downloading, but invisible. Browsers count a hidden-behind picture as the page's
    * biggest paint (the 463 KB room on phones), not an invisible one.
@@ -69,6 +71,9 @@ const BOOKS = { x: 2378, y: 515, w: 305, h: 272 };
 const BOARD = { x: 1944, y: 846, w: 328, h: 250 };
 /** the Poké Ball on its stand, top shelf: the trophy case */
 const BALL = { x: 2372, y: 204, w: 128, h: 156, cx: 2435, cy: 267 };
+/** the Game Boy by the mug, and its little screen: the NookBoy game */
+const GAMEBOY = { x: 1427, y: 932, w: 120, h: 178 };
+const GB_SCREEN = { x: 1461, y: 958, w: 56, h: 52 };
 const SCREEN_QUAD = SCENE.screenQuad.map(([x, y]) => [x - SCENE.screen.x, y - SCENE.screen.y] as [number, number]);
 
 function useCamera(compact: boolean) {
@@ -84,7 +89,7 @@ function useCamera(compact: boolean) {
   }, [vp.w, vp.h, compact]);
 }
 
-export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, onOpenTrophies, veiled, behind }: Props) {
+export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, onOpenTrophies, onOpenGame, veiled, behind }: Props) {
   const uiLang = useLang();
   const router = useRouter();
   /** "EN" on an English binder of the French site (and the other way round): the language it isn't in */
@@ -476,6 +481,9 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             </span>
           )}
 
+          {/* the Game Boy's screen: its game in a loop (a strip of 8 frames, no script), lit up when hovered */}
+          <span className={styles.gbScreen} style={place(GB_SCREEN)} aria-hidden />
+
           {/* lamp off: the room's light as Gemini painted it at night, laid over everything painted so far */}
           <div
             className={`${styles.night} ${lampOn || daytime ? styles.off : ""}`}
@@ -623,6 +631,27 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
               setPetting(id);
               setTimeout(() => setPetting((p) => (p === id ? 0 : p)), 2600);
               showTip(SCENE.catSleep.x + SCENE.catSleep.w / 2, SCENE.catSleep.y, "Warwick", "rrrrrrr ♥");
+            }}
+          />
+
+          <button
+            className={`${styles.hotspot} ${styles.bookSpot} ${styles.gbSpot}`}
+            style={place(GAMEBOY)}
+            aria-label={tr("La Game Boy : Poké Survival", "The Game Boy: Poké Survival")}
+            onPointerEnter={() => {
+              sfx.hover();
+              showTip(GAMEBOY.x + GAMEBOY.w / 2, GAMEBOY.y - 8, "Poké Survival", compact ? tr("à jouer sur ordinateur", "play it on a computer") : tr("clic : jouer · le classement t'attend", "click: play · the ladder awaits"));
+            }}
+            onPointerLeave={() => setTip(null)}
+            onClick={() => {
+              if (compact) {
+                sfx.locked();
+                showTip(GAMEBOY.x + GAMEBOY.w / 2, GAMEBOY.y - 8, "Poké Survival", tr("à jouer sur ordinateur", "play it on a computer"));
+                return;
+              }
+              sfx.boot();
+              setTip(null);
+              onOpenGame(toScreen(GB_SCREEN.x + GB_SCREEN.w / 2, GB_SCREEN.y + GB_SCREEN.h / 2));
             }}
           />
 

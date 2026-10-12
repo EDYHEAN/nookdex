@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { APP_VERSION } from "@/data/changelog";
 import { MAX_BINDERS, shelfBinders } from "@/lib/binders";
@@ -31,6 +32,9 @@ import { Welcome } from "./shelf/Welcome";
 import styles from "./App.module.css";
 import { LANG_COOKIE, currentLang, useLang, useT } from "@/lib/lang";
 
+/** The NookBoy game: its code, sprites and sounds load only when the Game Boy is picked up. */
+const NookBoy = dynamic(() => import("./game/NookBoy"), { ssr: false });
+
 interface Open {
   binderId: string;
   focusCardId?: string;
@@ -54,6 +58,8 @@ export function App() {
   const [roadLog, setRoadLog] = useState(false);
   /** the trophy case, out of the Poké Ball (where it is on screen) */
   const [trophies, setTrophies] = useState<{ x: number; y: number } | null>(null);
+  /** the Game Boy, zoomed in (where it is on screen) */
+  const [game, setGame] = useState<{ x: number; y: number } | null>(null);
   /**
    * A returning player gets the road log once per version (per device), when the room is calm. A newcomer (no
    * profile yet) starts on the current version: the welcome and the tour show them everything already.
@@ -70,9 +76,9 @@ export function App() {
   const profile = useStore((s) => s.profile);
   const cloud = useCloud();
   const offline = useStore((s) => s.offline);
-  // Dev screenshots (?skip ?open ?os ?demo) skip the sign-in.
+  // Dev screenshots (?skip ?open ?os ?demo ?game) skip the sign-in.
   const [devBypass] = useState(
-    () => process.env.NODE_ENV !== "production" && /[?&](skip|open|os|demo)\b/.test(window.location.search),
+    () => process.env.NODE_ENV !== "production" && /[?&](skip|open|os|demo|game)\b/.test(window.location.search),
   );
   const userBinders = useStore((s) => s.binders);
   const binders = useMemo(() => shelfBinders(userBinders), [userBinders]);
@@ -105,7 +111,7 @@ export function App() {
     void loadSets(neededSets(binders, collection));
   }, []);
 
-  // Dev-only shortcuts for screenshots: ?skip  ?open=swsh12  ?demo  ?os
+  // Dev-only shortcuts for screenshots: ?skip  ?open=swsh12  ?demo  ?os  ?game
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const q = new URLSearchParams(window.location.search);
@@ -124,12 +130,12 @@ export function App() {
       });
     };
     const t = setTimeout(async () => {
-      if ((q.has("demo") || q.has("skip") || q.has("open") || q.has("os")) && !useStore.getState().profile) {
+      if ((q.has("demo") || q.has("skip") || q.has("open") || q.has("os") || q.has("game")) && !useStore.getState().profile) {
         useStore.getState().createProfile("Dev");
         setWelcome(false);
       }
       if (q.has("demo")) await demo();
-      if (q.has("skip") || q.has("open") || q.has("os")) setEntered(true);
+      if (q.has("skip") || q.has("open") || q.has("os") || q.has("game")) setEntered(true);
       const want = q.get("open");
       const b = want ? shelfBinders(useStore.getState().binders).find((x) => x.setId === want || (x.setId && bareId(x.setId) === want) || x.id === want) : undefined;
       if (b) {
@@ -137,6 +143,7 @@ export function App() {
         setOpen({ binderId: b.id });
       }
       if (q.has("os")) setComputer({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+      if (q.has("game")) setGame({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
     }, 50);
     return () => clearTimeout(t);
   }, []);
@@ -191,7 +198,7 @@ export function App() {
   };
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
-  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies;
+  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!game;
   // Sign in (or play offline, warned), then a nickname, then a first binder.
   const showWelcome =
     entered &&
@@ -226,6 +233,7 @@ export function App() {
         onAddBinder={() => setAdding(true)}
         onOpenAbout={() => setAbout(true)}
         onOpenTrophies={setTrophies}
+        onOpenGame={setGame}
         veiled={!entered && !revealed}
         behind={compact && !!openBinder && covered}
       />
@@ -300,6 +308,8 @@ export function App() {
       <AnimatePresence>{roadLog && <RoadLog key="roadlog" onClose={() => setRoadLog(false)} />}</AnimatePresence>
 
       <AnimatePresence>{trophies && <TrophyCase key="trophies" origin={trophies} onClose={() => setTrophies(null)} />}</AnimatePresence>
+
+      <AnimatePresence>{game && <NookBoy key="nookboy" origin={game} onClose={() => setGame(null)} />}</AnimatePresence>
 
       <AnimatePresence>
         {adding && (

@@ -91,6 +91,26 @@ function noise({ dur = 0.2, vol = 0.2, delay = 0, type = "bandpass", freq = 1000
   src.stop(t + dur + 0.05);
 }
 
+/** For the NookBoy game (loaded with it): the same synth, through its own bus, muted with the room. */
+export const synth = {
+  tone,
+  noise,
+  semi,
+  now: () => ac().currentTime,
+  bus(gain: number, lowpass?: number) {
+    const c = ac();
+    const g = c.createGain();
+    g.gain.value = gain;
+    if (lowpass) {
+      const f = c.createBiquadFilter();
+      f.type = "lowpass";
+      f.frequency.value = lowpass;
+      g.connect(f).connect(master);
+    } else g.connect(master);
+    return g;
+  },
+};
+
 let lastHover = 0;
 
 export const sfx = {
