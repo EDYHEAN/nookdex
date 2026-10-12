@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { INSTAGRAM_URL, SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME, SITE_URL } from "@/lib/site";
+import { INSTAGRAM_URL, TIKTOK_URL, SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME, SITE_URL } from "@/lib/site";
 import { playerCount, roundPlayers } from "@/lib/players";
 import styles from "./HomeText.module.css";
 
@@ -26,7 +26,7 @@ export async function HomeText({ en }: { en: boolean }) {
         isAccessibleForFree: true,
         offers: { "@type": "Offer", price: 0, priceCurrency: en ? "USD" : "EUR" },
         image: `${SITE_URL}/opengraph-image.jpg`,
-        sameAs: [INSTAGRAM_URL],
+        sameAs: [INSTAGRAM_URL, TIKTOK_URL],
       })}
       {en ? (
         <div className={styles.text}>

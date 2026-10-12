@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { serverLang } from "@/lib/serverLang";
 import { LegalPage } from "@/components/LegalPage";
-import { INSTAGRAM_HANDLE, INSTAGRAM_URL, SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME, SUPPORT_URL } from "@/lib/site";
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL, TIKTOK_HANDLE, TIKTOK_URL, SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME, SUPPORT_URL } from "@/lib/site";
 import styles from "@/components/LegalPage.module.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -59,6 +59,10 @@ function Fr() {
         . Merci ! Et pour suivre les nouveautés du bureau :{" "}
         <a href={INSTAGRAM_URL} target="_blank" rel="noopener">
           {INSTAGRAM_HANDLE} sur Instagram
+        </a>{" "}
+        et{" "}
+        <a href={TIKTOK_URL} target="_blank" rel="noopener">
+          {TIKTOK_HANDLE} sur TikTok
         </a>
         .
       </p>
@@ -124,6 +128,10 @@ function En() {
         . Thank you! And to follow what&apos;s new on the desk:{" "}
         <a href={INSTAGRAM_URL} target="_blank" rel="noopener">
           {INSTAGRAM_HANDLE} on Instagram
+        </a>{" "}
+        and{" "}
+        <a href={TIKTOK_URL} target="_blank" rel="noopener">
+          {TIKTOK_HANDLE} on TikTok
         </a>
         .
       </p>
