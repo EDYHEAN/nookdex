@@ -1,0 +1,13 @@
+{
+  "date": "2099-01-01",
+  "platforms": ["instagram", "tiktok"],
+  "kind": "fun",
+  "title": "Test du robot",
+  "prices": true,
+  "caption": "test",
+  "slides": [
+    { "type": "cover", "kicker": "TEST", "title": "Robot", "cards": ["me05-117", "me05-116", "me05-120"], "banner": "CA MARCHE" },
+    { "type": "price", "kicker": "TEST · 1/1", "card": "me05-116", "rank": 1 },
+    { "type": "grid", "cards": ["sv03.5-151", "sv08-238", "me05-116", "swsh12-186"] }
+  ]
+}
