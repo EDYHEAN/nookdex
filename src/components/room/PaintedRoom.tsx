@@ -375,9 +375,6 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
               <span className={styles.addSketch}>
                 <ShelfBinder slot={plusSlot} sketch />
               </span>
-              <span className={styles.addPlus} style={besideBinder ? { left: "75%" } : undefined}>
-                +
-              </span>
             </button>
           )}
 
@@ -438,6 +435,15 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
               </button>
             );
           })}
+
+          {/* the "+" over the sketch, drawn after the binders: the side cover of the one on its left can't hide it */}
+          {plusSlot && (
+            <span key={`plus-mark-${binders.length}`} className={styles.addMark} style={place(plusSlot)} aria-hidden>
+              <span className={styles.addPlus} style={besideBinder ? { left: "75%" } : undefined}>
+                +
+              </span>
+            </span>
+          )}
 
           {/* the lamp head passes in front of the lower binders */}
           <img className={styles.sprite} src={sceneImg("lamp-head.webp")} style={place(SCENE.lamp)} alt="" draggable={false} />
