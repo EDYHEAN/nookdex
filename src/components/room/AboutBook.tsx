@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { useEffect } from "react";
 import { ABOUT, ABOUT_EN } from "@/data/about";
-import { INSTAGRAM_URL, SUPPORT_URL } from "@/lib/site";
+import { INSTAGRAM_URL, SUPPORT_URL, TIKTOK_URL } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { unlock } from "@/lib/trophyStore";
 import styles from "./AboutBook.module.css";
@@ -100,6 +100,10 @@ export function AboutBook({ onClose, onTour, onRoadLog }: { onClose: () => void;
           ·{" "}
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener" onClick={() => sfx.click()}>
             Instagram
+          </a>{" "}
+          ·{" "}
+          <a href={TIKTOK_URL} target="_blank" rel="noopener" onClick={() => sfx.click()}>
+            TikTok
           </a>{" "}
           ·{" "}
           <a

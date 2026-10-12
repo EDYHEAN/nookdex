@@ -31,6 +31,9 @@ export const PATH_LANG_HEADER = "x-nookdex-lang";
 /** NookDex on Instagram: linked from the shelf notebook and /a-propos, in the home page's JSON-LD, on the share picture. */
 export const INSTAGRAM_URL = "https://www.instagram.com/_nookdex/";
 export const INSTAGRAM_HANDLE = "@_nookdex";
+/** And on TikTok (2026-10-12): same places. */
+export const TIKTOK_URL = "https://www.tiktok.com/@nookdex";
+export const TIKTOK_HANDLE = "@nookdex";
 
 /** Tips for the project (the cat's bowl, the about pages). */
 export const SUPPORT_URL = "https://paypal.me/JohanTrigeard";
