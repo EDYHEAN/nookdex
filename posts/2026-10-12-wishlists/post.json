@@ -2,6 +2,7 @@
   "date": "2026-10-12",
   "platforms": [
     "instagram",
+    "reels",
     "tiktok"
   ],
   "kind": "feature",
@@ -61,5 +62,6 @@
       "title": "Ta wishlist<br>t'attend ★",
       "lead": "Cartes de rêve, Évoli, cartes roses…"
     }
-  ]
+  ],
+  "note": "Carrousel et Reel postés le 12."
 }
