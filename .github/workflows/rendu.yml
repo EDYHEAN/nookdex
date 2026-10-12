@@ -1,0 +1,49 @@
+# Quand la routine (ou quelqu'un) pousse un post dans posts/, le robot dessine ses slides et sa vidéo TikTok
+# (scripts/social/render.mjs de main) et les range dans renders/, que nookdex.com/studio affiche.
+name: Rendu des posts
+
+on:
+  push:
+    branches: [social]
+    paths: ["posts/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: social-render
+  cancel-in-progress: false
+
+jobs:
+  rendu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: social
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          path: app
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Installer
+        working-directory: app
+        run: |
+          npm ci --no-audit --no-fund
+          npm i --no-save --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y -qq ffmpeg > /dev/null
+      - name: Dessiner les posts
+        working-directory: app
+        run: node scripts/social/render.mjs --social ../social
+      - name: Ranger les rendus
+        working-directory: social
+        run: |
+          git config user.name "nookdex-bot"
+          git config user.email "nookdex-bot@users.noreply.github.com"
+          git add renders
+          git diff --cached --quiet || (git commit -m "Rendus des posts" && git push)
