@@ -177,7 +177,7 @@ export const WILD: Record<number, Wild> = {
   123: { dex: 123, hp: 56, speed: 58, dmg: 16, xp: 6, act: "chase", r: 8 },
   128: { dex: 128, hp: 80, speed: 34, dmg: 18, xp: 7, act: "charge", r: 10 },
   129: { dex: 129, hp: 6, speed: 18, dmg: 2, xp: 1, act: "flop", r: 7 },
-  113: { dex: 113, hp: 160, speed: 54, dmg: 0, xp: 60, act: "treasure", r: 9 },
+  113: { dex: 113, hp: 70, speed: 36, dmg: 0, xp: 60, act: "treasure", r: 9 },
 };
 
 /** who comes out, by the wave they start showing up */

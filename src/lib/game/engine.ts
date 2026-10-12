@@ -890,7 +890,10 @@ export class Game {
     }
     if (this.treasureAt > 0 && this.time >= this.treasureAt) {
       this.treasureAt = -1;
-      this.spawnOne(113);
+      // on screen, not far: it's a gift, not a chase across the map
+      const a = Math.random() * Math.PI * 2;
+      const d = rand(90, 120);
+      this.enemies.push(this.makeEnemy(113, this.x + Math.cos(a) * d, this.y + Math.sin(a) * d * 0.8));
       this.showBanner(this.tr("Un Leveinard !", "A Chansey!"), this.tr("attrape-le avant qu'il file", "catch it before it runs off"));
       gsfx.rare();
     }
@@ -982,9 +985,17 @@ export class Game {
             break;
           }
           case "treasure":
-            vx = -ux;
-            vy = -uy;
-            if (e.t > 14) {
+            // it waddles about, and runs off (slower than any starter) only when you come close; gone after 20 s
+            if (d > 95) {
+              const a = e.seed + e.t * 0.7;
+              vx = Math.cos(a);
+              vy = Math.sin(a);
+              sp *= 0.35;
+            } else {
+              vx = -ux;
+              vy = -uy;
+            }
+            if (e.t > 20) {
               e.dead = true;
               e.deadT = 0;
               for (let i = 0; i < 6; i++) this.part(e.x, e.y - 6, rand(-25, 25), rand(-30, 0), "white", 0.45, 3, -10, "puff");
@@ -1015,7 +1026,7 @@ export class Game {
         }
       }
       // too far behind: brought back in front
-      if (d > VIEW_R + 160 && !e.boss) {
+      if (d > VIEW_R + 160 && !e.boss && e.w?.act !== "treasure") {
         const a = Math.random() * Math.PI * 2;
         e.x = px + Math.cos(a) * (VIEW_R + 20);
         e.y = py + Math.sin(a) * (VIEW_R + 20);
@@ -1603,6 +1614,8 @@ export class Game {
       ring(ctx, e.x + ox, e.y + oy, e.r + 3, 0.45);
       ctx.globalAlpha = 1;
     }
+    // its last seconds: it blinks, about to leave
+    if (e.w?.act === "treasure" && e.t > 16 && Math.floor(e.t * 8) % 2) return;
     const hurt = e.hitT > 0.04;
     const name: AnimName = hurt && !e.boss ? "Hurt" : "Walk";
     const fuse = e.state === "fuse" && Math.floor(e.t * 16) % 2 === 0;
