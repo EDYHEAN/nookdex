@@ -21,14 +21,13 @@ copied on the way). Change the editorial line here, not in the routine's prompt.
 
 Run on Sunday morning; prepare **Monday, Wednesday and Friday of the coming week** (3 posts), skipping a day that already
 has a post. Every post has a **TikTok video** (`tiktok`), drawn from its slides by `scripts/social/motion.mjs`: each
-slide becomes an animated scene (see "The video" below). On Instagram a post is **one** thing, never both:
+slide becomes an animated scene (see "The video" below). Where each post goes (Johan, 2026-10-12):
 
-- `instagram`: the carousel (its pictures). For the posts people keep: NookDex features, news, top 5s, themed pages.
-- `reels`: the same video as TikTok, as an Instagram Reel. For the games (devine le prix, zoom, find): they live by
-  their motion and reach people who don't follow yet. One or two a week.
+- **Instagram: the carousel and the Reel** (`instagram` = the pictures, `reels` = the same video as TikTok). Johan
+  posts both, the same day or the Reel a few days later.
+- **TikTok: the video only** (`tiktok`).
 
-So `"platforms": ["instagram", "tiktok"]` or `["reels", "tiktok"]`. Johan may also post a carousel's video as a Reel himself, 3 to 5 days
-later, when the subject did well (he adds `reels` to its platforms to tick it in the studio): never plan both the same day. A mix over the week, in this order of priority:
+So every post is `"platforms": ["instagram", "reels", "tiktok"]` (a story: `["instagram"]`). A mix over the week, in this order of priority:
 
 1. **news** (only when there is real news): a set revealed or dated, a product announced, a big tournament result. Check
    `src/data/releases.json` and the sources below. Confirmed by an official source or two reliable ones, else not a post.
