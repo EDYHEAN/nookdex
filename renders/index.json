@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-12T11:40:38.344Z",
+ "updated": "2026-10-12T12:24:23.988Z",
  "posts": [
   {
    "id": "2026-10-08-bienvenue",
@@ -23,6 +23,8 @@
     "2026-10-08-bienvenue/slide-05.jpg",
     "2026-10-08-bienvenue/slide-06.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": null
   },
@@ -46,8 +48,30 @@
     "2026-10-11-regne-delta/slide-03.jpg",
     "2026-10-11-regne-delta/slide-04.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": null
+  },
+  {
+   "id": "2026-10-12-tiktok-dracaufeu",
+   "date": "2026-10-12",
+   "time": "19:00",
+   "platforms": [
+    "tiktok"
+   ],
+   "kind": "fact",
+   "format": "post",
+   "title": "TikTok : les 5 Dracaufeu les plus chers",
+   "note": "Premier post du compte TikTok. Un son tendance dans l'appli, et épingle-le sur le profil.",
+   "caption": "Les 5 Dracaufeu les plus chers 🔥 (et celui du Set de Base n'y est même pas)\n\nTon Dracaufeu, il vaut combien ? 👇\n\n#pokemontcg #dracaufeu #charizard #cartespokemon #pokemonfr",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": "2026-10-12-tiktok-dracaufeu/tiktok.mp4"
   },
   {
    "id": "2026-10-12-wishlists",
@@ -55,8 +79,7 @@
    "time": null,
    "platforms": [
     "instagram",
-    "reels",
-    "tiktok"
+    "reels"
    ],
    "kind": "feature",
    "format": "post",
@@ -72,6 +95,8 @@
     "2026-10-12-wishlists/slide-04.jpg",
     "2026-10-12-wishlists/slide-05.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-12-wishlists/tiktok.mp4"
   },
@@ -91,6 +116,8 @@
    "captionTiktok": null,
    "prices": false,
    "slides": [],
+   "photos": [],
+   "tiktokAs": "video",
    "video": "2026-10-13-reel-bureau/reel.mp4",
    "tiktok": "2026-10-13-reel-bureau/reel.mp4"
   },
@@ -100,8 +127,7 @@
    "time": null,
    "platforms": [
     "instagram",
-    "reels",
-    "tiktok"
+    "reels"
    ],
    "kind": "fact",
    "format": "post",
@@ -119,6 +145,8 @@
     "2026-10-14-nuit-noire-top5/slide-06.jpg",
     "2026-10-14-nuit-noire-top5/slide-07.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-14-nuit-noire-top5/tiktok.mp4"
   },
@@ -128,8 +156,7 @@
    "time": null,
    "platforms": [
     "instagram",
-    "reels",
-    "tiktok"
+    "reels"
    ],
    "kind": "feature",
    "format": "post",
@@ -143,8 +170,35 @@
     "2026-10-15-100-dresseurs/slide-02.jpg",
     "2026-10-15-100-dresseurs/slide-03.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-15-100-dresseurs/tiktok.mp4"
+  },
+  {
+   "id": "2026-10-15-tiktok-evoli",
+   "date": "2026-10-15",
+   "time": "18:30",
+   "platforms": [
+    "tiktok"
+   ],
+   "kind": "fun",
+   "format": "post",
+   "title": "TikTok : la famille Évoli",
+   "note": "Carrousel photo TikTok (mode photo). Un son tendance.",
+   "caption": "La famille Évoli au complet, Évolutions Prismatiques ✨ Swipe jusqu'au bout : l'une d'elles vaut plus de 1 000 €.\n\nTu prends laquelle ? 👇\n\n#pokemontcg #evoli #eevee #evolutionsprismatiques #cartespokemon #pokemonfr",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [],
+   "photos": [
+    "2026-10-15-tiktok-evoli/photo-01.jpg",
+    "2026-10-15-tiktok-evoli/photo-02.jpg",
+    "2026-10-15-tiktok-evoli/photo-03.jpg",
+    "2026-10-15-tiktok-evoli/photo-04.jpg"
+   ],
+   "tiktokAs": "photos",
+   "video": null,
+   "tiktok": null
   },
   {
    "id": "2026-10-16-trophees",
@@ -152,8 +206,7 @@
    "time": null,
    "platforms": [
     "instagram",
-    "reels",
-    "tiktok"
+    "reels"
    ],
    "kind": "feature",
    "format": "post",
@@ -168,8 +221,30 @@
     "2026-10-16-trophees/slide-03.jpg",
     "2026-10-16-trophees/slide-04.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-16-trophees/tiktok.mp4"
+  },
+  {
+   "id": "2026-10-18-tiktok-pikachu",
+   "date": "2026-10-18",
+   "time": "18:30",
+   "platforms": [
+    "tiktok"
+   ],
+   "kind": "fun",
+   "format": "post",
+   "title": "TikTok : quel Pikachu vaut le plus ?",
+   "note": "Jeu. Les prix sont redessinés la veille et le jour même.",
+   "caption": "Quel Pikachu vaut le plus ? ⚡ 3 manches, dis ton score en commentaire 👇\n\n#pokemontcg #pikachu #quiz #cartespokemon #pokemonfr",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": "2026-10-18-tiktok-pikachu/tiktok.mp4"
   },
   {
    "id": "2026-10-19-vieilles-cartes",
@@ -177,8 +252,7 @@
    "time": null,
    "platforms": [
     "instagram",
-    "reels",
-    "tiktok"
+    "reels"
    ],
    "kind": "feature",
    "format": "post",
@@ -194,6 +268,8 @@
     "2026-10-19-vieilles-cartes/slide-04.jpg",
     "2026-10-19-vieilles-cartes/slide-05.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-19-vieilles-cartes/tiktok.mp4"
   },
@@ -203,8 +279,7 @@
    "time": null,
    "platforms": [
     "instagram",
-    "reels",
-    "tiktok"
+    "reels"
    ],
    "kind": "news",
    "format": "post",
@@ -221,6 +296,8 @@
     "2026-10-20-30-ans/slide-05.jpg",
     "2026-10-20-30-ans/slide-06.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-20-30-ans/tiktok.mp4"
   },
@@ -230,8 +307,7 @@
    "time": null,
    "platforms": [
     "instagram",
-    "reels",
-    "tiktok"
+    "reels"
    ],
    "kind": "fact",
    "format": "post",
@@ -249,6 +325,8 @@
     "2026-10-21-chaos-ascendant-top5/slide-06.jpg",
     "2026-10-21-chaos-ascendant-top5/slide-07.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-21-chaos-ascendant-top5/tiktok.mp4"
   },
@@ -269,6 +347,8 @@
    "slides": [
     "2026-10-23-story-avant-premieres/slide-01.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": null
   },
@@ -294,6 +374,8 @@
     "2026-10-26-devine-le-prix/slide-03.jpg",
     "2026-10-26-devine-le-prix/slide-04.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-26-devine-le-prix/tiktok.mp4"
   },
@@ -320,6 +402,8 @@
     "2026-10-28-zoom/slide-04.jpg",
     "2026-10-28-zoom/slide-05.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-28-zoom/tiktok.mp4"
   },
@@ -342,6 +426,8 @@
    "slides": [
     "2026-10-31-halloween/slide-01.jpg"
    ],
+   "photos": [],
+   "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-31-halloween/tiktok.mp4"
   }
