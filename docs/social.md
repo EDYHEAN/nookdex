@@ -27,7 +27,8 @@ slide becomes an animated scene (see "The video" below). On Instagram a post is 
 - `reels`: the same video as TikTok, as an Instagram Reel. For the games (devine le prix, zoom, find): they live by
   their motion and reach people who don't follow yet. One or two a week.
 
-So `"platforms": ["instagram", "tiktok"]` or `["reels", "tiktok"]`. A mix over the week, in this order of priority:
+So `"platforms": ["instagram", "tiktok"]` or `["reels", "tiktok"]`. Johan may also post a carousel's video as a Reel himself, 3 to 5 days
+later, when the subject did well (he adds `reels` to its platforms to tick it in the studio): never plan both the same day. A mix over the week, in this order of priority:
 
 1. **news** (only when there is real news): a set revealed or dated, a product announced, a big tournament result. Check
    `src/data/releases.json` and the sources below. Confirmed by an official source or two reliable ones, else not a post.
