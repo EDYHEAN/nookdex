@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-13",
+  "platforms": [
+    "instagram",
+    "reels"
+  ],
+  "kind": "feature",
+  "format": "post",
+  "title": "Merci aux 100 dresseurs",
+  "note": "100 comptes atteints le 12/10 : chiffres du 12/10 (3 303 cartes, 139 classeurs, 832 cartes dans la plus grosse collec).",
+  "prices": false,
+  "caption": "On est 100 sur NookDex 🎉\n\nIl y a 12 jours, c'était juste mon classeur Tempête Argentée et un chat sur un bureau peint.\nAujourd'hui, vous êtes 100 dresseurs à y ranger vos cartes : plus de 3 300 cartes rangées, 139 classeurs sur les étagères, et une collec à 832 cartes différentes (respect 🫡).\n\nMerci pour vos messages, vos idées (les wishlists, c'est grâce à vous) et vos retours de bugs ♥\nNookDex reste gratuit et sans pub, et ce n'est que le début.\n\n👇 Ta carte préférée de ta collec, c'est laquelle ?\n\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #collectionpokemon #pokemonfr #merci #100 #cozygames",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "MERCI !",
+      "title": "100<br>dresseurs",
+      "size": 120,
+      "asset": "room.jpg",
+      "banner": "VOUS ETES 100 SUR NOOKDEX"
+    },
+    {
+      "type": "paper",
+      "kicker": "EN 12 JOURS, VOUS AVEZ…",
+      "title": "rangé",
+      "em": "3 300+ cartes",
+      "list": [
+        "139 classeurs sur les étagères",
+        "832 cartes dans la plus grosse collec",
+        "et plein d'idées (merci !)"
+      ]
+    },
+    {
+      "type": "end",
+      "title": "Merci ♥",
+      "lead": "Warwick ronronne. Ce n'est que le début."
+    }
+  ],
+  "time": "18:30"
+}
