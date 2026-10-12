@@ -6,7 +6,8 @@ import { SOCIAL_RENDERS, STUDIO_EMAIL_HASHES } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import styles from "./Studio.module.css";
 
-type Platform = "instagram" | "tiktok";
+/** instagram: the carousel; reels: the video as an Instagram Reel; tiktok: the video */
+type Platform = "instagram" | "reels" | "tiktok";
 interface Post {
   id: string;
   date: string;
@@ -25,7 +26,7 @@ interface Post {
 }
 
 const KIND = { news: "news", fact: "chiffre", fun: "fun", feature: "NookDex" } as const;
-const PLATFORM: Record<Platform, string> = { instagram: "Insta", tiktok: "TikTok" };
+const PLATFORM: Record<Platform, string> = { instagram: "Insta", reels: "Reel", tiktok: "TikTok" };
 const day = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
 const today = () => new Date().toLocaleDateString("sv");
 /** the Monday of a date's week */
@@ -359,7 +360,7 @@ function PostCard({ post, open, onOpen, done, onToggle }: { post: Post; open: bo
             {post.tiktok &&
               (wantVideo ? (
                 <button className={styles.big} disabled={!video} onClick={() => void share(video, post.captionTiktok ?? post.caption)}>
-                  {video ? `🎵 La vidéo → ${post.video ? "Insta / TikTok" : "TikTok"}` : "téléchargement de la vidéo…"}
+                  {video ? `🎵 La vidéo → ${post.platforms.includes("reels") || post.video ? "Reel / TikTok" : "TikTok"}` : "téléchargement de la vidéo…"}
                 </button>
               ) : (
                 <button
@@ -369,7 +370,7 @@ function PostCard({ post, open, onOpen, done, onToggle }: { post: Post; open: bo
                     setWantVideo(true);
                   }}
                 >
-                  🎵 Préparer la vidéo{post.video ? "" : " TikTok"}
+                  🎵 Préparer la vidéo{post.platforms.includes("reels") || post.video ? "" : " TikTok"}
                 </button>
               ))}
           </div>
