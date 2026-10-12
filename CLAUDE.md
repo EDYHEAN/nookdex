@@ -218,7 +218,7 @@ doesn't show.
 
 ## NookBoy (the game in the Game Boy)
 
-- The Game Boy painted by the mug (`GAMEBOY` in PaintedRoom) runs Poké Survival, a survivors-like: a starter (Bulbasaur,
+- The Game Boy painted by the mug (`GAMEBOY` in PaintedRoom) runs Nook Survivors, a survivors-like (a name of our own: no brand in the game's title): a starter (Bulbasaur,
   Charmander, Squirtle, Pikachu; they evolve mid-run) against waves of wild Pokémon, 30 s a wave, a boss every 5th,
   candies → levels → 3 cards (moves, auto-cast or keys 1-4, 4 at most; held items). Score = the wave reached.
   Computers only: on a phone the Game Boy is out of frame (its tip says so).

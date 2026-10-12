@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { MAX_BINDERS, pocketsOf, shelfBinders, wantsOf } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
-import { SCENE, sceneImg } from "@/lib/scene";
+import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, OS_NAME } from "@/lib/site";
 import { sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { useStore } from "@/lib/store";
@@ -73,7 +73,11 @@ const BOARD = { x: 1944, y: 846, w: 328, h: 250 };
 const BALL = { x: 2372, y: 204, w: 128, h: 156, cx: 2435, cy: 267 };
 /** the Game Boy by the mug, and its little screen: the NookBoy game */
 const GAMEBOY = { x: 1427, y: 932, w: 120, h: 178 };
-const GB_SCREEN = { x: 1461, y: 958, w: 56, h: 52 };
+const GB_SCREEN = { x: 1461, y: 958, w: 58, h: 52 };
+/** the corners of its glass (TL, TR, BR, BL), measured on the plate: the console leans a little, its loop follows */
+const GB_GLASS: [number, number][] = [[1462.5, 962], [1514.5, 960.5], [1517.5, 1007], [1464, 1008.5]];
+/** the loop is drawn flat on 56x52, then projected onto the glass */
+const GB_LCD = quadMatrix(56, 52, GB_GLASS.map(([x, y]) => [x - GB_SCREEN.x, y - GB_SCREEN.y] as [number, number]));
 const SCREEN_QUAD = SCENE.screenQuad.map(([x, y]) => [x - SCENE.screen.x, y - SCENE.screen.y] as [number, number]);
 
 function useCamera(compact: boolean) {
@@ -488,7 +492,9 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
           )}
 
           {/* the Game Boy's screen: its game in a loop (a strip of 8 frames, no script), lit up when hovered */}
-          <span className={styles.gbScreen} style={place(GB_SCREEN)} aria-hidden />
+          <span className={styles.gbScreen} style={place(GB_SCREEN)} aria-hidden>
+            <span className={styles.gbLcd} style={{ transform: GB_LCD }} />
+          </span>
 
           {/* lamp off: the room's light as Gemini painted it at night, laid over everything painted so far */}
           <div
@@ -643,16 +649,16 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
           <button
             className={`${styles.hotspot} ${styles.bookSpot} ${styles.gbSpot}`}
             style={place(GAMEBOY)}
-            aria-label={tr("La Game Boy : Poké Survival", "The Game Boy: Poké Survival")}
+            aria-label={tr("La Game Boy : Nook Survivors", "The Game Boy: Nook Survivors")}
             onPointerEnter={() => {
               sfx.hover();
-              showTip(GAMEBOY.x + GAMEBOY.w / 2, GAMEBOY.y - 8, "Poké Survival", compact ? tr("à jouer sur ordinateur", "play it on a computer") : tr("clic : jouer · le classement t'attend", "click: play · the ladder awaits"));
+              showTip(GAMEBOY.x + GAMEBOY.w / 2, GAMEBOY.y - 8, "Nook Survivors", compact ? tr("à jouer sur ordinateur", "play it on a computer") : tr("clic : jouer · le classement t'attend", "click: play · the ladder awaits"));
             }}
             onPointerLeave={() => setTip(null)}
             onClick={() => {
               if (compact) {
                 sfx.locked();
-                showTip(GAMEBOY.x + GAMEBOY.w / 2, GAMEBOY.y - 8, "Poké Survival", tr("à jouer sur ordinateur", "play it on a computer"));
+                showTip(GAMEBOY.x + GAMEBOY.w / 2, GAMEBOY.y - 8, "Nook Survivors", tr("à jouer sur ordinateur", "play it on a computer"));
                 return;
               }
               sfx.boot();
