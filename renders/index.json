@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-12T09:53:32.701Z",
+ "updated": "2026-10-12T09:55:26.468Z",
  "posts": [
   {
    "id": "2026-10-08-bienvenue",
@@ -334,29 +334,6 @@
    ],
    "video": null,
    "tiktok": "2026-10-31-halloween/tiktok.mp4"
-  },
-  {
-   "id": "2099-01-01-test",
-   "date": "2099-01-01",
-   "time": null,
-   "platforms": [
-    "instagram",
-    "tiktok"
-   ],
-   "kind": "fun",
-   "format": "post",
-   "title": "Test du robot",
-   "note": null,
-   "caption": "test",
-   "captionTiktok": null,
-   "prices": true,
-   "slides": [
-    "2099-01-01-test/slide-01.jpg",
-    "2099-01-01-test/slide-02.jpg",
-    "2099-01-01-test/slide-03.jpg"
-   ],
-   "video": null,
-   "tiktok": "2099-01-01-test/tiktok.mp4"
   }
  ]
 }
