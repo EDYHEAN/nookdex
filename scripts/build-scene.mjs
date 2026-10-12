@@ -222,7 +222,8 @@ const meta = { width: W, height: H };
 /* ---------------- chair (foreground) ---------------- */
 {
   const box = { x: 800, y: 1170, w: 680, h: H - 1170 };
-  const m = await clean(diffMask(scene, noChair, 55, box), { close: 9, grow: 0.3 });
+  // one piece, no holes: a stray bit of the keyboard and a gap in the backrest would ride the parallax with it
+  const m = fillHoles(largestComponent(await clean(diffMask(scene, noChair, 55, box), { close: 9, grow: 0.3 })), box);
   const region = inBox(m, box);
   meta.chair = await sprite("chair", scene.data, await blur(region, 1.6));
   paste(plate, noChair.data, await blur(inBox(threshold(await blur(region, 8), 20), box), 4));
