@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-18",
+  "time": "18:30",
+  "platforms": [
+    "tiktok"
+  ],
+  "kind": "fun",
+  "format": "post",
+  "title": "TikTok : quel Pikachu vaut le plus ?",
+  "note": "Jeu. Les prix sont redessinés la veille et le jour même.",
+  "prices": true,
+  "caption": "Quel Pikachu vaut le plus ? ⚡ 3 manches, dis ton score en commentaire 👇\n\n#pokemontcg #pikachu #quiz #cartespokemon #pokemonfr",
+  "slides": [
+    {
+      "type": "duel",
+      "label": "QUEL PIKACHU ? · 1/3",
+      "a": "ex12-93",
+      "b": "sv08-238"
+    },
+    {
+      "type": "duel",
+      "label": "QUEL PIKACHU ? · 2/3",
+      "a": "swsh4-188",
+      "b": "pl2-114"
+    },
+    {
+      "type": "duel",
+      "label": "QUEL PIKACHU ? · 3/3",
+      "a": "base1-58",
+      "b": "sv03.5-173"
+    },
+    {
+      "type": "duelAnswers",
+      "rounds": [
+        [
+          "ex12-93",
+          "sv08-238"
+        ],
+        [
+          "swsh4-188",
+          "pl2-114"
+        ],
+        [
+          "base1-58",
+          "sv03.5-173"
+        ]
+      ]
+    }
+  ]
+}

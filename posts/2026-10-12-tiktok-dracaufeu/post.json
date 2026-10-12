@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-12",
+  "time": "19:00",
+  "platforms": [
+    "tiktok"
+  ],
+  "kind": "fact",
+  "format": "post",
+  "title": "TikTok : les 5 Dracaufeu les plus chers",
+  "note": "Premier post du compte TikTok. Un son tendance dans l'appli, et épingle-le sur le profil.",
+  "prices": true,
+  "caption": "Les 5 Dracaufeu les plus chers 🔥 (et celui du Set de Base n'y est même pas)\n\nTon Dracaufeu, il vaut combien ? 👇\n\n#pokemontcg #dracaufeu #charizard #cartespokemon #pokemonfr",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "TOP 5",
+      "title": "Dracaufeu",
+      "size": 90,
+      "cards": [
+        "ex6-105",
+        "neo4-107",
+        "bw8-136"
+      ],
+      "banner": "LES 5 PLUS CHERS"
+    },
+    {
+      "type": "price",
+      "card": "sm115-9",
+      "rank": 5,
+      "name": "DESTINEES OCCULTES · 2019"
+    },
+    {
+      "type": "price",
+      "card": "ecard1-6",
+      "rank": 4,
+      "name": "EXPEDITION · 2002"
+    },
+    {
+      "type": "price",
+      "card": "bw8-136",
+      "rank": 3,
+      "name": "TEMPETE PLASMA · 2013"
+    },
+    {
+      "type": "price",
+      "card": "ex6-105",
+      "rank": 2,
+      "name": "ROUGE FEU · 2004"
+    },
+    {
+      "type": "price",
+      "card": "neo4-107",
+      "rank": 1,
+      "name": "NEO DESTINY · 2002"
+    },
+    {
+      "type": "paper",
+      "kicker": "ET LE PLUS CELEBRE ?",
+      "title": "Celui du<br>Set de Base…",
+      "em": "même pas<br>top 5",
+      "cards": [
+        "base1-4"
+      ]
+    },
+    {
+      "type": "end",
+      "title": "Et le tien,<br>il vaut quoi ?",
+      "lead": "La cote de chaque carte, chaque jour"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-15",
+  "time": "18:30",
+  "platforms": [
+    "tiktok"
+  ],
+  "tiktok": "photos",
+  "kind": "fun",
+  "format": "post",
+  "title": "TikTok : la famille Évoli",
+  "note": "Carrousel photo TikTok (mode photo). Un son tendance.",
+  "prices": true,
+  "caption": "La famille Évoli au complet, Évolutions Prismatiques ✨ Swipe jusqu'au bout : l'une d'elles vaut plus de 1 000 €.\n\nTu prends laquelle ? 👇\n\n#pokemontcg #evoli #eevee #evolutionsprismatiques #cartespokemon #pokemonfr",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "EVOLUTIONS PRISMATIQUES",
+      "title": "La famille<br>Évoli",
+      "size": 110,
+      "cards": [
+        "sv08.5-149",
+        "sv08.5-167",
+        "sv08.5-156"
+      ],
+      "banner": "TU PRENDS LAQUELLE ?"
+    },
+    {
+      "type": "grid",
+      "label": "9 ILLUSTRATIONS SPECIALES",
+      "cards": [
+        "sv08.5-149",
+        "sv08.5-153",
+        "sv08.5-146",
+        "sv08.5-155",
+        "sv08.5-167",
+        "sv08.5-161",
+        "sv08.5-144",
+        "sv08.5-150",
+        "sv08.5-156"
+      ]
+    },
+    {
+      "type": "price",
+      "card": "sv08.5-161",
+      "name": "ET CELLE-CI VAUT…"
+    },
+    {
+      "type": "end",
+      "title": "Tu prends<br>laquelle ?",
+      "lead": "Fais-en ta wishlist sur NookDex"
+    }
+  ]
+}
