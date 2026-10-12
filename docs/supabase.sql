@@ -36,3 +36,21 @@ as $$ select count(*)::integer from auth.users $$;
 revoke all on function public.player_count() from public;
 grant execute on function public.player_count() to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- The studio (nookdex.com/studio): which social posts Johan published, and where. Only his accounts read and write it.
+create table if not exists public.social_done (
+  post_id    text not null,
+  platform   text not null,
+  done_at    timestamptz not null default now(),
+  primary key (post_id, platform)
+);
+
+alter table public.social_done enable row level security;
+
+drop policy if exists "studio: johan" on public.social_done;
+create policy "studio: johan" on public.social_done for all
+  using ((auth.jwt() ->> 'email') in ('johan.trigeard@gmail.com', 'contact@nookdex.com', 'johan@nookdex.com'))
+  with check ((auth.jwt() ->> 'email') in ('johan.trigeard@gmail.com', 'contact@nookdex.com', 'johan@nookdex.com'));
+
+grant select, insert, update, delete on table public.social_done to authenticated;
+notify pgrst, 'reload schema';

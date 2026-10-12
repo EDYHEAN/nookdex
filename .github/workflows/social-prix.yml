@@ -1,0 +1,49 @@
+# Les posts qui montrent des prix (docs/social.md, "prices": true) sont redessinés chaque jour avec les prix du jour,
+# la veille et le jour de leur publication. Les posts eux-mêmes vivent sur la branche social.
+name: Posts sociaux, prix du jour
+
+on:
+  schedule:
+    # après les prix du jour (prices.yml, 11 h UTC)
+    - cron: "30 12 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: social-render
+  cancel-in-progress: false
+
+jobs:
+  prix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: app
+      - uses: actions/checkout@v5
+        with:
+          ref: social
+          path: social
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Installer
+        working-directory: app
+        run: |
+          npm ci --no-audit --no-fund
+          npm i --no-save --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y -qq ffmpeg > /dev/null
+      - name: Redessiner les posts à prix
+        working-directory: app
+        run: node scripts/social/render.mjs --social ../social --prices
+      - name: Ranger les rendus
+        working-directory: social
+        run: |
+          git config user.name "nookdex-bot"
+          git config user.email "nookdex-bot@users.noreply.github.com"
+          git add renders
+          git diff --cached --quiet || (git commit -m "Posts : prix du jour" && git push)
