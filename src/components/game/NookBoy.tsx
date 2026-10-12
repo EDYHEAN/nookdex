@@ -412,8 +412,8 @@ export default function NookBoy({ origin, onClose }: Props) {
           <div className={styles.title}>
             <div className={styles.logo}>
               <span className={styles.logoSmall}>NOOKBOY</span>
-              <span className={styles.logoBig}>POKé</span>
-              <span className={styles.logoBig2}>SURVIVAL</span>
+              <span className={styles.logoBig}>NOOK</span>
+              <span className={styles.logoBig2}>SURVIVORS</span>
               <span className={styles.logoSub}>{t("les vagues sauvages", "the wild waves")}</span>
             </div>
             <ul className={`${styles.box} ${styles.menu}`}>

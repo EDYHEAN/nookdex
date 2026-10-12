@@ -18,8 +18,8 @@ export const CHANGELOG: Release[] = [
     title: { fr: "La Game Boy s'allume", en: "The Game Boy turns on" },
     items: [
       {
-        fr: "La Game Boy à côté du café cache un jeu : Poké Survival. Clique dessus (sur ordinateur) et la console vient à toi.",
-        en: "The Game Boy next to the coffee hides a game: Poké Survival. Click it (on a computer) and the console comes to you.",
+        fr: "La Game Boy à côté du café cache un jeu : Nook Survivors. Clique dessus (sur ordinateur) et la console vient à toi.",
+        en: "The Game Boy next to the coffee hides a game: Nook Survivors. Click it (on a computer) and the console comes to you.",
       },
       {
         fr: "Choisis Bulbizarre, Salamèche, Carapuce ou Pikachu, et tiens face aux vagues de Pokémon sauvages. Un boss toutes les cinq vagues…",

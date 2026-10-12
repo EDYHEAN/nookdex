@@ -799,13 +799,22 @@
 /* the Game Boy's screen: Pikachu trotting through the grass (public/game/attract.png, made by build-game), 8 frames */
 .gbScreen {
   position: absolute;
-  border-radius: 2px;
-  background: url(/game/attract.png) 0 0 / 448px 52px;
-  image-rendering: pixelated;
   opacity: 0.75;
-  animation: gbLoop 1.3s steps(8) infinite;
   transition: opacity 0.2s steps(2), filter 0.2s steps(2);
   pointer-events: none;
+}
+
+/* the loop, 56x52, projected onto the painted glass */
+.gbLcd {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 56px;
+  height: 52px;
+  transform-origin: 0 0;
+  background: url(/game/attract.png) 0 0 / 448px 52px;
+  image-rendering: pixelated;
+  animation: gbLoop 1.3s steps(8) infinite;
 }
 
 @keyframes gbLoop {
