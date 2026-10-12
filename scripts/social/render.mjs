@@ -11,7 +11,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { APP, AVATAR, FONT_FACES, GRAIN, asset, card, dayOf, esc, market, money, setAssets, txt, url } from "./lib.mjs";
-import { renderMotion } from "./motion.mjs";
+import { renderMotion, renderStills } from "./motion.mjs";
 
 const args = process.argv.slice(2);
 const opt = (name) => {
@@ -354,8 +354,9 @@ for (const id of ids.sort()) {
   const fresh = PRICES && post.prices && [today, tomorrow].includes(post.date);
   const asked = ONLY.includes(id);
   const story = post.format === "story";
-  // the carousel's pictures (a post made by hand keeps its own)
-  if (!post.prerendered && (asked || (!ONLY.length && (stamp("hash.txt") !== hash || fresh)))) {
+  // the carousel's pictures (a post made by hand keeps its own; a TikTok-only post has none)
+  const carousel = (post.platforms ?? ["instagram"]).includes("instagram");
+  if (carousel && !post.prerendered && (asked || (!ONLY.length && (stamp("hash.txt") !== hash || fresh)))) {
     console.log(`${id}: ${post.slides.length} slide(s)`);
     for (const f of readdirSync(out)) if (/^slide-/.test(f)) rmSync(join(out, f));
     const H = story ? 1920 : 1350;
@@ -366,8 +367,18 @@ for (const id of ids.sort()) {
     }
     writeFileSync(join(out, "hash.txt"), hash + "\n");
   }
-  // the TikTok / Reels video: animated from the slides (motion.mjs); a post made by hand without slides gets a slideshow
-  const video = (post.platforms ?? []).some((p) => p === "tiktok" || p === "reels") && !story && !existsSync(join(out, "reel.mp4"));
+  // TikTok in photo mode (`"tiktok": "photos"`): the scenes' last frames, 9:16
+  const photos = (post.platforms ?? []).includes("tiktok") && post.tiktok === "photos";
+  if (photos && !NO_VIDEO && (asked || (!ONLY.length && (stamp("photos.txt") !== hash || fresh)))) {
+    browser ??= await launch();
+    for (const f of readdirSync(out)) if (/^photo-/.test(f)) rmSync(join(out, f));
+    const n = await renderStills(browser, post, out, join(out, ".stills"));
+    console.log(`${id}: ${n} TikTok photos`);
+    writeFileSync(join(out, "photos.txt"), hash + "\n");
+  }
+  // the video (TikTok, Reels): animated from the slides (motion.mjs); a post made by hand without slides gets a slideshow
+  const video =
+    ((post.platforms ?? []).includes("reels") || ((post.platforms ?? []).includes("tiktok") && !photos)) && !story && !existsSync(join(out, "reel.mp4"));
   if (video && !NO_VIDEO && (post.slides || post.motion) && (asked || (!ONLY.length && (stamp("motion.txt") !== hash || fresh)))) {
     browser ??= await launch();
     const r = await renderMotion(browser, post, join(out, "tiktok.mp4"), join(out, ".frames"));
@@ -391,6 +402,8 @@ for (const id of ids.sort()) {
     captionTiktok: post.captionTiktok ?? null,
     prices: !!post.prices,
     slides: rendered.filter((f) => /^slide-\d+\.(jpg|png)$/.test(f)).map((f) => `${id}/${f}`),
+    photos: rendered.filter((f) => /^photo-\d+\.jpg$/.test(f)).map((f) => `${id}/${f}`),
+    tiktokAs: post.tiktok === "photos" ? "photos" : "video",
     video: rendered.includes("reel.mp4") ? `${id}/reel.mp4` : null,
     tiktok: rendered.includes("tiktok.mp4") ? `${id}/tiktok.mp4` : rendered.includes("reel.mp4") ? `${id}/reel.mp4` : null,
   });

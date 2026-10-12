@@ -19,15 +19,16 @@ copied on the way). Change the editorial line here, not in the routine's prompt.
 
 ## The week
 
-Run on Sunday morning; prepare **Monday, Wednesday and Friday of the coming week** (3 posts), skipping a day that already
-has a post. Every post has a **TikTok video** (`tiktok`), drawn from its slides by `scripts/social/motion.mjs`: each
-slide becomes an animated scene (see "The video" below). Where each post goes (Johan, 2026-10-12):
+Run on Sunday morning. Two lines, prepared for the coming week (Johan, 2026-10-12):
 
-- **Instagram: the carousel and the Reel** (`instagram` = the pictures, `reels` = the same video as TikTok). Johan
-  posts both, the same day or the Reel a few days later.
-- **TikTok: the video only** (`tiktok`).
+- **Instagram: Monday, Wednesday and Friday** (3 posts), each one a carousel and its Reel
+  (`"platforms": ["instagram", "reels"]`; a story: `["instagram"]`). Johan posts both, the same day or the Reel a few
+  days later. The Reel is drawn from the slides by `scripts/social/motion.mjs` (see "The video" below).
+- **TikTok: Tuesday, Thursday and Sunday** (3 posts), its own content: see "The TikTok line" below
+  (`"platforms": ["tiktok"]`). A game or a themed page may go on both lines (`["instagram", "reels", "tiktok"]`): then
+  it counts for both and the TikTok day is skipped.
 
-So every post is `"platforms": ["instagram", "reels", "tiktok"]` (a story: `["instagram"]`). A mix over the week, in this order of priority:
+Skip a day that already has a post. The Instagram mix over the week, in this order of priority:
 
 1. **news** (only when there is real news): a set revealed or dated, a product announced, a big tournament result. Check
    `src/data/releases.json` and the sources below. Confirmed by an official source or two reliable ones, else not a post.
@@ -40,6 +41,30 @@ So every post is `"platforms": ["instagram", "reels", "tiktok"]` (a story: `["in
    the road log (`src/data/changelog.ts`) and the `assets/` screenshots. At most one a week; skip if nothing new.
 
 Never two posts of the same kind in a row. At least one fun post a week.
+
+## The TikTok line
+
+No features, no news, no app screenshots, no set tops (Johan, 2026-10-12: "de l'instantané, du jeu, de
+l'inspiration"). People scroll past anything that looks like an ad: NookDex only shows in the closing `end` scene.
+
+- **Instant**: one number that surprises, from our data, in the first second. "Les 5 Dracaufeu les plus chers" (price
+  scenes counting down #5 → #1, then a twist: "celui du Set de Base… même pas top 5"), the most expensive card of a
+  Pokémon, a common worth more than an ultra rare, an old card vs its new version. Find them by name across
+  `public/sets/*.json` (sort by `price.trend`; skip a card whose `low` is under a tenth of its `trend`: one odd sale).
+- **Game**: "quel X vaut le plus ?" (`duel` ×3 + `duelAnswers`, around one Pokémon or one theme), zoom / find (the
+  spots below). Ask for the answer in the comments.
+- **Inspiration**: a themed page (a family, a colour, an illustrator, a season), the most beautiful cards, as a photo
+  carousel (`"tiktok": "photos"`) ending on one card's price ("et celle-ci vaut…") or a question ("tu prends
+  laquelle ?").
+
+Each TikTok post is either a **video** (the default) or a **photo carousel** (`"tiktok": "photos"`: each scene
+caught at its last frame, 1080×1920, `photo-01.jpg`…; TikTok pushes photo carousels, use it once or twice a week).
+A TikTok-only post has no Instagram pictures: only its scenes are drawn. Write `slides` in the order they play.
+
+- Hook in the first second: the cover shows the cards and a short title (Press Start 2P: ~9 letters a line at size 90).
+- 4-9 scenes, 15-30 s. A price scene's pill shows `name` instead of the card's name when the cards share one
+  (`"name": "NEO DESTINY · 2002"`, capitals without accents).
+- The caption: one or two lines, a question, 4-6 hashtags. No link (TikTok doesn't click them); the profile has it.
 
 ## Sources for the news
 
@@ -60,7 +85,7 @@ Rumors and leaks: no.
 {
   "date": "2026-11-02",
   "time": "18:30",
-  "platforms": ["instagram", "tiktok"],
+  "platforms": ["instagram", "reels"],
   "kind": "fact",
   "format": "post",
   "title": "Top 5 Règne Delta",
@@ -72,6 +97,8 @@ Rumors and leaks: no.
 }
 ```
 
+- `platforms`: `instagram` (the carousel), `reels` (the video as a Reel), `tiktok`. `tiktok`: `"photos"` for TikTok's
+  photo mode, else a video.
 - `kind`: `news` | `fact` | `fun` | `feature`. `format`: `post` (1080×1350) or `story` (1080×1920, Instagram only).
 - `prices: true` when a slide shows a price: the Action draws it again with the day's prices the day before and the day.
 - Card ids are the site's keys: `sv08-238` (French), `en:sv08-238` (English), `ja:SV8-033` (Japanese). Check every id
@@ -86,7 +113,7 @@ Rumors and leaks: no.
 | --- | --- | --- |
 | `cover` | `kicker`, `title`, `size` (title px, ~100-130), `cards` (3 ids, the middle one in front) or `asset`, `ghosts` (indexes greyed with a ★), `banner` | the first slide of every carousel (what the feed shows) |
 | `paper` | `kicker`, `title`, `em` (second line in red), `lead`, `list`, `cards` (1-3), `asset`, `ending` | an information slide |
-| `price` | `kicker`, `card`, `rank` | a card and its price (top 5) |
+| `price` | `kicker`, `card`, `rank`, `name` (video: the pill's text) | a card and its price (top 5) |
 | `total` | `set`, `kicker`, `asset`, `ending` | what one card of each of a set costs |
 | `grid` | `cards` (4, 6 or 9), `label` | a themed page, full screen |
 | `duel` | `a`, `b`, `label`, `question` | "which one is worth more?" |
@@ -98,7 +125,7 @@ Rumors and leaks: no.
 
 A carousel: `cover`, 2-6 slides, an ending (`end`, `total` or `duelAnswers`). A fun page: a single `grid`. Keep 3-7 slides.
 
-## The video (TikTok, Reels)
+## The video (Reels, TikTok)
 
 Made from the same slides, 1080×1920, 20-35 s, no sound (Johan adds a trending one in the app). Each slide type is a
 scene: `cover` (title letter by letter, cards flying in, banner slam), `paper` (the paper card rises, lines pop),

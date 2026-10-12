@@ -153,9 +153,9 @@ const letters = (s, at, step = 0.045) => {
 const priceAttrs = (n, set, t0, t1) => `data-count="${n ?? 0}" data-t0="${t0}" data-t1="${t1}" data-fmt="${set.currency === "USD" ? "usd" : "eur"}"`;
 
 /** one scene: the blurred art behind, the progress bar, the handle, the content */
-const page = (bg, body, i, n, dur) => `<!doctype html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>
+const page = (bg, body, i, n, dur, bar = true) => `<!doctype html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>
   <div class="bg" style="--n:${bg.length}">${bg.map((u) => `<div style="background-image:url(${u})"></div>`).join("")}</div><div class="dots"></div>
-  <div class="top"></div><div class="bar">${Array.from({ length: n }, (_, k) => `<i class="${k < i ? "done" : ""}">${k === i ? `<b style="--d:${dur}s"></b>` : ""}</i>`).join("")}</div>
+  <div class="top"></div>${bar ? `<div class="bar">${Array.from({ length: n }, (_, k) => `<i class="${k < i ? "done" : ""}">${k === i ? `<b style="--d:${dur}s"></b>` : ""}</i>`).join("")}</div>` : ""}
   <div class="handle"><img src="${AVATAR}">@nookdex</div>
   ${body}${TICK}</body></html>`;
 
@@ -230,7 +230,7 @@ const SCENES = {
         ${s.rank ? `<p class="mega" style="top:170px;font-size:190px;color:#ffd35a;animation:slam .55s .05s both">#${s.rank}</p>` : ""}
         <div style="position:absolute;left:225px;width:630px;top:420px;animation:flip .8s .35s cubic-bezier(.2,1,.4,1) both">
           <div class="float" style="--at:1.2s"><img class="cardimg" src="${c.hi}"><div class="glint" style="--at:1.3s"></div></div></div>
-        <span class="pill" style="left:50%;top:1300px;translate:-50% 0;font-size:30px;animation:drop .45s .9s cubic-bezier(.3,1.6,.5,1) both"><span data-type="${esc(c.name)}" data-t0="1" data-t1="1.5"></span></span>
+        <span class="pill" style="left:50%;top:1300px;translate:-50% 0;font-size:30px;animation:drop .45s .9s cubic-bezier(.3,1.6,.5,1) both"><span data-type="${esc(s.name ?? c.name)}" data-t0="1" data-t1="1.5"></span></span>
         <span class="sticker" style="left:50%;top:1400px;translate:-50% 0;font-size:58px;--r:-3deg;animation:slam .5s 1.15s both"><span ${priceAttrs(c.price.trend, c.set, 1.2, 2.3)}></span></span>
         ${sparks(540, 1450, 2.3)}
         <p style="position:absolute;left:0;right:0;top:1540px;text-align:center;font-size:32px;color:#f4ecdc;text-shadow:2px 2px 0 #2b2230;animation:fade .4s 2.4s both">
@@ -452,4 +452,33 @@ export async function renderMotion(browser, post, outFile, tmp) {
   );
   rmSync(tmp, { recursive: true, force: true });
   return { scenes: scenes.length, seconds: scenes.reduce((t, s) => t + s.dur, 0) };
+}
+
+/**
+ * TikTok's photo mode: the same scenes as the video, each one caught at its last frame (everything in place), 1080×1920,
+ * without the progress bar (TikTok draws its own dots). Writes photo-01.jpg… in outDir.
+ */
+export async function renderStills(browser, post, outDir, tmp) {
+  seed = 7;
+  const scenes = scenesOf(post);
+  mkdirSync(tmp, { recursive: true });
+  const tab = await browser.newPage({ viewport: { width: W, height: H } });
+  for (const [i, sc] of scenes.entries()) {
+    const html = join(tmp, "still.html");
+    writeFileSync(html, page(sc.bg, sc.body, i, scenes.length, sc.dur, false));
+    await tab.goto(url(html), { waitUntil: "networkidle", timeout: 90000 });
+    await tab.evaluate(async (ms) => {
+      await document.fonts.ready;
+      await Promise.all([...document.images].map((im) => im.decode().catch(() => {})));
+      for (const a of document.getAnimations()) {
+        a.pause();
+        a.currentTime = ms;
+      }
+      window.tick(ms / 1000);
+    }, (sc.still ?? sc.dur - 0.05) * 1000);
+    await tab.screenshot({ path: join(outDir, `photo-${String(i + 1).padStart(2, "0")}.jpg`), type: "jpeg", quality: 90 });
+  }
+  await tab.close();
+  rmSync(tmp, { recursive: true, force: true });
+  return scenes.length;
 }
