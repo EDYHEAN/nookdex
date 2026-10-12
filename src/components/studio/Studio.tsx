@@ -21,6 +21,9 @@ interface Post {
   captionTiktok: string | null;
   prices: boolean;
   slides: string[];
+  /** TikTok's photo mode: 9:16 pictures */
+  photos?: string[];
+  tiktokAs?: "photos" | "video";
   video: string | null;
   tiktok: string | null;
 }
@@ -253,6 +256,7 @@ function useFiles(urls: string[], on: boolean) {
 
 function PostCard({ post, open, onOpen, done, onToggle }: { post: Post; open: boolean; onOpen: () => void; done: Set<string>; onToggle: (id: string, p: Platform) => void }) {
   const slides = useFiles(post.slides, open);
+  const photos = useFiles(post.photos ?? [], open);
   const [wantVideo, setWantVideo] = useState(false);
   const video = useFiles(post.tiktok ? [post.tiktok] : [], open && wantVideo);
   // GitHub serves videos as plain bytes, which a <video> won't play: shown from the downloaded file
@@ -302,9 +306,9 @@ function PostCard({ post, open, onOpen, done, onToggle }: { post: Post; open: bo
   return (
     <article className={`${styles.post} ${isToday ? styles.today : ""} ${allDone ? styles.done : ""}`}>
       <button className={styles.row} onClick={onOpen} aria-expanded={open}>
-        {post.slides[0] || post.video ? (
-          post.slides[0] ? (
-            <img className={styles.thumb} src={SOCIAL_RENDERS + post.slides[0]} alt="" loading="lazy" />
+        {post.slides[0] || post.photos?.[0] || post.video || post.tiktok ? (
+          post.slides[0] || post.photos?.[0] ? (
+            <img className={styles.thumb} src={SOCIAL_RENDERS + (post.slides[0] ?? post.photos![0])} alt="" loading="lazy" />
           ) : (
             <span className={`${styles.thumb} ${styles.thumbVideo}`}>▶</span>
           )
@@ -349,6 +353,13 @@ function PostCard({ post, open, onOpen, done, onToggle }: { post: Post; open: bo
               ))}
             </div>
           )}
+          {(post.photos?.length ?? 0) > 0 && (
+            <div className={`${styles.slides} ${styles.story}`}>
+              {post.photos!.map((s) => (
+                <img key={s} src={SOCIAL_RENDERS + s} alt="" loading="lazy" />
+              ))}
+            </div>
+          )}
           {videoUrl && <video className={styles.video} src={videoUrl} controls playsInline />}
 
           <div className={styles.actions}>
@@ -357,10 +368,15 @@ function PostCard({ post, open, onOpen, done, onToggle }: { post: Post; open: bo
                 {slides ? `📲 ${post.slides.length > 1 ? `Les ${post.slides.length} slides` : "L'image"} → Insta` : "préparation…"}
               </button>
             )}
+            {(post.photos?.length ?? 0) > 0 && (
+              <button className={styles.big} disabled={!photos} onClick={() => void share(photos, post.captionTiktok ?? post.caption)}>
+                {photos ? `📲 Les ${post.photos!.length} photos → TikTok` : "préparation…"}
+              </button>
+            )}
             {post.tiktok &&
               (wantVideo ? (
                 <button className={styles.big} disabled={!video} onClick={() => void share(video, post.captionTiktok ?? post.caption)}>
-                  {video ? `🎵 La vidéo → ${post.platforms.includes("reels") || post.video ? "Reel / TikTok" : "TikTok"}` : "téléchargement de la vidéo…"}
+                  {video ? `🎵 La vidéo → ${(post.platforms.includes("reels") || post.video ? (post.platforms.includes("tiktok") && post.tiktokAs !== "photos" ? "Reel / TikTok" : "Reel") : "TikTok")}` : "téléchargement de la vidéo…"}
                 </button>
               ) : (
                 <button
@@ -370,7 +386,7 @@ function PostCard({ post, open, onOpen, done, onToggle }: { post: Post; open: bo
                     setWantVideo(true);
                   }}
                 >
-                  🎵 Préparer la vidéo{post.platforms.includes("reels") || post.video ? "" : " TikTok"}
+                  🎵 Préparer la vidéo → {(post.platforms.includes("reels") || post.video ? (post.platforms.includes("tiktok") && post.tiktokAs !== "photos" ? "Reel / TikTok" : "Reel") : "TikTok")}
                 </button>
               ))}
           </div>
