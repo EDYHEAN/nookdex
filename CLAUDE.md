@@ -216,6 +216,15 @@ doesn't show.
   bottom on a phone (`room/SupportCat.tsx`). Then it waits 21 days (180 after a tip); per device, localStorage
   `nookdex:support-next`, outside the save. Also linked from the shelf notebook and `/a-propos`.
 
+## Social posts (Instagram, TikTok)
+
+- On the `social` branch (never deployed): `posts/<date>-<slug>/post.json` (written by the weekly routine, rules and
+  format in `docs/social.md`), `renders/` (pictures + TikTok video, drawn by its Action « Rendu des posts » with
+  `scripts/social/render.mjs` from main; `social-prix.yml` on main redraws the price posts each day), `assets/`.
+- `/studio` (noindex, Johan's accounts only: hashes in `STUDIO_EMAIL_HASHES`; `?dev` in dev) lists them from
+  raw.githubusercontent.com: swipe the slides, share them or the video from the phone (caption copied on the way), tick
+  « publié » (Supabase `social_done`, docs/supabase.sql). Posts made by hand are `prerendered`.
+
 ## GitHub Actions
 
 - `prices.yml` (daily 11:00 UTC): `fetch-set --force` then `--force --lang=en` / `--lang=ja` refresh binder-set prices

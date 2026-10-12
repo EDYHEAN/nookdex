@@ -35,5 +35,14 @@ export const INSTAGRAM_HANDLE = "@_nookdex";
 export const TIKTOK_URL = "https://www.tiktok.com/@nookdex";
 export const TIKTOK_HANDLE = "@nookdex";
 
+/** The social posts, rendered on the repo's `social` branch (docs/social.md), read by /studio. */
+export const SOCIAL_RENDERS = "https://raw.githubusercontent.com/EDYHEAN/nookdex/social/renders/";
+/** Who may open /studio: SHA-256 of the e-mail, lower case (the addresses themselves stay out of the page's code). */
+export const STUDIO_EMAIL_HASHES = [
+  "2c4c00bbbcda2d584737cc0772927118df2c53159b1522099d395ae6d2f7fa33",
+  "661b3359f20b30c599679ffdc2ed12aa3213ed19994f918a9d8d2310b24fc608",
+  "584db0979a6e714ea48d6913c71af4c9641ddc5dd05edc43a538c66feb710280",
+];
+
 /** Tips for the project (the cat's bowl, the about pages). */
 export const SUPPORT_URL = "https://paypal.me/JohanTrigeard";
