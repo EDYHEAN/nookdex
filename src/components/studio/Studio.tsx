@@ -39,37 +39,76 @@ const sha256 = async (s: string) =>
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-/** What was posted: Supabase (social_done, Johan only), else this device. */
-const LOCAL = "nookdex:studio-done";
+/**
+ * What was posted, from Supabase (social_done, Johan only): read again whenever the page comes back in view, so a tick
+ * made on the phone shows on the computer. Ticks made while it can't be reached wait on this device and are sent
+ * as soon as it can.
+ */
+const PENDING = "nookdex:studio-pending";
+const readPending = (): [string, boolean][] => {
+  try {
+    return JSON.parse(localStorage.getItem(PENDING) ?? "[]");
+  } catch {
+    return [];
+  }
+};
+const writePending = (p: [string, boolean][]) => {
+  try {
+    localStorage.setItem(PENDING, JSON.stringify(p));
+  } catch {}
+};
+const save = (key: string, on: boolean) => {
+  const [post_id, platform] = key.split("|");
+  return on ? supabase.from("social_done").upsert({ post_id, platform }) : supabase.from("social_done").delete().match({ post_id, platform });
+};
+
 function useDone(on: boolean) {
   const [done, setDone] = useState<Set<string>>(new Set());
-  const [online, setOnline] = useState(false);
+  const [online, setOnline] = useState(true);
   useEffect(() => {
     if (!on) return;
-    let local: string[] = [];
-    try {
-      local = JSON.parse(localStorage.getItem(LOCAL) ?? "[]");
-    } catch {}
-    void supabase
-      .from("social_done")
-      .select("post_id, platform")
-      .then(({ data, error }) => {
-        if (error) return setDone(new Set(local));
-        setOnline(true);
-        setDone(new Set([...local, ...(data ?? []).map((r) => `${r.post_id}|${r.platform}`)]));
-      });
+    let alive = true;
+    const load = async () => {
+      // the ticks of the first version, kept on the device only: sent once
+      try {
+        const old: string[] = JSON.parse(localStorage.getItem("nookdex:studio-done") ?? "[]");
+        if (old.length) writePending([...readPending(), ...old.map((k): [string, boolean] => [k, true])]);
+        localStorage.removeItem("nookdex:studio-done");
+      } catch {}
+      // the ticks made offline first, then the truth from the server
+      const pending = readPending();
+      const sent = await Promise.all(pending.map(([k, v]) => save(k, v).then(({ error }) => !error)));
+      writePending(pending.filter((_, i) => !sent[i]));
+      const { data, error } = await supabase.from("social_done").select("post_id, platform");
+      if (!alive) return;
+      setOnline(!error);
+      if (error) return;
+      const next = new Set((data ?? []).map((r) => `${r.post_id}|${r.platform}`));
+      for (const [k, v] of readPending()) if (v) next.add(k);
+      else next.delete(k);
+      setDone(next);
+    };
+    void load();
+    const onShow = () => document.visibilityState === "visible" && void load();
+    document.addEventListener("visibilitychange", onShow);
+    window.addEventListener("focus", onShow);
+    return () => {
+      alive = false;
+      document.removeEventListener("visibilitychange", onShow);
+      window.removeEventListener("focus", onShow);
+    };
   }, [on]);
   const toggle = (id: string, p: Platform) => {
     const key = `${id}|${p}`;
+    const value = !done.has(key);
     const next = new Set(done);
-    const was = next.has(key);
-    if (was) next.delete(key);
-    else next.add(key);
+    if (value) next.add(key);
+    else next.delete(key);
     setDone(next);
-    try {
-      localStorage.setItem(LOCAL, JSON.stringify([...next]));
-    } catch {}
-    if (online) void (was ? supabase.from("social_done").delete().match({ post_id: id, platform: p }) : supabase.from("social_done").upsert({ post_id: id, platform: p }));
+    void save(key, value).then(({ error }) => {
+      setOnline(!error);
+      if (error) writePending([...readPending().filter(([k]) => k !== key), [key, value]]);
+    });
   };
   return { done, toggle, online };
 }
@@ -148,7 +187,7 @@ export function Studio() {
         <h1>Studio</h1>
         <p>
           {posts ? `${todo} post${todo > 1 ? "s" : ""} cette semaine` : failed ? "Impossible de lire les posts." : "Chargement…"}
-          {!online && posts && <span className={styles.warn}> · « publié » gardé sur cet appareil seulement</span>}
+          {!online && posts && <span className={styles.warn}> · hors ligne : les coches partiront dès que possible</span>}
         </p>
         <div className={styles.tabs}>
           <button className={!past ? styles.on : ""} onClick={() => setPast(false)}>
