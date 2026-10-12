@@ -30,6 +30,14 @@ export const CHANGELOG: Release[] = [
         en: "Candies, levels, moves to learn (4 at most, like in the games), held items, and your Pokémon evolves mid-run.",
       },
       {
+        fr: "14 capacités, et 7 évolutions : une capacité au maximum avec le bon objet devient une version surpuissante (Fatal-Foudre, Draco-Météore, Tempête Florale…).",
+        en: "14 moves, and 7 evolutions: a move at its peak with the right item becomes a mighty one (Thunder, Draco Meteor, Petal Blizzard…).",
+      },
+      {
+        fr: "Les vagues durcissent vraiment avec le temps, et de nouveaux Pokémon sauvages arrivent après la vague 20.",
+        en: "The waves really toughen up as time goes on, and new wild Pokémon show up after wave 20.",
+      },
+      {
         fr: "À la fin, ton pseudo entre au classement de tous les joueurs. Select change la palette de l'écran (vert d'origine, gris Pocket, violet lofi).",
         en: "At the end, your name goes on everyone's ladder. Select changes the screen's palette (original green, Pocket grey, lofi violet).",
       },

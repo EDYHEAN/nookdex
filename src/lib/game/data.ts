@@ -21,6 +21,8 @@ export const NAMES: Record<number, Txt> = {
   111: ["Rhinocorne", "Rhyhorn"], 113: ["Leveinard", "Chansey"], 123: ["Insécateur", "Scyther"], 128: ["Tauros", "Tauros"],
   129: ["Magicarpe", "Magikarp"], 130: ["Léviator", "Gyarados"], 143: ["Ronflex", "Snorlax"], 144: ["Artikodin", "Articuno"],
   145: ["Électhor", "Zapdos"], 146: ["Sulfura", "Moltres"], 149: ["Dracolosse", "Dragonite"], 150: ["Mewtwo", "Mewtwo"], 151: ["Mew", "Mew"],
+  15: ["Dardargnan", "Beedrill"], 59: ["Arcanin", "Arcanine"], 65: ["Alakazam", "Alakazam"], 68: ["Mackogneur", "Machamp"],
+  76: ["Grolem", "Golem"], 89: ["Grotadmorv", "Muk"], 112: ["Rhinoféros", "Rhydon"], 142: ["Ptéra", "Aerodactyl"],
 };
 
 export type BasicKind = "whip" | "ember" | "water" | "bolt";
@@ -36,7 +38,7 @@ export interface Starter {
   type: Elem;
 }
 
-export type Elem = "grass" | "fire" | "water" | "elec" | "ice" | "ghost" | "ground" | "psy" | "normal" | "fly";
+export type Elem = "grass" | "fire" | "water" | "elec" | "ice" | "ghost" | "ground" | "psy" | "normal" | "fly" | "dragon";
 
 export const STARTERS: Starter[] = [
   {
@@ -79,8 +81,12 @@ export const STARTERS: Starter[] = [
 
 /* ---------------- moves (auto-cast on their cooldown, or keys 1-4) and held items ---------------- */
 
-export type MoveId = "thunder" | "flamethrower" | "surf" | "leaf" | "ice" | "quake" | "shadow" | "protect" | "swift" | "psychic";
-export type ItemId = "leftovers" | "band" | "scarf" | "claw" | "lens" | "magnet" | "share" | "hpup" | "root";
+export type MoveId =
+  | "thunder" | "flamethrower" | "surf" | "leaf" | "ice" | "quake" | "shadow" | "protect" | "swift" | "psychic"
+  | "quick" | "sleep" | "hyper" | "rocks"
+  // the evolved ones
+  | "fulgur" | "blast" | "hydro" | "petal" | "blizzard" | "draco" | "fissure";
+export type ItemId = "leftovers" | "band" | "scarf" | "claw" | "lens" | "magnet" | "share" | "hpup" | "root" | "shellbell" | "belt";
 
 export interface MoveDef {
   id: MoveId;
@@ -90,6 +96,8 @@ export interface MoveDef {
   desc: Txt;
   /** cooldown at level 1..5 */
   cd: number[];
+  /** an evolved move: a move at its last level plus a held item turn into it (never offered otherwise) */
+  evo?: { from: MoveId; item: ItemId };
 }
 
 export const MOVES: MoveDef[] = [
@@ -103,6 +111,18 @@ export const MOVES: MoveDef[] = [
   { id: "protect", name: ["Abri", "Protect"], type: "normal", desc: ["Une bulle qui bloque les coups.", "A bubble that blocks the hits."], cd: [12, 11, 10, 9, 8] },
   { id: "swift", name: ["Météores", "Swift"], type: "normal", desc: ["Des étoiles vers les plus proches.", "Stars at the closest foes."], cd: [1.6, 1.5, 1.4, 1.3, 1.1] },
   { id: "psychic", name: ["Psyko", "Psychic"], type: "psy", desc: ["Une aura qui blesse ceux qui s'approchent.", "An aura that hurts whoever comes close."], cd: [0.35, 0.33, 0.31, 0.29, 0.26] },
+  { id: "quick", name: ["Vive-Attaque", "Quick Attack"], type: "normal", desc: ["Une ruée à travers les ennemis, intouchable.", "A dash through foes, untouchable."], cd: [4, 3.6, 3.2, 2.8, 2.4] },
+  { id: "sleep", name: ["Poudre Dodo", "Sleep Powder"], type: "grass", desc: ["Des nuages qui endorment les ennemis.", "Clouds that put foes to sleep."], cd: [6, 5.6, 5.2, 4.8, 4.2] },
+  { id: "hyper", name: ["Ultralaser", "Hyper Beam"], type: "normal", desc: ["Un rayon énorme qui traverse tout.", "A huge beam through everything."], cd: [6.5, 6, 5.5, 5, 4.5] },
+  { id: "rocks", name: ["Piège de Roc", "Stealth Rock"], type: "ground", desc: ["Des pierres pointues autour de toi.", "Pointed stones around you."], cd: [3.5, 3.3, 3.1, 2.9, 2.6] },
+  // evolutions: a move at level 5 + an item
+  { id: "fulgur", name: ["Fatal-Foudre", "Thunder"], type: "elec", desc: ["La foudre s'abat partout et rebondit.", "Lightning everywhere, bouncing on."], cd: [1.5, 1.5, 1.5, 1.5, 1.5], evo: { from: "thunder", item: "magnet" } },
+  { id: "blast", name: ["Déflagration", "Fire Blast"], type: "fire", desc: ["Une boule de feu qui explose en étoile.", "A fireball that bursts into a star."], cd: [2.6, 2.6, 2.6, 2.6, 2.6], evo: { from: "flamethrower", item: "band" } },
+  { id: "hydro", name: ["Hydrocanon", "Hydro Pump"], type: "water", desc: ["Deux raz-de-marée qui te soignent.", "Two tidal waves that heal you."], cd: [4.5, 4.5, 4.5, 4.5, 4.5], evo: { from: "surf", item: "leftovers" } },
+  { id: "petal", name: ["Tempête Florale", "Petal Blizzard"], type: "grass", desc: ["Des pétales tourbillonnent sans fin.", "Petals whirl around you, endlessly."], cd: [0.6, 0.6, 0.6, 0.6, 0.6], evo: { from: "leaf", item: "root" } },
+  { id: "blizzard", name: ["Blizzard", "Blizzard"], type: "ice", desc: ["Des cristaux éternels qui gèlent sur place.", "Crystals that never melt, and freeze foes."], cd: [1, 1, 1, 1, 1], evo: { from: "ice", item: "claw" } },
+  { id: "draco", name: ["Draco-Météore", "Draco Meteor"], type: "dragon", desc: ["Une pluie de météores sur les ennemis.", "A meteor shower on your foes."], cd: [2.4, 2.4, 2.4, 2.4, 2.4], evo: { from: "swift", item: "scarf" } },
+  { id: "fissure", name: ["Abîme", "Fissure"], type: "ground", desc: ["Le sol s'ouvre : certains ne s'en relèvent pas.", "The ground opens: some never get up."], cd: [5, 5, 5, 5, 5], evo: { from: "quake", item: "lens" } },
 ];
 
 export interface ItemDef {
@@ -121,6 +141,16 @@ export const ITEMS: ItemDef[] = [
   { id: "share", name: ["Multi Exp", "Exp. Share"], desc: ["+12 % d'expérience.", "+12% experience."] },
   { id: "hpup", name: ["PV Plus", "HP Up"], desc: ["+20 PV max (et soigne).", "+20 max HP (and heals)."] },
   { id: "root", name: ["Grosse Racine", "Big Root"], desc: ["+10 % de zone d'effet.", "+10% area of effect."] },
+  { id: "shellbell", name: ["Grelot Coque", "Shell Bell"], desc: ["Chaque K.O. te soigne un peu.", "Each KO heals you a little."] },
+  { id: "belt", name: ["Ceinture Pro", "Expert Belt"], desc: ["Coups critiques plus forts (+25 %).", "Stronger critical hits (+25%)."] },
+];
+
+/** when there's nothing left to learn or raise: boosts that stack forever */
+export type BonusId = "protein" | "ppup" | "sitrus";
+export const BONUSES: { id: BonusId; name: Txt; desc: Txt }[] = [
+  { id: "protein", name: ["Protéine", "Protein"], desc: ["+6 % de dégâts, pour toujours.", "+6% damage, for good."] },
+  { id: "ppup", name: ["PP Plus", "PP Up"], desc: ["Capacités 4 % plus vite prêtes.", "Moves ready 4% sooner."] },
+  { id: "sitrus", name: ["Baie Sitrus", "Sitrus Berry"], desc: ["Soigne 40 % de tes PV.", "Heals 40% of your HP."] },
 ];
 
 export const MAX_MOVES = 4;
@@ -178,6 +208,15 @@ export const WILD: Record<number, Wild> = {
   128: { dex: 128, hp: 80, speed: 34, dmg: 18, xp: 7, act: "charge", r: 10 },
   129: { dex: 129, hp: 6, speed: 18, dmg: 2, xp: 1, act: "flop", r: 7 },
   113: { dex: 113, hp: 70, speed: 36, dmg: 0, xp: 60, act: "treasure", r: 9 },
+  // the late waves
+  15: { dex: 15, hp: 70, speed: 62, dmg: 18, xp: 7, act: "erratic", r: 8 },
+  59: { dex: 59, hp: 120, speed: 52, dmg: 22, xp: 9, act: "chase", r: 10 },
+  142: { dex: 142, hp: 90, speed: 66, dmg: 20, xp: 9, act: "erratic", r: 10 },
+  76: { dex: 76, hp: 260, speed: 16, dmg: 28, xp: 12, act: "chase", r: 12 },
+  68: { dex: 68, hp: 170, speed: 40, dmg: 26, xp: 11, act: "chase", r: 10 },
+  112: { dex: 112, hp: 200, speed: 34, dmg: 28, xp: 12, act: "charge", r: 12 },
+  65: { dex: 65, hp: 110, speed: 30, dmg: 22, xp: 11, act: "shoot", r: 9, shot: "psy" },
+  89: { dex: 89, hp: 220, speed: 20, dmg: 24, xp: 12, act: "chase", r: 12 },
 };
 
 /** who comes out, by the wave they start showing up */
@@ -191,9 +230,14 @@ export const POOLS: [number, number[]][] = [
   [12, [20, 22, 24, 42, 66]],
   [15, [93, 109, 111, 123]],
   [18, [75, 128]],
+  [20, [15, 59, 142]],
+  [24, [76, 68, 112]],
+  [28, [65, 89]],
 ];
 /** the early weak ones leave the field as the waves go on */
-export const RETIRE: Record<number, number> = { 10: 8, 13: 8, 16: 11, 19: 12, 41: 14, 29: 15, 32: 15, 21: 17, 43: 17 };
+export const RETIRE: Record<number, number> = {
+  10: 8, 13: 8, 16: 11, 19: 12, 41: 14, 29: 15, 32: 15, 21: 17, 43: 17, 23: 23, 27: 23, 52: 23, 56: 24, 54: 25, 58: 27, 74: 27, 81: 28,
+};
 
 export const WAVE_SECONDS = 30;
 
@@ -226,4 +270,4 @@ export const BOSSES: BossDef[] = [
 ];
 
 /** experience to reach the next level */
-export const xpFor = (level: number) => Math.round(4 + level * 3 + Math.pow(level, 1.7));
+export const xpFor = (level: number) => Math.round(4 + level * 3 + Math.pow(level, 1.7) + 0.9 * Math.max(0, level - 15) ** 2);

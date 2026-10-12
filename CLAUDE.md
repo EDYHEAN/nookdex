@@ -220,7 +220,10 @@ doesn't show.
 
 - The Game Boy painted by the mug (`GAMEBOY` in PaintedRoom) runs Nook Survivors, a survivors-like (a name of our own: no brand in the game's title): a starter (Bulbasaur,
   Charmander, Squirtle, Pikachu; they evolve mid-run) against waves of wild Pokémon, 30 s a wave, a boss every 5th,
-  candies → levels → 3 cards (moves, auto-cast or keys 1-4, 4 at most; held items). Score = the wave reached.
+  candies → levels → 3 cards (14 moves, auto-cast or keys 1-4, 4 at most; 11 held items; once all is maxed, stacking
+  bonuses). A move at level 5 + its item (`evo` in lib/game/data) offers its evolution first (7 of them). Foes' HP and
+  damage grow with the square of the wave and the XP curve steepens past level 15 (Johan, 2026-10-12: wave 23 was too
+  easy); a god-mode bot run per wave (damage taken, foes on screen) is how it was tuned. Score = the wave reached.
   Computers only: on a phone the Game Boy is out of frame (its tip says so).
 - In the room it's a CSS loop (`public/game/attract.png`, 8 frames, no script). The game (`components/game/NookBoy`,
   `lib/game/*`: engine, gfx, audio, data, scores) is a lazy chunk, loaded on click with its sprite atlas

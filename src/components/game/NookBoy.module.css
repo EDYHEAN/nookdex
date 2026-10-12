@@ -636,6 +636,7 @@
   align-items: center;
   gap: 4px;
   height: 11px;
+  white-space: nowrap;
 }
 
 .ladder li.me {
@@ -656,12 +657,15 @@
 }
 
 .lWave {
-  width: 36px;
+  flex: none;
+  width: 44px;
   text-align: right;
 }
 
+/* up to "99999 KO" on one line */
 .lKo {
-  width: 50px;
+  flex: none;
+  min-width: 64px;
   text-align: right;
   color: var(--c1);
 }
@@ -826,6 +830,29 @@
   color: var(--c1);
 }
 
+/* a move's evolution: golden, and it shimmers */
+.evoCard {
+  border-top-color: #ffd36e;
+  background: linear-gradient(115deg, var(--c3) 40%, #fff3c4 50%, var(--c3) 60%) 0 0 / 300% 100%;
+  animation:
+    deal 0.3s steps(5) both,
+    shimmer 1.6s steps(12) 0.3s infinite;
+}
+
+.screen:not([data-palette="color"]) .evoCard {
+  border-top-color: var(--c0);
+  background: var(--c2);
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
 .cardName {
   min-height: 20px;
 }
@@ -848,6 +875,7 @@
 .screen[data-palette="color"] .t_ground { --tc: #b88a52; }
 .screen[data-palette="color"] .t_psy { --tc: #ff7ac0; }
 .screen[data-palette="color"] .t_normal { --tc: #b9ada0; }
+.screen[data-palette="color"] .t_dragon { --tc: #7a6cf0; }
 
 /* evolution: the text box at the bottom */
 .textbox {
