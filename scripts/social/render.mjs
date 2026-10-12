@@ -374,7 +374,7 @@ for (const id of ids.sort()) {
     console.log(`${id}: video, ${r.scenes} scenes, ${r.seconds.toFixed(1)} s`);
     writeFileSync(join(out, "motion.txt"), hash + "\n");
   } else if (video && !NO_VIDEO && !post.slides && !existsSync(join(out, "tiktok.mp4"))) {
-    const pics = readdirSync(out).filter((f) => /^slide-d+.(jpg|png)$/.test(f)).sort();
+    const pics = readdirSync(out).filter((f) => /^slide-\d+\.(jpg|png)$/.test(f)).sort();
     if (pics.length) slideshow(pics.map((f) => join(out, f)), join(out, "tiktok.mp4"), false);
   }
   const rendered = readdirSync(out).sort();
@@ -390,7 +390,7 @@ for (const id of ids.sort()) {
     caption: post.caption ?? "",
     captionTiktok: post.captionTiktok ?? null,
     prices: !!post.prices,
-    slides: rendered.filter((f) => /^slide-d+.(jpg|png)$/.test(f)).map((f) => `${id}/${f}`),
+    slides: rendered.filter((f) => /^slide-\d+\.(jpg|png)$/.test(f)).map((f) => `${id}/${f}`),
     video: rendered.includes("reel.mp4") ? `${id}/reel.mp4` : null,
     tiktok: rendered.includes("tiktok.mp4") ? `${id}/tiktok.mp4` : rendered.includes("reel.mp4") ? `${id}/reel.mp4` : null,
   });
