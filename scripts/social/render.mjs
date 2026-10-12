@@ -9,10 +9,10 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join, resolve } from "node:path";
+import { APP, AVATAR, FONT_FACES, GRAIN, asset, card, dayOf, esc, market, money, setAssets, txt, url } from "./lib.mjs";
+import { renderMotion } from "./motion.mjs";
 
-const APP = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const args = process.argv.slice(2);
 const opt = (name) => {
   const i = args.indexOf(name);
@@ -20,51 +20,15 @@ const opt = (name) => {
 };
 const SOCIAL = resolve(opt("--social") ?? "../social");
 const PRICES = args.includes("--prices") && args.splice(args.indexOf("--prices"), 1);
+const NO_VIDEO = args.includes("--no-video") && args.splice(args.indexOf("--no-video"), 1);
 const ONLY = args;
 const POSTS = join(SOCIAL, "posts");
 const RENDERS = join(SOCIAL, "renders");
-const ASSETS = join(SOCIAL, "assets");
-const url = (p) => "file:///" + p.replace(/\\/g, "/");
-
-/* ---------------- cards and prices, from the site's own files ---------------- */
-
-const CATALOGS = { fr: "catalog.json", en: "catalog-en.json", ja: "catalog-ja.json" };
-const OWNER = {};
-for (const [lang, f] of Object.entries(CATALOGS)) {
-  OWNER[lang] = new Map();
-  for (const s of JSON.parse(readFileSync(join(APP, "src/data", f), "utf8"))) [s.id, ...s.subs].forEach((id) => OWNER[lang].set(id, s.id));
-}
-const sets = new Map();
-/** "sv08-238", "en:sv08-238", "ja:SV8-033" -> the card, its set file, its language */
-function card(key) {
-  const m = /^(en|ja):/.exec(key);
-  const lang = m ? m[1] : "fr";
-  const id = m ? key.slice(3) : key;
-  const setId = OWNER[lang].get(id.slice(0, id.lastIndexOf("-")));
-  if (!setId) throw new Error(`unknown card ${key}`);
-  const file = join(APP, "public/sets", lang === "fr" ? "" : lang, `${setId}.json`);
-  if (!sets.has(file)) sets.set(file, JSON.parse(readFileSync(file, "utf8")));
-  const set = sets.get(file);
-  const c = set.cards.find((x) => x.id === id);
-  if (!c) throw new Error(`card ${key} not in ${setId}`);
-  return { ...c, set, lang, hi: `${c.img}/high.webp` };
-}
-const money = (n, set) =>
-  n == null ? "—" : set.currency === "USD" ? `$${n.toFixed(2)}` : `${n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
-const dayOf = (set) => new Date(set.pricesUpdated).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
-const market = (set) => (set.currency === "USD" ? "TCGplayer" : "Cardmarket");
-const asset = (name) => url(join(ASSETS, name));
-const esc = (s = "") => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-/** texts may carry <br>, <b>, <em> on purpose: those three are let through */
-const txt = (s = "") => esc(s).replace(/&lt;(\/?)(br|b|em)\s*\/?&gt;/g, "<$1$2>");
+setAssets(join(SOCIAL, "assets"));
 
 /* ---------------- the look ---------------- */
 
-const GRAIN =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .22 0 0 0 0 .18 0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
-const FONTS = `
-@font-face { font-family: Press; src: url(${url(join(APP, "src/assets/fonts/PressStart2P-Regular.ttf"))}); }
-@font-face { font-family: VT; src: url(${url(join(APP, "src/assets/fonts/VT323-Regular.ttf"))}); }
+const FONTS = `${FONT_FACES}
 * { box-sizing: border-box; margin: 0; }
 html, body { width: 1080px; height: var(--H); overflow: hidden; }
 body { position: relative; font-family: VT, monospace; color: #2b2230; background: #150f1f; }`;
@@ -145,7 +109,7 @@ const full = (bg, body, H = 1350) =>
     `<div class="bg" style="--n:${bg.length}">${bg.map((u) => `<div style="background-image:url(${u})"></div>`).join("")}</div>
      <div class="dots"></div>${body}<span class="handle">@_nookdex</span>`,
   );
-const avatar = url(join(APP, "public/email/warwick.png"));
+const avatar = AVATAR;
 const pct = (v, of) => `${(v / of) * 100}%`;
 
 /* ---------------- the slide types (docs/social.md) ---------------- */
@@ -336,11 +300,9 @@ const SLIDES = {
 /* ---------------- rendering ---------------- */
 
 let browser;
+const launch = async () => (await import("playwright")).chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
 async function shoot(html, out, H) {
-  if (!browser) {
-    const { chromium } = await import("playwright");
-    browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
-  }
+  browser ??= await launch();
   const page = await browser.newPage({ viewport: { width: 1080, height: H } });
   const tmp = out.replace(/\.jpg$/, ".html");
   writeFileSync(tmp, html);
@@ -386,37 +348,36 @@ for (const id of ids.sort()) {
   const raw = readFileSync(join(dir, "post.json"), "utf8");
   const post = JSON.parse(raw);
   const out = join(RENDERS, id);
+  mkdirSync(out, { recursive: true });
   const hash = createHash("sha1").update(raw).digest("hex");
-  const done = existsSync(join(out, "hash.txt")) && readFileSync(join(out, "hash.txt"), "utf8").trim() === hash;
+  const stamp = (f) => (existsSync(join(out, f)) ? readFileSync(join(out, f), "utf8").trim() : null);
   const fresh = PRICES && post.prices && [today, tomorrow].includes(post.date);
-  const wanted = ONLY.length ? ONLY.includes(id) : !post.prerendered && (!done || fresh);
-  if (wanted && !post.prerendered) {
+  const asked = ONLY.includes(id);
+  const story = post.format === "story";
+  // the carousel's pictures (a post made by hand keeps its own)
+  if (!post.prerendered && (asked || (!ONLY.length && (stamp("hash.txt") !== hash || fresh)))) {
     console.log(`${id}: ${post.slides.length} slide(s)`);
-    rmSync(out, { recursive: true, force: true });
-    mkdirSync(out, { recursive: true });
-    const story = post.format === "story";
+    for (const f of readdirSync(out)) if (/^slide-/.test(f)) rmSync(join(out, f));
     const H = story ? 1920 : 1350;
-    const files = [];
     for (const [i, s] of post.slides.entries()) {
       const make = SLIDES[s.type];
       if (!make) throw new Error(`${id}: unknown slide type ${s.type}`);
-      const f = join(out, `slide-${String(i + 1).padStart(2, "0")}.jpg`);
-      await shoot(make(s, H, `${i + 1}/${post.slides.length}`), f, H);
-      files.push(f);
+      await shoot(make(s, H, `${i + 1}/${post.slides.length}`), join(out, `slide-${String(i + 1).padStart(2, "0")}.jpg`), H);
     }
-    if (post.platforms?.includes("tiktok")) slideshow(files, join(out, "tiktok.mp4"), story);
     writeFileSync(join(out, "hash.txt"), hash + "\n");
   }
-  // a post made by hand (prerendered): its pictures are there already, TikTok's video is made from them once
-  if (post.prerendered && post.platforms?.includes("tiktok") && existsSync(out)) {
-    const have = readdirSync(out);
-    const pics = have.filter((f) => /^slide-\d+\.(jpg|png)$/.test(f)).sort();
-    if (pics.length && !have.includes("tiktok.mp4") && !have.includes("reel.mp4")) {
-      console.log(`${id}: TikTok video from ${pics.length} slide(s)`);
-      slideshow(pics.map((f) => join(out, f)), join(out, "tiktok.mp4"), post.format === "story");
-    }
+  // the TikTok / Reels video: animated from the slides (motion.mjs); a post made by hand without slides gets a slideshow
+  const video = (post.platforms ?? []).some((p) => p === "tiktok" || p === "reels") && !story && !existsSync(join(out, "reel.mp4"));
+  if (video && !NO_VIDEO && (post.slides || post.motion) && (asked || (!ONLY.length && (stamp("motion.txt") !== hash || fresh)))) {
+    browser ??= await launch();
+    const r = await renderMotion(browser, post, join(out, "tiktok.mp4"), join(out, ".frames"));
+    console.log(`${id}: video, ${r.scenes} scenes, ${r.seconds.toFixed(1)} s`);
+    writeFileSync(join(out, "motion.txt"), hash + "\n");
+  } else if (video && !NO_VIDEO && !post.slides && !existsSync(join(out, "tiktok.mp4"))) {
+    const pics = readdirSync(out).filter((f) => /^slide-d+.(jpg|png)$/.test(f)).sort();
+    if (pics.length) slideshow(pics.map((f) => join(out, f)), join(out, "tiktok.mp4"), false);
   }
-  const rendered = existsSync(out) ? readdirSync(out).sort() : [];
+  const rendered = readdirSync(out).sort();
   index.push({
     id,
     date: post.date,
@@ -429,7 +390,7 @@ for (const id of ids.sort()) {
     caption: post.caption ?? "",
     captionTiktok: post.captionTiktok ?? null,
     prices: !!post.prices,
-    slides: rendered.filter((f) => /^slide-\d+\.(jpg|png)$/.test(f)).map((f) => `${id}/${f}`),
+    slides: rendered.filter((f) => /^slide-d+.(jpg|png)$/.test(f)).map((f) => `${id}/${f}`),
     video: rendered.includes("reel.mp4") ? `${id}/reel.mp4` : null,
     tiktok: rendered.includes("tiktok.mp4") ? `${id}/tiktok.mp4` : rendered.includes("reel.mp4") ? `${id}/reel.mp4` : null,
   });

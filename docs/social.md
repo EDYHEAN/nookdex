@@ -20,8 +20,14 @@ copied on the way). Change the editorial line here, not in the routine's prompt.
 ## The week
 
 Run on Sunday morning; prepare **Monday, Wednesday and Friday of the coming week** (3 posts), skipping a day that already
-has a post. Each post goes to Instagram and TikTok (`"platforms": ["instagram", "tiktok"]`, the TikTok video is made
-from the slides) unless it's a story. A mix over the week, in this order of priority:
+has a post. Every post has a **TikTok video** (`tiktok`), drawn from its slides by `scripts/social/motion.mjs`: each
+slide becomes an animated scene (see "The video" below). On Instagram a post is **one** thing, never both:
+
+- `instagram`: the carousel (its pictures). For the posts people keep: NookDex features, news, top 5s, themed pages.
+- `reels`: the same video as TikTok, as an Instagram Reel. For the games (devine le prix, zoom, find): they live by
+  their motion and reach people who don't follow yet. One or two a week.
+
+So `"platforms": ["instagram", "tiktok"]` or `["reels", "tiktok"]`. A mix over the week, in this order of priority:
 
 1. **news** (only when there is real news): a set revealed or dated, a product announced, a big tournament result. Check
    `src/data/releases.json` and the sources below. Confirmed by an official source or two reliable ones, else not a post.
@@ -91,6 +97,22 @@ Rumors and leaks: no.
 | `end` | `kicker`, `title`, `lead` | the closing question and the address |
 
 A carousel: `cover`, 2-6 slides, an ending (`end`, `total` or `duelAnswers`). A fun page: a single `grid`. Keep 3-7 slides.
+
+## The video (TikTok, Reels)
+
+Made from the same slides, 1080×1920, 20-35 s, no sound (Johan adds a trending one in the app). Each slide type is a
+scene: `cover` (title letter by letter, cards flying in, banner slam), `paper` (the paper card rises, lines pop),
+`price` (rank slam, card flip, price counting up), `total` (the sum counting), `grid` (cards popping one by one),
+`duel` (cards sliding in, VS, a 3-2-1 bar), `duelAnswers` (one scene a round: loser greyed, winner glowing, then the
+source of the prices), `zoom` (close-up, 3-2-1), `find` (blurred, a magnifier wandering), `reveal` (the camera pulls back
+from the spot to the whole card), `end` (Warwick, the address, "abonne-toi"). A closing `end` scene is added if the
+post has none. A progress bar on top tells how many scenes are left (people stay to the end).
+
+- **A top 5 counts down** in the video: give the `price` slides from #5 to #1 (the carousel shows #1 first: write the
+  carousel order in `slides` and the countdown in `"motion"`, a second list of slides used for the video only).
+- TikTok and Instagram cover the right edge and the bottom of the screen: the scenes keep their text between y 200 and
+  y 1480; don't write long kickers or banners (a banner shrinks past ~26 characters).
+- The first two seconds decide: the cover must show the cards and the hook at once.
 
 ## Fun posts
 
