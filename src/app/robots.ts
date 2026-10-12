@@ -5,7 +5,8 @@ export default function robots(): MetadataRoute.Robots {
   // Vercel previews must not be indexed: only the real domain shows up on Google.
   if (!IS_PRODUCTION) return { rules: { userAgent: "*", disallow: "/" } };
   return {
-    rules: { userAgent: "*", allow: "/", disallow: "/studio" },
+    // /studio stays crawlable on purpose: its noindex is only seen if Google may read the page
+    rules: { userAgent: "*", allow: "/" },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }
