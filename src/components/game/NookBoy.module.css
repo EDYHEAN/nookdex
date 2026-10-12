@@ -1,0 +1,979 @@
+/* The NookBoy, zoomed in: a Game Boy drawn in CSS, laid out in game pixels (the screen is 320x288) and scaled up by a whole
+   number so the pixels stay square. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(60, 40, 80, 0.55), rgba(8, 4, 16, 0.9) 75%),
+    rgba(8, 4, 16, 0.6);
+  user-select: none;
+}
+
+.close {
+  position: absolute;
+  top: 14px;
+  right: 64px;
+  z-index: 2;
+  padding: 8px 14px;
+  border: 2px solid #f6e2e9;
+  border-radius: 6px;
+  background: #2b2230;
+  color: #f6e2e9;
+  font: 14px var(--font-press), monospace;
+  cursor: pointer;
+  transition: transform 0.1s steps(2);
+}
+
+.close:hover {
+  transform: translateY(-2px);
+  background: #6b4a7a;
+}
+
+.hint {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  margin: 0;
+  color: #c9b9d6;
+  font: 18px/1.2 var(--font-vt), monospace;
+  opacity: 0.8;
+}
+
+/* ---------- the shell ---------- */
+
+.shell {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform-origin: 50% 0;
+  border-radius: 10px 10px 58px 10px;
+  background: linear-gradient(170deg, #e4dfd7, #cfc9c0 70%, #c4bdb3);
+  box-shadow:
+    0 0 0 2px #2b2230,
+    inset 2px 2px 0 #f6f2ec,
+    inset -3px -4px 0 #aaa297,
+    0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+.topStrip {
+  height: 12px;
+  margin: 0 12px;
+  border-bottom: 1px solid #aaa297;
+  box-shadow: 0 1px 0 #f6f2ec;
+  font: 6px var(--font-press), monospace;
+  color: #8c8579;
+  line-height: 12px;
+  padding-left: 6px;
+}
+
+.bezel {
+  position: relative;
+  margin: 8px 14px 0;
+  padding: 16px 16px;
+  border-radius: 8px 8px 34px 8px;
+  background: #5c5a70;
+  box-shadow:
+    inset 0 2px 0 #74728a,
+    inset 0 -2px 0 #47455a;
+}
+
+.bezelLabel {
+  position: absolute;
+  top: 4px;
+  left: 16px;
+  right: 16px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font: 9px/1 var(--font-vt), monospace;
+  letter-spacing: 0.5px;
+  color: #c9c6d8;
+  white-space: nowrap;
+}
+
+/* the two stripes of the original */
+.bezelLabel i {
+  flex: 1;
+  height: 3px;
+  border-top: 1px solid #b23a6e;
+  border-bottom: 1px solid #3a3f9a;
+}
+
+.led {
+  position: absolute;
+  left: 5px;
+  top: 108px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4a2020;
+  transition: background 0.4s steps(3);
+}
+
+.ledOn {
+  background: #ff3b3b;
+  box-shadow: 0 0 4px 1px rgba(255, 70, 70, 0.8);
+}
+
+.battery {
+  position: absolute;
+  left: 1px;
+  top: 117px;
+  font: 4px var(--font-press), monospace;
+  color: #a9a7bb;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  letter-spacing: 0.5px;
+}
+
+.screen {
+  position: relative;
+  width: 320px;
+  height: 288px;
+  overflow: hidden;
+  background: var(--c3);
+  box-shadow: 0 0 0 1px #2b2230;
+  cursor: default;
+}
+
+.canvas {
+  display: block;
+  width: 320px;
+  height: 288px;
+  image-rendering: pixelated;
+}
+
+/* aiming at the mouse: a crosshair */
+.aiming {
+  cursor: crosshair;
+}
+
+/* the LCD: a soft glare and faint scanlines, over everything */
+.lcd {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.1), transparent 30%),
+    repeating-linear-gradient(transparent 0 1px, rgba(0, 0, 0, 0.05) 1px 2px),
+    radial-gradient(ellipse at 50% 50%, transparent 65%, rgba(20, 10, 30, 0.25));
+}
+
+.brand {
+  margin: 6px 0 0 20px;
+  font: italic 11px var(--font-press), monospace;
+  color: #2f3a8f;
+  letter-spacing: -0.5px;
+}
+
+.brand b {
+  font-weight: normal;
+  margin-left: 4px;
+}
+
+.brand sup {
+  margin-left: 3px;
+  padding: 1px 2px;
+  border-radius: 2px;
+  font: 5px var(--font-press), monospace;
+  color: #e4dfd7;
+  background: #2f3a8f;
+  vertical-align: 4px;
+}
+
+/* ---------- the buttons: they sink when pressed (keys or clicks) ---------- */
+
+.controls {
+  position: relative;
+  height: 56px;
+}
+
+.controls button,
+.pills button {
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+}
+
+.dpad {
+  position: absolute;
+  left: 26px;
+  top: 2px;
+  width: 54px;
+  height: 54px;
+}
+
+.dpad button,
+.dMid {
+  position: absolute;
+  background: #2e2c38;
+  box-shadow: 0 2px 0 #18171f;
+  transition: transform 0.06s;
+}
+
+.dUp,
+.dDown {
+  left: 18px;
+  width: 18px;
+  height: 19px;
+}
+
+.dUp {
+  top: 0;
+  border-radius: 3px 3px 0 0;
+}
+
+.dDown {
+  bottom: 0;
+  border-radius: 0 0 3px 3px;
+}
+
+.dLeft,
+.dRight {
+  top: 18px;
+  width: 19px;
+  height: 18px;
+}
+
+.dLeft {
+  left: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+.dRight {
+  right: 0;
+  border-radius: 0 3px 3px 0;
+}
+
+.dMid {
+  left: 18px;
+  top: 18px;
+  width: 18px;
+  height: 18px;
+  box-shadow: none;
+}
+
+.dpad .down {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #18171f;
+  background: #3e3b4a;
+}
+
+.ab {
+  position: absolute;
+  right: 22px;
+  top: 0;
+  width: 92px;
+  height: 52px;
+  border-radius: 26px;
+  background: #c4bdb3;
+  box-shadow: inset 0 1px 2px #aaa297;
+  transform: rotate(-25deg);
+}
+
+.ab button {
+  position: absolute;
+  top: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #a3245e;
+  box-shadow:
+    0 3px 0 #6e1640,
+    inset 0 2px 0 #c44a80;
+  transition: transform 0.06s;
+}
+
+.ab button span {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font: 7px var(--font-press), monospace;
+  color: #2f3a8f;
+}
+
+.b {
+  left: 8px;
+}
+
+.a {
+  right: 8px;
+}
+
+.ab .down {
+  transform: translateY(2px);
+  box-shadow:
+    0 1px 0 #6e1640,
+    inset 0 2px 0 #8a1c4e;
+}
+
+.pills {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  transform: translateX(-24px);
+}
+
+.pills button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  font: 5px var(--font-press), monospace;
+  color: #2f3a8f;
+}
+
+.pills i {
+  width: 28px;
+  height: 7px;
+  border-radius: 4px;
+  background: #8c8698;
+  box-shadow: 0 2px 0 #5e5a6a;
+  transform: rotate(-25deg);
+  transition: transform 0.06s;
+}
+
+.pills .down i {
+  transform: rotate(-25deg) translateY(1px);
+  box-shadow: 0 1px 0 #5e5a6a;
+}
+
+.speaker {
+  position: absolute;
+  right: 24px;
+  bottom: 8px;
+  display: flex;
+  gap: 5px;
+  transform: rotate(-28deg);
+}
+
+.speaker i {
+  width: 4px;
+  height: 26px;
+  border-radius: 2px;
+  background: #9e978c;
+  box-shadow: inset 1px 1px 0 #7f786e;
+}
+
+/* ---------- inside the screen ---------- */
+
+.ui {
+  position: absolute;
+  inset: 0;
+  color: var(--c0);
+  font: 8px/10px var(--font-press), monospace;
+}
+
+.ui h2 {
+  margin: 0 0 6px;
+  font: 8px/10px var(--font-press), monospace;
+  text-align: center;
+  color: var(--c3);
+  text-shadow:
+    1px 0 var(--c0),
+    -1px 0 var(--c0),
+    0 1px var(--c0),
+    0 -1px var(--c0);
+}
+
+.ui button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* a Pokémon text box: light, a double dark frame */
+.box {
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--c3);
+  box-shadow:
+    0 0 0 1px var(--c0),
+    inset 0 0 0 1px var(--c3),
+    inset 0 0 0 2px var(--c1);
+}
+
+.center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.blink {
+  animation: blink 0.9s steps(2) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.keys {
+  margin: 6px 0 0;
+  font: 12px/1 var(--font-vt), monospace;
+  text-align: center;
+  color: var(--c3);
+  text-shadow:
+    1px 1px var(--c0),
+    -1px 1px var(--c0),
+    1px -1px var(--c0),
+    -1px -1px var(--c0);
+}
+
+.dim {
+  color: var(--c1);
+}
+
+/* the boot: the logo slides down to the middle */
+.boot {
+  position: absolute;
+  inset: 0;
+  background: var(--c3);
+  display: flex;
+  justify-content: center;
+}
+
+.bootLogo {
+  margin: 0;
+  font: 14px var(--font-press), monospace;
+  color: var(--c0);
+  animation: drop 1.4s steps(28) both;
+}
+
+.bootLogo sup {
+  font-size: 6px;
+}
+
+@keyframes drop {
+  from {
+    transform: translateY(-20px);
+  }
+  to {
+    transform: translateY(132px);
+  }
+}
+
+/* the title */
+.title {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 22px;
+}
+
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 18px;
+  animation: float 2.4s steps(6) infinite alternate;
+}
+
+@keyframes float {
+  to {
+    transform: translateY(-3px);
+  }
+}
+
+.logoSmall {
+  font-size: 6px;
+  letter-spacing: 3px;
+  color: var(--c3);
+  text-shadow: 1px 1px var(--c0);
+}
+
+.logoBig,
+.logoBig2 {
+  font-size: 24px;
+  line-height: 26px;
+  color: #ffd36e;
+  text-shadow:
+    2px 0 #2f3a8f,
+    -2px 0 #2f3a8f,
+    0 2px #2f3a8f,
+    0 -2px #2f3a8f,
+    2px 2px #2f3a8f,
+    -2px 2px #2f3a8f,
+    2px -2px #2f3a8f,
+    -2px -2px #2f3a8f,
+    0 4px #2b2230,
+    3px 4px #2b2230;
+}
+
+.logoBig2 {
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.screen:not([data-palette="color"]) .logoBig,
+.screen:not([data-palette="color"]) .logoBig2 {
+  color: var(--c3);
+  text-shadow:
+    2px 0 var(--c0),
+    -2px 0 var(--c0),
+    0 2px var(--c0),
+    0 -2px var(--c0),
+    2px 2px var(--c0),
+    -2px 2px var(--c0),
+    2px -2px var(--c0),
+    -2px -2px var(--c0),
+    0 4px var(--c1),
+    3px 4px var(--c1);
+}
+
+.logoSub {
+  margin-top: 6px;
+  font: 13px/1 var(--font-vt), monospace;
+  color: var(--c3);
+  text-shadow:
+    1px 1px var(--c0),
+    -1px 1px var(--c0),
+    1px -1px var(--c0),
+    -1px -1px var(--c0);
+}
+
+.menu {
+  list-style: none;
+  min-width: 150px;
+  padding: 6px 8px 6px 18px;
+}
+
+.menu li {
+  position: relative;
+  padding: 3px 0;
+  cursor: pointer;
+}
+
+.menu li.on::before {
+  content: "▶";
+  position: absolute;
+  left: -11px;
+  animation: nudge 0.6s steps(2) infinite;
+}
+
+@keyframes nudge {
+  50% {
+    transform: translateX(2px);
+  }
+}
+
+.menuTitle {
+  cursor: default !important;
+  color: var(--c1);
+  margin-bottom: 2px;
+}
+
+.page {
+  position: absolute;
+  inset: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: color-mix(in srgb, var(--c0) 45%, transparent);
+}
+
+.options {
+  min-width: 0;
+}
+
+.options li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.options b {
+  font-weight: normal;
+  color: var(--c1);
+}
+
+.help {
+  margin-top: 8px;
+  font: 12px/13px var(--font-vt), monospace;
+}
+
+.help p,
+.credits p {
+  margin: 0;
+}
+
+.credits {
+  font: 12px/13px var(--font-vt), monospace;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.credits a {
+  color: var(--c1);
+}
+
+/* the ladder */
+.ladder {
+  list-style: none;
+  padding: 4px 6px;
+  overflow: auto;
+}
+
+.ladder li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 11px;
+}
+
+.ladder li.me {
+  background: var(--c2);
+}
+
+.lRank {
+  width: 18px;
+  text-align: right;
+  color: var(--c1);
+}
+
+.lName {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lWave {
+  width: 36px;
+  text-align: right;
+}
+
+.lKo {
+  width: 50px;
+  text-align: right;
+  color: var(--c1);
+}
+
+.ladderSmall {
+  margin-top: 4px;
+}
+
+.mini {
+  position: relative;
+  width: 14px;
+  height: 11px;
+  flex: none;
+}
+
+.mini span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  image-rendering: pixelated;
+}
+
+/* the starter choice: four invisible buttons over the four Pokémon the canvas draws */
+.select {
+  position: absolute;
+  inset: 0;
+  padding: 14px 10px;
+}
+
+.pickRow button {
+  position: absolute;
+  top: 74px;
+  width: 64px;
+  height: 64px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.pickRow button:nth-child(1) {
+  left: 20px;
+}
+.pickRow button:nth-child(2) {
+  left: 92px;
+}
+.pickRow button:nth-child(3) {
+  left: 164px;
+}
+.pickRow button:nth-child(4) {
+  left: 236px;
+}
+
+.pickRow button.on::after {
+  content: "▼";
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  translate: -50% 0;
+  color: var(--c3);
+  text-shadow: 1px 1px var(--c0);
+  animation: bob 0.5s steps(2) infinite alternate;
+}
+
+@keyframes bob {
+  to {
+    transform: translateY(3px);
+  }
+}
+
+.starter {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 168px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font: 12px/13px var(--font-vt), monospace;
+}
+
+.starter p {
+  margin: 0;
+}
+
+.starterName {
+  font: 8px/10px var(--font-press), monospace;
+}
+
+.type {
+  margin-left: 4px;
+  padding: 0 3px;
+  font: 12px/1 var(--font-vt), monospace;
+  background: var(--c2);
+  border-radius: 2px;
+}
+
+.select .keys {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+}
+
+/* level up: three cards */
+.level {
+  position: absolute;
+  inset: 0;
+  padding: 26px 8px 0;
+  background: color-mix(in srgb, var(--c0) 55%, transparent);
+}
+
+.cards {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 96px;
+  min-height: 150px;
+  padding: 6px 6px 8px;
+  border: 0;
+  border-radius: 4px;
+  border-top: 5px solid var(--tc, var(--c1));
+  background: var(--c3);
+  text-align: left;
+  box-shadow:
+    0 0 0 1px var(--c0),
+    inset 0 0 0 1px var(--c2);
+  animation: deal 0.3s steps(5) both;
+  transition: transform 0.1s steps(2);
+}
+
+.card:nth-child(2) {
+  animation-delay: 0.08s;
+}
+.card:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+@keyframes deal {
+  from {
+    transform: translateY(60px);
+    opacity: 0;
+  }
+}
+
+.card.on {
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 0 1px var(--c0),
+    0 0 0 3px var(--c3),
+    0 0 0 4px var(--c0);
+}
+
+.cardTag {
+  font-size: 6px;
+  color: var(--c1);
+}
+
+.cardName {
+  min-height: 20px;
+}
+
+.cardLvl {
+  font: 12px/1 var(--font-vt), monospace;
+  color: var(--c1);
+}
+
+.cardDesc {
+  font: 12px/12px var(--font-vt), monospace;
+}
+
+.screen[data-palette="color"] .t_fire { --tc: #ff8a3d; }
+.screen[data-palette="color"] .t_water { --tc: #5fb8ff; }
+.screen[data-palette="color"] .t_elec { --tc: #ffd23d; }
+.screen[data-palette="color"] .t_grass { --tc: #6cc95a; }
+.screen[data-palette="color"] .t_ice { --tc: #8fe0f5; }
+.screen[data-palette="color"] .t_ghost { --tc: #8a5cc8; }
+.screen[data-palette="color"] .t_ground { --tc: #b88a52; }
+.screen[data-palette="color"] .t_psy { --tc: #ff7ac0; }
+.screen[data-palette="color"] .t_normal { --tc: #b9ada0; }
+
+/* evolution: the text box at the bottom */
+.textbox {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+}
+
+.textbox .box {
+  min-height: 40px;
+  line-height: 12px;
+}
+
+/* game over */
+.over {
+  position: absolute;
+  inset: 0;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: color-mix(in srgb, var(--c0) 60%, transparent);
+  animation: fade 0.6s steps(6) both;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.ko {
+  text-align: center;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 12px;
+}
+
+.stats p {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  font: 12px/12px var(--font-vt), monospace;
+}
+
+.stats b {
+  font: 8px/12px var(--font-press), monospace;
+}
+
+.send {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.send label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font: 12px/1 var(--font-vt), monospace;
+  color: var(--c3);
+}
+
+.send input {
+  width: 100%;
+  padding: 3px 4px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--c3);
+  color: var(--c0);
+  font: 8px var(--font-press), monospace;
+  outline: 1px solid var(--c0);
+  user-select: text;
+}
+
+.send input:focus {
+  outline: 2px solid var(--c1);
+}
+
+.send button,
+.overBtns button {
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--c1);
+  color: var(--c3) !important;
+  box-shadow: 0 2px 0 var(--c0);
+  transition: transform 0.08s steps(2);
+}
+
+.send button:hover,
+.overBtns button:hover {
+  transform: translateY(-1px);
+}
+
+.send button:active,
+.overBtns button:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.err {
+  width: 100%;
+  margin: 0;
+  font: 12px/1 var(--font-vt), monospace;
+  color: var(--c3);
+}
+
+.rank {
+  margin: 0;
+  text-align: center;
+  color: var(--c3);
+  text-shadow: 1px 1px var(--c0);
+  animation: blink 1.2s steps(2) 3;
+}
+
+.overBtns {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-bottom: 4px;
+}

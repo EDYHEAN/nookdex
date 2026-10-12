@@ -46,3 +46,4 @@ next-env.d.ts
 # veille (GitHub Action)
 watch-report.md
 watch-sets.txt
+/.cache/

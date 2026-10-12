@@ -12,7 +12,7 @@ doesn't show.
 - Changes go on a branch, then a PR merged (squash) into `main`. Vercel deploys `main` only (nookdex.com): no
   previews (`vercel.json`), the Hobby plan keeps every deploy of the last 30 days within 10 GB of storage.
 - Before a PR: `npx tsc --noEmit`, `npx eslint src`, and for anything visual, look at it (Playwright + Chromium, desktop
-  1400×900 and phone 390×800). Dev shortcuts: `?skip`, `?open=<setId>`, `?os`, `?demo` (they also skip the sign-in).
+  1400×900 and phone 390×800). Dev shortcuts: `?skip`, `?open=<setId>`, `?os`, `?demo`, `?game` (they also skip the sign-in).
 - Match the style around: no reformatting (Prettier with default options reflows whole files: don't run it), comments
   that say why, lines up to ~150 chars.
 - Mobile: text fields are ≥ 16 px and the viewport has `maximum-scale=1` (no zoom when typing).
@@ -215,6 +215,24 @@ doesn't show.
   (nothing open, no tour, on `/` or `/en`), 20 s into the visit at the earliest: a pop-in on a computer, a strip at the
   bottom on a phone (`room/SupportCat.tsx`). Then it waits 21 days (180 after a tip); per device, localStorage
   `nookdex:support-next`, outside the save. Also linked from the shelf notebook and `/a-propos`.
+
+## NookBoy (the game in the Game Boy)
+
+- The Game Boy painted by the mug (`GAMEBOY` in PaintedRoom) runs Poké Survival, a survivors-like: a starter (Bulbasaur,
+  Charmander, Squirtle, Pikachu; they evolve mid-run) against waves of wild Pokémon, 30 s a wave, a boss every 5th,
+  candies → levels → 3 cards (moves, auto-cast or keys 1-4, 4 at most; held items). Score = the wave reached.
+  Computers only: on a phone the Game Boy is out of frame (its tip says so).
+- In the room it's a CSS loop (`public/game/attract.png`, 8 frames, no script). The game (`components/game/NookBoy`,
+  `lib/game/*`: engine, gfx, audio, data, scores) is a lazy chunk, loaded on click with its sprite atlas
+  (`public/game/sprites.png`, ~380 KB). Fixed 60 Hz step on a 320×288 canvas, scaled by a whole number in a CSS
+  Game Boy. Select (Tab) swaps palettes (colours, DMG green, Pocket, lofi violet: the atlas re-shaded once).
+  `?game` opens it, `window.nookboy` is the engine in dev.
+- Sprites: PMD SpriteCollab (CC BY-NC 4.0: credits in the game's Crédits screen, non-commercial use only), downloaded,
+  trimmed and packed by `npm run build-game` (`scripts/build-game.mjs`, cache `.cache/`), which also writes
+  `src/data/game-sprites.json` and the room's loop. A new Pokémon: add its dex number to the script's ROSTER, run it.
+- Ladder: Supabase `game_scores` behind `game_top` / `game_submit` (docs/supabase.sql: plausibility checks, a wave
+  lasts 30 s, one run per name every 20 s, best run per name), open to everyone, account or not.
+- Sounds: the room's synth (`synth` in lib/sound, muted with it); the room's radio pauses while the console is out.
 
 ## Social posts (Instagram, TikTok)
 
