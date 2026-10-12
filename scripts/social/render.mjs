@@ -71,7 +71,19 @@ li::before { content: "✦"; position: absolute; left: 0; color: #a8701a; }
 .fan img:nth-child(1):not(:only-child) { transform: rotate(-9deg) translate(40px, 30px); }
 .fan img:nth-child(2) { transform: translateY(-6px); z-index: 2; }
 .fan img:nth-child(3) { transform: rotate(9deg) translate(-40px, 30px); }
-.fan.two img { width: 360px; transform: none !important; margin: 0 18px; }`;
+.fan.two img { width: 360px; transform: none !important; margin: 0 18px; }
+.statbox { margin: auto 0; }
+.stat { margin-top: 30px; padding: 28px 32px 24px; border: 5px solid #2b2230; border-radius: 16px; background: #fbf5e8; box-shadow: 8px 9px 0 rgba(20, 12, 28, 0.3); }
+.stat b { display: block; font-family: Press; font-weight: normal; font-size: 96px; line-height: 1.1; color: #a8701a; white-space: nowrap; }
+.stat > span { display: block; margin-top: 12px; font-size: 44px; line-height: 1.05; }
+.stat.hero { margin-top: 36px; background: #ffd35a; rotate: -1.5deg; }
+.stat.hero b { font-size: 156px; color: #2b2230; text-shadow: 7px 7px 0 rgba(184, 67, 61, 0.45); }
+.stat.hero > span { font-family: Press; font-size: 32px; line-height: 1.35; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0 26px; }
+.stats .stat:nth-child(even) b { color: #b8433d; }
+.stats .stat:last-child:nth-child(odd) { grid-column: 1 / -1; }`;
+/** a number of a stats slide: spaced the French way (a plain no-break space: the pixel font has it) */
+const statNum = (v) => (typeof v === "number" ? v.toLocaleString("fr-FR").replace(/\u202f/g, "\u00a0") : esc(String(v)));
 
 /** full screen: the cards' own art, blurred, under them */
 const FULL_CSS = `${FONTS}
@@ -282,6 +294,18 @@ const SLIDES = {
            .join("")}
        </div>`,
       H,
+    );
+  },
+  /** big numbers (a milestone, a recap): the first one huge, the others as tiles */
+  stats(s, H, n) {
+    const [hero, ...rest] = s.items;
+    return paper(
+      n,
+      `${s.kicker ? `<p class="kicker">${txt(s.kicker)}</p>` : ""}
+       ${s.title ? `<h1>${txt(s.title)}</h1>` : ""}
+       <div class="statbox"><div class="stat hero"><b>${statNum(hero.n)}</b><span>${txt(hero.label)}</span></div>
+       <div class="stats">${rest.map((it, i) => `<div class="stat" style="rotate:${i % 2 ? 1.2 : -1.2}deg"><b>${statNum(it.n)}</b><span>${txt(it.label)}</span></div>`).join("")}</div></div>
+       ${s.ending ? `<p class="lead">${txt(s.ending)}</p>` : ""}`,
     );
   },
   /** the closing slide: one question, the address */

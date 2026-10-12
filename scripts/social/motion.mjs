@@ -60,6 +60,15 @@ body { position: relative; font-family: VT, monospace; color: #2b2230; backgroun
 .shot { margin-top: 40px; border: 6px solid #2b2230; border-radius: 14px; overflow: hidden; box-shadow: 9px 11px 0 rgba(20, 12, 28, 0.35);
   animation: tilt 0.7s var(--at) cubic-bezier(.2, 1.3, .4, 1) both; }
 .shot img { display: block; width: 100%; }
+.stat { margin-top: 34px; padding: 30px 34px 26px; border: 6px solid #2b2230; border-radius: 18px; background: #fbf5e8; box-shadow: 9px 10px 0 rgba(20, 12, 28, 0.3); }
+.stat b { display: block; font-family: Press; font-weight: normal; font-size: 92px; line-height: 1.1; color: #a8701a; white-space: nowrap; }
+.stat > span { display: block; margin-top: 12px; font-size: 48px; line-height: 1.05; }
+.stat.hero { margin-top: 40px; background: #ffd35a; }
+.stat.hero b { font-size: 156px; color: #2b2230; text-shadow: 8px 8px 0 rgba(184, 67, 61, 0.45); }
+.stat.hero > span { font-family: Press; font-size: 34px; line-height: 1.35; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.stats .stat:nth-child(even) b { color: #b8433d; }
+.stats .stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .timer { position: absolute; left: 120px; right: 120px; z-index: 7; height: 26px; border: 5px solid #2b2230; border-radius: 14px; background: #f4ecdc; overflow: hidden; }
 .timer b { display: block; height: 100%; background: #b8433d; transform-origin: left; animation: unfill var(--d) var(--at) linear both; }
 .box { position: absolute; border: 8px solid #ffd35a; border-radius: 10px; box-shadow: 0 0 0 4px #2b2230, inset 0 0 0 4px #2b2230;
@@ -109,7 +118,7 @@ window.tick = (t) => {
     const [to, t0, t1] = [+el.dataset.count, +el.dataset.t0, +el.dataset.t1];
     const k = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
     const v = to * (1 - Math.pow(1 - k, 3));
-    el.textContent = el.dataset.fmt === "usd" ? "$" + v.toFixed(2) : el.dataset.fmt === "int" ? Math.round(v).toLocaleString("fr-FR")
+    el.textContent = el.dataset.fmt === "usd" ? "$" + v.toFixed(2) : el.dataset.fmt === "int" ? Math.round(v).toLocaleString("fr-FR").replace(/\u202f/g, "\u00a0")
       : v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
   }
   for (const el of document.querySelectorAll("[data-type]")) {
@@ -256,6 +265,30 @@ const SCENES = {
         <p style="position:absolute;left:0;right:0;top:1500px;text-align:center;font-size:38px;color:#f4ecdc;text-shadow:2px 2px 0 #2b2230;animation:fade .4s 2.2s both">
           les ${set.cards.length} cartes de ${esc(set.name)}, cote du ${dayOf(set)}</p>
       </div>`,
+    };
+  },
+
+  /** big numbers: the paper rises, the tiles slam in one by one and their numbers count up */
+  stats(s) {
+    const [hero, ...rest] = s.items;
+    const t = 0.9;
+    const num = (it, at) =>
+      typeof it.n === "number" ? `<span data-count="${it.n}" data-t0="${at.toFixed(2)}" data-t1="${(at + 0.9).toFixed(2)}" data-fmt="int"></span>` : esc(String(it.n));
+    return {
+      dur: 3 + rest.length * 0.55,
+      bg: [DESK],
+      body: `<div class="paper">
+        ${s.kicker ? `<p class="kicker" style="animation:fade .3s .5s both">${txt(s.kicker)}</p>` : ""}
+        ${s.title ? `<h1>${letters(s.title, 0.6, 0.03)}</h1>` : ""}
+        <div class="stat hero" style="--r:-1.5deg;animation:slam .5s ${t}s both"><b>${num(hero, t + 0.1)}</b><span>${txt(hero.label)}</span></div>
+        <div class="stats">${rest
+          .map((it, i) => {
+            const at = t + 0.9 + i * 0.5;
+            return `<div class="stat" style="--r:${i % 2 ? 1.2 : -1.2}deg;animation:slam .45s ${at.toFixed(2)}s both"><b>${num(it, at + 0.05)}</b><span>${txt(it.label)}</span></div>`;
+          })
+          .join("")}</div>
+        ${s.ending ? `<p class="lead" style="margin-top:36px;animation:fade .4s ${(t + 1.1 + rest.length * 0.5).toFixed(2)}s both">${txt(s.ending)}</p>` : ""}
+      </div>${sparks(540, 760, t + 1)}`,
     };
   },
 
