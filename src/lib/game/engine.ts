@@ -3,8 +3,8 @@
 
 import { gsfx, music } from "./audio";
 import {
-  BOSSES, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RETIRE, STARTERS, WAVE_SECONDS, WILD, xpFor,
-  type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type Starter, type Wild,
+  BONUSES, BOSSES, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RETIRE, STARTERS, WAVE_SECONDS, WILD, xpFor,
+  type BonusId, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type Starter, type Wild,
 } from "./data";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
 
@@ -23,8 +23,9 @@ export interface Input {
 }
 
 export interface Choice {
-  kind: "move" | "item" | "heal";
-  id?: MoveId | ItemId;
+  /** evolve: a move at its last level and its item make a stronger move; bonus: what's left once all is learnt */
+  kind: "move" | "item" | "heal" | "evolve" | "bonus";
+  id?: MoveId | ItemId | BonusId;
   /** the level it goes to (1 = new) */
   level: number;
 }
@@ -56,6 +57,8 @@ interface Enemy {
   t: number;
   hitT: number;
   slowT: number;
+  /** asleep (Sleep Powder) or frozen (Blizzard): it doesn't move nor hurt */
+  sleepT: number;
   state: string;
   stateT: number;
   /** a boss's next move */
@@ -75,7 +78,7 @@ interface Enemy {
 }
 
 interface Shot {
-  kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe";
+  kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe" | "blast";
   x: number;
   y: number;
   vx: number;
@@ -103,7 +106,7 @@ interface Pickup {
 }
 
 interface Fx {
-  kind: "whip" | "bolt" | "strike" | "ring" | "quake" | "boom" | "warn" | "beam" | "levelup" | "text" | "slashwarn" | "poof";
+  kind: "whip" | "bolt" | "strike" | "ring" | "quake" | "boom" | "warn" | "beam" | "levelup" | "text" | "slashwarn" | "poof" | "cloud" | "hbeam" | "meteor";
   x: number;
   y: number;
   t: number;
@@ -116,6 +119,10 @@ interface Fx {
   color?: ColorKey;
   /** a shockwave: whom it already hit, how far it went */
   hit?: Set<Enemy>;
+  /** a wave that heals the player for each foe it hits (Hydro Pump), its total so far */
+  heal?: number;
+  /** a cloud's next tick */
+  tick?: number;
   done?: number;
   dmg?: number;
   foe?: boolean;
@@ -195,6 +202,16 @@ export class Game {
   private choiceAt = 0;
 
   private basicT = 0;
+  /** stacked bonuses (Protein, PP Up) */
+  private bonusPower = 0;
+  private bonusHaste = 1;
+  /** Quick Attack: the dash's time left, its direction, whom it hit, the after-images */
+  private dashT = 0;
+  private dashV = { x: 0, y: 0 };
+  private dashHit = new Set<Enemy>();
+  private trail: { x: number; y: number; dir: number; t: number }[] = [];
+  /** Stealth Rock */
+  private rocks: { x: number; y: number; life: number; hits: number; seed: number }[] = [];
   private enemies: Enemy[] = [];
   private shots: Shot[] = [];
   private foes: Shot[] = [];
@@ -272,19 +289,22 @@ export class Game {
     return this.items.find((i) => i.id === id)?.level ?? 0;
   }
   get power() {
-    return (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band"));
+    return (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + this.bonusPower);
   }
   get speed() {
     return this.starter.speed * (1 + 0.08 * this.itemLevel("scarf")) * (1 + this.stage * 0.04);
   }
   get haste() {
-    return 1 - 0.08 * this.itemLevel("claw");
+    return Math.max(0.4, (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste);
   }
   get area() {
     return (1 + 0.1 * this.itemLevel("root")) * (1 + this.stage * 0.08);
   }
   get crit() {
     return 0.05 + 0.07 * this.itemLevel("lens");
+  }
+  get critMul() {
+    return 1.8 + 0.25 * this.itemLevel("belt");
   }
   get magnet() {
     return 56 * (1 + 0.4 * this.itemLevel("magnet"));
@@ -315,6 +335,7 @@ export class Game {
       moves: [], items: [], pendingLevels: 0, choices: [], evo: null, evoBlocked: 0, basicT: 0, enemies: [], shots: [], foes: [],
       pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1, bossAlive: null, shake: 0, flash: 0, hurtFlash: 0,
       invuln: 1, shieldT: 0, hurtT: 0, dyingT: 0, cam: { x: 0, y: 0 },
+      bonusPower: 0, bonusHaste: 1, dashT: 0, dashHit: new Set(), trail: [], rocks: [],
     });
     this.maxHp = this.computeMaxHp();
     this.hp = this.maxHp;
@@ -345,6 +366,20 @@ export class Game {
       if (it) it.level++;
       else this.items.push({ id: c.id as ItemId, level: 1 });
       if (c.id === "hpup") this.hp += 20;
+      gsfx.learn();
+    } else if (c.kind === "evolve") {
+      // the move turns into its evolution, ready at once
+      const def = MOVES.find((d) => d.id === c.id)!;
+      const m = this.moves.find((x) => x.id === def.evo!.from);
+      if (m) Object.assign(m, { id: def.id, level: MAX_LEVEL, cd: 0.3, active: 0 });
+      this.flash = 0.8;
+      for (let i = 0; i < 30; i++) this.part(this.x, this.y - 10, rand(-1, 1) * 80, rand(-1, 1) * 80, "gold", 1, 2, 0, "spark");
+      gsfx.evolveDone();
+    } else if (c.kind === "bonus" && c.id === "protein") {
+      this.bonusPower += 0.06;
+      gsfx.learn();
+    } else if (c.kind === "bonus" && c.id === "ppup") {
+      this.bonusHaste *= 0.96;
       gsfx.learn();
     } else {
       this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.4);
@@ -380,7 +415,12 @@ export class Game {
 
   private offerChoices() {
     const pool: Choice[] = [];
+    // an evolution ready: it always comes first
+    const evolutions: Choice[] = MOVES.filter(
+      (d) => d.evo && this.moves.some((m) => m.id === d.evo!.from && m.level >= MAX_LEVEL) && this.itemLevel(d.evo.item) > 0,
+    ).map((d) => ({ kind: "evolve", id: d.id, level: MAX_LEVEL }));
     for (const m of MOVES) {
+      if (m.evo) continue;
       const has = this.moves.find((x) => x.id === m.id);
       if (has ? has.level < MAX_LEVEL : this.moves.length < MAX_MOVES) pool.push({ kind: "move", id: m.id, level: (has?.level ?? 0) + 1 });
     }
@@ -390,12 +430,13 @@ export class Game {
     }
     // new moves come up more often while the four slots aren't full
     const weighted = pool.flatMap((c) => (c.kind === "move" && c.level === 1 && this.moves.length < 2 ? [c, c, c] : c.level > 1 ? [c, c] : [c]));
-    const out: Choice[] = [];
+    const out: Choice[] = evolutions.slice(0, 2);
     while (out.length < 3 && weighted.length) {
       const c = weighted.splice(Math.floor(Math.random() * weighted.length), 1)[0];
       if (!out.some((o) => o.id === c.id)) out.push(c);
     }
-    if (out.length < 3) out.push({ kind: "heal", level: 0 });
+    // everything learnt and raised: boosts that stack, and a berry
+    for (const b of BONUSES) if (out.length < 3) out.push({ kind: "bonus", id: b.id, level: 0 });
     this.choices = out;
     this.choiceAt = performance.now();
     this.release();
@@ -437,6 +478,8 @@ export class Game {
 
     this.movePlayer(input, dt);
     this.buildGrid();
+    this.stepDash(dt);
+    this.stepRocks(dt);
     this.attack(input, dt);
     this.castMoves(dt);
     this.spawn(dt);
@@ -447,7 +490,7 @@ export class Game {
     this.stepPickups(dt);
     this.stepParts(dt);
 
-    const regen = 0.4 * this.itemLevel("leftovers");
+    const regen = 0.3 * this.itemLevel("leftovers");
     if (regen) this.hp = Math.min(this.maxHp, this.hp + regen * dt);
     this.shake = Math.max(0, this.shake - dt * 18);
     this.flash = Math.max(0, this.flash - dt * 3);
@@ -512,7 +555,7 @@ export class Game {
       const mult = (1 + round * 2) * (1 + wave * 0.02);
       const a = Math.random() * Math.PI * 2;
       const e = this.makeEnemy(b.dex, this.x + Math.cos(a) * 170, this.y + Math.sin(a) * 150);
-      Object.assign(e, { boss: b, hp: b.hp * mult, max: b.hp * mult, speed: b.speed, dmg: b.dmg * (1 + round * 0.5), r: b.r, actT: 3 });
+      Object.assign(e, { boss: b, hp: b.hp * mult, max: b.hp * mult, speed: b.speed, dmg: b.dmg * (1 + round * 0.5) * (1 + wave * 0.04), r: b.r, actT: 3 });
       this.enemies.push(e);
       this.bossAlive = e;
       this.showBanner(`${this.name(b.dex)}`, this.tr(b.title[0], b.title[1]));
@@ -660,7 +703,7 @@ export class Game {
   /** key 1-4 in manual mode */
   castKey(i: number) {
     const m = this.moves[i];
-    if (this.phase === "play" && m && m.cd <= 0 && m.id !== "psychic" && m.id !== "protect") this.cast(m);
+    if (this.phase === "play" && m && m.cd <= 0 && !["psychic", "protect", "petal", "blizzard"].includes(m.id)) this.cast(m);
   }
 
   private castMoves(dt: number) {
@@ -670,7 +713,8 @@ export class Game {
         m.active -= dt;
         if (m.id === "flamethrower") this.flameTick(m.level);
       }
-      if (m.id === "psychic" && m.cd <= 0) this.cast(m);
+      // auras and orbits work on their own, even with the keys
+      if ((m.id === "psychic" || m.id === "petal" || m.id === "blizzard") && m.cd <= 0) this.cast(m);
       else if (!this.manualMoves && m.cd <= 0 && m.id !== "protect") this.cast(m);
     }
   }
@@ -765,7 +809,164 @@ export class Game {
       }
       case "protect":
         break;
+      case "quick": {
+        // a dash where it aims, through the foes, untouchable meanwhile
+        this.dashT = 0.2;
+        this.dashV = { ...this.aimV };
+        this.dashHit = new Set();
+        this.invuln = Math.max(this.invuln, 0.3);
+        gsfx.shoot("water");
+        break;
+      }
+      case "sleep": {
+        const n = 1 + Math.floor(L / 2);
+        const targets = this.nearestN(this.x, this.y, 12, 140);
+        for (let i = 0; i < n; i++) {
+          const t = targets[Math.floor(Math.random() * Math.max(1, targets.length))];
+          const x = t ? t.x : this.x + rand(-60, 60), y = t ? t.y : this.y + rand(-50, 50);
+          this.fx.push({ kind: "cloud", x, y, t: 0, life: 2.6, r: (18 + 3 * L) * this.area, dmg: (3 + L) * pw, tick: 0 });
+        }
+        gsfx.wave();
+        break;
+      }
+      case "hyper": {
+        const len = 260;
+        this.fx.push({
+          kind: "hbeam", x: this.x, y: this.y - 8, x2: this.x + this.aimV.x * len, y2: this.y - 8 + this.aimV.y * len,
+          t: 0, life: 0.6, r: (10 + 2 * L) * this.area, dmg: (40 + 18 * L) * pw, elem: "normal",
+        });
+        break;
+      }
+      case "rocks": {
+        const n = 2 + L;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2 + Math.random();
+          const d = rand(24, 60) * this.area;
+          this.rocks.push({ x: this.x + Math.cos(a) * d, y: this.y + Math.sin(a) * d * 0.8, life: 8, hits: 3, seed: Math.random() });
+        }
+        if (this.rocks.length > 40) this.rocks.splice(0, this.rocks.length - 40);
+        gsfx.shoot("whip");
+        break;
+      }
+      // ---- the evolved moves ----
+      case "fulgur": {
+        const onScreen = this.enemies.filter((e) => !e.dead && Math.abs(e.x - this.cam.x) < SW / 2 && Math.abs(e.y - this.cam.y) < SH / 2);
+        if (!onScreen.length) {
+          m.cd = 0.3;
+          return;
+        }
+        for (let i = 0; i < 7 && onScreen.length; i++) {
+          const e = onScreen.splice(Math.floor(Math.random() * onScreen.length), 1)[0];
+          this.fx.push({ kind: "strike", x: e.x, y: e.y, t: 0, life: 0.3, pts: jag([[e.x + rand(-20, 20), e.y - 200], [e.x, e.y - 4]], 10), elem: "elec" });
+          for (const o of this.around(e.x, e.y, 18 * this.area)) this.damage(o, 110 * pw * (o === e ? 1 : 0.5), 0, 0, "elec", true);
+          // and it bounces to two more
+          const pts: [number, number][] = [[e.x, e.y - 8]];
+          for (const o of this.nearestN(e.x, e.y, 3, 60).filter((o) => o !== e).slice(0, 2)) {
+            pts.push([o.x, o.y - 8]);
+            this.damage(o, 60 * pw, 0, 0, "elec", true);
+          }
+          if (pts.length > 1) this.fx.push({ kind: "bolt", x: 0, y: 0, t: 0, life: 0.14, pts: jag(pts) });
+        }
+        this.flash = 0.3;
+        this.shake = Math.max(this.shake, 3);
+        gsfx.thunder();
+        break;
+      }
+      case "blast": {
+        const a = Math.atan2(this.aimV.y, this.aimV.x);
+        this.shoot("blast", this.x, this.y - 8, Math.cos(a), Math.sin(a), 130, 6, 90 * pw, 0, 0.9, "fire");
+        gsfx.fire();
+        break;
+      }
+      case "hydro":
+        for (const [delay, r] of [[0, 1], [0.35, 1.25]])
+          this.fx.push({ kind: "ring", x: this.x, y: this.y, t: -delay, life: 0.75, r: 150 * r * this.area, elem: "water", hit: new Set(), dmg: 70 * pw, heal: 0 });
+        gsfx.wave();
+        break;
+      case "petal": {
+        // the petals circle by themselves (orbits); now and then they shoot off at the closest foes
+        const targets = this.nearestN(this.x, this.y, 3, 200);
+        targets.forEach((t, i) => {
+          const a = this.time * 3 + (i / 3) * Math.PI * 2;
+          this.shoot("leaf", this.x + Math.cos(a) * 40, this.y - 8 + Math.sin(a) * 32, Math.cos(a), Math.sin(a), 150, 3, 32 * pw, 1, 1.6, "grass", t);
+        });
+        break;
+      }
+      case "blizzard":
+        break;
+      case "draco": {
+        const targets = this.nearestN(this.x, this.y, 12, 200);
+        for (let i = 0; i < 5; i++) {
+          const t = targets.length ? targets[Math.floor(Math.random() * targets.length)] : null;
+          const x = t ? t.x + rand(-8, 8) : this.x + rand(-90, 90), y = t ? t.y + rand(-8, 8) : this.y + rand(-80, 80);
+          this.fx.push({ kind: "meteor", x, y, t: -i * 0.12, life: 0.55, r: 26 * this.area, dmg: 85 * pw, elem: "dragon" });
+        }
+        break;
+      }
+      case "fissure": {
+        const R = 170 * this.area;
+        for (const e of this.around(this.x, this.y, R)) {
+          const d = Math.hypot(e.x - this.x, e.y - this.y) || 1;
+          // the abyss: a few never get up (never a boss nor a golden one)
+          if (!e.boss && !e.elite && Math.random() < 0.08) this.damage(e, e.hp + 1, 0, 0, "ground", true);
+          else this.damage(e, 140 * pw, ((e.x - this.x) / d) * 110, ((e.y - this.y) / d) * 110, "ground", true);
+        }
+        this.fx.push({ kind: "quake", x: this.x, y: this.y, t: 0, life: 0.8, r: R });
+        this.shake = 10;
+        for (let i = 0; i < 40; i++) {
+          const a = Math.random() * Math.PI * 2;
+          this.part(this.x + Math.cos(a) * R * 0.6, this.y + Math.sin(a) * R * 0.5, Math.cos(a) * 30, -rand(10, 50), "ground2", 0.8, 2, 60, "puff");
+        }
+        gsfx.quake();
+        break;
+      }
     }
+  }
+
+  /** Quick Attack: the player rushes, hitting what it goes through */
+  private stepDash(dt: number) {
+    for (const t of this.trail) t.t += dt;
+    this.trail = this.trail.filter((t) => t.t < 0.25);
+    if (this.dashT <= 0) return;
+    this.dashT -= dt;
+    this.x += this.dashV.x * 340 * dt;
+    this.y += this.dashV.y * 340 * dt;
+    this.trail.push({ x: this.x, y: this.y, dir: this.dir, t: 0 });
+    const m = this.moves.find((x) => x.id === "quick");
+    const L = m?.level ?? 1;
+    for (const e of this.around(this.x, this.y, 16)) {
+      if (this.dashHit.has(e)) continue;
+      this.dashHit.add(e);
+      this.damage(e, (20 + 8 * L) * this.power, this.dashV.x * 120, this.dashV.y * 120, "normal");
+    }
+  }
+
+  /** Stealth Rock: stones on the ground that hurt (and wear out) */
+  private stepRocks(dt: number) {
+    const L = this.moves.find((x) => x.id === "rocks")?.level ?? 1;
+    for (const r of this.rocks) {
+      r.life -= dt;
+      for (const e of this.around(r.x, r.y, 8)) {
+        if (e.touchT > 0 || e.z > 4) continue;
+        e.touchT = 0.4;
+        this.damage(e, (15 + 6 * L) * this.power, 0, -20, "ground");
+        r.hits--;
+        for (let i = 0; i < 3; i++) this.part(r.x, r.y - 2, rand(-30, 30), -rand(20, 50), "rock", 0.4, 1, 160, "dot");
+        if (r.hits <= 0) break;
+      }
+    }
+    this.rocks = this.rocks.filter((r) => r.life > 0 && r.hits > 0);
+  }
+
+  /** what circles the player: ice crystals (Icy Wind, a while; Blizzard, always), petals (Petal Blizzard) */
+  private orbits() {
+    const out: { kind: "ice" | "petal"; n: number; R: number; speed: number; dmg: number; freeze: boolean }[] = [];
+    for (const m of this.moves) {
+      if (m.id === "ice" && m.active > 0) out.push({ kind: "ice", n: 1 + m.level, R: 30 * this.area, speed: 4, dmg: (9 + 4 * m.level) * this.power, freeze: false });
+      if (m.id === "blizzard") out.push({ kind: "ice", n: 6, R: 36 * this.area, speed: 3.4, dmg: 40 * this.power, freeze: true });
+      if (m.id === "petal") out.push({ kind: "petal", n: 5, R: 48 * this.area, speed: -2.6, dmg: 30 * this.power, freeze: false });
+    }
+    return out;
   }
 
   private flameTick(L: number) {
@@ -779,7 +980,7 @@ export class Game {
   private damage(e: Enemy, base: number, kx: number, ky: number, elem: Elem, quiet = false) {
     if (e.dead || e.alpha < 0.5) return;
     const crit = Math.random() < this.crit;
-    const dmg = Math.max(1, Math.round(base * (crit ? 1.8 : 1) * rand(0.9, 1.1)));
+    const dmg = Math.max(1, Math.round(base * (crit ? this.critMul : 1) * rand(0.9, 1.1)));
     e.hp -= dmg;
     e.hitT = 0.1;
     const heavy = e.boss ? 0.15 : 1;
@@ -798,6 +999,8 @@ export class Game {
     e.deadT = 0;
     this.kills++;
     gsfx.faint();
+    const bell = this.itemLevel("shellbell");
+    if (bell) this.hp = Math.min(this.maxHp, this.hp + 0.3 * bell);
     for (let i = 0; i < 6; i++) this.part(e.x + rand(-4, 4), e.y - 6, rand(-25, 25), rand(-30, 0), "white", 0.45, 3, -10, "puff");
     if (e.w?.act === "explode") this.explode(e, false);
     const xp = (e.w?.xp ?? 0) * (e.elite ? 4 : 1);
@@ -838,13 +1041,14 @@ export class Game {
     const protect = this.moves.find((m) => m.id === "protect" && m.cd <= 0);
     if (protect) {
       // Protect takes the hit, then keeps a bubble up for a moment
-      this.shieldT = 1.4 + 0.3 * protect.level;
+      this.shieldT = 0.8 + 0.2 * protect.level;
       protect.cd = MOVES.find((d) => d.id === "protect")!.cd[protect.level - 1] * this.haste;
       gsfx.shield();
       return;
     }
     this.hp -= dmg;
-    this.invuln = 0.8;
+    // a little less breathing room as the waves go on
+    this.invuln = Math.max(0.45, 0.8 - this.wave * 0.012);
     this.hurtT = 0.3;
     this.hurtFlash = 1;
     this.shake = Math.max(this.shake, 3);
@@ -856,12 +1060,13 @@ export class Game {
   private makeEnemy(dex: number, x: number, y: number): Enemy {
     const w = WILD[dex] ?? null;
     const k = this.wave - 1;
-    const hpMul = 1 + 0.17 * k + 0.005 * k * k;
+    // they get tougher faster than the player does, past the first waves
+    const hpMul = 1 + 0.18 * k + 0.012 * k * k;
     const elite = !!w && w.act !== "treasure" && w.act !== "flop" && Math.random() < 0.015 + 0.004 * this.wave;
     const hp = (w?.hp ?? 100) * hpMul * (elite ? 4 : 1);
     return {
       w, boss: null, dex, x, y, kx: 0, ky: 0, hp, max: hp, speed: (w?.speed ?? 30) * (1 + Math.min(0.35, 0.012 * k)) * (elite ? 0.9 : 1),
-      dmg: (w?.dmg ?? 10) * (1 + 0.07 * k) * (elite ? 1.5 : 1), r: (w?.r ?? 7) * (elite ? 1.3 : 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0,
+      dmg: (w?.dmg ?? 10) * (1 + 0.08 * k + 0.004 * k * k) * (elite ? 1.5 : 1), r: (w?.r ?? 7) * (elite ? 1.3 : 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0,
       state: "", stateT: rand(1, 3), actT: 2, elite, z: 0, alpha: 1, aim: { x: 0, y: 0 }, touchT: 0, n: 0, dead: false, deadT: 0, seed: Math.random() * 100,
     };
   }
@@ -911,6 +1116,7 @@ export class Game {
       e.t += dt;
       e.hitT = Math.max(0, e.hitT - dt);
       e.slowT = Math.max(0, e.slowT - dt);
+      e.sleepT = Math.max(0, e.sleepT - dt);
       e.touchT = Math.max(0, e.touchT - dt);
       const dx = px - e.x, dy = py - e.y;
       const d = Math.hypot(dx, dy) || 1;
@@ -1011,6 +1217,10 @@ export class Game {
             break;
           }
         }
+      if (e.sleepT > 0) {
+        sp = 0;
+        if (Math.random() < 0.02) this.part(e.x + 4, e.y - 18, 6, -12, "uiDim", 1, 1, 0, "dot");
+      }
       const vl = Math.hypot(vx, vy) || 1;
       e.x += (vx / vl) * sp * dt + e.kx * dt;
       e.y += (vy / vl) * sp * dt + e.ky * dt;
@@ -1018,7 +1228,7 @@ export class Game {
       e.ky *= 0.86;
       if (sp > 0) e.dir = dirOf(vx, vy);
       // touching the player
-      if (e.alpha >= 0.5 && e.z < 4 && e.w?.act !== "treasure" && d < e.r + PLAYER_R) {
+      if (e.alpha >= 0.5 && e.z < 4 && e.sleepT <= 0 && e.w?.act !== "treasure" && d < e.r + PLAYER_R) {
         this.hurt(e.dmg);
         if (e.w?.act === "explode" && e.state !== "fuse") {
           e.state = "fuse";
@@ -1222,24 +1432,35 @@ export class Game {
         if (s.kind === "water") for (let i = 0; i < 3; i++) this.part(s.x, s.y, rand(-40, 40), rand(-50, 0), "water2", 0.3, 1, 140, "dot");
         if (s.pierce-- <= 0) s.life = 0;
       }
+      if (s.kind === "blast" && s.life <= 0) this.blastStar(s);
     }
     this.shots = this.shots.filter((s) => s.life > 0);
-    // the ice crystals circling the player
-    const ice = this.moves.find((m) => m.id === "ice" && m.active > 0);
-    if (ice) {
-      const n = 1 + ice.level;
-      const R = 30 * this.area;
-      for (let i = 0; i < n; i++) {
-        const a = this.time * 4 + (i / n) * Math.PI * 2;
-        const cx = this.x + Math.cos(a) * R, cy = this.y - 6 + Math.sin(a) * R * 0.8;
+    // what circles the player
+    for (const o of this.orbits())
+      for (let i = 0; i < o.n; i++) {
+        const a = this.time * o.speed + (i / o.n) * Math.PI * 2;
+        const cx = this.x + Math.cos(a) * o.R, cy = this.y - 6 + Math.sin(a) * o.R * 0.8;
         for (const e of this.around(cx, cy + 6, 10)) {
           if (e.touchT > 0 || dist2(cx, cy + 6, e.x, e.y) > (6 + e.r) ** 2) continue;
           e.touchT = 0.35;
-          e.slowT = 1.5;
-          this.damage(e, (9 + 4 * ice.level) * this.power, Math.cos(a) * 40, Math.sin(a) * 40, "ice");
+          if (o.kind === "ice") e.slowT = 1.5;
+          if (o.freeze && !e.boss) e.sleepT = Math.max(e.sleepT, 0.9);
+          this.damage(e, o.dmg, Math.cos(a) * 40, Math.sin(a) * 40, o.kind === "ice" ? "ice" : "grass", o.kind === "petal");
         }
       }
+  }
+
+  /** Fire Blast: the fireball bursts, and five jets of fire shoot out in a star */
+  private blastStar(s: Shot) {
+    const R = 46 * this.area;
+    this.fx.push({ kind: "boom", x: s.x, y: s.y, t: 0, life: 0.4, r: R, elem: "fire" });
+    for (const e of this.around(s.x, s.y + 8, R)) this.damage(e, s.dmg, (e.x - s.x) * 2, (e.y - s.y) * 2, "fire", true);
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
+      for (let k = 0; k < 3; k++) this.shoot("flame", s.x, s.y, Math.cos(a), Math.sin(a), 110 + k * 25, 5, s.dmg * 0.25, 999, 0.6, "fire");
     }
+    this.shake = Math.max(this.shake, 5);
+    gsfx.boom();
   }
 
   private stepFoes(dt: number) {
@@ -1259,6 +1480,7 @@ export class Game {
   private stepFx(dt: number) {
     for (const f of this.fx) {
       f.t += dt;
+      if (f.t < 0) continue;
       if (f.kind === "ring" && f.hit) {
         // a shockwave hits what its front passes
         const r = (f.t / f.life) * f.r!;
@@ -1273,8 +1495,38 @@ export class Game {
             const d = Math.hypot(e.x - f.x, e.y - f.y) || 1;
             if (d > r + e.r) continue;
             f.hit.add(e);
-            this.damage(e, f.dmg!, ((e.x - f.x) / d) * 150, ((e.y - f.y) / d) * 150, "water");
+            this.damage(e, f.dmg!, ((e.x - f.x) / d) * 150, ((e.y - f.y) / d) * 150, "water", f.heal != null);
+            // Hydro Pump: each foe it hits gives back a little
+            if (f.heal != null && f.heal < 25) {
+              f.heal++;
+              this.hp = Math.min(this.maxHp, this.hp + 1);
+            }
           }
+      }
+      if (f.kind === "cloud") {
+        f.tick! -= dt;
+        if (f.tick! <= 0) {
+          f.tick = 0.5;
+          for (const e of this.around(f.x, f.y, f.r!)) {
+            if (!e.boss) e.sleepT = Math.max(e.sleepT, 1.4);
+            this.damage(e, f.dmg!, 0, 0, "grass", true);
+          }
+        }
+        if (Math.random() < 0.3) this.part(f.x + rand(-f.r!, f.r!), f.y + rand(-f.r! / 2, f.r! / 2), 0, -8, "psy2", 0.8, 2, 0, "puff");
+      }
+      if (f.kind === "hbeam" && !f.done && f.t > 0.22) {
+        f.done = 1;
+        this.shake = Math.max(this.shake, 4);
+        gsfx.boom();
+        for (const e of this.enemies)
+          if (!e.dead && segDist(e.x, e.y - 8, f.x, f.y, f.x2!, f.y2!) < f.r! / 2 + e.r) this.damage(e, f.dmg!, 0, 0, "normal", true);
+      }
+      if (f.kind === "meteor" && !f.done && f.t >= f.life) {
+        f.done = 1;
+        this.fx.push({ kind: "boom", x: f.x, y: f.y, t: 0, life: 0.35, r: f.r, elem: "dragon" });
+        for (const e of this.around(f.x, f.y, f.r!)) this.damage(e, f.dmg!, (e.x - f.x) * 3, (e.y - f.y) * 3, "dragon", true);
+        this.shake = Math.max(this.shake, 3);
+        gsfx.boom();
       }
       if (f.kind === "beam" && !f.done && f.t > 0.05) {
         f.done = 1;
@@ -1287,7 +1539,7 @@ export class Game {
         gsfx.thunder();
       }
     }
-    this.fx = this.fx.filter((f) => f.t < f.life);
+    this.fx = this.fx.filter((f) => f.t < f.life || (f.kind === "meteor" && !f.done));
   }
 
   private stepPickups(dt: number) {
@@ -1492,7 +1744,19 @@ export class Game {
       ring(ctx, this.x + ox, this.y + oy - 4, R * ((this.time * 0.8) % 1), 0.75);
       ctx.globalAlpha = 1;
     }
-    for (const f of this.fx) if (f.kind === "slashwarn" || f.kind === "warn") this.drawFx(ctx, f, ox, oy);
+    for (const f of this.fx) if (f.kind === "slashwarn" || f.kind === "warn" || f.kind === "cloud" || f.kind === "meteor") this.drawFx(ctx, f, ox, oy);
+    for (const r of this.rocks) {
+      const x = Math.round(r.x + ox), y = Math.round(r.y + oy);
+      if (r.life < 1.5 && Math.floor(r.life * 8) % 2) continue;
+      ctx.fillStyle = g.c.ink;
+      ctx.fillRect(x - 4, y - 3, 8, 4);
+      ctx.fillRect(x - 2 + (r.seed > 0.5 ? 1 : 0), y - 7, 3, 4);
+      ctx.fillStyle = g.c.rock;
+      ctx.fillRect(x - 3, y - 2, 6, 2);
+      ctx.fillRect(x - 1 + (r.seed > 0.5 ? 1 : 0), y - 6, 1, 4);
+      ctx.fillStyle = g.c.pebble;
+      ctx.fillRect(x - 2, y - 2, 2, 1);
+    }
 
     const bodies: { y: number; draw: () => void }[] = [];
     for (const e of this.enemies) bodies.push({ y: e.y, draw: () => this.drawEnemy(ctx, e, ox, oy) });
@@ -1510,18 +1774,25 @@ export class Game {
       ctx.fillStyle = g.c[bl ? c1 : c2];
       ctx.fillRect(Math.round(s.x + ox) - 2, Math.round(s.y + oy) - 2, 4, 4);
     }
-    const ice = this.moves.find((m) => m.id === "ice" && m.active > 0);
-    if (ice) {
-      const n = 1 + ice.level;
-      const R = 30 * this.area;
-      for (let i = 0; i < n; i++) {
-        const a = this.time * 4 + (i / n) * Math.PI * 2;
-        const cx = Math.round(this.x + ox + Math.cos(a) * R), cy = Math.round(this.y + oy - 6 + Math.sin(a) * R * 0.8);
-        diamond(ctx, cx, cy, 4, g.c.ice, g.c.ice2);
-        if (Math.random() < 0.3) this.part(cx - ox, cy - oy, 0, 0, "ice2", 0.3, 1, 0, "spark");
+    for (const o of this.orbits())
+      for (let i = 0; i < o.n; i++) {
+        const a = this.time * o.speed + (i / o.n) * Math.PI * 2;
+        const cx = Math.round(this.x + ox + Math.cos(a) * o.R), cy = Math.round(this.y + oy - 6 + Math.sin(a) * o.R * 0.8);
+        if (o.kind === "ice") {
+          diamond(ctx, cx, cy, o.freeze ? 5 : 4, g.c.ice, g.c.ice2);
+          if (Math.random() < 0.3) this.part(cx - ox, cy - oy, 0, 0, "ice2", 0.3, 1, 0, "spark");
+        } else {
+          // a petal, turning
+          const s = Math.floor(this.time * 10 + i) % 2;
+          ctx.fillStyle = g.c.psy;
+          ctx.fillRect(cx - 2, cy - 1 + s, 4, 2);
+          ctx.fillRect(cx - 1, cy - 2, 2, 4);
+          ctx.fillStyle = g.c.flowerA;
+          ctx.fillRect(cx - 1, cy - 1, 1, 1);
+          if (Math.random() < 0.15) this.part(cx - ox, cy - oy, rand(-10, 10), rand(-10, 10), "psy", 0.6, 1, 20, "petal");
+        }
       }
-    }
-    for (const f of this.fx) if (f.kind !== "slashwarn" && f.kind !== "warn") this.drawFx(ctx, f, ox, oy);
+    for (const f of this.fx) if (!["slashwarn", "warn", "cloud", "meteor"].includes(f.kind)) this.drawFx(ctx, f, ox, oy);
     this.drawParts(ctx, ox, oy);
 
     // damage numbers
@@ -1573,7 +1844,8 @@ export class Game {
       g.sprite(ctx, this.dex, "Faint", frameAt(a, this.dyingT, false), this.dir, this.x + ox, this.y + oy - 8);
       return;
     }
-    if (this.invuln > 0 && this.hurtT <= 0 && Math.floor(this.invuln * 20) % 2) return;
+    for (const t of this.trail) g.sprite(ctx, this.dex, "Walk", 0, t.dir, t.x + ox, t.y + oy - 8, { white: true, alpha: 0.5 * (1 - t.t / 0.25) });
+    if (this.invuln > 0 && this.hurtT <= 0 && this.dashT <= 0 && Math.floor(this.invuln * 20) % 2) return;
     let name: AnimName = this.moving ? "Walk" : "Idle";
     let t = this.animT;
     if (this.hurtT > 0) {
@@ -1620,7 +1892,7 @@ export class Game {
     const name: AnimName = hurt && !e.boss ? "Hurt" : "Walk";
     const fuse = e.state === "fuse" && Math.floor(e.t * 16) % 2 === 0;
     const wind = e.state === "wind" && Math.floor(e.t * 20) % 2 === 0;
-    g.sprite(ctx, e.dex, name, frameAt(anim(e.dex, name), e.t * (e.state === "dash" ? 2 : 1)), e.dir, x, y, {
+    g.sprite(ctx, e.dex, name, frameAt(anim(e.dex, name), e.sleepT > 0 ? 0 : e.t * (e.state === "dash" ? 2 : 1)), e.dir, x, y, {
       white: e.hitT > 0.06 || fuse || wind,
       alpha: e.alpha < 1 ? e.alpha : undefined,
     });
@@ -1677,6 +1949,21 @@ export class Game {
       case "swift":
         star(ctx, x, y, s.t, g.c.gold, g.c.white);
         break;
+      case "blast": {
+        const r = 6 + (Math.floor(s.t * 12) % 2);
+        ctx.fillStyle = g.c.ink;
+        ctx.beginPath();
+        ctx.arc(x, y, r + 1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = g.c.fire;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = g.c.fire2;
+        ctx.fillRect(x - 2, y - 2, 4, 4);
+        if (Math.random() < 0.8) this.part(s.x, s.y, rand(-14, 14), rand(-20, 4), "fire2", 0.3, 2, 0, "puff");
+        break;
+      }
       default:
         ctx.fillStyle = g.c[c1];
         ctx.fillRect(x - 2, y - 2, 4, 4);
@@ -1687,9 +1974,70 @@ export class Game {
 
   private drawFx(ctx: CanvasRenderingContext2D, f: Fx, ox: number, oy: number) {
     const g = this.gfx;
+    if (f.t < 0) return;
     const k = f.t / f.life;
     const x = f.x + ox, y = f.y + oy;
     switch (f.kind) {
+      case "cloud": {
+        // Sleep Powder: a soft cloud, fading in and out
+        ctx.fillStyle = g.c.psy2;
+        ctx.globalAlpha = 0.28 * Math.min(1, k * 6, (1 - k) * 4);
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI * 2 + f.t;
+          ctx.beginPath();
+          ctx.ellipse(x + Math.cos(a) * f.r! * 0.45, y + Math.sin(a) * f.r! * 0.25, f.r! * 0.6, f.r! * 0.35, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        break;
+      }
+      case "hbeam": {
+        if (f.t < 0.22) {
+          // charging: a thin flickering line, light gathering at the mouth
+          if (Math.floor(f.t * 30) % 2) break;
+          ctx.strokeStyle = g.c.gold;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(f.x2! + ox, f.y2! + oy);
+          ctx.stroke();
+          ctx.fillStyle = g.c.white;
+          ctx.beginPath();
+          ctx.arc(x, y, 2 + f.t * 20, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+        const w = f.r! * (1 - (f.t - 0.22) / (f.life - 0.22));
+        ctx.strokeStyle = g.c.gold;
+        ctx.lineWidth = w;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(f.x2! + ox, f.y2! + oy);
+        ctx.stroke();
+        ctx.strokeStyle = g.c.white;
+        ctx.lineWidth = Math.max(1, w * 0.4);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        break;
+      }
+      case "meteor": {
+        // the shadow grows where it will land, the meteor falls on it
+        const kk = Math.min(1, k);
+        ctx.strokeStyle = g.c.dragon;
+        ctx.globalAlpha = 0.5;
+        ring(ctx, x, y, f.r! * (0.4 + kk * 0.6), 0.5);
+        ctx.globalAlpha = 1;
+        const my = y - (1 - kk) * 160;
+        const mx = x + (1 - kk) * 60;
+        ctx.fillStyle = g.c.ink;
+        ctx.fillRect(Math.round(mx) - 4, Math.round(my) - 4, 8, 8);
+        ctx.fillStyle = g.c.dragon;
+        ctx.fillRect(Math.round(mx) - 3, Math.round(my) - 3, 6, 6);
+        ctx.fillStyle = g.c.dragon2;
+        ctx.fillRect(Math.round(mx) - 1, Math.round(my) - 2, 2, 2);
+        if (Math.random() < 0.7) this.part(mx - ox + 4, my - oy - 4, 20, -10, "dragon2", 0.3, 2, 0, "puff");
+        break;
+      }
       case "whip": {
         // the vine sweeps across the arc
         const half = 0.75 + this.stage * 0.2;
@@ -1994,13 +2342,13 @@ export class Game {
       const def = MOVES.find((d) => d.id === mv.id)!;
       const x = 4 + i * 22, y = SH - 22;
       const [c1, c2] = TYPE_FX[def.type];
-      ctx.fillStyle = c.uiDark;
+      ctx.fillStyle = def.evo ? c.gold : c.uiDark;
       ctx.fillRect(x, y, 19, 19);
       ctx.fillStyle = c[c1];
       ctx.fillRect(x + 1, y + 1, 17, 17);
       const full = def.cd[mv.level - 1] * this.haste;
       const ready = mv.id === "protect" ? mv.cd <= 0 && this.shieldT <= 0 : mv.cd <= 0;
-      if (!ready && mv.id !== "psychic") {
+      if (!ready && !["psychic", "petal", "blizzard"].includes(mv.id)) {
         ctx.fillStyle = c.uiDark;
         ctx.globalAlpha = 0.65;
         ctx.fillRect(x + 1, y + 1, 17, Math.round(17 * Math.min(1, Math.max(0, mv.cd / full))));
@@ -2014,7 +2362,7 @@ export class Game {
         ctx.fillStyle = c[c2];
         ctx.fillRect(x + 3 + l * 3, y + 14, 2, 2);
       }
-      if (this.manualMoves && mv.id !== "psychic" && mv.id !== "protect") g.text(ctx, String(i + 1), x + 1, y - 7, "uiDim");
+      if (this.manualMoves && !["psychic", "protect", "petal", "blizzard"].includes(mv.id)) g.text(ctx, String(i + 1), x + 1, y - 7, "uiDim");
     });
     // held items, small, bottom right
     this.items.forEach((it, i) => {

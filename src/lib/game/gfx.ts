@@ -101,6 +101,9 @@ const COLORS = {
   normal2: "#ffffff",
   fly: "#bfe3ff",
   fly2: "#ffffff",
+  dragon: "#7a6cf0",
+  dragon2: "#d6ceff",
+  rock: "#8f8577",
   xp: "#7fd8ff",
   xp2: "#e8fbff",
   xpBig: "#ffb3e0",
@@ -126,6 +129,7 @@ export const TYPE_FX: Record<Elem, [ColorKey, ColorKey]> = {
   psy: ["psy", "psy2"],
   normal: ["normal", "normal2"],
   fly: ["fly", "fly2"],
+  dragon: ["dragon", "dragon2"],
 };
 
 const lum = (hex: string) => {

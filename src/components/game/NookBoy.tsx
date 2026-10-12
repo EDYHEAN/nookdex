@@ -5,7 +5,7 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MOVES, ITEMS, NAMES, STARTERS, say, type Lang } from "@/lib/game/data";
+import { BONUSES, MOVES, ITEMS, NAMES, STARTERS, say, type Lang } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
 import { Game, type FireMode, type Phase } from "@/lib/game/engine";
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
@@ -525,12 +525,15 @@ export default function NookBoy({ origin, onClose }: Props) {
           </h2>
           <div className={styles.cards}>
             {g.choices.map((c, i) => {
-              const def = c.kind === "move" ? MOVES.find((m) => m.id === c.id)! : c.kind === "item" ? ITEMS.find((it) => it.id === c.id)! : null;
-              const tag = c.kind === "move" ? t("CAPACITÉ", "MOVE") : c.kind === "item" ? t("OBJET", "ITEM") : t("SOIN", "HEAL");
+              const move = c.kind === "move" || c.kind === "evolve" ? MOVES.find((m) => m.id === c.id) : undefined;
+              const def = move ?? (c.kind === "item" ? ITEMS.find((it) => it.id === c.id) : c.kind === "bonus" ? BONUSES.find((b) => b.id === c.id) : undefined);
+              const tag = { move: t("CAPACITÉ", "MOVE"), item: t("OBJET", "ITEM"), heal: t("SOIN", "HEAL"), evolve: t("ÉVOLUTION", "EVOLUTION"), bonus: "BONUS" }[c.kind];
+              // an evolution says what it's made of: the move and its item
+              const recipe = move?.evo && `${say(MOVES.find((m) => m.id === move.evo!.from)!.name, lang)} + ${say(ITEMS.find((it) => it.id === move.evo!.item)!.name, lang)}`;
               return (
                 <button
                   key={`${c.kind}${c.id}`}
-                  className={`${styles.card} ${i === cursor ? styles.on : ""} ${c.kind === "move" ? styles[`t_${(def as (typeof MOVES)[number]).type}`] : ""}`}
+                  className={`${styles.card} ${i === cursor ? styles.on : ""} ${move ? styles[`t_${move.type}`] : ""} ${c.kind === "evolve" ? styles.evoCard : ""}`}
                   onPointerEnter={() => i !== cursor && (gsfx.move(), setCursor(i))}
                   onClick={() => g.choose(c)}
                 >
@@ -539,7 +542,15 @@ export default function NookBoy({ origin, onClose }: Props) {
                   </span>
                   <span className={styles.cardName}>{def ? say(def.name, lang) : t("Baie Sitrus", "Sitrus Berry")}</span>
                   <span className={styles.cardLvl}>
-                    {c.kind === "heal" ? "+40 % PV" : c.level === 1 ? t("nouveau !", "new!") : `${"●".repeat(c.level)}${"○".repeat(5 - c.level)}`}
+                    {c.kind === "heal"
+                      ? "+40 % PV"
+                      : c.kind === "evolve"
+                        ? recipe
+                        : c.kind === "bonus"
+                          ? t("cumulable", "stacks")
+                          : c.level === 1
+                            ? t("nouveau !", "new!")
+                            : `${"●".repeat(c.level)}${"○".repeat(5 - c.level)}`}
                   </span>
                   <span className={styles.cardDesc}>{def ? say(def.desc, lang) : t("Soigne 40 % de tes PV.", "Heals 40% of your HP.")}</span>
                 </button>
