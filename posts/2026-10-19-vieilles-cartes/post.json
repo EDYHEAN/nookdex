@@ -9,5 +9,55 @@
   "title": "Tes vieilles cartes ont leur place",
   "prices": false,
   "prerendered": true,
-  "caption": "Tes cartes de la cour de récré ont leur place aussi 📦\n\nSets Wizards, Expédition, kits du dresseur, promos Méga-Évolution… tout est dans NookDex.\nAstuce : tape le numéro imprimé sur la carte.\n« carapuce 131/165 », « pikachu 60/106 », et hop, la bonne carte, avec son prix.\n\nTa toute première carte, c'était laquelle ? 👇\n\nnookdex.com (lien en bio)\n\n#pokemontcg #pokemonvintage #expedition #wizards #cartespokemon #nostalgie #pokemonfr #collectionpokemon"
+  "caption": "Tes cartes de la cour de récré ont leur place aussi 📦\n\nSets Wizards, Expédition, kits du dresseur, promos Méga-Évolution… tout est dans NookDex.\nAstuce : tape le numéro imprimé sur la carte.\n« carapuce 131/165 », « pikachu 60/106 », et hop, la bonne carte, avec son prix.\n\nTa toute première carte, c'était laquelle ? 👇\n\nnookdex.com (lien en bio)\n\n#pokemontcg #pokemonvintage #expedition #wizards #cartespokemon #nostalgie #pokemonfr #collectionpokemon",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "LA COUR DE RECRE",
+      "title": "Retour<br>en 2002",
+      "size": 118,
+      "cards": [
+        "ecard1-95",
+        "ecard1-97",
+        "ecard1-131"
+      ],
+      "banner": "TES VIEILLES CARTES ONT LEUR PLACE"
+    },
+    {
+      "type": "paper",
+      "kicker": "TA CARTE, EN VRAI",
+      "title": "Carapuce,",
+      "em": "Expédition, 2002",
+      "lead": "Les coins un peu blancs… elle a vécu.",
+      "asset": "carapuce-recto-verso.jpg"
+    },
+    {
+      "type": "paper",
+      "kicker": "L'ASTUCE",
+      "title": "Tape le numéro",
+      "em": "imprimé dessus",
+      "lead": "« carapuce 131/165 » : la bonne carte, direct, avec son prix.",
+      "asset": "search.jpg"
+    },
+    {
+      "type": "paper",
+      "kicker": "TOUT EST LA",
+      "title": "Même les cartes",
+      "em": "introuvables",
+      "list": [
+        "Wizards : Base, Jungle, Neo…",
+        "les kits du dresseur",
+        "en FR, EN et JAP"
+      ],
+      "cards": [
+        "base1-4",
+        "ecard1-99"
+      ]
+    },
+    {
+      "type": "end",
+      "title": "Ressors<br>ton classeur",
+      "lead": "Ta toute première carte, c'était laquelle ?"
+    }
+  ]
 }

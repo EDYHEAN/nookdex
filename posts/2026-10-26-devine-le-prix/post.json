@@ -1,7 +1,7 @@
 {
   "date": "2026-10-26",
   "platforms": [
-    "instagram",
+    "reels",
     "tiktok"
   ],
   "kind": "fun",
@@ -10,5 +10,42 @@
   "note": "Prix du 11 octobre : à régénérer la veille.",
   "prices": true,
   "prerendered": true,
-  "caption": "Petit jeu : devine le prix 💸\n\n3 manches, à chaque fois deux cartes : A ou B, laquelle vaut le plus ?\nNote tes réponses, la solution est sur la dernière slide.\n\nDis-nous ton score en commentaire 👇 (3/3 = expert certifié)\n\nLes prix : la tendance Cardmarket du 11 octobre, la cote calculée sur les ventes récentes de chaque carte. Celle de toutes tes cartes, chaque jour, sur nookdex.com\n\n#pokemontcg #cartespokemon #pokemonfr #quiz #collectionpokemon #pokemoncards"
+  "caption": "Petit jeu : devine le prix 💸\n\n3 manches, à chaque fois deux cartes : A ou B, laquelle vaut le plus ?\nNote tes réponses, la solution est sur la dernière slide.\n\nDis-nous ton score en commentaire 👇 (3/3 = expert certifié)\n\nLes prix : la tendance Cardmarket du 11 octobre, la cote calculée sur les ventes récentes de chaque carte. Celle de toutes tes cartes, chaque jour, sur nookdex.com\n\n#pokemontcg #cartespokemon #pokemonfr #quiz #collectionpokemon #pokemoncards",
+  "slides": [
+    {
+      "type": "duel",
+      "label": "DEVINE LE PRIX · 1/3",
+      "a": "base1-4",
+      "b": "me05-116"
+    },
+    {
+      "type": "duel",
+      "label": "DEVINE LE PRIX · 2/3",
+      "a": "sv08-238",
+      "b": "swsh12-186"
+    },
+    {
+      "type": "duel",
+      "label": "DEVINE LE PRIX · 3/3",
+      "a": "sv08.5-161",
+      "b": "swsh7-215"
+    },
+    {
+      "type": "duelAnswers",
+      "rounds": [
+        [
+          "base1-4",
+          "me05-116"
+        ],
+        [
+          "sv08-238",
+          "swsh12-186"
+        ],
+        [
+          "sv08.5-161",
+          "swsh7-215"
+        ]
+      ]
+    }
+  ]
 }

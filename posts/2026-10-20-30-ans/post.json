@@ -10,5 +10,72 @@
   "note": "Le jour du vrai anniversaire.",
   "prices": false,
   "prerendered": true,
-  "caption": "Le JCC Pokémon fête ses 30 ans ✨\n\nEn 1996, le tout premier booster sortait au Japon. Pour fêter ça, le set 30ᵉ Anniversaire :\n✦ 100 % brillant, avec un Pikachu dans chaque booster (30 à trouver !)\n✦ une rareté inédite, la Futuristic Rare, signée YOSHIROTTEN : Mewtwo-ex et Mew-ex\n✦ 30 cartes cultes qui reviennent, du Dracaufeu du Set de Base à Lugia\n✦ 10 illustrations spéciales à chasser\n\n👉 Et toi, ton tout premier booster, c'était lequel ?\n\nCoche tes 30 Pikachu et suis la cote de tes cartes sur nookdex.com (lien en bio) 📒\n\nProjet de fan, sans lien avec Nintendo, Creatures, GAME FREAK ou The Pokémon Company.\n\n#pokemon #pokemontcg #jccpokemon #pokemon30th #30thcelebration #cartespokemon #collectionpokemon #pokemonfr #pikachu #mew"
+  "caption": "Le JCC Pokémon fête ses 30 ans ✨\n\nEn 1996, le tout premier booster sortait au Japon. Pour fêter ça, le set 30ᵉ Anniversaire :\n✦ 100 % brillant, avec un Pikachu dans chaque booster (30 à trouver !)\n✦ une rareté inédite, la Futuristic Rare, signée YOSHIROTTEN : Mewtwo-ex et Mew-ex\n✦ 30 cartes cultes qui reviennent, du Dracaufeu du Set de Base à Lugia\n✦ 10 illustrations spéciales à chasser\n\n👉 Et toi, ton tout premier booster, c'était lequel ?\n\nCoche tes 30 Pikachu et suis la cote de tes cartes sur nookdex.com (lien en bio) 📒\n\nProjet de fan, sans lien avec Nintendo, Creatures, GAME FREAK ou The Pokémon Company.\n\n#pokemon #pokemontcg #jccpokemon #pokemon30th #30thcelebration #cartespokemon #collectionpokemon #pokemonfr #pikachu #mew",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "1996 → 2026",
+      "title": "Le JCC<br>a 30 ans",
+      "size": 116,
+      "cards": [
+        "30th-c-001",
+        "30th-150",
+        "30th-158"
+      ],
+      "banner": "LE SET 30E ANNIVERSAIRE"
+    },
+    {
+      "type": "paper",
+      "kicker": "1 · TOUT BRILLE",
+      "title": "100 % brillant,",
+      "em": "30 Pikachu",
+      "list": [
+        "toutes les cartes brillent",
+        "un Pikachu par booster"
+      ],
+      "cards": [
+        "30th-028",
+        "30th-040",
+        "30th-043"
+      ]
+    },
+    {
+      "type": "paper",
+      "kicker": "2 · UNE RARETE INEDITE",
+      "title": "La Futuristic",
+      "em": "Rare",
+      "lead": "Signée YOSHIROTTEN. Seulement 2 cartes.",
+      "cards": [
+        "30th-157",
+        "30th-158"
+      ]
+    },
+    {
+      "type": "paper",
+      "kicker": "3 · LES CLASSIQUES",
+      "title": "30 cartes cultes",
+      "em": "reviennent",
+      "cards": [
+        "30th-c-018",
+        "30th-c-029",
+        "30th-c-030"
+      ]
+    },
+    {
+      "type": "paper",
+      "kicker": "4 · A CHASSER",
+      "title": "Les illustrations",
+      "em": "spéciales",
+      "cards": [
+        "30th-154",
+        "30th-152",
+        "30th-151"
+      ]
+    },
+    {
+      "type": "end",
+      "title": "Ton premier<br>booster ?",
+      "lead": "Dis-le en commentaire"
+    }
+  ]
 }

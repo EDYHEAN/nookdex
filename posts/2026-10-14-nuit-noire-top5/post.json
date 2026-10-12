@@ -10,5 +10,53 @@
   "note": "Prix du 11 octobre : à régénérer la veille.",
   "prices": true,
   "prerendered": true,
-  "caption": "Nuit Noire (ME05), 3 mois après sa sortie : les 5 cartes les plus chères 🌑\n\n1. Méga-Darkrai-ex 116 · 176,27 €\n2. Méga-Darkrai-ex 120 · 134,73 €\n3. Morpeko-ex 117 · 53,12 €\n4. Méga-Zeraora-ex 114 · 42,36 €\n5. Méga-Lugulabre-ex 115 · 28,94 €\n\nUne carte de chaque : environ 592 €.\nTu l'as, ton Darkrai ? 👀\n\nPrix tendance Cardmarket du 11 octobre. Les prix de chaque carte, mis à jour chaque jour, sur nookdex.com\n\n#pokemontcg #nuitnoire #megaevolution #darkrai #cartespokemon #pokemonfr #cardmarket #pokemoncards"
+  "caption": "Nuit Noire (ME05), 3 mois après sa sortie : les 5 cartes les plus chères 🌑\n\n1. Méga-Darkrai-ex 116 · 176,27 €\n2. Méga-Darkrai-ex 120 · 134,73 €\n3. Morpeko-ex 117 · 53,12 €\n4. Méga-Zeraora-ex 114 · 42,36 €\n5. Méga-Lugulabre-ex 115 · 28,94 €\n\nUne carte de chaque : environ 592 €.\nTu l'as, ton Darkrai ? 👀\n\nPrix tendance Cardmarket du 11 octobre. Les prix de chaque carte, mis à jour chaque jour, sur nookdex.com\n\n#pokemontcg #nuitnoire #megaevolution #darkrai #cartespokemon #pokemonfr #cardmarket #pokemoncards",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "TOP 5 · ME05",
+      "title": "Nuit<br>Noire",
+      "size": 130,
+      "cards": [
+        "me05-117",
+        "me05-116",
+        "me05-120"
+      ],
+      "banner": "LES 5 CARTES LES PLUS CHERES"
+    },
+    {
+      "type": "price",
+      "card": "me05-115",
+      "rank": 5
+    },
+    {
+      "type": "price",
+      "card": "me05-114",
+      "rank": 4
+    },
+    {
+      "type": "price",
+      "card": "me05-117",
+      "rank": 3
+    },
+    {
+      "type": "price",
+      "card": "me05-120",
+      "rank": 2
+    },
+    {
+      "type": "price",
+      "card": "me05-116",
+      "rank": 1
+    },
+    {
+      "type": "total",
+      "set": "me05"
+    },
+    {
+      "type": "end",
+      "title": "Ton Darkrai,<br>tu l'as ?",
+      "lead": "Les prix de chaque carte, chaque jour"
+    }
+  ]
 }

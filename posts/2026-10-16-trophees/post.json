@@ -9,5 +9,44 @@
   "title": "Les 60 trophées",
   "prices": false,
   "prerendered": true,
-  "caption": "60 trophées cachés dans NookDex 🏆\n\nPremière carte, première page, master set, Dracaufeu, famille Évoli…\nBronze, argent, or, platine : plus c'est dur, plus c'est la fête.\n\nEt 8 secrets cachés dans le bureau. Indices :\n🦉 il est tard\n🌈 la lampe à lave a plusieurs humeurs\n🎼 les classeurs font de la musique\n🕹️ ↑↑↓↓…\n\nTa vitrine est dans la Poké Ball de l'étagère. Combien t'en as ? 👇\n\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #collectionpokemon #pokemonfr #easteregg #cozygames #trophees"
+  "caption": "60 trophées cachés dans NookDex 🏆\n\nPremière carte, première page, master set, Dracaufeu, famille Évoli…\nBronze, argent, or, platine : plus c'est dur, plus c'est la fête.\n\nEt 8 secrets cachés dans le bureau. Indices :\n🦉 il est tard\n🌈 la lampe à lave a plusieurs humeurs\n🎼 les classeurs font de la musique\n🕹️ ↑↑↓↓…\n\nTa vitrine est dans la Poké Ball de l'étagère. Combien t'en as ? 👇\n\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #collectionpokemon #pokemonfr #easteregg #cozygames #trophees",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "NOUVEAU SUR NOOKDEX",
+      "title": "60<br>trophées",
+      "size": 124,
+      "asset": "case.jpg",
+      "banner": "+ 8 SECRETS CACHES AU BUREAU"
+    },
+    {
+      "type": "paper",
+      "kicker": "BRONZE · ARGENT · OR · PLATINE",
+      "title": "Plus c'est dur,",
+      "em": "plus c'est la fête",
+      "list": [
+        "première carte, première page",
+        "master set, cartes rares",
+        "Dracaufeu, famille Évoli…"
+      ],
+      "asset": "toast.jpg"
+    },
+    {
+      "type": "paper",
+      "kicker": "8 SECRETS",
+      "title": "Le bureau",
+      "em": "cache des secrets",
+      "list": [
+        "🦉 il est tard…",
+        "🌈 la lampe à lave",
+        "🎼 les classeurs font de la musique",
+        "🕹️ ↑ ↑ ↓ ↓ …"
+      ]
+    },
+    {
+      "type": "end",
+      "title": "Combien<br>t'en as ?",
+      "lead": "Dis-le en commentaire"
+    }
+  ]
 }

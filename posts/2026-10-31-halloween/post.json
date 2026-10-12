@@ -10,5 +10,27 @@
   "note": "Halloween.",
   "prices": false,
   "prerendered": true,
-  "caption": "La page des spectres 👻🎃\n\n9 illustrations rares de Pokémon spectres, une page de classeur.\nEctoplasma, Fantominus, Branette, Mimiqui, Spiritomb, Funécire, Lugulabre, Magirêve, Tutankafer.\n\nTa page Halloween, tu mettrais lesquelles ? 👇\n\nFais-en ta wishlist « Spectres » sur nookdex.com\n\n#pokemontcg #halloween #pokemonhalloween #cartespokemon #pokemonfr #illustrationrare #collectionpokemon #ghosttype"
+  "caption": "La page des spectres 👻🎃\n\n9 illustrations rares de Pokémon spectres, une page de classeur.\nEctoplasma, Fantominus, Branette, Mimiqui, Spiritomb, Funécire, Lugulabre, Magirêve, Tutankafer.\n\nTa page Halloween, tu mettrais lesquelles ? 👇\n\nFais-en ta wishlist « Spectres » sur nookdex.com\n\n#pokemontcg #halloween #pokemonhalloween #cartespokemon #pokemonfr #illustrationrare #collectionpokemon #ghosttype",
+  "slides": [
+    {
+      "type": "grid",
+      "label": "LA PAGE DES SPECTRES",
+      "cards": [
+        "30th-154",
+        "sv05-177",
+        "me02.5-234",
+        "me02.5-238",
+        "me01-148",
+        "sv10.5w-101",
+        "sv10.5w-103",
+        "sv02-212",
+        "sv10.5w-123"
+      ]
+    },
+    {
+      "type": "end",
+      "title": "Tu mettrais<br>lesquelles ?",
+      "lead": "Fais-en ta wishlist « Spectres »"
+    }
+  ]
 }

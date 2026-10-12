@@ -10,5 +10,53 @@
   "note": "Prix du 11 octobre : à régénérer la veille.",
   "prices": true,
   "prerendered": true,
-  "caption": "Chaos Ascendant (ME04) : les 5 cartes les plus chères 🌊\n\n1. Méga-Amphinobi-ex 116 · 137,57 €\n2. Méga-Amphinobi-ex 122 · 119,74 €\n3. Pashmilla-ex 119 · 35,79 €\n4. Méga-Kravarech-ex 118 · 29,77 €\n5. Méga-Floette-ex 117 · 24,62 €\n\nUne carte de chaque : environ 478 €.\nTeam Amphinobi ou team Floette ? 👇\n\nPrix tendance Cardmarket du 11 octobre, à suivre chaque jour sur nookdex.com\n\n#pokemontcg #chaosascendant #megaevolution #amphinobi #cartespokemon #pokemonfr #cardmarket #pokemoncards"
+  "caption": "Chaos Ascendant (ME04) : les 5 cartes les plus chères 🌊\n\n1. Méga-Amphinobi-ex 116 · 137,57 €\n2. Méga-Amphinobi-ex 122 · 119,74 €\n3. Pashmilla-ex 119 · 35,79 €\n4. Méga-Kravarech-ex 118 · 29,77 €\n5. Méga-Floette-ex 117 · 24,62 €\n\nUne carte de chaque : environ 478 €.\nTeam Amphinobi ou team Floette ? 👇\n\nPrix tendance Cardmarket du 11 octobre, à suivre chaque jour sur nookdex.com\n\n#pokemontcg #chaosascendant #megaevolution #amphinobi #cartespokemon #pokemonfr #cardmarket #pokemoncards",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "TOP 5 · ME04",
+      "title": "Chaos<br>Ascendant",
+      "size": 108,
+      "cards": [
+        "me04-119",
+        "me04-116",
+        "me04-122"
+      ],
+      "banner": "LES 5 CARTES LES PLUS CHERES"
+    },
+    {
+      "type": "price",
+      "card": "me04-117",
+      "rank": 5
+    },
+    {
+      "type": "price",
+      "card": "me04-118",
+      "rank": 4
+    },
+    {
+      "type": "price",
+      "card": "me04-119",
+      "rank": 3
+    },
+    {
+      "type": "price",
+      "card": "me04-122",
+      "rank": 2
+    },
+    {
+      "type": "price",
+      "card": "me04-116",
+      "rank": 1
+    },
+    {
+      "type": "total",
+      "set": "me04"
+    },
+    {
+      "type": "end",
+      "title": "Team Amphinobi<br>ou Floette ?",
+      "lead": "Dis-le en commentaire"
+    }
+  ]
 }
