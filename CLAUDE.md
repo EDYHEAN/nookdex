@@ -242,6 +242,10 @@ doesn't show.
   save and the cloud like the trophies, merged by the higher level). The **daily challenge** (`dailyOf`: the UTC day's
   starter and rule, seeded cards) runs without the Pension and pays a gold bonus once a day. Every 5 waves after a boss:
   the Pokémon Center (full heal, forget moves). Statuses and combos: `COMBOS` in lib/game/data.
+- Local coop (two Game Boys side by side, WASD + mouse for P1, the arrows for P2, auto-aim): the engine's player state is
+  a `Player` (`players`, `cur`); the Game's accessors reach the current one, switched to whoever acts (their move, a
+  foe's nearest target, who picks up, the screen drawn: `draw(ctx, viewer)`). A downed player is got up by standing by
+  them 3 s; both down = game over. Menus show on the screen of the player they're for.
 - Sounds: the room's synth (`synth` in lib/sound, muted with it); the room's radio pauses while the console is out.
 
 ## Social posts (Instagram, TikTok)

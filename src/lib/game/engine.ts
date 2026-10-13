@@ -80,6 +80,8 @@ export interface RunStats {
   seconds: number;
   starter: number;
   dex: number;
+  /** the second player's Pokémon, in coop */
+  dex2?: number;
 }
 
 interface Enemy {
@@ -177,6 +179,8 @@ interface Fx {
   charge?: number;
   vx?: number;
   vy?: number;
+  /** who cast it (a beam follows them while it charges; a level-up's light) */
+  owner?: Player;
   done?: number;
   dmg?: number;
   foe?: boolean;
@@ -213,6 +217,53 @@ const rand = (a: number, b: number) => a + Math.random() * (b - a);
 const pick = <X,>(xs: X[]) => xs[Math.floor(Math.random() * xs.length)];
 const dist2 = (ax: number, ay: number, bx: number, by: number) => (ax - bx) ** 2 + (ay - by) ** 2;
 
+/** a player: everything that's theirs (the Game reaches the current one through its accessors) */
+export class Player {
+  id: number;
+  starter: Starter = STARTERS[0];
+  dex: number = 1;
+  stage: number = 0;
+  x: number = 0;
+  y: number = 0;
+  dir: number = 0;
+  moving: boolean = false;
+  hurtT: number = 0;
+  invuln: number = 0;
+  shieldT: number = 0;
+  hp: number = 100;
+  maxHp: number = 100;
+  level: number = 1;
+  xp: number = 0;
+  moves: { id: MoveId; level: number; cd: number; active: number }[] = [];
+  items: { id: ItemId; level: number }[] = [];
+  pendingLevels: number = 0;
+  choices: Choice[] = [];
+  evo: { from: number; to: number; t: number; cancelled: boolean } | null = null;
+  evoBlocked: number = 0;
+  input: Input = { up: false, down: false, left: false, right: false, aim: null, firing: false };
+  held: { key: boolean; mouse: boolean } = { key: false, mouse: false };
+  choiceAt: number = 0;
+  basicT: number = 0;
+  rerolls: number = 0;
+  revives: number = 0;
+  bonusPower: number = 0;
+  bonusHaste: number = 1;
+  dashT: number = 0;
+  dashV: { x: number; y: number } = { x: 0, y: 0 };
+  dashHit: Set<Enemy> = new Set<Enemy>();
+  trail: { x: number; y: number; dir: number; t: number }[] = [];
+  rocks: { x: number; y: number; life: number; hits: number; seed: number }[] = [];
+  hurtFlash: number = 0;
+  cam: { x: number; y: number } = { x: 0, y: 0 };
+  aimV: { x: number; y: number } = { x: 0, y: 1 };
+  /** knocked out in a coop run, waiting for a partner to get them up */
+  down = false;
+  reviveT = 0;
+  constructor(id: number) {
+    this.id = id;
+  }
+}
+
 export class Game {
   gfx: Gfx;
   lang: Lang;
@@ -222,60 +273,270 @@ export class Game {
   /** told when the phase or the menus' data change */
   onChange: () => void = () => {};
 
+  /** the players (1, or 2 in coop), and the one the Game is busy with right now */
+  players: Player[] = [new Player(0)];
+  cur: Player = this.players[0];
+  get starter(): Starter {
+    return this.cur.starter;
+  }
+  set starter(v: Starter) {
+    this.cur.starter = v;
+  }
+  get dex(): number {
+    return this.cur.dex;
+  }
+  set dex(v: number) {
+    this.cur.dex = v;
+  }
+  get stage(): number {
+    return this.cur.stage;
+  }
+  set stage(v: number) {
+    this.cur.stage = v;
+  }
+  get x(): number {
+    return this.cur.x;
+  }
+  set x(v: number) {
+    this.cur.x = v;
+  }
+  get y(): number {
+    return this.cur.y;
+  }
+  set y(v: number) {
+    this.cur.y = v;
+  }
+  get dir(): number {
+    return this.cur.dir;
+  }
+  set dir(v: number) {
+    this.cur.dir = v;
+  }
+  get moving(): boolean {
+    return this.cur.moving;
+  }
+  set moving(v: boolean) {
+    this.cur.moving = v;
+  }
+  get hurtT(): number {
+    return this.cur.hurtT;
+  }
+  set hurtT(v: number) {
+    this.cur.hurtT = v;
+  }
+  get invuln(): number {
+    return this.cur.invuln;
+  }
+  set invuln(v: number) {
+    this.cur.invuln = v;
+  }
+  get shieldT(): number {
+    return this.cur.shieldT;
+  }
+  set shieldT(v: number) {
+    this.cur.shieldT = v;
+  }
+  get hp(): number {
+    return this.cur.hp;
+  }
+  set hp(v: number) {
+    this.cur.hp = v;
+  }
+  get maxHp(): number {
+    return this.cur.maxHp;
+  }
+  set maxHp(v: number) {
+    this.cur.maxHp = v;
+  }
+  get level(): number {
+    return this.cur.level;
+  }
+  set level(v: number) {
+    this.cur.level = v;
+  }
+  get xp(): number {
+    return this.cur.xp;
+  }
+  set xp(v: number) {
+    this.cur.xp = v;
+  }
+  get moves(): { id: MoveId; level: number; cd: number; active: number }[] {
+    return this.cur.moves;
+  }
+  set moves(v: { id: MoveId; level: number; cd: number; active: number }[]) {
+    this.cur.moves = v;
+  }
+  get items(): { id: ItemId; level: number }[] {
+    return this.cur.items;
+  }
+  set items(v: { id: ItemId; level: number }[]) {
+    this.cur.items = v;
+  }
+  get pendingLevels(): number {
+    return this.cur.pendingLevels;
+  }
+  set pendingLevels(v: number) {
+    this.cur.pendingLevels = v;
+  }
+  get choices(): Choice[] {
+    return this.cur.choices;
+  }
+  set choices(v: Choice[]) {
+    this.cur.choices = v;
+  }
+  get evo(): { from: number; to: number; t: number; cancelled: boolean } | null {
+    return this.cur.evo;
+  }
+  set evo(v: { from: number; to: number; t: number; cancelled: boolean } | null) {
+    this.cur.evo = v;
+  }
+  get evoBlocked(): number {
+    return this.cur.evoBlocked;
+  }
+  set evoBlocked(v: number) {
+    this.cur.evoBlocked = v;
+  }
+  get input(): Input {
+    return this.cur.input;
+  }
+  set input(v: Input) {
+    this.cur.input = v;
+  }
+  get held(): { key: boolean; mouse: boolean } {
+    return this.cur.held;
+  }
+  set held(v: { key: boolean; mouse: boolean }) {
+    this.cur.held = v;
+  }
+  get choiceAt(): number {
+    return this.cur.choiceAt;
+  }
+  set choiceAt(v: number) {
+    this.cur.choiceAt = v;
+  }
+  get basicT(): number {
+    return this.cur.basicT;
+  }
+  set basicT(v: number) {
+    this.cur.basicT = v;
+  }
+  get rerolls(): number {
+    return this.cur.rerolls;
+  }
+  set rerolls(v: number) {
+    this.cur.rerolls = v;
+  }
+  get revives(): number {
+    return this.cur.revives;
+  }
+  set revives(v: number) {
+    this.cur.revives = v;
+  }
+  get bonusPower(): number {
+    return this.cur.bonusPower;
+  }
+  set bonusPower(v: number) {
+    this.cur.bonusPower = v;
+  }
+  get bonusHaste(): number {
+    return this.cur.bonusHaste;
+  }
+  set bonusHaste(v: number) {
+    this.cur.bonusHaste = v;
+  }
+  get dashT(): number {
+    return this.cur.dashT;
+  }
+  set dashT(v: number) {
+    this.cur.dashT = v;
+  }
+  get dashV(): { x: number; y: number } {
+    return this.cur.dashV;
+  }
+  set dashV(v: { x: number; y: number }) {
+    this.cur.dashV = v;
+  }
+  get dashHit(): Set<Enemy> {
+    return this.cur.dashHit;
+  }
+  set dashHit(v: Set<Enemy>) {
+    this.cur.dashHit = v;
+  }
+  get trail(): { x: number; y: number; dir: number; t: number }[] {
+    return this.cur.trail;
+  }
+  set trail(v: { x: number; y: number; dir: number; t: number }[]) {
+    this.cur.trail = v;
+  }
+  get rocks(): { x: number; y: number; life: number; hits: number; seed: number }[] {
+    return this.cur.rocks;
+  }
+  set rocks(v: { x: number; y: number; life: number; hits: number; seed: number }[]) {
+    this.cur.rocks = v;
+  }
+  get hurtFlash(): number {
+    return this.cur.hurtFlash;
+  }
+  set hurtFlash(v: number) {
+    this.cur.hurtFlash = v;
+  }
+  get cam(): { x: number; y: number } {
+    return this.cur.cam;
+  }
+  set cam(v: { x: number; y: number }) {
+    this.cur.cam = v;
+  }
+  get aimV(): { x: number; y: number } {
+    return this.cur.aimV;
+  }
+  set aimV(v: { x: number; y: number }) {
+    this.cur.aimV = v;
+  }
+
+  /** runs fn as each player still standing (the current player put back after) */
+  private eachAlive(fn: (p: Player) => void) {
+    const keep = this.cur;
+    for (const p of this.players) {
+      if (p.down) continue;
+      this.cur = p;
+      fn(p);
+      if (this.phase !== "play") return;
+    }
+    this.cur = keep;
+  }
+  private alive() {
+    return this.players.filter((p) => !p.down);
+  }
+  /** the standing player closest to a point (a foe's target) */
+  private nearestPlayer(x: number, y: number) {
+    let best = this.players[0];
+    let bd = Infinity;
+    for (const p of this.players) {
+      if (p.down) continue;
+      const d = dist2(p.x, p.y, x, y);
+      if (d < bd) {
+        bd = d;
+        best = p;
+      }
+    }
+    return best;
+  }
+
   // the run
-  starter: Starter = STARTERS[0];
-  dex = 1;
-  stage = 0;
-  x = 0;
-  y = 0;
-  dir = 0;
-  moving = false;
   animT = 0;
-  hurtT = 0;
-  invuln = 0;
-  shieldT = 0;
-  hp = 100;
-  maxHp = 100;
-  level = 1;
-  xp = 0;
   time = 0;
   kills = 0;
   wave = 1;
-  moves: { id: MoveId; level: number; cd: number; active: number }[] = [];
-  items: { id: ItemId; level: number }[] = [];
-  pendingLevels = 0;
-  choices: Choice[] = [];
-  evo: { from: number; to: number; t: number; cancelled: boolean } | null = null;
-  /** an evolution called off with B waits for the next level */
-  evoBlocked = 0;
   lastStats: RunStats | null = null;
-  /** the keys and the pointer, set by the shell */
-  input: Input = { up: false, down: false, left: false, right: false, aim: null, firing: false };
-  private held = { key: false, mouse: false };
-  /** when the level-up cards were dealt: keys held for the game must not pick one blind */
-  private choiceAt = 0;
 
-  private basicT = 0;
   /** the run's setup (mode, Pension, daily) */
   setup: RunSetup = { mode: "classic", perm: {} };
   gold = 0;
-  rerolls = 0;
-  private revives = 0;
   /** Kecleon on the field, and its offers once you meet it */
   merchant: { x: number; y: number; t: number; life: number } | null = null;
   offers: ShopOffer[] = [];
   shopRerolls = 0;
   private cardRng: () => number = Math.random;
-  /** stacked bonuses (Protein, PP Up) */
-  private bonusPower = 0;
-  private bonusHaste = 1;
-  /** Quick Attack: the dash's time left, its direction, whom it hit, the after-images */
-  private dashT = 0;
-  private dashV = { x: 0, y: 0 };
-  private dashHit = new Set<Enemy>();
-  private trail: { x: number; y: number; dir: number; t: number }[] = [];
-  /** Stealth Rock */
-  private rocks: { x: number; y: number; life: number; hits: number; seed: number }[] = [];
   private enemies: Enemy[] = [];
   private shots: Shot[] = [];
   private foes: Shot[] = [];
@@ -288,10 +549,7 @@ export class Game {
   private bossAlive: Enemy | null = null;
   private shake = 0;
   private flash = 0;
-  private hurtFlash = 0;
-  private cam = { x: 0, y: 0 };
   private grid = new Map<number, Enemy[]>();
-  private aimV = { x: 0, y: 1 };
   private stepT = 0;
   private dyingT = 0;
   private bannerT = 0;
@@ -315,22 +573,29 @@ export class Game {
     this.fireMode = fire;
     this.manualMoves = manual;
   }
-  move(dir: "up" | "down" | "left" | "right", down: boolean) {
-    this.input[dir] = down;
+  move(dir: "up" | "down" | "left" | "right", down: boolean, pid = 0) {
+    const p = this.players[pid];
+    if (p) p.input[dir] = down;
   }
-  /** the pointer over the screen, in game pixels (null: it left) */
-  aimAt(p: { x: number; y: number } | null) {
-    this.input.aim = p;
-    if (!p) this.fire("mouse", false);
+  /** the pointer over a screen, in game pixels (null: it left) */
+  aimAt(at: { x: number; y: number } | null, pid = 0) {
+    const p = this.players[pid];
+    if (!p) return;
+    p.input.aim = at;
+    if (!at) this.fire("mouse", false, pid);
   }
   /** space or the mouse button (or the A button) held */
-  fire(by: "key" | "mouse", down: boolean) {
-    this.held[by] = down;
-    this.input.firing = this.held.key || this.held.mouse;
+  fire(by: "key" | "mouse", down: boolean, pid = 0) {
+    const p = this.players[pid];
+    if (!p) return;
+    p.held[by] = down;
+    p.input.firing = p.held.key || p.held.mouse;
   }
   release() {
-    this.input = { up: false, down: false, left: false, right: false, aim: this.input.aim, firing: false };
-    this.held = { key: false, mouse: false };
+    for (const p of this.players) {
+      p.input = { up: false, down: false, left: false, right: false, aim: p.input.aim, firing: false };
+      p.held = { key: false, mouse: false };
+    }
   }
   select(i: number) {
     this.selected = (i + STARTERS.length) % STARTERS.length;
@@ -400,25 +665,31 @@ export class Game {
     this.set("select");
   }
 
-  start(i: number, setup: RunSetup = { mode: "classic", perm: {} }) {
-    const s = STARTERS[setup.daily ? setup.daily.starter : i];
+  /** a run: i is the starter (and i2 the second player's, in coop) */
+  start(i: number, setup: RunSetup = { mode: "classic", perm: {} }, i2?: number) {
     this.setup = setup;
     this.cardRng = setup.daily ? seeded(dailyOf(setup.daily.day).seed) : Math.random;
     this.gold = 0;
-    this.rerolls = this.perm("reroll");
-    this.revives = this.perm("revive");
     this.merchant = null;
     this.offers = [];
     this.shopRerolls = 0;
     Object.assign(this, {
-      starter: s, dex: s.dex, stage: 0, x: 0, y: 0, dir: 0, hp: s.hp, maxHp: s.hp, level: 1, xp: 0, time: 0, kills: 0, wave: 1,
-      moves: [], items: [], pendingLevels: 0, choices: [], evo: null, evoBlocked: 0, basicT: 0, enemies: [], shots: [], foes: [],
-      pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1, bossAlive: null, shake: 0, flash: 0, hurtFlash: 0,
-      invuln: 1, shieldT: 0, hurtT: 0, dyingT: 0, cam: { x: 0, y: 0 },
-      bonusPower: 0, bonusHaste: 1, dashT: 0, dashHit: new Set(), trail: [], rocks: [],
+      time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1,
+      bossAlive: null, shake: 0, flash: 0, dyingT: 0,
     });
-    this.maxHp = this.computeMaxHp();
-    this.hp = this.maxHp;
+    const picks = setup.mode === "coop" && i2 != null ? [i, i2] : [setup.daily ? setup.daily.starter : i];
+    this.players = picks.map((k, id) => {
+      const p = new Player(id);
+      const s = STARTERS[k];
+      Object.assign(p, { starter: s, dex: s.dex, x: id * 24, y: 0, cam: { x: id * 24, y: 0 }, invuln: 1 });
+      this.cur = p;
+      p.rerolls = this.perm("reroll");
+      p.revives = this.perm("revive");
+      p.maxHp = this.computeMaxHp();
+      p.hp = p.maxHp;
+      return p;
+    });
+    this.cur = this.players[0];
     this.showBanner(this.tr("VAGUE 1", "WAVE 1"), this.tr("des Pokémon sauvages approchent", "wild Pokémon are coming"));
     gsfx.waveStart();
     music.boss(false);
@@ -532,15 +803,17 @@ export class Game {
     if (this.merchant) for (let i = 0; i < 10; i++) this.part(this.merchant.x + rand(-8, 8), this.merchant.y - rand(0, 20), rand(-30, 30), -rand(10, 40), "white", 0.5, 3, -10, "puff");
     this.merchant = null;
     gsfx.ok();
-    if (this.pendingLevels > 0) this.offerChoices();
-    else this.set("play");
+    this.resume();
   }
 
   /** giving up ends the run like a K.O.: the score and the Pension still count */
   giveUp() {
     if (this.phase !== "paused") return;
-    this.revives = 0;
-    this.hp = 0;
+    for (const p of this.players) {
+      p.revives = 0;
+      p.hp = 0;
+      p.down = true;
+    }
     this.dyingT = 0;
     gsfx.gameOver();
     music.stop();
@@ -555,8 +828,16 @@ export class Game {
       this.set("evolve");
       return;
     }
-    if (this.pendingLevels > 0) this.offerChoices();
-    else this.set("play");
+    this.resume();
+  }
+
+  /** back to the game, unless a player still has levels to take (the current one first) */
+  private resume() {
+    const next = this.cur.pendingLevels > 0 && !this.cur.down ? this.cur : this.players.find((p) => p.pendingLevels > 0 && !p.down);
+    if (next) {
+      this.cur = next;
+      this.offerChoices();
+    } else this.set("play");
   }
 
   /** at the Pokémon Center: forget a move or drop an item (it frees its slot) */
@@ -573,8 +854,14 @@ export class Game {
   leaveCenter() {
     if (this.phase !== "center") return;
     gsfx.ok();
-    if (this.pendingLevels > 0) this.offerChoices();
-    else this.set("play");
+    // in coop, the second player's turn at the counter
+    const next = this.players[this.cur.id + 1];
+    if (next) {
+      this.cur = next;
+      return this.onChange();
+    }
+    this.cur = this.players[0];
+    this.resume();
   }
 
   /** B during the evolution: it stops, like in the games */
@@ -636,11 +923,11 @@ export class Game {
     this.stepT += Math.min(dt, 0.1);
     while (this.stepT >= STEP) {
       this.stepT -= STEP;
-      this.step(this.input);
+      this.step();
     }
   }
 
-  private step(input: Input) {
+  private step() {
     this.menuT += STEP;
     this.animT += STEP;
     if (this.phase === "title" || this.phase === "select") return this.stepMenu();
@@ -652,7 +939,8 @@ export class Game {
         const daily = this.setup.daily;
         this.lastStats = {
           mode: this.setup.mode, day: daily?.day, gold: this.gold, dailyBonus: daily ? 50 + this.wave * 10 : 0,
-          wave: this.wave, kills: this.kills, level: this.level, seconds: Math.floor(this.time), starter: this.starter.dex, dex: this.dex,
+          wave: this.wave, kills: this.kills, level: Math.max(...this.players.map((p) => p.level)), seconds: Math.floor(this.time),
+          starter: this.players[0].starter.dex, dex: this.players[0].dex, dex2: this.players[1]?.dex,
         };
         this.set("over");
       }
@@ -666,17 +954,43 @@ export class Game {
     const wave = 1 + Math.floor(this.time / WAVE_SECONDS);
     if (wave !== this.wave) this.newWave(wave);
 
-    this.movePlayer(input, dt);
+    this.eachAlive((p) => this.movePlayer(p.input, dt));
     this.buildGrid();
     if (this.merchant) {
       this.merchant.t += dt;
       if (this.merchant.t > this.merchant.life) this.merchant = null;
-      else if (dist2(this.x, this.y, this.merchant.x, this.merchant.y) < 18 * 18) this.openShop();
+      else {
+        const m = this.merchant;
+        const near = this.alive().find((p) => dist2(p.x, p.y, m.x, m.y) < 18 * 18);
+        if (near) {
+          this.cur = near;
+          this.openShop();
+          return;
+        }
+      }
     }
-    this.stepDash(dt);
-    this.stepRocks(dt);
-    this.attack(input, dt);
-    this.castMoves(dt);
+    this.eachAlive((p) => {
+      this.stepDash(dt);
+      this.stepRocks(dt);
+      this.attack(p.input, dt);
+      this.castMoves(dt);
+    });
+    // a downed partner: the other stands by them to get them up
+    for (const p of this.players) {
+      if (!p.down) continue;
+      const helper = this.alive().find((q) => dist2(q.x, q.y, p.x, p.y) < 22 * 22);
+      p.reviveT = helper ? p.reviveT + dt : Math.max(0, p.reviveT - dt);
+      if (p.reviveT >= 3) {
+        p.down = false;
+        p.reviveT = 0;
+        p.hp = p.maxHp * 0.4;
+        p.invuln = 2;
+        this.flash = 0.6;
+        gsfx.heal();
+        this.showBanner(this.tr("RELEVÉ !", "BACK UP!"), "");
+      }
+    }
+    this.cur = this.alive()[0] ?? this.players[0];
     this.spawn(dt);
     this.stepEnemies(dt);
     this.stepShots(dt);
@@ -685,29 +999,40 @@ export class Game {
     this.stepPickups(dt);
     this.stepParts(dt);
 
-    const regen = 0.3 * this.itemLevel("leftovers");
-    if (regen) this.hp = Math.min(this.maxHp, this.hp + regen * dt);
     this.shake = Math.max(0, this.shake - dt * 18);
     this.flash = Math.max(0, this.flash - dt * 3);
-    this.hurtFlash = Math.max(0, this.hurtFlash - dt * 4);
     this.bannerT = Math.max(0, this.bannerT - dt);
-
-    // the camera trails the player a little
-    this.cam.x += (this.x - this.cam.x) * 0.15;
-    this.cam.y += (this.y - this.cam.y) * 0.15;
-
-    if (this.hp <= 0 && this.revives > 0) {
-      // the Pension's Revive: up again, once
-      this.revives--;
-      this.hp = this.maxHp * 0.5;
-      this.invuln = 2.5;
-      this.flash = 1;
-      this.showBanner(this.tr("RAPPEL !", "REVIVE!"), this.tr("ton Pokémon se relève", "your Pokémon gets back up"));
-      for (const e of this.around(this.x, this.y, 70)) this.damage(e, 9999, (e.x - this.x) * 3, (e.y - this.y) * 3, "normal", true);
-      gsfx.evolveDone();
+    const keep = this.cur;
+    for (const p of this.players) {
+      this.cur = p;
+      const regen = 0.3 * this.itemLevel("leftovers");
+      if (regen && !p.down) p.hp = Math.min(p.maxHp, p.hp + regen * dt);
+      p.hurtFlash = Math.max(0, p.hurtFlash - dt * 4);
+      // the camera trails the player a little
+      p.cam.x += (p.x - p.cam.x) * 0.15;
+      p.cam.y += (p.y - p.cam.y) * 0.15;
+      if (p.down || p.hp > 0) continue;
+      if (p.revives > 0) {
+        // the Pension's Revive: up again, once
+        p.revives--;
+        p.hp = p.maxHp * 0.5;
+        p.invuln = 2.5;
+        this.flash = 1;
+        this.showBanner(this.tr("RAPPEL !", "REVIVE!"), this.tr("ton Pokémon se relève", "your Pokémon gets back up"));
+        for (const e of this.around(p.x, p.y, 70)) this.damage(e, 9999, (e.x - p.x) * 3, (e.y - p.y) * 3, "normal", true);
+        gsfx.evolveDone();
+      } else {
+        p.hp = 0;
+        p.down = true;
+        p.reviveT = 0;
+        if (this.players.length > 1 && this.alive().length) {
+          gsfx.hurt();
+          this.showBanner(this.tr(`J${p.id + 1} EST K.O.`, `P${p.id + 1} IS DOWN`), this.tr("reste à côté pour le relever", "stand by them to get them up"));
+        }
+      }
     }
-    if (this.hp <= 0) {
-      this.hp = 0;
+    this.cur = keep;
+    if (!this.alive().length) {
       this.dyingT = 0;
       gsfx.gameOver();
       music.stop();
@@ -772,8 +1097,12 @@ export class Game {
       this.showBanner(this.tr("VAGUE 11", "WAVE 11"), this.tr("une horde de Magicarpe ?!", "a shoal of Magikarp?!"));
     } else this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), "");
     if (wave % 5 === 1 && wave > 1 && !this.setup.daily?.mod.noCenter) {
-      // the Pokémon Center, after a boss's wave: healed, and a moment to forget moves
-      this.hp = this.maxHp;
+      // the Pokémon Center, after a boss's wave: everyone healed (and up), and a moment to forget moves
+      for (const p of this.players) {
+        p.down = false;
+        p.hp = p.maxHp;
+      }
+      this.cur = this.players[0];
       this.release();
       gsfx.heal();
       this.set("center");
@@ -828,7 +1157,7 @@ export class Game {
   }
 
   private firingNow(input: Input) {
-    return this.fireMode === "click" ? input.firing : true;
+    return this.fireMode === "click" && this.cur.id === 0 ? input.firing : true;
   }
 
   private attack(input: Input, dt: number) {
@@ -932,7 +1261,7 @@ export class Game {
       }
       // auras and orbits work on their own, even with the keys
       if ((m.id === "psychic" || m.id === "petal" || m.id === "blizzard") && m.cd <= 0) this.cast(m);
-      else if (!this.manualMoves && m.cd <= 0 && m.id !== "protect") this.cast(m);
+      else if ((!this.manualMoves || this.cur.id > 0) && m.cd <= 0 && m.id !== "protect") this.cast(m);
     }
   }
 
@@ -1049,7 +1378,7 @@ export class Game {
       case "hyper": {
         const len = 260;
         this.fx.push({
-          kind: "hbeam", x: this.x, y: this.y - 8, x2: this.x + this.aimV.x * len, y2: this.y - 8 + this.aimV.y * len,
+          kind: "hbeam", x: this.x, y: this.y - 8, x2: this.x + this.aimV.x * len, y2: this.y - 8 + this.aimV.y * len, owner: this.cur,
           t: 0, life: 0.6, r: (10 + 2 * L) * this.area, dmg: (40 + 18 * L) * pw, elem: "normal",
         });
         break;
@@ -1079,7 +1408,7 @@ export class Game {
         // the sun gathers, then the beam
         const len = 260;
         this.fx.push({
-          kind: "hbeam", x: this.x, y: this.y - 8, x2: this.x + this.aimV.x * len, y2: this.y - 8 + this.aimV.y * len,
+          kind: "hbeam", x: this.x, y: this.y - 8, x2: this.x + this.aimV.x * len, y2: this.y - 8 + this.aimV.y * len, owner: this.cur,
           t: 0, life: 1.25, charge: 0.8, r: (14 + 2 * L) * this.area, dmg: (70 + 25 * L) * pw, elem: "grass",
         });
         gsfx.levelUp();
@@ -1340,7 +1669,9 @@ export class Game {
   private spawnOne(dex: number, frac = Math.random()) {
     const a = frac * Math.PI * 2;
     const d = VIEW_R + rand(10, 40);
-    this.enemies.push(this.makeEnemy(dex, this.x + Math.cos(a) * d, this.y + Math.sin(a) * d));
+    // around one of the players standing
+    const p = pick(this.alive().length ? this.alive() : this.players);
+    this.enemies.push(this.makeEnemy(dex, p.x + Math.cos(a) * d, p.y + Math.sin(a) * d));
   }
 
   private spawn(dt: number) {
@@ -1373,12 +1704,15 @@ export class Game {
   /* ---------------- the wild Pokémon ---------------- */
 
   private stepEnemies(dt: number) {
-    const px = this.x, py = this.y;
+    const keep = this.cur;
     for (const e of this.enemies) {
       if (e.dead) {
         e.deadT += dt;
         continue;
       }
+      // its target: the closest player standing (the current one, for its moves and its hits)
+      this.cur = this.nearestPlayer(e.x, e.y);
+      const px = this.x, py = this.y;
       e.t += dt;
       e.hitT = Math.max(0, e.hitT - dt);
       e.slowT = Math.max(0, e.slowT - dt);
@@ -1531,6 +1865,7 @@ export class Game {
         e.y = py + Math.sin(a) * (VIEW_R + 20);
       }
     }
+    this.cur = keep;
     // keep them from piling on one spot
     for (const e of this.enemies) {
       if (e.dead) continue;
@@ -1724,7 +2059,11 @@ export class Game {
       if (s.kind === "blast" && s.life <= 0) this.blastStar(s);
     }
     this.shots = this.shots.filter((s) => s.life > 0);
-    // what circles the player
+    // what circles each player
+    this.eachAlive(() => this.stepOrbits());
+  }
+
+  private stepOrbits() {
     for (const o of this.orbits())
       for (let i = 0; i < o.n; i++) {
         const a = this.time * o.speed + (i / o.n) * Math.PI * 2;
@@ -1758,12 +2097,14 @@ export class Game {
       s.life -= dt;
       s.x += s.vx * dt;
       s.y += s.vy * dt;
-      if (dist2(s.x, s.y + 8, this.x, this.y) < (s.r + PLAYER_R - 1) ** 2) {
-        this.hurt(s.dmg);
-        s.life = 0;
-      }
+      this.eachAlive((p) => {
+        if (s.life > 0 && dist2(s.x, s.y + 8, p.x, p.y) < (s.r + PLAYER_R - 1) ** 2) {
+          this.hurt(s.dmg);
+          s.life = 0;
+        }
+      });
     }
-    this.foes = this.foes.filter((s) => s.life > 0 && dist2(s.x, s.y, this.x, this.y) < (VIEW_R + 60) ** 2);
+    this.foes = this.foes.filter((s) => s.life > 0 && this.players.some((p) => dist2(s.x, s.y, p.x, p.y) < (VIEW_R + 60) ** 2));
   }
 
   private stepFx(dt: number) {
@@ -1773,12 +2114,16 @@ export class Game {
       if (f.kind === "ring" && f.hit) {
         // a shockwave hits what its front passes
         const r = (f.t / f.life) * f.r!;
-        if (f.foe) {
-          if (!f.done && Math.abs(Math.hypot(this.x - f.x, this.y - f.y) - r) < 8) {
-            f.done = 1;
-            this.hurt(f.dmg!);
-          }
-        } else
+        if (f.foe)
+          this.eachAlive((p) => {
+            // one hit per player (a bit per player in done)
+            const bit = 1 << p.id;
+            if (!((f.done ?? 0) & bit) && Math.abs(Math.hypot(p.x - f.x, p.y - f.y) - r) < 8) {
+              f.done = (f.done ?? 0) | bit;
+              this.hurt(f.dmg!);
+            }
+          });
+        else
           for (const e of this.around(f.x, f.y, r + 10)) {
             if (f.hit.has(e)) continue;
             const d = Math.hypot(e.x - f.x, e.y - f.y) || 1;
@@ -1807,10 +2152,11 @@ export class Game {
         f.done = 1;
         this.shake = Math.max(this.shake, 4);
         gsfx.boom();
-        // the beam leaves from where the player is now
+        // the beam leaves from where its caster is now
         const dx = f.x2! - f.x, dy = f.y2! - f.y;
-        f.x = this.x;
-        f.y = this.y - 8;
+        const owner = f.owner ?? this.cur;
+        f.x = owner.x;
+        f.y = owner.y - 8;
         f.x2 = f.x + dx;
         f.y2 = f.y + dy;
         for (const e of this.enemies)
@@ -1842,12 +2188,16 @@ export class Game {
       }
       if (f.kind === "beam" && !f.done && f.t > 0.05) {
         f.done = 1;
-        if (segDist(this.x, this.y - 8, f.x, f.y, f.x2!, f.y2!) < 9) this.hurt(f.dmg!);
+        this.eachAlive((p) => {
+          if (segDist(p.x, p.y - 8, f.x, f.y, f.x2!, f.y2!) < 9) this.hurt(f.dmg!);
+        });
       }
       if (f.kind === "slashwarn" && f.t >= f.life && !f.done) {
         f.done = 1;
         this.fx.push({ kind: "strike", x: f.x, y: f.y, t: 0, life: 0.3, pts: jag([[f.x + rand(-20, 20), f.y - 200], [f.x, f.y]], 10), elem: f.elem, foe: true });
-        if (dist2(this.x, this.y, f.x, f.y) < (f.r! + PLAYER_R) ** 2) this.hurt(f.dmg!);
+        this.eachAlive((p) => {
+          if (dist2(p.x, p.y, f.x, f.y) < (f.r! + PLAYER_R) ** 2) this.hurt(f.dmg!);
+        });
         gsfx.thunder();
       }
     }
@@ -1855,8 +2205,10 @@ export class Game {
   }
 
   private stepPickups(dt: number) {
-    const mag = this.magnet;
+    const keep = this.cur;
     for (const p of this.pickups) {
+      this.cur = this.nearestPlayer(p.x, p.y);
+      const mag = this.magnet;
       p.t += dt;
       if (p.z > 0 || p.vz) {
         p.vz -= 260 * dt;
@@ -1880,6 +2232,8 @@ export class Game {
         this.collect(p);
       }
     }
+    // a level-up opened the cards: the player who took the candy stays the current one
+    if (this.phase === "play") this.cur = keep;
     this.pickups = this.pickups.filter((p) => p.t >= 0);
   }
 
@@ -1910,7 +2264,7 @@ export class Game {
       this.level++;
       this.pendingLevels++;
       this.maxHp = this.computeMaxHp();
-      this.fx.push({ kind: "levelup", x: this.x, y: this.y, t: 0, life: 0.9 });
+      this.fx.push({ kind: "levelup", x: this.x, y: this.y, t: 0, life: 0.9, owner: this.cur });
       for (let i = 0; i < 16; i++) this.part(this.x + rand(-10, 10), this.y, 0, -rand(30, 80), "gold", 0.8, 1, 0, "spark");
     }
     if (this.pendingLevels > 0 && this.phase === "play") {
@@ -2032,7 +2386,23 @@ export class Game {
 
   /* ---------------- drawing ---------------- */
 
-  draw(ctx: CanvasRenderingContext2D) {
+  /** a player's screen: their camera, their HUD (in coop, one screen each) */
+  draw(ctx: CanvasRenderingContext2D, viewer = 0) {
+    const keep = this.cur;
+    this.cur = this.players[viewer] ?? this.players[0];
+    this.drawView(ctx);
+    this.cur = keep;
+  }
+
+  /** draws pl's things (their aura, orbits, stones, body) as them */
+  private as(pl: Player, fn: () => void) {
+    const keep = this.cur;
+    this.cur = pl;
+    fn();
+    this.cur = keep;
+  }
+
+  private drawView(ctx: CanvasRenderingContext2D) {
     const g = this.gfx;
     ctx.imageSmoothingEnabled = false;
     if (this.phase === "title" || this.phase === "select") return this.drawMenu(ctx);
@@ -2044,11 +2414,21 @@ export class Game {
     ctx.fillStyle = g.c.shadow;
     ctx.globalAlpha = 0.28;
     for (const e of this.enemies) if (!e.dead || e.deadT < 0.2) ellipse(ctx, e.x + ox, e.y + oy, e.r * (e.boss ? 1.1 : 1.05) * (1 - e.z / 90), e.r * 0.45);
-    ellipse(ctx, this.x + ox, this.y + oy, 7, 3);
+    for (const p of this.players) ellipse(ctx, p.x + ox, p.y + oy, 7, 3);
     ctx.globalAlpha = 1;
     this.drawPickups(ctx, ox, oy);
+    for (const p of this.players) this.as(p, () => this.drawGroundOf(ctx, ox, oy));
+    for (const f of this.fx) if (f.kind === "slashwarn" || f.kind === "warn" || f.kind === "cloud" || f.kind === "meteor") this.drawFx(ctx, f, ox, oy);
 
-    // the psychic aura and the ice crystals under/around the player
+    const bodies: { y: number; draw: () => void }[] = [];
+    for (const e of this.enemies) bodies.push({ y: e.y, draw: () => this.drawEnemy(ctx, e, ox, oy) });
+    for (const p of this.players) bodies.push({ y: p.y, draw: () => this.as(p, () => this.drawPlayer(ctx, ox, oy)) });
+    this.drawBodies(ctx, bodies, ox, oy);
+  }
+
+  /** what a player has on the ground around them: their aura, their stones */
+  private drawGroundOf(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
+    const g = this.gfx;
     const psy = this.moves.find((m) => m.id === "psychic");
     if (psy) {
       const R = (24 + 5 * psy.level) * this.area;
@@ -2059,7 +2439,6 @@ export class Game {
       ring(ctx, this.x + ox, this.y + oy - 4, R * ((this.time * 0.8) % 1), 0.75);
       ctx.globalAlpha = 1;
     }
-    for (const f of this.fx) if (f.kind === "slashwarn" || f.kind === "warn" || f.kind === "cloud" || f.kind === "meteor") this.drawFx(ctx, f, ox, oy);
     for (const r of this.rocks) {
       const x = Math.round(r.x + ox), y = Math.round(r.y + oy);
       if (r.life < 1.5 && Math.floor(r.life * 8) % 2) continue;
@@ -2072,10 +2451,10 @@ export class Game {
       ctx.fillStyle = g.c.pebble;
       ctx.fillRect(x - 2, y - 2, 2, 1);
     }
+  }
 
-    const bodies: { y: number; draw: () => void }[] = [];
-    for (const e of this.enemies) bodies.push({ y: e.y, draw: () => this.drawEnemy(ctx, e, ox, oy) });
-    bodies.push({ y: this.y, draw: () => this.drawPlayer(ctx, ox, oy) });
+  private drawBodies(ctx: CanvasRenderingContext2D, bodies: { y: number; draw: () => void }[], ox: number, oy: number) {
+    const g = this.gfx;
     const m = this.merchant;
     if (m)
       bodies.push({
@@ -2105,6 +2484,13 @@ export class Game {
       ctx.fillStyle = g.c[bl ? c1 : c2];
       ctx.fillRect(Math.round(s.x + ox) - 2, Math.round(s.y + oy) - 2, 4, 4);
     }
+    for (const p of this.players) this.as(p, () => this.drawOrbits(ctx, ox, oy));
+    this.drawTop(ctx, ox, oy);
+  }
+
+  private drawOrbits(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
+    const g = this.gfx;
+    if (this.cur.down) return;
     for (const o of this.orbits())
       for (let i = 0; i < o.n; i++) {
         const a = this.time * o.speed + (i / o.n) * Math.PI * 2;
@@ -2123,6 +2509,10 @@ export class Game {
           if (Math.random() < 0.15) this.part(cx - ox, cy - oy, rand(-10, 10), rand(-10, 10), "psy", 0.6, 1, 20, "petal");
         }
       }
+  }
+
+  private drawTop(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
+    const g = this.gfx;
     for (const f of this.fx) if (!["slashwarn", "warn", "cloud", "meteor"].includes(f.kind)) this.drawFx(ctx, f, ox, oy);
     this.drawParts(ctx, ox, oy);
 
@@ -2148,8 +2538,17 @@ export class Game {
       ctx.globalAlpha = 1;
     }
     this.drawPointers(ctx, ox, oy);
-    if (this.phase === "evolve") this.drawEvolution(ctx, ox, oy);
+    if (this.phase === "evolve" && this.evo) this.drawEvolution(ctx, ox, oy);
     else this.drawHud(ctx);
+    if (this.cur.down) {
+      // knocked out: waiting for the partner
+      ctx.fillStyle = g.c.uiDark;
+      ctx.globalAlpha = 0.5;
+      ctx.fillRect(0, 168, SW, 30);
+      ctx.globalAlpha = 1;
+      g.text(ctx, this.tr("K.O. !", "DOWN!"), SW / 2, 172, "hpLow", { align: "center", scale: 2 });
+      g.text(ctx, this.tr("ton partenaire peut te relever", "your partner can get you up"), SW / 2, 188, "ui", { align: "center" });
+    }
   }
 
   private drawGround(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
@@ -2170,9 +2569,17 @@ export class Game {
 
   private drawPlayer(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
     const g = this.gfx;
-    if (this.phase === "dying") {
+    if (this.phase === "dying" || this.cur.down) {
       const a = anim(this.dex, "Faint");
-      g.sprite(ctx, this.dex, "Faint", frameAt(a, this.dyingT, false), this.dir, this.x + ox, this.y + oy - 8);
+      g.sprite(ctx, this.dex, "Faint", frameAt(a, this.cur.down ? 9 : this.dyingT, false), this.dir, this.x + ox, this.y + oy - 8);
+      if (this.cur.down && this.cur.reviveT > 0) {
+        ctx.strokeStyle = g.c.hp;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.x + ox, this.y + oy - 10, 12, -Math.PI / 2, -Math.PI / 2 + (this.cur.reviveT / 3) * Math.PI * 2);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+      }
       return;
     }
     for (const t of this.trail) g.sprite(ctx, this.dex, "Walk", 0, t.dir, t.x + ox, t.y + oy - 8, { white: true, alpha: 0.5 * (1 - t.t / 0.25) });
@@ -2506,9 +2913,10 @@ export class Game {
         // a column of light
         ctx.fillStyle = g.c.gold;
         ctx.globalAlpha = 0.35 * (1 - k);
-        ctx.fillRect(Math.round(this.x + ox) - 8, 0, 16, Math.round(this.y + oy));
+        const ow = f.owner ?? this.cur;
+        ctx.fillRect(Math.round(ow.x + ox) - 8, 0, 16, Math.round(ow.y + oy));
         ctx.globalAlpha = 1;
-        g.text(ctx, this.tr("NIVEAU +", "LEVEL UP"), this.x + ox, this.y + oy - 34 - k * 10, "gold", { align: "center" });
+        g.text(ctx, this.tr("NIVEAU +", "LEVEL UP"), ow.x + ox, ow.y + oy - 34 - k * 10, "gold", { align: "center" });
         break;
       }
       default:
@@ -2663,6 +3071,23 @@ export class Game {
 
   /** an arrow at the screen's edge toward the boss or a Chansey */
   private drawPointers(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
+    for (const p of this.players) {
+      if (p === this.cur) continue;
+      const x = p.x + ox, y = p.y + oy;
+      if (x > 0 && x < SW && y > 16 && y < SH) {
+        // their tag over their head
+        this.gfx.text(ctx, `J${p.id + 1}`, x, y - 34, p.down ? "hpLow" : "xp", { align: "center" });
+        continue;
+      }
+      const cx = Math.max(8, Math.min(SW - 8, x)), cy = Math.max(24, Math.min(SH - 30, y));
+      const a = Math.atan2(y - cy, x - cx);
+      ctx.fillStyle = this.gfx.c[p.down ? "hpLow" : "xp"];
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * 7, cy + Math.sin(a) * 7);
+      ctx.lineTo(cx + Math.cos(a + 2.4) * 6, cy + Math.sin(a + 2.4) * 6);
+      ctx.lineTo(cx + Math.cos(a - 2.4) * 6, cy + Math.sin(a - 2.4) * 6);
+      ctx.fill();
+    }
     const m = this.merchant;
     if (m) {
       const x = m.x + ox, y = m.y + oy;
@@ -2716,6 +3141,7 @@ export class Game {
     this.drawPickup(ctx, { kind: "coin", x: 8, y: 20, z: 0, vz: 1, value: 0, pull: false, t: 0 }, 0, 0);
     g.text(ctx, String(this.gold), 15, 18, "gold");
     if (this.setup.daily) g.text(ctx, this.tr("DEFI DU JOUR", "DAILY"), 4, 26, "psy");
+    if (this.players.length > 1) g.text(ctx, `J${this.cur.id + 1}`, 4, 26, "xp");
     const m = Math.floor(this.time / 60);
     g.text(ctx, `${m}:${String(Math.floor(this.time % 60)).padStart(2, "0")}`, SW - 4, 15, "uiDim", { align: "right" });
 
@@ -2812,6 +3238,7 @@ export class Game {
       else dot(e.x, e.y, c.uiDim, 1);
     }
     if (this.merchant) dot(this.merchant.x, this.merchant.y, c.coin, 3);
+    for (const p of this.players) if (p !== this.cur) dot(p.x, p.y, p.down ? c.hpLow : c.xp, 3);
     dot(this.x, this.y, c.white, 2);
   }
 

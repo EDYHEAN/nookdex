@@ -47,7 +47,6 @@
 .shell {
   position: absolute;
   top: 16px;
-  left: 50%;
   transform-origin: 50% 0;
   border-radius: 10px 10px 58px 10px;
   background: linear-gradient(170deg, #e4dfd7, #cfc9c0 70%, #c4bdb3);
@@ -1003,6 +1002,15 @@
 .tabs button.on {
   background: var(--c3);
   box-shadow: 0 0 0 1px var(--c0);
+}
+
+/* coop: the other screen waits while a player chooses */
+.waiting {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  white-space: nowrap;
 }
 
 /* the Pokémon Center */
