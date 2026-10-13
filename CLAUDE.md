@@ -247,7 +247,8 @@ doesn't show.
   Pokémon Center (full heal, forget moves), the levels won, Kecleon's stall (cards, heal, reroll: prices up 8 % a wave),
   a 3-2-1. Statuses and combos: `COMBOS` in lib/game/data.
 - Rewards: Supabase `game_rewards` (docs/supabase.sql, given by hand with an insert, read by the player only), e.g.
-  `skin-mewtwo`: player 1 wears Mewtwo (`SKINS` in NookBoy, only the look changes; the sprite needs the player anims).
+  `skin-mewtwo`: player 1 wears Mewtwo (`SKINS` in NookBoy; the sprite needs the player anims) and is stronger outside the daily
+  (+30 % damage and HP, +10 % speed, 12 % faster moves: `mew` in the engine).
 - Local coop (two Game Boys side by side, WASD + mouse for P1, the arrows for P2, auto-aim): the engine's player state is
   a `Player` (`players`, `cur`); the Game's accessors reach the current one, switched to whoever acts (their move, a
   foe's nearest target, who picks up, the screen drawn: `draw(ctx, viewer)`). A downed player is got up by standing by

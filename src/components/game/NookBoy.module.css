@@ -1610,3 +1610,8 @@
 .skinRow.on {
   background: #d8b6ff;
 }
+
+.skinPerk {
+  font-style: normal;
+  color: var(--c1);
+}
