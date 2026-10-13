@@ -6,6 +6,7 @@ import { loadSets, neededSets } from "./catalog";
 import { SUPABASE_KEY, SUPABASE_URL } from "./site";
 import { type Backup, isBackup, makeBackup, useStore } from "./store";
 import { mergeTrophies, trophyKey, useTrophyStore } from "./trophyStore";
+import { mergePension, pensionKey, usePension } from "./pensionStore";
 
 
 /** Back from Google or the e-mail link (read before the client consumes the URL): no loader again. */
@@ -71,6 +72,8 @@ let timer: ReturnType<typeof setTimeout> | undefined;
 let pending = false;
 /** The trophies the server holds (they're not in the fingerprint): a new one is worth a save of its own. */
 let cloudTrophies: string | null = null;
+/** Same for the game's Pension */
+let cloudPension: string | null = null;
 
 async function push() {
   clearTimeout(timer);
@@ -80,7 +83,8 @@ async function push() {
   const backup = makeBackup(useStore.getState());
   const fp = fingerprint(backup);
   const trophies = trophyKey(backup.trophies);
-  if (fp === readBase(u.id) && useCloud.getState().status === "synced" && trophies === cloudTrophies) return;
+  const pension = pensionKey(backup.pension);
+  if (fp === readBase(u.id) && useCloud.getState().status === "synced" && trophies === cloudTrophies && pension === cloudPension) return;
   useCloud.setState({ status: "saving" });
   const { error } = await supabase.from("saves").upsert({ user_id: u.id, data: backup, updated_at: new Date().toISOString() });
   if (user?.id !== u.id) return;
@@ -91,6 +95,7 @@ async function push() {
   }
   writeBase(u.id, fp);
   cloudTrophies = trophies;
+  cloudPension = pension;
   useCloud.setState({ status: "synced", savedAt: Date.now(), error: null });
 }
 
@@ -121,7 +126,10 @@ async function pull() {
   // trophies won on another device join this one's, whatever happens to the rest
   mergeTrophies(remote.trophies);
   cloudTrophies = trophyKey(remote.trophies);
-  const trophiesAhead = trophyKey(useTrophyStore.getState().got) !== cloudTrophies;
+  mergePension(remote.pension);
+  cloudPension = pensionKey(remote.pension);
+  const trophiesAhead =
+    trophyKey(useTrophyStore.getState().got) !== cloudTrophies || pensionKey(usePension.getState().levels) !== cloudPension;
   const remoteFp = fingerprint(remote);
   const base = readBase(u.id);
   const localEmpty = !local.binders.length && !Object.keys(local.collection).length;
@@ -189,6 +197,15 @@ export function startCloud() {
 
   useStore.subscribe((s, prev) => {
     if (!user || (s.collection === prev.collection && s.binders === prev.binders && s.profile === prev.profile && s.currency === prev.currency)) return;
+    const status = useCloud.getState().status;
+    if (status === "loading" || status === "conflict") return;
+    clearTimeout(timer);
+    pending = true;
+    timer = setTimeout(() => void push(), 1500);
+  });
+
+  usePension.subscribe((s, prev) => {
+    if (!user || s.levels === prev.levels) return;
     const status = useCloud.getState().status;
     if (status === "loading" || status === "conflict") return;
     clearTimeout(timer);

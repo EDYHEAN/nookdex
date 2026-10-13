@@ -233,8 +233,15 @@ doesn't show.
 - Sprites: PMD SpriteCollab (CC BY-NC 4.0: credits in the game's Crédits screen, non-commercial use only), downloaded,
   trimmed and packed by `npm run build-game` (`scripts/build-game.mjs`, cache `.cache/`), which also writes
   `src/data/game-sprites.json` and the room's loop. A new Pokémon: add its dex number to the script's ROSTER, run it.
-- Ladder: Supabase `game_scores` behind `game_top` / `game_submit` (docs/supabase.sql: plausibility checks, a wave
-  lasts 30 s, one run per name every 20 s, best run per name), open to everyone, account or not.
+- Ladder: Supabase `game_scores` behind `game_top2` / `game_submit2` (docs/supabase.sql: plausibility checks, a wave
+  lasts 30 s, one run per name every 20 s, best run per name), open to everyone, account or not. A board per mode
+  (classic, daily, coop) and period (the month's season, the daily's UTC day, all time); `game_top` / `game_submit` are
+  the v1 the client falls back on.
+- Economy (Johan, 2026-10-13): gold (Nuggets) is for the run only: Kecleon (every 3rd wave, not with a boss) sells cards,
+  heals, rerolls; what's left at the end goes to the **Pension** (`lib/pensionStore`, permanent boosts, capped, in the
+  save and the cloud like the trophies, merged by the higher level). The **daily challenge** (`dailyOf`: the UTC day's
+  starter and rule, seeded cards) runs without the Pension and pays a gold bonus once a day. Every 5 waves after a boss:
+  the Pokémon Center (full heal, forget moves). Statuses and combos: `COMBOS` in lib/game/data.
 - Sounds: the room's synth (`synth` in lib/sound, muted with it); the room's radio pauses while the console is out.
 
 ## Social posts (Instagram, TikTok)

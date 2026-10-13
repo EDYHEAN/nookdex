@@ -26,6 +26,8 @@ const ROSTER = {
     ),
   ),
   ...Object.fromEntries([143, 95, 94, 130, 149, 150, 144, 145, 146, 151].map((n) => [n, BOSS])),
+  // Kecleon, the merchant
+  352: ["Walk", "Idle"],
 };
 
 // PMD rows: Down, DownRight, Right, UpRight, Up, UpLeft, Left, DownLeft. The last three are mirrors: the game flips them.
