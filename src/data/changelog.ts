@@ -13,6 +13,29 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.11",
+    date: "2026-10-13",
+    title: { fr: "Nook Survivors à deux", en: "Nook Survivors for two" },
+    items: [
+      {
+        fr: "Joue à deux sur le même ordi : deux Game Boy côte à côte, ZQSD et la souris pour l'un, les flèches pour l'autre. Si ton pote tombe, reste à côté de lui pour le relever. Un classement coop rien que pour vous.",
+        en: "Play two on the same computer: two Game Boys side by side, WASD and the mouse for one, the arrows for the other. If your mate goes down, stand by them to get them up. A coop ladder all of your own.",
+      },
+      {
+        fr: "Le défi du jour : le même Pokémon et la même règle pour tout le monde, un classement par jour et un bonus d'or.",
+        en: "The daily challenge: the same Pokémon and rule for everyone, a ladder per day and a gold bonus.",
+      },
+      {
+        fr: "De l'or à ramasser, et Kecleon qui tient boutique toutes les 3 vagues. Ce qu'il te reste à la fin va à la Pension : des bonus pour toutes tes parties, sauvegardés avec ton compte.",
+        en: "Gold to pick up, and Kecleon running a shop every 3 waves. What's left at the end goes to the Pension: boosts for all your runs, saved with your account.",
+      },
+      {
+        fr: "Le classement repart à zéro chaque mois : une nouvelle saison, une nouvelle chance d'être premier.",
+        en: "The ladder starts over every month: a new season, a new chance to be first.",
+      },
+    ],
+  },
+  {
     version: "0.10",
     date: "2026-10-12",
     title: { fr: "La Game Boy s'allume", en: "The Game Boy turns on" },

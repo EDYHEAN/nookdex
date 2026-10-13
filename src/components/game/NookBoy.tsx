@@ -30,9 +30,10 @@ const BOARDS: { mode: Mode; period: Period; label: [string, string] }[] = [
   { mode: "classic", period: "season", label: ["Saison", "Season"] },
   { mode: "daily", period: "day", label: ["Défi du jour", "Daily"] },
   { mode: "classic", period: "all", label: ["Tout temps", "All time"] },
+  { mode: "coop", period: "season", label: ["Coop", "Coop"] },
 ];
 /** the title menu's entries, by screen: where B comes back to */
-const MENU_INDEX: Partial<Record<Screen, number>> = { daily: 1, ladder: 2, options: 4, credits: 5 };
+const MENU_INDEX: Partial<Record<Screen, number>> = { daily: 2, ladder: 3, options: 5, credits: 6 };
 type Button = "up" | "down" | "left" | "right" | "a" | "b" | "start" | "select";
 
 interface Options {
@@ -71,6 +72,8 @@ export default function NookBoy({ origin, onClose }: Props) {
   const nickname = useStore((s) => s.profile?.name) ?? "";
 
   const canvas = useRef<HTMLCanvasElement>(null);
+  /** the second player's screen, in coop */
+  const canvas2 = useRef<HTMLCanvasElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
   /** the engine lives outside React: it calls onChange when its phase or the menus' data change */
   const [g, setG] = useState<Game | null>(null);
@@ -89,6 +92,9 @@ export default function NookBoy({ origin, onClose }: Props) {
   /** the Pension's screen: with the run's gold to spend, or just to look (gold null) */
   const [pension, setPension] = useState<{ gold: number | null } | null>(null);
   const [pensionUsed, setPensionUsed] = useState(false);
+  /** picking the starters: solo, or coop (P1's pick kept while P2 chooses) */
+  const [selectMode, setSelectMode] = useState<"classic" | "coop">("classic");
+  const [coopFirst, setCoopFirst] = useState<number | null>(null);
   const levels = usePension((s) => s.levels);
 
   // The room's radio gives way to the game's music, and comes back after.
@@ -144,14 +150,17 @@ export default function NookBoy({ origin, onClose }: Props) {
   // The loop: 60 steps a second, drawn on every frame; it stops when the tab is hidden.
   useEffect(() => {
     if (!g) return;
-    const ctx = canvas.current!.getContext("2d")!;
     let raf = 0;
     let last = performance.now();
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
       g.tick((now - last) / 1000);
       last = now;
-      g.draw(ctx);
+      // the canvases are read each frame: going to two screens (coop) mounts new ones
+      const c1 = canvas.current;
+      if (c1) g.draw(c1.getContext("2d")!, 0);
+      const c2 = canvas2.current;
+      if (c2) g.draw(c2.getContext("2d")!, 1);
     };
     raf = requestAnimationFrame(loop);
     const onHide = () => {
@@ -202,6 +211,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     setPension(null);
     setPensionUsed(false);
     if (mode === "daily") g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()) });
+    else if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: usePension.getState().levels }, g.selected);
     else g.start(g.selected, { mode: "classic", perm: usePension.getState().levels });
   };
   /** the end of a run: what's left of its gold goes to the Pension (the daily's bonus once a day) */
@@ -229,7 +239,11 @@ export default function NookBoy({ origin, onClose }: Props) {
   const menuItems: { label: string; go: () => void }[] =
     screen === "menu"
       ? [
-          { label: t("Jouer", "Play"), go: () => (gsfx.ok(), setCursor(0), g?.toSelect()) },
+          { label: t("Jouer", "Play"), go: () => (gsfx.ok(), setCursor(0), setSelectMode("classic"), g?.toSelect()) },
+          {
+            label: t("Jouer à deux (même PC)", "Two players (same PC)"),
+            go: () => (gsfx.ok(), setCursor(0), setSelectMode("coop"), setCoopFirst(null), g?.toSelect()),
+          },
           { label: t("Défi du jour", "Daily challenge"), go: () => (gsfx.ok(), setScreen("daily")) },
           { label: t("Classement", "Ladder"), go: () => (gsfx.ok(), setScreen("ladder"), void openLadder()) },
           { label: t("Pension", "Pension"), go: () => (gsfx.ok(), setCursor(0), setPension({ gold: null })) },
@@ -338,8 +352,14 @@ export default function NookBoy({ origin, onClose }: Props) {
       if (b === "left" || b === "right") {
         gsfx.move();
         eng.select(eng.selected + (b === "left" ? -1 : 1));
-      } else if (b === "a" || b === "start") startRun("classic");
-      else if (b === "b") {
+      } else if ((b === "a" || b === "start") && selectMode === "coop" && coopFirst == null) {
+        gsfx.ok();
+        setCoopFirst(eng.selected);
+      } else if (b === "a" || b === "start") startRun(selectMode);
+      else if (b === "b" && coopFirst != null) {
+        gsfx.back();
+        setCoopFirst(null);
+      } else if (b === "b") {
         gsfx.back();
         eng.set("title");
         setScreen("menu");
@@ -423,7 +443,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (!g) return;
     const set = (code: string, down: boolean) => {
       const b = KEYS[code];
-      if (b === "up" || b === "down" || b === "left" || b === "right") g.move(b, down);
+      if (b === "up" || b === "down" || b === "left" || b === "right") g.move(b, down, g.setup.mode === "coop" && code.startsWith("Arrow") ? 1 : 0);
       if (code === "Space") g.fire("key", down);
       if (b) setPressed((p) => (p[b] === down ? p : { ...p, [b]: down }));
     };
@@ -628,7 +648,13 @@ export default function NookBoy({ origin, onClose }: Props) {
       const s = STARTERS[g.selected];
       return (
         <div className={styles.select}>
-          <h2>{t("CHOISIS TON POKéMON", "CHOOSE YOUR POKéMON")}</h2>
+          <h2>
+            {selectMode === "coop"
+              ? coopFirst == null
+                ? t("J1 : CHOISIS TON POKéMON", "P1: CHOOSE YOUR POKéMON")
+                : t("J2 : CHOISIS TON POKéMON", "P2: CHOOSE YOUR POKéMON")
+              : t("CHOISIS TON POKéMON", "CHOOSE YOUR POKéMON")}
+          </h2>
           <div className={styles.pickRow}>
             {STARTERS.map((st, i) => (
               <button
@@ -654,7 +680,11 @@ export default function NookBoy({ origin, onClose }: Props) {
               {s.evolves.map(([d, l]) => `${nameOf(d)} (${t("N.", "lv")}${l})`).join(", ")}
             </p>
           </div>
-          <p className={styles.keys}>{t("◂ ▸ choisir · Entrée : c'est parti !", "◂ ▸ choose · Enter: let's go!")}</p>
+          <p className={styles.keys}>
+            {selectMode === "coop"
+              ? t("J1 : ZQSD + souris · J2 : flèches · Entrée : valider", "P1: WASD + mouse · P2: arrows · Enter: confirm")
+              : t("◂ ▸ choisir · Entrée : c'est parti !", "◂ ▸ choose · Enter: let's go!")}
+          </p>
         </div>
       );
     }
@@ -806,7 +836,11 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (phase === "over" && run)
       return (
         <div className={styles.over}>
-          <p className={`${styles.box} ${styles.ko}`}>{t(`${nameOf(run.dex)} est K.O. !`, `${nameOf(run.dex)} fainted!`)}</p>
+          <p className={`${styles.box} ${styles.ko}`}>
+            {run.dex2
+              ? t(`${nameOf(run.dex)} et ${nameOf(run.dex2)} sont K.O. !`, `${nameOf(run.dex)} and ${nameOf(run.dex2)} fainted!`)
+              : t(`${nameOf(run.dex)} est K.O. !`, `${nameOf(run.dex)} fainted!`)}
+          </p>
           <div className={`${styles.box} ${styles.stats}`}>
             <p>
               <span>{t("Vague atteinte", "Wave reached")}</span>
@@ -832,7 +866,7 @@ export default function NookBoy({ origin, onClose }: Props) {
             </p>
             <p>
               <span>{run.mode === "daily" ? t("Défi du jour", "Daily") : t("Mode", "Mode")}</span>
-              <b>{run.mode === "daily" ? `+${run.dailyBonus}` : t("classique", "classic")}</b>
+              <b>{run.mode === "daily" ? `+${run.dailyBonus}` : run.mode === "coop" ? "coop" : t("classique", "classic")}</b>
             </p>
           </div>
           {typeof sent === "number" ? (
@@ -850,7 +884,13 @@ export default function NookBoy({ origin, onClose }: Props) {
             >
               <label>
                 {t("Ton pseudo", "Your name")}
-                <input value={name} maxLength={16} onChange={(e) => setName(e.target.value)} placeholder={t("Dresseur", "Trainer")} spellCheck={false} />
+                <input
+                  value={name}
+                  maxLength={run.mode === "coop" ? 35 : 16}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={run.mode === "coop" ? t("Toi & ton pote", "You & your mate") : t("Dresseur", "Trainer")}
+                  spellCheck={false}
+                />
               </label>
               <button type="submit" disabled={sent === "sending"}>
                 {sent === "sending" ? "…" : t("Envoyer au classement", "Send to the ladder")}
@@ -926,23 +966,13 @@ export default function NookBoy({ origin, onClose }: Props) {
   );
 
   const L = (b: Button) => (pressed[b] ? styles.down : "");
-
-  return (
-    <motion.div
-      className={styles.overlay}
-      style={{ transformOrigin: `${origin.x}px ${origin.y}px` }}
-      initial={{ scale: 0.06, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0.06, opacity: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      onPointerDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <button className={styles.close} onClick={onClose} aria-label={t("Ranger la console", "Put the console away")}>
-        ✕ {t("Ranger", "Put away")}
-      </button>
-      <div className={styles.shell} style={{ width: SHELL_W, height: SHELL_H, transform: `translateX(-50%) scale(${scale})` }}>
+  /** a coop run shows two screens; its menus on the screen of the player they're for */
+  const coopRun = !!g && g.setup.mode === "coop" && phase !== "title" && phase !== "select";
+  const coopScale = Math.min((vp.w - 40) / (2 * SHELL_W), (vp.h - 70) / SHELL_H);
+  const uiOn = coopRun && g && !["paused", "over", "dying"].includes(phase) && !pension ? g.cur.id : 0;
+  /** one Game Boy: the screen of player pid (in coop, one each, side by side) */
+  const shell = (pid: number, sc: number, left: string) => (
+      <div key={pid} className={styles.shell} style={{ width: SHELL_W, height: SHELL_H, left, top: coopRun ? 56 : undefined, transform: `translateX(-50%) scale(${sc})` }}>
         <div className={styles.topStrip}>
           <span>◂ OFF · ON ▸</span>
         </div>
@@ -955,27 +985,38 @@ export default function NookBoy({ origin, onClose }: Props) {
           <span className={`${styles.led} ${ready ? styles.ledOn : ""}`} />
           <span className={styles.battery}>BATTERY</span>
           <div
-            ref={screenRef}
+            ref={pid === 0 ? screenRef : undefined}
             className={styles.screen}
             style={screenVars}
             data-palette={pal.id}
-            onPointerMove={(e) => g?.aimAt(toGame(e))}
-            onPointerLeave={() => g?.aimAt(null)}
+            onPointerMove={(e) => pid === 0 && g?.aimAt(toGame(e))}
+            onPointerLeave={() => pid === 0 && g?.aimAt(null)}
             onPointerDown={(e) => {
+              if (pid !== 0) return;
               g?.aimAt(toGame(e));
               if ((e.target as HTMLElement).tagName === "CANVAS") g?.fire("mouse", true);
             }}
-            onPointerUp={() => g?.fire("mouse", false)}
+            onPointerUp={() => pid === 0 && g?.fire("mouse", false)}
             onContextMenu={(e) => e.preventDefault()}
           >
-            <canvas ref={canvas} width={SW} height={SH} className={`${styles.canvas} ${phase === "play" && opts.fire !== "nearest" ? styles.aiming : ""}`} />
-            {(pensionView || overlay) && <div className={styles.ui}>{pensionView || overlay}</div>}
+            <canvas
+              ref={pid === 0 ? canvas : canvas2}
+              width={SW}
+              height={SH}
+              className={`${styles.canvas} ${pid === 0 && phase === "play" && opts.fire !== "nearest" ? styles.aiming : ""}`}
+            />
+            {pid === uiOn && (pensionView || overlay) && <div className={styles.ui}>{pensionView || overlay}</div>}
+            {pid !== uiOn && overlay && ["levelup", "center", "shop", "evolve"].includes(phase) && (
+              <div className={styles.ui}>
+                <p className={`${styles.box} ${styles.waiting}`}>{t(`J${uiOn + 1} choisit…`, `P${uiOn + 1} is choosing…`)}</p>
+              </div>
+            )}
             <div className={styles.lcd} />
           </div>
         </div>
         <p className={styles.brand}>
           Nook<b>Boy</b>
-          <sup>DEX</sup>
+          <sup>{coopRun ? `J${pid + 1}` : "DEX"}</sup>
         </p>
         <div className={styles.controls}>
           <div className={styles.dpad}>
@@ -1010,7 +1051,33 @@ export default function NookBoy({ origin, onClose }: Props) {
           ))}
         </div>
       </div>
-      <p className={styles.hint} style={{ width: hintW, display: hintW < 150 ? "none" : undefined }}>
+  );
+
+
+  return (
+    <motion.div
+      className={styles.overlay}
+      style={{ transformOrigin: `${origin.x}px ${origin.y}px` }}
+      initial={{ scale: 0.06, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.06, opacity: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      onPointerDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <button className={styles.close} onClick={onClose} aria-label={t("Ranger la console", "Put the console away")}>
+        ✕ {t("Ranger", "Put away")}
+      </button>
+      {coopRun ? (
+        <>
+          {shell(0, coopScale, "25%")}
+          {shell(1, coopScale, "75%")}
+        </>
+      ) : (
+        shell(0, scale, "50%")
+      )}
+      <p className={styles.hint} style={{ width: hintW, display: hintW < 150 || coopRun ? "none" : undefined }}>
         {t("ZQSD / flèches : bouger · souris : viser · Entrée : pause · Tab : palette", "WASD / arrows: move · mouse: aim · Enter: pause · Tab: palette")}
       </p>
     </motion.div>
