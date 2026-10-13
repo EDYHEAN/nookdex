@@ -234,7 +234,11 @@ export function App() {
         onOpen={(binder) => setOpen({ binderId: binder.id })}
         onOpenComputer={(r) => setComputer({ x: r.left + r.width / 2, y: r.top + r.height / 2 })}
         onAddBinder={() => setAdding(true)}
-        onOpenAbout={() => setAbout(true)}
+        onOpenAbout={() => {
+          // the tour's last step points at the notebook: opening it ends the tour (else its note sat over the book)
+          setTour(false);
+          setAbout(true);
+        }}
         onOpenTrophies={setTrophies}
         onOpenGame={setGame}
         veiled={!entered && !revealed}
