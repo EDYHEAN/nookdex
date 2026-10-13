@@ -1,6 +1,6 @@
 {
   "cols": 10,
-  "rows": 6,
+  "rows": 8,
   "cell": 128,
   "index": {
     "first-card": 0,
@@ -62,6 +62,22 @@
     "xylophone": 56,
     "konami": 57,
     "treat": 58,
-    "all": 59
+    "all": 59,
+    "game-first": 60,
+    "game-wave10": 61,
+    "game-wave20": 62,
+    "game-wave30": 63,
+    "game-boss": 64,
+    "game-evolve": 65,
+    "game-evomove": 66,
+    "game-combo": 67,
+    "game-shop": 68,
+    "game-pension": 69,
+    "game-daily": 70,
+    "game-coop": 71,
+    "game-chansey": 72,
+    "game-rarecandy": 73,
+    "game-revive": 74,
+    "game-top3": 75
   }
 }

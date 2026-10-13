@@ -33,6 +33,10 @@ export const CHANGELOG: Release[] = [
         fr: "Le classement repart à zéro chaque mois : une nouvelle saison, une nouvelle chance d'être premier.",
         en: "The ladder starts over every month: a new season, a new chance to be first.",
       },
+      {
+        fr: "16 nouveaux trophées à gagner dans le jeu, sur leur propre étagère de la vitrine.",
+        en: "16 new trophies to win in the game, on their own shelf of the trophy case.",
+      },
     ],
   },
   {
