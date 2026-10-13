@@ -208,3 +208,18 @@ revoke all on function public.game_submit2(text, integer, integer, integer, inte
 grant execute on function public.game_top2(text, text, date, integer) to anon, authenticated;
 grant execute on function public.game_submit2(text, integer, integer, integer, integer, integer, text, date) to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- Nook Survivors rewards (skins…), given by hand: each player reads only their own rows, nobody writes from the site.
+-- Give one:  insert into public.game_rewards (user_id, reward)
+--            select id, 'skin-mewtwo' from auth.users where email = 'someone@example.com' on conflict do nothing;
+create table if not exists public.game_rewards (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  reward text not null,
+  created_at timestamptz not null default now(),
+  primary key (user_id, reward)
+);
+alter table public.game_rewards enable row level security;
+drop policy if exists "read own rewards" on public.game_rewards;
+create policy "read own rewards" on public.game_rewards for select to authenticated using (auth.uid() = user_id);
+grant select on public.game_rewards to authenticated;
+notify pgrst, 'reload schema';

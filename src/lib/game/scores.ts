@@ -36,6 +36,17 @@ export async function topScores(mode: Mode = "classic", period: Period = "season
   return old.error ? null : (old.data as Score[]);
 }
 
+/**
+ * The signed-in player's rewards (table game_rewards, docs/supabase.sql: each player reads only their own rows, given by
+ * hand), e.g. "skin-mewtwo". None without an account.
+ */
+export async function myRewards(): Promise<string[]> {
+  const { data: auth } = await supabase.auth.getSession();
+  if (!auth.session) return [];
+  const { data, error } = await supabase.from("game_rewards").select("reward");
+  return error || !data ? [] : data.map((r: { reward: string }) => r.reward);
+}
+
 /** saves a run; its rank in its board, or null when the ladder can't be reached */
 export async function submitScore(name: string, run: RunStats): Promise<number | null> {
   try {

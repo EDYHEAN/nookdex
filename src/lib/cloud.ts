@@ -6,7 +6,7 @@ import { loadSets, neededSets } from "./catalog";
 import { SUPABASE_KEY, SUPABASE_URL } from "./site";
 import { type Backup, isBackup, makeBackup, useStore } from "./store";
 import { mergeTrophies, trophyKey, useTrophyStore } from "./trophyStore";
-import { mergePension, pensionKey, usePension } from "./pensionStore";
+import { mergePension, mergeWallet, pensionKey, usePension } from "./pensionStore";
 
 
 /** Back from Google or the e-mail link (read before the client consumes the URL): no loader again. */
@@ -83,7 +83,7 @@ async function push() {
   const backup = makeBackup(useStore.getState());
   const fp = fingerprint(backup);
   const trophies = trophyKey(backup.trophies);
-  const pension = pensionKey(backup.pension);
+  const pension = pensionKey(backup.pension, backup.wallet);
   if (fp === readBase(u.id) && useCloud.getState().status === "synced" && trophies === cloudTrophies && pension === cloudPension) return;
   useCloud.setState({ status: "saving" });
   const { error } = await supabase.from("saves").upsert({ user_id: u.id, data: backup, updated_at: new Date().toISOString() });
@@ -127,9 +127,10 @@ async function pull() {
   mergeTrophies(remote.trophies);
   cloudTrophies = trophyKey(remote.trophies);
   mergePension(remote.pension);
-  cloudPension = pensionKey(remote.pension);
+  mergeWallet(remote.wallet);
+  cloudPension = pensionKey(remote.pension, remote.wallet);
   const trophiesAhead =
-    trophyKey(useTrophyStore.getState().got) !== cloudTrophies || pensionKey(usePension.getState().levels) !== cloudPension;
+    trophyKey(useTrophyStore.getState().got) !== cloudTrophies || pensionKey(usePension.getState().levels, { gold: usePension.getState().gold, at: usePension.getState().goldAt }) !== cloudPension;
   const remoteFp = fingerprint(remote);
   const base = readBase(u.id);
   const localEmpty = !local.binders.length && !Object.keys(local.collection).length;
@@ -205,7 +206,7 @@ export function startCloud() {
   });
 
   usePension.subscribe((s, prev) => {
-    if (!user || s.levels === prev.levels) return;
+    if (!user || (s.levels === prev.levels && s.gold === prev.gold)) return;
     const status = useCloud.getState().status;
     if (status === "loading" || status === "conflict") return;
     clearTimeout(timer);
