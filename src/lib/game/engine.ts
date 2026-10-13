@@ -17,7 +17,7 @@ export type Mode = "classic" | "daily" | "coop";
 export interface RunSetup {
   mode: Mode;
   perm: Partial<Record<PensionId, number>>;
-  daily?: { day: string; mod: DailyMod; starter: number };
+  daily?: { day: string; mod: DailyMod; starter: number; target: number };
 }
 
 /** the day's challenge: the same starter and rule for everyone (UTC day) */
@@ -25,8 +25,13 @@ export function dailyOf(day: string) {
   let h = 2166136261;
   for (const ch of day) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
   h >>>= 0;
-  return { day, starter: h % STARTERS.length, mod: DAILY_MODS[(h >>> 3) % DAILY_MODS.length], seed: h };
+  // the goal: a wave to reach, 8 to 12 (lower on the harder rules)
+  const mod = DAILY_MODS[(h >>> 3) % DAILY_MODS.length];
+  const hard = mod.id === "glass" || mod.id === "alone" || mod.id === "elite";
+  return { day, starter: h % STARTERS.length, mod, seed: h, target: (hard ? 8 : 9) + ((h >>> 6) % 4) };
 }
+/** the daily's gold: a big bonus once its wave is reached, a little per wave anyway */
+export const dailyReward = (wave: number, won: boolean) => (won ? 150 : 0) + 10 * wave;
 export const today = () => new Date().toISOString().slice(0, 10);
 
 /** a small seeded random (mulberry32): the daily's cards come in the same order for everyone */
@@ -75,6 +80,8 @@ export interface RunStats {
   /** gold left at the end: for the Pension (the daily's bonus included) */
   gold: number;
   dailyBonus: number;
+  /** the daily's goal was reached */
+  dailyWon?: boolean;
   wave: number;
   kills: number;
   level: number;
@@ -940,10 +947,10 @@ export class Game {
       this.stepParts(STEP * 0.4);
       if (this.dyingT > 2.2) {
         const daily = this.setup.daily;
-        if (daily) unlock("game-daily");
         if (this.setup.mode === "coop") unlock("game-coop");
+        const won = !!daily && this.wave >= daily.target;
         this.lastStats = {
-          mode: this.setup.mode, day: daily?.day, gold: this.gold, dailyBonus: daily ? 50 + this.wave * 10 : 0,
+          mode: this.setup.mode, day: daily?.day, gold: this.gold, dailyBonus: daily ? dailyReward(this.wave, won) : 0, dailyWon: won,
           wave: this.wave, kills: this.kills, level: Math.max(...this.players.map((p) => p.level)), seconds: Math.floor(this.time),
           starter: this.players[0].starter.dex, dex: this.players[0].dex, dex2: this.players[1]?.dex,
         };
@@ -1086,6 +1093,13 @@ export class Game {
 
   private newWave(wave: number) {
     this.wave = wave;
+    const daily = this.setup.daily;
+    if (daily && wave === daily.target) {
+      // the daily's goal reached: the rest is for the ladder
+      unlock("game-daily");
+      gsfx.evolveDone();
+      this.flash = 0.6;
+    }
     if (wave >= 10) unlock("game-wave10");
     if (wave >= 20) unlock("game-wave20");
     if (wave >= 30) unlock("game-wave30");
@@ -1123,6 +1137,9 @@ export class Game {
       this.merchant = { x: this.x + Math.cos(a) * 140, y: this.y + Math.sin(a) * 110, t: 0, life: 40 };
       if (this.phase === "play") this.showBanner(this.tr("KECLEON EST LA", "KECLEON IS HERE"), this.tr("sa boutique t'attend (or)", "its shop awaits (gold)"));
     }
+    // the daily met: its banner wins over the others
+    if (daily && wave === daily.target)
+      this.showBanner(this.tr("DEFI REUSSI !", "CHALLENGE MET!"), this.tr(`+${dailyReward(wave, true)} or, et plus si tu tiens`, `+${dailyReward(wave, true)} gold, more if you hold on`));
     // a Chansey runs by sometimes: catch it if you can
     this.treasureAt = wave >= 3 && Math.random() < 0.45 ? this.time + rand(5, 25) : -1;
   }
@@ -2555,7 +2572,7 @@ export class Game {
     this.drawPointers(ctx, ox, oy);
     if (this.phase === "evolve" && this.evo) this.drawEvolution(ctx, ox, oy);
     else this.drawHud(ctx);
-    if (this.cur.down) {
+    if (this.cur.down && this.players.length > 1 && this.phase === "play") {
       // knocked out: waiting for the partner
       ctx.fillStyle = g.c.uiDark;
       ctx.globalAlpha = 0.5;
@@ -3155,7 +3172,9 @@ export class Game {
     g.text(ctx, `KO ${this.kills}`, SW - 4, 8, "ui", { align: "right" });
     this.drawPickup(ctx, { kind: "coin", x: 8, y: 20, z: 0, vz: 1, value: 0, pull: false, t: 0 }, 0, 0);
     g.text(ctx, String(this.gold), 15, 18, "gold");
-    if (this.setup.daily) g.text(ctx, this.tr("DEFI DU JOUR", "DAILY"), 4, 26, "psy");
+    const daily = this.setup.daily;
+    if (daily)
+      g.text(ctx, this.wave >= daily.target ? this.tr("DEFI REUSSI", "CHALLENGE MET") : this.tr(`OBJECTIF : VAGUE ${daily.target}`, `GOAL: WAVE ${daily.target}`), 4, 26, this.wave >= daily.target ? "gold" : "psy");
     if (this.players.length > 1) g.text(ctx, `J${this.cur.id + 1}`, 4, 26, "xp");
     const m = Math.floor(this.time / 60);
     g.text(ctx, `${m}:${String(Math.floor(this.time % 60)).padStart(2, "0")}`, SW - 4, 15, "uiDim", { align: "right" });

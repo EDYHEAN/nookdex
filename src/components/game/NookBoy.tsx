@@ -7,7 +7,7 @@ import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, RARITY, STARTERS, pensionCost, say, type ItemId, type Lang, type MoveId } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
-import { Game, dailyOf, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
+import { Game, dailyOf, dailyReward, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
 import { lastName, submitScore, topScores, type Period, type Score } from "@/lib/game/scores";
 import { buyLevel, usePension } from "@/lib/pensionStore";
@@ -97,6 +97,9 @@ export default function NookBoy({ origin, onClose }: Props) {
   const [selectMode, setSelectMode] = useState<"classic" | "coop">("classic");
   const [coopFirst, setCoopFirst] = useState<number | null>(null);
   const levels = usePension((s) => s.levels);
+  const dailyPaid = usePension((s) => s.dailyPaid);
+  /** this run's daily bonus went to the Pension */
+  const [bonusTaken, setBonusTaken] = useState(false);
 
   // The room's radio gives way to the game's music, and comes back after.
   useEffect(() => {
@@ -211,6 +214,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     setSent("idle");
     setPension(null);
     setPensionUsed(false);
+    setBonusTaken(false);
     unlock("game-first");
     if (mode === "daily") g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()) });
     else if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: usePension.getState().levels }, g.selected);
@@ -222,7 +226,10 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (!run || pensionUsed) return;
     const st = usePension.getState();
     const bonus = run.mode === "daily" && st.dailyPaid !== run.day ? run.dailyBonus : 0;
-    if (bonus) usePension.setState({ dailyPaid: run.day ?? null });
+    if (bonus) {
+      usePension.setState({ dailyPaid: run.day ?? null });
+      setBonusTaken(true);
+    }
     setPensionUsed(true);
     setCursor(0);
     setPension({ gold: run.gold + bonus });
@@ -279,10 +286,15 @@ export default function NookBoy({ origin, onClose }: Props) {
     const p = eng.phase;
     if (b === "select") return cyclePalette();
     if (pension) {
-      if (b === "up" || b === "down") {
+      const n = PENSION.length;
+      if (b === "left" || b === "right") {
         gsfx.move();
-        setCursor((c) => (c + (b === "up" ? -1 : 1) + PENSION.length + 1) % (PENSION.length + 1));
-      } else if (b === "a" && cursor < PENSION.length) buyPension(cursor);
+        setCursor((c) => (c >= n ? c : (c + (b === "left" ? -1 : 1) + n) % n));
+      } else if (b === "up" || b === "down") {
+        gsfx.move();
+        // a 3-wide grid; below its last row, Done
+        setCursor((c) => (b === "down" ? (c >= n ? 1 : c + 3 >= n ? n : c + 3) : c >= n ? n - 2 : c - 3 < 0 ? n : c - 3));
+      } else if (b === "a" && cursor < n) buyPension(cursor);
       else if (b === "b" || b === "start" || b === "a") {
         gsfx.back();
         setPension(null);
@@ -594,11 +606,20 @@ export default function NookBoy({ origin, onClose }: Props) {
               <p className={styles.dailyMod}>
                 <b>{say(d.mod.name, lang)}</b> · {say(d.mod.desc, lang)}
               </p>
-              <p className={styles.dim}>
+              <p className={styles.dailyGoal}>
+                <span>{t("OBJECTIF", "GOAL")}</span> {t(`Tenir jusqu'à la vague ${d.target}.`, `Hold out until wave ${d.target}.`)}
+              </p>
+              <p className={styles.dailyGoal}>
+                <span>{t("GAIN", "REWARD")}</span>
                 {t(
-                  "Les mêmes règles et les mêmes cartes pour tout le monde, sans les bonus de la Pension. Ta première partie du jour rapporte un bonus d'or.",
-                  "The same rules and cards for everyone, without the Pension's boosts. Your first run of the day earns a gold bonus.",
+                  `Réussi : ${dailyReward(d.target, true)} or et +10 par vague de plus. Raté : 10 or par vague.`,
+                  `Met: ${dailyReward(d.target, true)} gold and +10 per wave beyond. Missed: 10 gold per wave.`,
                 )}
+              </p>
+              <p className={styles.dim}>
+                {dailyPaid === d.day
+                  ? t("Ton bonus du jour est déjà touché : rejoue pour le classement du jour.", "Today's bonus is already yours: play again for the day's ladder.")
+                  : t("Le bonus va à la Pension, sur ta 1re partie du jour. Mêmes règles et mêmes cartes pour tous, sans la Pension.", "The bonus goes to the Pension, on your 1st run of the day. Same rules and cards for all, no Pension.")}
               </p>
             </div>
             <ul className={`${styles.box} ${styles.menu}`}>
@@ -868,10 +889,17 @@ export default function NookBoy({ origin, onClose }: Props) {
               <span>{t("Or en poche", "Gold left")}</span>
               <b className={styles.goldText}>{run.gold}</b>
             </p>
-            <p>
-              <span>{run.mode === "daily" ? t("Défi du jour", "Daily") : t("Mode", "Mode")}</span>
-              <b>{run.mode === "daily" ? `+${run.dailyBonus}` : run.mode === "coop" ? "coop" : t("classique", "classic")}</b>
-            </p>
+            {run.mode === "daily" ? (
+              <p>
+                <span>{run.dailyWon ? t("Défi réussi ✓", "Challenge met ✓") : t("Défi raté", "Challenge missed")}</span>
+                <b className={styles.goldText}>{bonusTaken || dailyPaid !== run.day ? `+${run.dailyBonus}` : t("déjà touché", "already paid")}</b>
+              </p>
+            ) : (
+              <p>
+                <span>{t("Mode", "Mode")}</span>
+                <b>{run.mode === "coop" ? "coop" : t("classique", "classic")}</b>
+              </p>
+            )}
           </div>
           {typeof sent === "number" ? (
             <>
@@ -928,44 +956,60 @@ export default function NookBoy({ origin, onClose }: Props) {
 
   const pensionView = pension && (
     <div className={styles.page}>
-      <h2>
+      <h2 className={styles.pHead}>
         {t("PENSION", "PENSION")}
         {pension.gold != null && (
-          <>
-            {" "}
-            · <span className={styles.goldText}>{pension.gold} {t("or", "gold")}</span>
-          </>
+          <span className={styles.goldPill}>
+            {pension.gold} {t("or", "gold")}
+          </span>
         )}
       </h2>
-      <ul className={`${styles.box} ${styles.menu} ${styles.pension}`}>
+      <div className={styles.pensionGrid}>
         {PENSION.map((d, i) => {
           const lv = levels[d.id] ?? 0;
           const cost = pensionCost(d, lv);
           const max = lv >= d.max;
+          const can = pension.gold != null && !max && pension.gold >= cost;
+          const fmt = (l: number) => (d.pct ? `+${(Math.round(d.per * l * 10) / 10).toLocaleString(lang === "fr" ? "fr-FR" : "en-GB")} %` : `${d.per * l}`);
           return (
-            <li
+            <button
               key={d.id}
-              className={`${i === cursor ? styles.on : ""} ${pension.gold != null && !max && pension.gold >= cost ? "" : styles.dim}`}
+              className={`${styles.pTile} ${i === cursor ? styles.on : ""} ${can || max ? "" : styles.pDim}`}
               onPointerEnter={() => setCursor(i)}
               onClick={() => buyPension(i)}
             >
-              <span>
-                {say(d.name, lang)} <i>{"●".repeat(lv)}{"○".repeat(d.max - lv)}</i>
-                <small>{say(d.desc, lang)}</small>
+              <span className={styles.pName}>{say(d.name, lang)}</span>
+              <span className={styles.pPips}>
+                {Array.from({ length: d.max }, (_, k) => (
+                  <i key={k} className={k < lv ? styles.pPipOn : ""} />
+                ))}
               </span>
-              <b>{max ? "MAX" : `${cost}`}</b>
-            </li>
+              <span className={styles.pEff}>
+                {max ? (
+                  <>
+                    {fmt(lv)} {say(d.stat, lang)}
+                  </>
+                ) : (
+                  <>
+                    {lv ? fmt(lv) : "—"} → <b>{fmt(lv + 1)}</b> {say(d.stat, lang)}
+                  </>
+                )}
+              </span>
+              <span className={`${styles.pPrice} ${can ? styles.pPriceOk : ""}`}>{max ? "MAX" : `${cost} ${t("or", "gold")}`}</span>
+            </button>
           );
         })}
-        <li className={cursor >= PENSION.length ? styles.on : ""} onPointerEnter={() => setCursor(PENSION.length)} onClick={() => (gsfx.back(), setPension(null))}>
+      </div>
+      <div className={styles.pFoot}>
+        <p>
+          {pension.gold != null
+            ? t("Pour toutes tes parties (sauf le défi du jour). L'or restant est perdu.", "For all your runs (but the daily). Gold left is lost.")
+            : t("Termine une partie pour y dépenser ton or.", "Finish a run to spend your gold here.")}
+        </p>
+        <button className={cursor >= PENSION.length ? styles.on : ""} onPointerEnter={() => setCursor(PENSION.length)} onClick={() => (gsfx.back(), setPension(null))}>
           {pension.gold != null ? t("Terminer ▶", "Done ▶") : t("Retour", "Back")}
-        </li>
-      </ul>
-      <p className={styles.keys}>
-        {pension.gold != null
-          ? t("Des bonus pour toutes tes parties (sauf le défi du jour).", "Boosts for all your runs (but the daily).")
-          : t("Termine une partie pour y dépenser ton or.", "Finish a run to spend your gold here.")}
-      </p>
+        </button>
+      </div>
     </div>
   );
 
