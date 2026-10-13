@@ -8,6 +8,7 @@ import eurUsd from "@/data/eur-usd.json";
 import { type Currency, keyOf, langOfKey } from "./cardLang";
 import { resolveLang } from "./resolveLang";
 import { mergeTrophies, unlock, useTrophyStore } from "./trophyStore";
+import { mergePension, usePension } from "./pensionStore";
 import type { BinderSort, Condition, Copy, UserBinder, Variant } from "./types";
 
 export const CONDITIONS: Condition[] = ["MT", "NM", "EX", "GD", "LP", "PL", "PO"];
@@ -53,6 +54,8 @@ export interface Backup {
   collection: Record<string, Copy[]>;
   /** Trophies won (id -> when): merged, never replaced, and left out of the cloud's conflict check */
   trophies?: Record<string, number>;
+  /** the Nook Survivors Pension: upgrade id -> level */
+  pension?: Record<string, number>;
 }
 
 /** The currency of the site's language: what purchase prices were typed in before the currency was a setting. */
@@ -252,6 +255,7 @@ export const useStore = create<State>()(
         set((s) => {
           const backup = (raw.version ?? 0) < 4 ? withCardLangs(raw, resolveLang(s.lang, s.frenchOk) === "en") : raw;
           mergeTrophies(backup.trophies);
+          mergePension(backup.pension);
           return {
             collection: backup.collection,
             binders: backup.binders?.length ? backup.binders : bindersFromCollection(backup.collection),
@@ -315,6 +319,7 @@ export function makeBackup(s: Pick<State, "profile" | "currency" | "binders" | "
     binders: s.binders,
     collection: s.collection,
     trophies: useTrophyStore.getState().got,
+    pension: usePension.getState().levels,
   };
 }
 

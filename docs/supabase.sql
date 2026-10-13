@@ -125,3 +125,86 @@ revoke all on function public.game_submit(text, integer, integer, integer, integ
 grant execute on function public.game_top(integer) to anon, authenticated;
 grant execute on function public.game_submit(text, integer, integer, integer, integer, integer) to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- Nook Survivors, v2 (2026-10-13): a mode per run (classic, the daily challenge, coop), the daily's day, monthly seasons.
+-- game_top / game_submit stay for tabs still open on the old version (game_top now shows the classic runs only).
+alter table public.game_scores add column if not exists mode text not null default 'classic';
+alter table public.game_scores add column if not exists day date;
+create index if not exists game_scores_mode on public.game_scores (mode, created_at desc);
+
+create or replace function public.game_top(p_limit integer default 20)
+returns table (name text, wave integer, kills integer, level integer, starter integer, seconds integer, created_at timestamptz)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select b.name, b.wave, b.kills, b.level, b.starter, b.seconds, b.created_at from (
+    select distinct on (lower(s.name)) s.* from public.game_scores s
+    where s.mode = 'classic'
+    order by lower(s.name), s.wave desc, s.kills desc, s.seconds
+  ) b
+  order by b.wave desc, b.kills desc, b.seconds
+  limit least(greatest(p_limit, 1), 100)
+$$;
+
+-- The best run of each name in a mode, for a period: 'season' (this month), 'day' (the daily's day), 'all'.
+create or replace function public.game_top2(p_mode text default 'classic', p_period text default 'season', p_day date default null, p_limit integer default 20)
+returns table (name text, wave integer, kills integer, level integer, starter integer, seconds integer, created_at timestamptz)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select b.name, b.wave, b.kills, b.level, b.starter, b.seconds, b.created_at from (
+    select distinct on (lower(s.name)) s.* from public.game_scores s
+    where s.mode = p_mode
+      and (p_period = 'all'
+        or (p_period = 'season' and s.created_at >= date_trunc('month', now()))
+        or (p_period = 'day' and s.day = p_day))
+    order by lower(s.name), s.wave desc, s.kills desc, s.seconds
+  ) b
+  order by b.wave desc, b.kills desc, b.seconds
+  limit least(greatest(p_limit, 1), 100)
+$$;
+
+-- A finished run in a mode: checked, saved, its place in its board (this month's season; the day for the daily).
+create or replace function public.game_submit2(p_name text, p_wave integer, p_kills integer, p_level integer, p_starter integer, p_seconds integer, p_mode text, p_day date default null)
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  clean text := left(btrim(regexp_replace(coalesce(p_name, ''), '[[:cntrl:]]', '', 'g')), case when p_mode = 'coop' then 35 else 16 end);
+  utc date := (now() at time zone 'utc')::date;
+begin
+  if clean = '' then clean := 'Dresseur'; end if;
+  if p_mode not in ('classic', 'daily', 'coop') then raise exception 'unknown mode'; end if;
+  if p_mode = 'daily' and (p_day is null or p_day < utc - 1 or p_day > utc + 1) then raise exception 'not today'; end if;
+  if p_wave < 1 or p_wave > 500 or p_seconds < (p_wave - 1) * 30 or p_seconds > p_wave * 30 + 5
+     or p_kills < 0 or p_kills > p_seconds * 15 + 40 or p_level < 1 or p_level > 300 or p_starter not in (1, 4, 7, 25) then
+    raise exception 'implausible score';
+  end if;
+  if exists (select 1 from public.game_scores s where lower(s.name) = lower(clean) and s.created_at > now() - interval '20 seconds') then
+    raise exception 'too soon';
+  end if;
+  insert into public.game_scores (name, wave, kills, level, starter, seconds, user_id, mode, day)
+  values (clean, p_wave, p_kills, p_level, p_starter, p_seconds, auth.uid(), p_mode, case when p_mode = 'daily' then p_day end);
+  return 1 + (
+    select count(*) from (
+      select distinct on (lower(s.name)) s.name, s.wave, s.kills, s.seconds from public.game_scores s
+      where s.mode = p_mode and lower(s.name) <> lower(clean)
+        and (case when p_mode = 'daily' then s.day = p_day else s.created_at >= date_trunc('month', now()) end)
+      order by lower(s.name), s.wave desc, s.kills desc, s.seconds
+    ) b
+    where b.wave > p_wave or (b.wave = p_wave and (b.kills > p_kills or (b.kills = p_kills and b.seconds < p_seconds)))
+  );
+end $$;
+
+revoke all on function public.game_top2(text, text, date, integer) from public;
+revoke all on function public.game_submit2(text, integer, integer, integer, integer, integer, text, date) from public;
+grant execute on function public.game_top2(text, text, date, integer) to anon, authenticated;
+grant execute on function public.game_submit2(text, integer, integer, integer, integer, integer, text, date) to anon, authenticated;
+notify pgrst, 'reload schema';

@@ -5,11 +5,12 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, RARITY, STARTERS, say, type ItemId, type Lang, type MoveId } from "@/lib/game/data";
+import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, RARITY, STARTERS, pensionCost, say, type ItemId, type Lang, type MoveId } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
-import { Game, type FireMode, type Phase } from "@/lib/game/engine";
+import { Game, dailyOf, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
-import { lastName, submitScore, topScores, type Score } from "@/lib/game/scores";
+import { lastName, submitScore, topScores, type Period, type Score } from "@/lib/game/scores";
+import { buyLevel, usePension } from "@/lib/pensionStore";
 import { startAmbient, stopAmbient } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/lang";
@@ -22,7 +23,16 @@ interface Props {
   onClose: () => void;
 }
 
-type Screen = "boot" | "menu" | "ladder" | "options" | "credits";
+type Screen = "boot" | "menu" | "ladder" | "options" | "credits" | "daily";
+
+/** the ladder's boards */
+const BOARDS: { mode: Mode; period: Period; label: [string, string] }[] = [
+  { mode: "classic", period: "season", label: ["Saison", "Season"] },
+  { mode: "daily", period: "day", label: ["Défi du jour", "Daily"] },
+  { mode: "classic", period: "all", label: ["Tout temps", "All time"] },
+];
+/** the title menu's entries, by screen: where B comes back to */
+const MENU_INDEX: Partial<Record<Screen, number>> = { daily: 1, ladder: 2, options: 4, credits: 5 };
 type Button = "up" | "down" | "left" | "right" | "a" | "b" | "start" | "select";
 
 interface Options {
@@ -75,6 +85,11 @@ export default function NookBoy({ origin, onClose }: Props) {
   const [name, setName] = useState(() => lastName(nickname));
   const [sent, setSent] = useState<"idle" | "sending" | "error" | number>("idle");
   const [ladder, setLadder] = useState<Score[] | null | "loading">("loading");
+  const [board, setBoard] = useState(0);
+  /** the Pension's screen: with the run's gold to spend, or just to look (gold null) */
+  const [pension, setPension] = useState<{ gold: number | null } | null>(null);
+  const [pensionUsed, setPensionUsed] = useState(false);
+  const levels = usePension((s) => s.levels);
 
   // The room's radio gives way to the game's music, and comes back after.
   useEffect(() => {
@@ -173,9 +188,40 @@ export default function NookBoy({ origin, onClose }: Props) {
     saveOpts({ ...opts, palette: (opts.palette + 1) % PALETTES.length });
   };
 
-  const openLadder = async () => {
+  const openLadder = async (i = board) => {
+    setBoard(i);
     setLadder("loading");
-    setLadder(await topScores(20));
+    const b = BOARDS[i];
+    setLadder(await topScores(b.mode, b.period, b.period === "day" ? today() : undefined));
+  };
+  /** a run: classic with the Pension's levels, or the day's challenge without them */
+  const startRun = (mode: Mode) => {
+    if (!g) return;
+    gsfx.ok();
+    setSent("idle");
+    setPension(null);
+    setPensionUsed(false);
+    if (mode === "daily") g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()) });
+    else g.start(g.selected, { mode: "classic", perm: usePension.getState().levels });
+  };
+  /** the end of a run: what's left of its gold goes to the Pension (the daily's bonus once a day) */
+  const openPension = () => {
+    const run = g?.lastStats;
+    if (!run || pensionUsed) return;
+    const st = usePension.getState();
+    const bonus = run.mode === "daily" && st.dailyPaid !== run.day ? run.dailyBonus : 0;
+    if (bonus) usePension.setState({ dailyPaid: run.day ?? null });
+    setPensionUsed(true);
+    setCursor(0);
+    setPension({ gold: run.gold + bonus });
+  };
+  const buyPension = (i: number) => {
+    const d = PENSION[i];
+    const lv = levels[d.id] ?? 0;
+    if (!pension || pension.gold == null || lv >= d.max || pension.gold < pensionCost(d, lv)) return gsfx.back();
+    gsfx.coin();
+    buyLevel(d.id);
+    setPension({ gold: pension.gold - pensionCost(d, lv) });
   };
 
   /* ---------------- what each button does, screen by screen ---------------- */
@@ -184,7 +230,9 @@ export default function NookBoy({ origin, onClose }: Props) {
     screen === "menu"
       ? [
           { label: t("Jouer", "Play"), go: () => (gsfx.ok(), setCursor(0), g?.toSelect()) },
+          { label: t("Défi du jour", "Daily challenge"), go: () => (gsfx.ok(), setScreen("daily")) },
           { label: t("Classement", "Ladder"), go: () => (gsfx.ok(), setScreen("ladder"), void openLadder()) },
+          { label: t("Pension", "Pension"), go: () => (gsfx.ok(), setCursor(0), setPension({ gold: null })) },
           { label: t("Options", "Options"), go: () => (gsfx.ok(), setCursor(0), setScreen("options")) },
           { label: t("Crédits", "Credits"), go: () => (gsfx.ok(), setScreen("credits")) },
           { label: t("Ranger la console", "Put it away"), go: () => (gsfx.back(), onClose()) },
@@ -213,6 +261,45 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (!eng) return;
     const p = eng.phase;
     if (b === "select") return cyclePalette();
+    if (pension) {
+      if (b === "up" || b === "down") {
+        gsfx.move();
+        setCursor((c) => (c + (b === "up" ? -1 : 1) + PENSION.length + 1) % (PENSION.length + 1));
+      } else if (b === "a" && cursor < PENSION.length) buyPension(cursor);
+      else if (b === "b" || b === "start" || b === "a") {
+        gsfx.back();
+        setPension(null);
+        setCursor(3);
+      }
+      return;
+    }
+    if (p === "title" && screen === "ladder" && (b === "left" || b === "right")) {
+      gsfx.move();
+      return void openLadder((board + (b === "left" ? -1 : 1) + BOARDS.length) % BOARDS.length);
+    }
+    if (p === "title" && screen === "daily" && (b === "a" || b === "start")) return startRun("daily");
+    if (p === "shop") {
+      const n = eng.offers.length + 3;
+      if (b === "left" || b === "up") {
+        gsfx.move();
+        setCursor((c) => (c + n - 1) % n);
+      } else if (b === "right" || b === "down") {
+        gsfx.move();
+        setCursor((c) => (c + 1) % n);
+      } else if (b === "a") {
+        if (cursor < eng.offers.length) eng.buy(cursor);
+        else if (cursor === eng.offers.length) eng.buyHeal();
+        else if (cursor === eng.offers.length + 1) eng.shopReroll();
+        else {
+          setCursor(0);
+          eng.leaveShop();
+        }
+      } else if (b === "b" || b === "start") {
+        setCursor(0);
+        eng.leaveShop();
+      }
+      return;
+    }
     if (p === "title") {
       if (screen === "boot") return setScreen("menu");
       if (screen === "menu") {
@@ -235,14 +322,14 @@ export default function NookBoy({ origin, onClose }: Props) {
           optionRows[cursor].go(b === "left" ? -1 : 1);
         } else if (b === "b" || b === "a") {
           gsfx.back();
-          setCursor(2);
+          setCursor(MENU_INDEX.options ?? 0);
           setScreen("menu");
         }
         return;
       }
       if (b === "b" || b === "a" || b === "start") {
         gsfx.back();
-        setCursor(screen === "ladder" ? 1 : 3);
+        setCursor(MENU_INDEX[screen] ?? 0);
         setScreen("menu");
       }
       return;
@@ -251,11 +338,8 @@ export default function NookBoy({ origin, onClose }: Props) {
       if (b === "left" || b === "right") {
         gsfx.move();
         eng.select(eng.selected + (b === "left" ? -1 : 1));
-      } else if (b === "a" || b === "start") {
-        gsfx.ok();
-        setSent("idle");
-        eng.start(eng.selected);
-      } else if (b === "b") {
+      } else if (b === "a" || b === "start") startRun("classic");
+      else if (b === "b") {
         gsfx.back();
         eng.set("title");
         setScreen("menu");
@@ -276,7 +360,7 @@ export default function NookBoy({ origin, onClose }: Props) {
         eng.pause(false);
       } else if (b === "a" && cursor === 1) {
         gsfx.back();
-        quitRun();
+        eng.giveUp();
       }
       return;
     }
@@ -330,8 +414,10 @@ export default function NookBoy({ origin, onClose }: Props) {
   /* ---------------- keyboard and mouse ---------------- */
 
   const pressRef = useRef(press);
+  const pensionOpen = useRef(false);
   useEffect(() => {
     pressRef.current = press;
+    pensionOpen.current = !!pension;
   });
   useEffect(() => {
     if (!g) return;
@@ -352,6 +438,7 @@ export default function NookBoy({ origin, onClose }: Props) {
       if (b || /^Digit[1-4]$/.test(e.code) || e.code === "KeyM") e.preventDefault();
       set(e.code, true);
       if (e.repeat) return;
+      if (e.code === "KeyR" && eng.phase === "levelup") return eng.reroll();
       if (/^Digit[1-4]$/.test(e.code)) {
         const n = +e.code.slice(5) - 1;
         if (eng.phase === "levelup") eng.choose(eng.choices[n]);
@@ -364,7 +451,8 @@ export default function NookBoy({ origin, onClose }: Props) {
       const inRun = eng.phase === "play";
       if (inRun && (e.code === "Enter" || e.code === "Escape" || e.code === "KeyP")) return pressRef.current("start");
       if (inRun && b !== "select") return;
-      if (eng.phase === "over") return;
+      // the game over has its own buttons (and the name field); its Pension screen takes the keys
+      if (eng.phase === "over" && !pensionOpen.current) return;
       pressRef.current(b);
     };
     const onUp = (e: KeyboardEvent) => set(e.code, false);
@@ -468,13 +556,52 @@ export default function NookBoy({ origin, onClose }: Props) {
             </div>
           </div>
         );
+      if (screen === "daily") {
+        const d = dailyOf(today());
+        const st = STARTERS[d.starter];
+        return (
+          <div className={styles.page}>
+            <h2>{t("DÉFI DU JOUR", "DAILY CHALLENGE")}</h2>
+            <div className={`${styles.box} ${styles.daily}`}>
+              <p className={styles.dailyDay}>{new Date(d.day + "T12:00:00Z").toLocaleDateString(lang === "fr" ? "fr-FR" : "en-GB", { weekday: "long", day: "numeric", month: "long" })}</p>
+              <p className={styles.dailyStarter}>
+                <Mini dex={st.dex} label={nameOf(st.dex)} /> {t("Pokémon imposé :", "Your Pokémon:")} <b>{nameOf(st.dex)}</b>
+              </p>
+              <p className={styles.dailyMod}>
+                <b>{say(d.mod.name, lang)}</b> · {say(d.mod.desc, lang)}
+              </p>
+              <p className={styles.dim}>
+                {t(
+                  "Les mêmes règles et les mêmes cartes pour tout le monde, sans les bonus de la Pension. Ta première partie du jour rapporte un bonus d'or.",
+                  "The same rules and cards for everyone, without the Pension's boosts. Your first run of the day earns a gold bonus.",
+                )}
+              </p>
+            </div>
+            <ul className={`${styles.box} ${styles.menu}`}>
+              <li className={styles.on} onClick={() => startRun("daily")}>
+                {t("Relever le défi", "Take the challenge")}
+              </li>
+            </ul>
+            <p className={styles.keys} onClick={() => press("b")}>
+              {t("Entrée : jouer · B : retour", "Enter: play · B: back")}
+            </p>
+          </div>
+        );
+      }
       if (screen === "ladder")
         return (
           <div className={styles.page}>
             <h2>{t("CLASSEMENT", "LADDER")}</h2>
+            <div className={styles.tabs}>
+              {BOARDS.map((bd, i) => (
+                <button key={i} className={i === board ? styles.on : ""} onClick={() => (gsfx.move(), void openLadder(i))}>
+                  {say(bd.label, lang)}
+                </button>
+              ))}
+            </div>
             <Ladder rows={ladder} nameOf={nameOf} t={t} />
             <p className={styles.keys} onClick={() => press("b")}>
-              {t("B : retour", "B: back")}
+              {t("◀ ▶ changer · B : retour", "◀ ▶ switch · B: back")}
             </p>
           </div>
         );
@@ -572,6 +699,11 @@ export default function NookBoy({ origin, onClose }: Props) {
               );
             })}
           </div>
+          {g.rerolls > 0 && (
+            <p className={styles.keys} onClick={() => g.reroll()}>
+              {t(`R : relancer les cartes (${g.rerolls})`, `R: reroll the cards (${g.rerolls})`)}
+            </p>
+          )}
           {g.moves.length >= 4 && g.choices.every((c) => c.kind !== "move" || c.level > 1) && (
             <p className={styles.keys}>{t(`${nameOf(g.dex)} connaît déjà 4 capacités.`, `${nameOf(g.dex)} already knows 4 moves.`)}</p>
           )}
@@ -604,6 +736,41 @@ export default function NookBoy({ origin, onClose }: Props) {
         </div>
       );
     }
+    if (phase === "shop")
+      return (
+        <div className={styles.level}>
+          <h2>
+            {t("BOUTIQUE DE KECLEON", "KECLEON'S SHOP")} · <span className={styles.goldText}>{g.gold} {t("or", "gold")}</span>
+          </h2>
+          <div className={styles.cards}>
+            {g.offers.map((o, i) => (
+              <CardView
+                key={i}
+                c={o.choice}
+                i={i}
+                on={i === cursor}
+                lang={lang}
+                t={t}
+                price={o.sold ? t("vendu", "sold") : `${o.price} ${t("or", "gold")}`}
+                dim={o.sold || g.gold < o.price}
+                onHover={() => i !== cursor && (gsfx.move(), setCursor(i))}
+                onPick={() => g.buy(i)}
+              />
+            ))}
+          </div>
+          <ul className={`${styles.box} ${styles.menu} ${styles.shopRow}`}>
+            {[
+              [t(`Baie Sitrus (+50 % PV) · ${g.healPrice} or`, `Sitrus Berry (+50% HP) · ${g.healPrice} gold`), () => g.buyHeal()],
+              [t(`Relancer · ${g.rerollPrice} or`, `Reroll · ${g.rerollPrice} gold`), () => g.shopReroll()],
+              [t("Partir", "Leave"), () => (setCursor(0), g.leaveShop())],
+            ].map(([label, go], k) => (
+              <li key={k} className={cursor === g.offers.length + k ? styles.on : ""} onPointerEnter={() => setCursor(g.offers.length + k)} onClick={go as () => void}>
+                {label as string}
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
     if (phase === "paused")
       return (
         <div className={styles.pause}>
@@ -611,7 +778,7 @@ export default function NookBoy({ origin, onClose }: Props) {
           <ul className={`${styles.box} ${styles.menu}`}>
             <li className={styles.menuTitle}>PAUSE</li>
             {[t("Reprendre", "Resume"), t("Abandonner", "Give up")].map((l, i) => (
-              <li key={l} className={i === cursor ? styles.on : ""} onPointerEnter={() => setCursor(i)} onClick={() => (i ? quitRun() : g.pause(false))}>
+              <li key={l} className={i === cursor ? styles.on : ""} onPointerEnter={() => setCursor(i)} onClick={() => (i ? g.giveUp() : g.pause(false))}>
                 {l}
               </li>
             ))}
@@ -659,6 +826,14 @@ export default function NookBoy({ origin, onClose }: Props) {
                 {Math.floor(run.seconds / 60)}:{String(run.seconds % 60).padStart(2, "0")}
               </b>
             </p>
+            <p>
+              <span>{t("Or en poche", "Gold left")}</span>
+              <b className={styles.goldText}>{run.gold}</b>
+            </p>
+            <p>
+              <span>{run.mode === "daily" ? t("Défi du jour", "Daily") : t("Mode", "Mode")}</span>
+              <b>{run.mode === "daily" ? `+${run.dailyBonus}` : t("classique", "classic")}</b>
+            </p>
           </div>
           {typeof sent === "number" ? (
             <>
@@ -688,17 +863,67 @@ export default function NookBoy({ origin, onClose }: Props) {
               onClick={() => {
                 gsfx.ok();
                 setSent("idle");
-                g.toSelect();
+                if (run.mode === "daily") startRun("daily");
+                else g.toSelect();
               }}
             >
               {t("Rejouer", "Play again")}
             </button>
             <button onClick={quitRun}>{t("Menu", "Menu")}</button>
+            {!pensionUsed && (
+              <button className={styles.pensionBtn} onClick={openPension}>
+                {t("Pension ▶", "Pension ▶")}
+              </button>
+            )}
           </div>
+          {!pensionUsed && <p className={styles.err}>{t("L'or non dépensé à la Pension est perdu.", "Gold not spent at the Pension is lost.")}</p>}
         </div>
       );
     return null;
   })();
+
+  const pensionView = pension && (
+    <div className={styles.page}>
+      <h2>
+        {t("PENSION", "PENSION")}
+        {pension.gold != null && (
+          <>
+            {" "}
+            · <span className={styles.goldText}>{pension.gold} {t("or", "gold")}</span>
+          </>
+        )}
+      </h2>
+      <ul className={`${styles.box} ${styles.menu} ${styles.pension}`}>
+        {PENSION.map((d, i) => {
+          const lv = levels[d.id] ?? 0;
+          const cost = pensionCost(d, lv);
+          const max = lv >= d.max;
+          return (
+            <li
+              key={d.id}
+              className={`${i === cursor ? styles.on : ""} ${pension.gold != null && !max && pension.gold >= cost ? "" : styles.dim}`}
+              onPointerEnter={() => setCursor(i)}
+              onClick={() => buyPension(i)}
+            >
+              <span>
+                {say(d.name, lang)} <i>{"●".repeat(lv)}{"○".repeat(d.max - lv)}</i>
+                <small>{say(d.desc, lang)}</small>
+              </span>
+              <b>{max ? "MAX" : `${cost}`}</b>
+            </li>
+          );
+        })}
+        <li className={cursor >= PENSION.length ? styles.on : ""} onPointerEnter={() => setCursor(PENSION.length)} onClick={() => (gsfx.back(), setPension(null))}>
+          {pension.gold != null ? t("Terminer ▶", "Done ▶") : t("Retour", "Back")}
+        </li>
+      </ul>
+      <p className={styles.keys}>
+        {pension.gold != null
+          ? t("Des bonus pour toutes tes parties (sauf le défi du jour).", "Boosts for all your runs (but the daily).")
+          : t("Termine une partie pour y dépenser ton or.", "Finish a run to spend your gold here.")}
+      </p>
+    </div>
+  );
 
   const L = (b: Button) => (pressed[b] ? styles.down : "");
 
@@ -744,7 +969,7 @@ export default function NookBoy({ origin, onClose }: Props) {
             onContextMenu={(e) => e.preventDefault()}
           >
             <canvas ref={canvas} width={SW} height={SH} className={`${styles.canvas} ${phase === "play" && opts.fire !== "nearest" ? styles.aiming : ""}`} />
-            {overlay && <div className={styles.ui}>{overlay}</div>}
+            {(pensionView || overlay) && <div className={styles.ui}>{pensionView || overlay}</div>}
             <div className={styles.lcd} />
           </div>
         </div>
@@ -789,6 +1014,51 @@ export default function NookBoy({ origin, onClose }: Props) {
         {t("ZQSD / flèches : bouger · souris : viser · Entrée : pause · Tab : palette", "WASD / arrows: move · mouse: aim · Enter: pause · Tab: palette")}
       </p>
     </motion.div>
+  );
+}
+
+/** a card: a level-up's, or one of Kecleon's (with its price) */
+function CardView(props: {
+  c: Choice;
+  i: number;
+  on: boolean;
+  lang: Lang;
+  t: (fr: string, en: string) => string;
+  price?: string;
+  dim?: boolean;
+  onHover: () => void;
+  onPick: () => void;
+}) {
+  const { c, i, on, lang, t } = props;
+  const move = c.kind === "move" || c.kind === "evolve" ? MOVES.find((m) => m.id === c.id) : undefined;
+  const def = move ?? (c.kind === "item" ? ITEMS.find((it) => it.id === c.id) : c.kind === "bonus" ? BONUSES.find((b) => b.id === c.id) : undefined);
+  const tag = { move: t("CAPACITÉ", "MOVE"), item: t("OBJET", "ITEM"), heal: t("SOIN", "HEAL"), evolve: t("ÉVOLUTION", "EVOLUTION"), bonus: "BONUS" }[c.kind];
+  const recipe = move?.evo && `${say(MOVES.find((m) => m.id === move.evo!.from)!.name, lang)} + ${say(ITEMS.find((it) => it.id === move.evo!.item)!.name, lang)}`;
+  return (
+    <button
+      className={`${styles.card} ${on ? styles.on : ""} ${move ? styles[`t_${move.type}`] : ""} ${c.kind === "evolve" ? styles.evoCard : ""} ${c.rarity ? styles[`r_${c.rarity}`] : ""} ${props.dim ? styles.cardDim : ""}`}
+      onPointerEnter={props.onHover}
+      onClick={props.onPick}
+    >
+      <span className={styles.cardTag}>
+        {i + 1} · {tag}
+      </span>
+      {c.rarity && <span className={styles.rarity}>{say(RARITY[c.rarity].name, lang)}</span>}
+      <span className={styles.cardName}>{def ? say(def.name, lang) : t("Baie Sitrus", "Sitrus Berry")}</span>
+      <span className={styles.cardLvl}>
+        {c.kind === "heal"
+          ? "+40 % PV"
+          : c.kind === "evolve"
+            ? recipe
+            : c.kind === "bonus"
+              ? t("cumulable", "stacks")
+              : c.level === 1
+                ? t("nouveau !", "new!")
+                : `${"●".repeat(c.level)}${"○".repeat(5 - c.level)}`}
+      </span>
+      <span className={styles.cardDesc}>{def ? say(def.desc, lang) : t("Soigne 40 % de tes PV.", "Heals 40% of your HP.")}</span>
+      {props.price && <span className={styles.price}>{props.price}</span>}
+    </button>
   );
 }
 

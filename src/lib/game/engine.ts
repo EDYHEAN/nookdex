@@ -4,12 +4,47 @@
 import { gsfx, music } from "./audio";
 import {
   BONUSES, BOSSES, COMBOS, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, STARTERS, WAVE_SECONDS, WILD, xpFor,
-  type BonusId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type Starter, type Wild,
+  DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type Starter, type Wild,
 } from "./data";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
 
-/** center: the Pokémon Center between two boss waves (healed, moves to forget) */
-export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over" | "center";
+/** center: the Pokémon Center between two boss waves (healed, moves to forget); shop: Kecleon's */
+export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over" | "center" | "shop";
+export type Mode = "classic" | "daily" | "coop";
+
+/** what a run is played with: the Pension's levels (none in the daily), the daily's rule */
+export interface RunSetup {
+  mode: Mode;
+  perm: Partial<Record<PensionId, number>>;
+  daily?: { day: string; mod: DailyMod; starter: number };
+}
+
+/** the day's challenge: the same starter and rule for everyone (UTC day) */
+export function dailyOf(day: string) {
+  let h = 2166136261;
+  for (const ch of day) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  h >>>= 0;
+  return { day, starter: h % STARTERS.length, mod: DAILY_MODS[(h >>> 3) % DAILY_MODS.length], seed: h };
+}
+export const today = () => new Date().toISOString().slice(0, 10);
+
+/** a small seeded random (mulberry32): the daily's cards come in the same order for everyone */
+function seeded(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export interface ShopOffer {
+  choice: Choice;
+  price: number;
+  sold: boolean;
+}
 export type FireMode = "auto" | "click" | "nearest";
 
 export interface Input {
@@ -33,6 +68,12 @@ export interface Choice {
 }
 
 export interface RunStats {
+  mode: Mode;
+  /** the daily's day */
+  day?: string;
+  /** gold left at the end: for the Pension (the daily's bonus included) */
+  gold: number;
+  dailyBonus: number;
   wave: number;
   kills: number;
   level: number;
@@ -103,7 +144,7 @@ interface Shot {
 }
 
 interface Pickup {
-  kind: "candy" | "oran" | "rare" | "magnet" | "egg";
+  kind: "candy" | "oran" | "rare" | "magnet" | "egg" | "coin";
   x: number;
   y: number;
   /** pop-out arc */
@@ -215,6 +256,16 @@ export class Game {
   private choiceAt = 0;
 
   private basicT = 0;
+  /** the run's setup (mode, Pension, daily) */
+  setup: RunSetup = { mode: "classic", perm: {} };
+  gold = 0;
+  rerolls = 0;
+  private revives = 0;
+  /** Kecleon on the field, and its offers once you meet it */
+  merchant: { x: number; y: number; t: number; life: number } | null = null;
+  offers: ShopOffer[] = [];
+  shopRerolls = 0;
+  private cardRng: () => number = Math.random;
   /** stacked bonuses (Protein, PP Up) */
   private bonusPower = 0;
   private bonusHaste = 1;
@@ -301,14 +352,17 @@ export class Game {
   itemLevel(id: ItemId) {
     return this.items.find((i) => i.id === id)?.level ?? 0;
   }
+  private perm(id: PensionId) {
+    return this.setup.perm[id] ?? 0;
+  }
   get power() {
-    return (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower);
+    return (1 + 0.02 * this.perm("power")) * (this.setup.daily?.mod.playerDmg ?? 1) * (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower);
   }
   get speed() {
-    return this.starter.speed * (1 + 0.08 * this.itemLevel("scarf")) * (1 + this.stage * 0.04);
+    return this.starter.speed * (1 + 0.08 * this.itemLevel("scarf")) * (1 + this.stage * 0.04) * (1 + 0.015 * this.perm("speed"));
   }
   get haste() {
-    return Math.max(0.4, (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste);
+    return Math.max(0.4, (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste * (1 - 0.015 * this.perm("haste")));
   }
   get area() {
     return (1 + 0.1 * this.itemLevel("root")) * (1 + this.stage * 0.08);
@@ -320,13 +374,18 @@ export class Game {
     return 1.8 + 0.25 * this.itemLevel("belt");
   }
   get magnet() {
-    return 56 * (1 + 0.4 * this.itemLevel("magnet"));
+    return 56 * (1 + 0.4 * this.itemLevel("magnet")) * (1 + 0.08 * this.perm("magnet"));
   }
   get xpMul() {
-    return 1 + 0.12 * this.itemLevel("share");
+    return (1 + 0.12 * this.itemLevel("share")) * (1 + 0.03 * this.perm("xp")) * (this.setup.daily?.mod.xp ?? 1);
+  }
+  get goldMul() {
+    return (1 + 0.06 * this.perm("gold")) * (this.setup.daily?.mod.gold ?? 1);
   }
   private computeMaxHp() {
-    return Math.round((this.starter.hp + this.stage * 30 + 20 * this.itemLevel("hpup") + (this.level - 1) * 2) * (1 - 0.03 * this.itemLevel("lifeorb")));
+    return Math.round(
+      (this.starter.hp + this.stage * 30 + 20 * this.itemLevel("hpup") + (this.level - 1) * 2) * (1 - 0.03 * this.itemLevel("lifeorb")) * (1 + 0.04 * this.perm("hp")),
+    );
   }
 
   /* ---------------- phases ---------------- */
@@ -341,8 +400,16 @@ export class Game {
     this.set("select");
   }
 
-  start(i: number) {
-    const s = STARTERS[i];
+  start(i: number, setup: RunSetup = { mode: "classic", perm: {} }) {
+    const s = STARTERS[setup.daily ? setup.daily.starter : i];
+    this.setup = setup;
+    this.cardRng = setup.daily ? seeded(dailyOf(setup.daily.day).seed) : Math.random;
+    this.gold = 0;
+    this.rerolls = this.perm("reroll");
+    this.revives = this.perm("revive");
+    this.merchant = null;
+    this.offers = [];
+    this.shopRerolls = 0;
     Object.assign(this, {
       starter: s, dex: s.dex, stage: 0, x: 0, y: 0, dir: 0, hp: s.hp, maxHp: s.hp, level: 1, xp: 0, time: 0, kills: 0, wave: 1,
       moves: [], items: [], pendingLevels: 0, choices: [], evo: null, evoBlocked: 0, basicT: 0, enemies: [], shots: [], foes: [],
@@ -369,6 +436,13 @@ export class Game {
   /** the player picked a level-up reward */
   choose(c: Choice | undefined) {
     if (this.phase !== "levelup" || !c || !this.canChoose) return;
+    this.apply(c);
+    this.pendingLevels--;
+    this.afterLevel();
+  }
+
+  /** a card's effect, from a level-up or from the shop */
+  private apply(c: Choice) {
     if (c.kind === "move") {
       const m = this.moves.find((x) => x.id === c.id);
       if (m) m.level++;
@@ -400,8 +474,77 @@ export class Game {
     }
     this.maxHp = this.computeMaxHp();
     this.hp = Math.min(this.hp, this.maxHp);
-    this.pendingLevels--;
-    this.afterLevel();
+  }
+
+  /** the Lucky die (the Pension): three new cards */
+  reroll() {
+    if (this.phase !== "levelup" || this.rerolls <= 0) return;
+    this.rerolls--;
+    gsfx.move();
+    this.offerChoices();
+  }
+
+  /* ---------------- Kecleon's shop ---------------- */
+
+  private openShop() {
+    this.offers = this.makeOffers();
+    this.release();
+    gsfx.coin();
+    this.set("shop");
+  }
+  private makeOffers(): ShopOffer[] {
+    const w = 1 + this.wave * 0.04;
+    const base: Record<Rarity, number> = { common: 25, rare: 45, epic: 80, legendary: 140 };
+    return this.drawChoices(3).map((c) => ({ choice: c, price: Math.round(base[c.rarity ?? "common"] * w), sold: false }));
+  }
+  get rerollPrice() {
+    return 10 + 10 * this.shopRerolls;
+  }
+  get healPrice() {
+    return Math.round(20 * (1 + this.wave * 0.04));
+  }
+  buy(i: number) {
+    const o = this.offers[i];
+    if (this.phase !== "shop" || !o || o.sold || this.gold < o.price) return gsfx.back();
+    this.gold -= o.price;
+    o.sold = true;
+    this.apply(o.choice);
+    this.onChange();
+  }
+  buyHeal() {
+    if (this.phase !== "shop" || this.gold < this.healPrice || this.hp >= this.maxHp) return gsfx.back();
+    this.gold -= this.healPrice;
+    this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.5);
+    gsfx.heal();
+    this.onChange();
+  }
+  shopReroll() {
+    if (this.phase !== "shop" || this.gold < this.rerollPrice) return gsfx.back();
+    this.gold -= this.rerollPrice;
+    this.shopRerolls++;
+    this.offers = this.makeOffers();
+    gsfx.coin();
+    this.onChange();
+  }
+  leaveShop() {
+    if (this.phase !== "shop") return;
+    // Kecleon waves goodbye and goes
+    if (this.merchant) for (let i = 0; i < 10; i++) this.part(this.merchant.x + rand(-8, 8), this.merchant.y - rand(0, 20), rand(-30, 30), -rand(10, 40), "white", 0.5, 3, -10, "puff");
+    this.merchant = null;
+    gsfx.ok();
+    if (this.pendingLevels > 0) this.offerChoices();
+    else this.set("play");
+  }
+
+  /** giving up ends the run like a K.O.: the score and the Pension still count */
+  giveUp() {
+    if (this.phase !== "paused") return;
+    this.revives = 0;
+    this.hp = 0;
+    this.dyingT = 0;
+    gsfx.gameOver();
+    music.stop();
+    this.set("dying");
   }
 
   private afterLevel() {
@@ -445,6 +588,14 @@ export class Game {
   }
 
   private offerChoices() {
+    this.choices = this.drawChoices(3);
+    this.choiceAt = performance.now();
+    this.release();
+    this.set("levelup");
+  }
+
+  /** n cards: the evolutions ready first, then by rarity; boosts once everything is learnt */
+  private drawChoices(n: number): Choice[] {
     const pool: Choice[] = [];
     // an evolution ready: it always comes first
     const evolutions: Choice[] = MOVES.filter(
@@ -465,20 +616,17 @@ export class Game {
       pool.push({ kind: "item", id: it.id, level: (has?.level ?? 0) + 1, rarity: it.rarity });
       weights.push(RARITY[it.rarity].weight * (has ? 1.6 : 1));
     }
-    const out: Choice[] = evolutions.slice(0, 2).map((c) => ({ ...c, rarity: "legendary" as const }));
-    while (out.length < 3 && pool.length) {
-      let r = Math.random() * weights.reduce((a, b) => a + b, 0);
+    const out: Choice[] = evolutions.slice(0, Math.min(2, n)).map((c) => ({ ...c, rarity: "legendary" as const }));
+    while (out.length < n && pool.length) {
+      let r = this.cardRng() * weights.reduce((a, b) => a + b, 0);
       let i = 0;
       while (i < pool.length - 1 && (r -= weights[i]) > 0) i++;
       out.push(pool.splice(i, 1)[0]);
       weights.splice(i, 1);
     }
     // everything learnt and raised: boosts that stack, and a berry
-    for (const b of BONUSES) if (out.length < 3) out.push({ kind: "bonus", id: b.id, level: 0 });
-    this.choices = out;
-    this.choiceAt = performance.now();
-    this.release();
-    this.set("levelup");
+    for (const b of BONUSES) if (out.length < n) out.push({ kind: "bonus", id: b.id, level: 0, rarity: "common" });
+    return out;
   }
 
   /* ---------------- the loop ---------------- */
@@ -501,7 +649,11 @@ export class Game {
       this.dyingT += STEP;
       this.stepParts(STEP * 0.4);
       if (this.dyingT > 2.2) {
-        this.lastStats = { wave: this.wave, kills: this.kills, level: this.level, seconds: Math.floor(this.time), starter: this.starter.dex, dex: this.dex };
+        const daily = this.setup.daily;
+        this.lastStats = {
+          mode: this.setup.mode, day: daily?.day, gold: this.gold, dailyBonus: daily ? 50 + this.wave * 10 : 0,
+          wave: this.wave, kills: this.kills, level: this.level, seconds: Math.floor(this.time), starter: this.starter.dex, dex: this.dex,
+        };
         this.set("over");
       }
       return;
@@ -516,6 +668,11 @@ export class Game {
 
     this.movePlayer(input, dt);
     this.buildGrid();
+    if (this.merchant) {
+      this.merchant.t += dt;
+      if (this.merchant.t > this.merchant.life) this.merchant = null;
+      else if (dist2(this.x, this.y, this.merchant.x, this.merchant.y) < 18 * 18) this.openShop();
+    }
     this.stepDash(dt);
     this.stepRocks(dt);
     this.attack(input, dt);
@@ -539,6 +696,16 @@ export class Game {
     this.cam.x += (this.x - this.cam.x) * 0.15;
     this.cam.y += (this.y - this.cam.y) * 0.15;
 
+    if (this.hp <= 0 && this.revives > 0) {
+      // the Pension's Revive: up again, once
+      this.revives--;
+      this.hp = this.maxHp * 0.5;
+      this.invuln = 2.5;
+      this.flash = 1;
+      this.showBanner(this.tr("RAPPEL !", "REVIVE!"), this.tr("ton Pokémon se relève", "your Pokémon gets back up"));
+      for (const e of this.around(this.x, this.y, 70)) this.damage(e, 9999, (e.x - this.x) * 3, (e.y - this.y) * 3, "normal", true);
+      gsfx.evolveDone();
+    }
     if (this.hp <= 0) {
       this.hp = 0;
       this.dyingT = 0;
@@ -604,12 +771,17 @@ export class Game {
       for (let i = 0; i < 40; i++) this.spawnOne(129, i / 40);
       this.showBanner(this.tr("VAGUE 11", "WAVE 11"), this.tr("une horde de Magicarpe ?!", "a shoal of Magikarp?!"));
     } else this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), "");
-    if (wave % 5 === 1 && wave > 1) {
+    if (wave % 5 === 1 && wave > 1 && !this.setup.daily?.mod.noCenter) {
       // the Pokémon Center, after a boss's wave: healed, and a moment to forget moves
       this.hp = this.maxHp;
       this.release();
       gsfx.heal();
       this.set("center");
+    }
+    if (wave % 3 === 0 && wave % 5 !== 0) {
+      const a = Math.random() * Math.PI * 2;
+      this.merchant = { x: this.x + Math.cos(a) * 140, y: this.y + Math.sin(a) * 110, t: 0, life: 40 };
+      if (this.phase === "play") this.showBanner(this.tr("KECLEON EST LA", "KECLEON IS HERE"), this.tr("sa boutique t'attend (or)", "its shop awaits (gold)"));
     }
     // a Chansey runs by sometimes: catch it if you can
     this.treasureAt = wave >= 3 && Math.random() < 0.45 ? this.time + rand(5, 25) : -1;
@@ -1062,7 +1234,9 @@ export class Game {
     }
     if (elem === "ice" && e.wetT > 0 && !e.boss) e.sleepT = Math.max(e.sleepT, 1.2);
     const crit = Math.random() < this.crit;
-    const dmg = Math.max(1, Math.round(base * mul * (crit ? this.critMul : 1) * rand(0.9, 1.1)));
+    const day = this.setup.daily?.mod.elem;
+    const boost = day && (elem === day[0] || (day[0] === "water" && elem === "elec")) ? day[1] : 1;
+    const dmg = Math.max(1, Math.round(base * mul * boost * (crit ? this.critMul : 1) * rand(0.9, 1.1)));
     if (mul > 1) {
       for (let i = 0; i < 5; i++) this.part(e.x, e.y - 10, rand(-40, 40), rand(-60, -10), "gold", 0.4, 2, 60, "spark");
       if (!quiet) gsfx.zap();
@@ -1098,14 +1272,18 @@ export class Game {
       this.drop("rare", e.x, e.y, 0);
       this.drop("oran", e.x + 8, e.y, 0);
       for (let i = 0; i < 14; i++) this.drop("candy", e.x + rand(-20, 20), e.y + rand(-20, 20), 8);
+      for (let i = 0; i < 10; i++) this.drop("coin", e.x + rand(-24, 24), e.y + rand(-24, 24), 3 + Math.floor(this.wave / 3));
       gsfx.rare();
       this.showBanner(this.tr(`${this.name(e.dex)} est K.O. !`, `${this.name(e.dex)} fainted!`), this.tr("un Super Bonbon est tombé", "a Rare Candy dropped"));
     } else if (e.w?.act === "treasure") {
       for (let i = 0; i < 8; i++) this.drop("candy", e.x + rand(-14, 14), e.y + rand(-14, 14), 8);
+      for (let i = 0; i < 6; i++) this.drop("coin", e.x + rand(-14, 14), e.y + rand(-14, 14), 2 + Math.floor(this.wave / 4));
       this.drop("egg", e.x, e.y, 0);
       gsfx.rare();
     } else {
       this.drop("candy", e.x, e.y, xp);
+      if (e.elite) for (let i = 0; i < 3; i++) this.drop("coin", e.x + rand(-8, 8), e.y + rand(-8, 8), 1 + Math.floor(this.wave / 6));
+      else if (Math.random() < 0.05) this.drop("coin", e.x, e.y, 1 + Math.floor(this.wave / 6));
       const r = Math.random();
       if (r < 0.012) this.drop("oran", e.x, e.y, 0);
       else if (r < 0.016) this.drop("magnet", e.x, e.y, 0);
@@ -1150,11 +1328,11 @@ export class Game {
     const k = this.wave - 1;
     // they get tougher faster than the player does, past the first waves
     const hpMul = 1 + 0.18 * k + 0.012 * k * k;
-    const elite = !!w && w.act !== "treasure" && w.act !== "flop" && Math.random() < 0.015 + 0.004 * this.wave;
+    const elite = !!w && w.act !== "treasure" && w.act !== "flop" && Math.random() < (0.015 + 0.004 * this.wave) * (this.setup.daily?.mod.elite ?? 1);
     const hp = (w?.hp ?? 100) * hpMul * (elite ? 4 : 1);
     return {
       w, boss: null, dex, x, y, kx: 0, ky: 0, hp, max: hp, speed: (w?.speed ?? 30) * (1 + Math.min(0.35, 0.012 * k)) * (elite ? 0.9 : 1),
-      dmg: (w?.dmg ?? 10) * (1 + 0.08 * k + 0.004 * k * k) * (elite ? 1.5 : 1), r: (w?.r ?? 7) * (elite ? 1.3 : 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0, wetT: 0, burnT: 0, burnDps: 0, poisonT: 0, poisonDps: 0, dotT: 0.5,
+      dmg: (w?.dmg ?? 10) * (1 + 0.08 * k + 0.004 * k * k) * (elite ? 1.5 : 1) * (this.setup.daily?.mod.enemyDmg ?? 1), r: (w?.r ?? 7) * (elite ? 1.3 : 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0, wetT: 0, burnT: 0, burnDps: 0, poisonT: 0, poisonDps: 0, dotT: 0.5,
       state: "", stateT: rand(1, 3), actT: 2, elite, z: 0, alpha: 1, aim: { x: 0, y: 0 }, touchT: 0, n: 0, dead: false, deadT: 0, seed: Math.random() * 100,
     };
   }
@@ -1168,7 +1346,7 @@ export class Game {
   private spawn(dt: number) {
     const alive = this.enemies.length;
     const cap = Math.min(260, 120 + this.wave * 6);
-    const rate = (0.6 + 0.3 * this.wave + 0.012 * this.wave * this.wave) * (this.bossAlive ? 0.5 : 1);
+    const rate = (0.6 + 0.3 * this.wave + 0.012 * this.wave * this.wave) * (this.bossAlive ? 0.5 : 1) * (this.setup.daily?.mod.spawn ?? 1);
     this.spawnAcc += rate * dt;
     const pool = POOLS.filter(([w]) => w <= this.wave).flatMap(([, d]) => d).filter((d) => !(RETIRE[d] && this.wave >= RETIRE[d]));
     while (this.spawnAcc >= 1) {
@@ -1706,7 +1884,10 @@ export class Game {
   }
 
   private collect(p: Pickup) {
-    if (p.kind === "candy") {
+    if (p.kind === "coin") {
+      this.gold += Math.max(1, Math.round(p.value * this.goldMul));
+      gsfx.coin();
+    } else if (p.kind === "candy") {
       gsfx.candy();
       this.gainXp(p.value);
     } else if (p.kind === "oran" || p.kind === "egg") {
@@ -1895,6 +2076,22 @@ export class Game {
     const bodies: { y: number; draw: () => void }[] = [];
     for (const e of this.enemies) bodies.push({ y: e.y, draw: () => this.drawEnemy(ctx, e, ox, oy) });
     bodies.push({ y: this.y, draw: () => this.drawPlayer(ctx, ox, oy) });
+    const m = this.merchant;
+    if (m)
+      bodies.push({
+        y: m.y,
+        draw: () => {
+          ctx.fillStyle = g.c.shadow;
+          ctx.globalAlpha = 0.28;
+          ellipse(ctx, m.x + ox, m.y + oy, 8, 3);
+          ctx.globalAlpha = 1;
+          // it blinks in and out of sight, like a Kecleon does, in its last seconds
+          if (m.life - m.t < 6 && Math.floor(m.t * 6) % 2) return;
+          g.sprite(ctx, 352, "Idle", frameAt(anim(352, "Idle"), m.t), 0, m.x + ox, m.y + oy - 8);
+          // its sign: a coin bobbing over its head
+          this.drawPickup(ctx, { kind: "coin", x: m.x, y: m.y - 30 - Math.round(Math.sin(m.t * 4) * 2), z: 0, vz: 1, value: 0, pull: false, t: m.t }, ox, oy);
+        },
+      });
     bodies.sort((a, b) => a.y - b.y);
     for (const b of bodies) b.draw();
 
@@ -2330,12 +2527,25 @@ export class Game {
       if (x < -8 || x > SW + 8 || y < -8 || y > SH + 8) return;
       // the precious ones glow
       if (p.kind !== "candy" || p.value >= 8) {
-        ctx.fillStyle = g.c[p.kind === "rare" ? "gold" : p.kind === "candy" ? "xpBig" : p.kind === "magnet" ? "hpLow" : "heal"];
+        ctx.fillStyle = g.c[p.kind === "rare" || p.kind === "coin" ? "gold" : p.kind === "candy" ? "xpBig" : p.kind === "magnet" ? "hpLow" : "heal"];
         ctx.globalAlpha = 0.18 + 0.12 * Math.sin(p.t * 6);
         ctx.beginPath();
         ctx.arc(x, y, p.kind === "rare" ? 9 : 7, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
+      }
+      if (p.kind === "coin") {
+        // a Nugget, turning on itself
+        const w = [3, 2, 1, 2][Math.floor(p.t * 8 + p.x) % 4];
+        ctx.fillStyle = g.c.ink;
+        ctx.fillRect(x - w - 1, y - 4, w * 2 + 2, 8);
+        ctx.fillRect(x - w - 2, y - 3, w * 2 + 4, 6);
+        ctx.fillStyle = g.c.coin;
+        ctx.fillRect(x - w, y - 3, w * 2, 6);
+        ctx.fillRect(x - w - 1, y - 2, w * 2 + 2, 4);
+        ctx.fillStyle = g.c.coin2;
+        ctx.fillRect(x - Math.max(0, w - 1), y - 2, 1, 2);
+        return;
       }
       if (p.kind === "candy") {
         // a wrapped candy; the big ones are pink
@@ -2453,6 +2663,20 @@ export class Game {
 
   /** an arrow at the screen's edge toward the boss or a Chansey */
   private drawPointers(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
+    const m = this.merchant;
+    if (m) {
+      const x = m.x + ox, y = m.y + oy;
+      if (!(x > 0 && x < SW && y > 16 && y < SH)) {
+        const cx = Math.max(8, Math.min(SW - 8, x)), cy = Math.max(24, Math.min(SH - 30, y));
+        const a = Math.atan2(y - cy, x - cx);
+        ctx.fillStyle = this.gfx.c.coin;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a) * 6, cy + Math.sin(a) * 6);
+        ctx.lineTo(cx + Math.cos(a + 2.4) * 5, cy + Math.sin(a + 2.4) * 5);
+        ctx.lineTo(cx + Math.cos(a - 2.4) * 5, cy + Math.sin(a - 2.4) * 5);
+        ctx.fill();
+      }
+    }
     for (const e of this.enemies) {
       if (e.dead || !(e.boss || e.w?.act === "treasure")) continue;
       const x = e.x + ox, y = e.y + oy;
@@ -2489,6 +2713,9 @@ export class Game {
     g.text(ctx, this.tr(`VAGUE ${this.wave}`, `WAVE ${this.wave}`), SW / 2, 8, "gold", { align: "center" });
     g.text(ctx, `0:${String(left).padStart(2, "0")}`, SW / 2, 15, left <= 5 ? "hpLow" : "uiDim", { align: "center" });
     g.text(ctx, `KO ${this.kills}`, SW - 4, 8, "ui", { align: "right" });
+    this.drawPickup(ctx, { kind: "coin", x: 8, y: 20, z: 0, vz: 1, value: 0, pull: false, t: 0 }, 0, 0);
+    g.text(ctx, String(this.gold), 15, 18, "gold");
+    if (this.setup.daily) g.text(ctx, this.tr("DEFI DU JOUR", "DAILY"), 4, 26, "psy");
     const m = Math.floor(this.time / 60);
     g.text(ctx, `${m}:${String(Math.floor(this.time % 60)).padStart(2, "0")}`, SW - 4, 15, "uiDim", { align: "right" });
 
@@ -2584,6 +2811,7 @@ export class Game {
       else if (e.elite) dot(e.x, e.y, c.gold, 2);
       else dot(e.x, e.y, c.uiDim, 1);
     }
+    if (this.merchant) dot(this.merchant.x, this.merchant.y, c.coin, 3);
     dot(this.x, this.y, c.white, 2);
   }
 
@@ -2598,6 +2826,8 @@ export class Game {
       ["egg", 0, this.tr("OEUF CHANCE", "LUCKY EGG")],
       ["magnet", 0, this.tr("AIMANT", "MAGNET")],
     ];
+    items.splice(1, 0, ["coin", 0, this.tr("PEPITE (OR)", "NUGGET (GOLD)")]);
+    items.splice(5, 1);
     const y = SH - 56;
     ctx.fillStyle = g.c.uiDark;
     ctx.globalAlpha = 0.8;

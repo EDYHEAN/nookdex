@@ -887,6 +887,124 @@
   color: var(--c1);
 }
 
+/* gold, Kecleon's shop, the Pension, the daily, the ladder's boards */
+.goldText {
+  color: #ffc93d;
+}
+
+.screen:not([data-palette="color"]) .goldText {
+  color: var(--c3);
+}
+
+.price {
+  margin-top: auto;
+  align-self: flex-start;
+  padding: 2px 4px;
+  border-radius: 2px;
+  background: var(--c0);
+  color: var(--c3);
+  font-size: 7px;
+}
+
+.cardDim {
+  opacity: 0.55;
+}
+
+.shopRow {
+  margin: 8px auto 0;
+  width: fit-content;
+  font-size: 7px;
+}
+
+.pension {
+  min-width: 0;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  overflow: auto;
+}
+
+.pension li {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 1px 0;
+}
+
+.pension li.dim {
+  color: var(--c1);
+}
+
+.pension i {
+  font-style: normal;
+  font-size: 6px;
+  color: var(--c1);
+}
+
+.pension small {
+  display: block;
+  font: 11px/10px var(--font-vt), monospace;
+  color: var(--c1);
+}
+
+.pension b {
+  font-weight: normal;
+  white-space: nowrap;
+  color: #c47f00;
+}
+
+.pensionBtn {
+  background: #ffc93d !important;
+  color: var(--c0) !important;
+}
+
+.daily {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font: 12px/12px var(--font-vt), monospace;
+}
+
+.daily p {
+  margin: 0;
+}
+
+.dailyDay {
+  font: 8px/10px var(--font-press), monospace;
+  text-transform: capitalize;
+}
+
+.dailyStarter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dailyMod b {
+  font-weight: normal;
+  color: var(--c1);
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.tabs button {
+  padding: 3px 5px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--c2);
+  color: var(--c0) !important;
+  font-size: 6px;
+}
+
+.tabs button.on {
+  background: var(--c3);
+  box-shadow: 0 0 0 1px var(--c0);
+}
+
 /* the Pokémon Center */
 .centerMsg {
   font: 12px/12px var(--font-vt), monospace;

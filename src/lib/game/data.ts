@@ -23,6 +23,7 @@ export const NAMES: Record<number, Txt> = {
   145: ["Électhor", "Zapdos"], 146: ["Sulfura", "Moltres"], 149: ["Dracolosse", "Dragonite"], 150: ["Mewtwo", "Mewtwo"], 151: ["Mew", "Mew"],
   15: ["Dardargnan", "Beedrill"], 59: ["Arcanin", "Arcanine"], 65: ["Alakazam", "Alakazam"], 68: ["Mackogneur", "Machamp"],
   76: ["Grolem", "Golem"], 89: ["Grotadmorv", "Muk"], 112: ["Rhinoféros", "Rhydon"], 142: ["Ptéra", "Aerodactyl"],
+  352: ["Kecleon", "Kecleon"],
 };
 
 export type BasicKind = "whip" | "ember" | "water" | "bolt";
@@ -301,3 +302,53 @@ export const BOSSES: BossDef[] = [
 
 /** experience to reach the next level */
 export const xpFor = (level: number) => Math.round(4 + level * 3 + Math.pow(level, 1.7) + 0.9 * Math.max(0, level - 15) ** 2);
+
+/* ---------------- the Pension: permanent boosts, bought with what's left of a run's gold ---------------- */
+
+export type PensionId = "power" | "hp" | "speed" | "haste" | "magnet" | "xp" | "gold" | "reroll" | "revive";
+export interface PensionDef {
+  id: PensionId;
+  name: Txt;
+  /** what one level gives */
+  desc: Txt;
+  max: number;
+  /** price of the first level; each next one costs 55 % more */
+  cost: number;
+}
+export const PENSION: PensionDef[] = [
+  { id: "power", name: ["Entraînement", "Training"], desc: ["+2 % de dégâts", "+2% damage"], max: 10, cost: 30 },
+  { id: "hp", name: ["Vitamines", "Vitamins"], desc: ["+4 % de PV max", "+4% max HP"], max: 10, cost: 30 },
+  { id: "speed", name: ["Footing", "Jogging"], desc: ["+1,5 % de vitesse", "+1.5% speed"], max: 8, cost: 40 },
+  { id: "haste", name: ["Méditation", "Meditation"], desc: ["capacités 1,5 % plus vite prêtes", "moves 1.5% sooner"], max: 8, cost: 50 },
+  { id: "magnet", name: ["Gourmandise", "Sweet tooth"], desc: ["bonbons attirés 8 % plus loin", "candies pulled 8% further"], max: 6, cost: 20 },
+  { id: "xp", name: ["Leçons", "Lessons"], desc: ["+3 % d'expérience", "+3% experience"], max: 8, cost: 40 },
+  { id: "gold", name: ["Flair", "Flair"], desc: ["+6 % d'or ramassé", "+6% gold picked up"], max: 8, cost: 25 },
+  { id: "reroll", name: ["Dé pipé", "Lucky die"], desc: ["+1 relance des cartes par partie", "+1 card reroll per run"], max: 3, cost: 120 },
+  { id: "revive", name: ["Rappel", "Revive"], desc: ["te relève une fois par partie", "gets you up once per run"], max: 1, cost: 400 },
+];
+export const pensionCost = (d: PensionDef, level: number) => Math.round(d.cost * Math.pow(1.55, level));
+
+/* ---------------- the daily challenge: the same starter and rule for everyone, no Pension ---------------- */
+
+export interface DailyMod {
+  id: string;
+  name: Txt;
+  desc: Txt;
+  spawn?: number;
+  playerDmg?: number;
+  enemyDmg?: number;
+  elite?: number;
+  gold?: number;
+  xp?: number;
+  /** a type that hits harder */
+  elem?: [Elem, number];
+  noCenter?: boolean;
+}
+export const DAILY_MODS: DailyMod[] = [
+  { id: "horde", name: ["La horde", "The horde"], desc: ["50 % d'ennemis en plus, 20 % d'XP en plus.", "50% more foes, 20% more XP."], spawn: 1.5, xp: 1.2 },
+  { id: "glass", name: ["Verre fragile", "Glass cannon"], desc: ["Tout le monde tape 50 % plus fort.", "Everyone hits 50% harder."], playerDmg: 1.5, enemyDmg: 1.5 },
+  { id: "rain", name: ["Jour de pluie", "Rainy day"], desc: ["Eau et Électrik 30 % plus forts.", "Water and Electric 30% stronger."], elem: ["water", 1.3] },
+  { id: "heat", name: ["Canicule", "Heatwave"], desc: ["Le Feu 40 % plus fort.", "Fire 40% stronger."], elem: ["fire", 1.4] },
+  { id: "elite", name: ["Les cadors", "The tough ones"], desc: ["Trois fois plus d'ennemis dorés, deux fois plus d'or.", "Three times as many golden foes, twice the gold."], elite: 3, gold: 2 },
+  { id: "alone", name: ["Sans Centre", "No Center"], desc: ["Pas de Centre Pokémon. Courage.", "No Pokémon Center. Good luck."], noCenter: true, xp: 1.15 },
+];

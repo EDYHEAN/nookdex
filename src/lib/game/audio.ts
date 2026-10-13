@@ -58,6 +58,12 @@ export const gsfx = {
     if (!throttle("candy", 35)) return;
     tone({ freq: semi(988, [0, 2, 4, 7, 9][candyStreak % 5] + 12 * Math.floor(candyStreak / 5)), dur: 0.05, vol: 0.035, dest: out() });
   },
+  /** a Nugget: a little cash-register ding */
+  coin() {
+    if (!throttle("coin", 50)) return;
+    tone({ freq: 1568, dur: 0.05, vol: 0.04, dest: out() });
+    tone({ freq: 2093, dur: 0.12, vol: 0.04, delay: 0.05, dest: out() });
+  },
   heal() {
     [0, 4, 7, 12].forEach((n, i) => tone({ freq: semi(784, n), type: "triangle", dur: 0.1, vol: 0.06, delay: i * 0.05, dest: out() }));
   },
