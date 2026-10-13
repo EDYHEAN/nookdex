@@ -709,18 +709,6 @@
   background: transparent;
 }
 
-.pickRow button:nth-child(1) {
-  left: 20px;
-}
-.pickRow button:nth-child(2) {
-  left: 92px;
-}
-.pickRow button:nth-child(3) {
-  left: 164px;
-}
-.pickRow button:nth-child(4) {
-  left: 236px;
-}
 
 .pickRow button.on::after {
   content: "▼";
@@ -1235,6 +1223,9 @@
 .screen[data-palette="color"] .t_psy { --tc: #ff7ac0; }
 .screen[data-palette="color"] .t_normal { --tc: #b9ada0; }
 .screen[data-palette="color"] .t_dragon { --tc: #7a6cf0; }
+.screen[data-palette="color"] .t_fly { --tc: #bfe3ff; }
+.screen[data-palette="color"] .t_poison { --tc: #a35bc9; }
+.screen[data-palette="color"] .t_fight { --tc: #e0603a; }
 
 /* evolution: the text box at the bottom */
 .textbox {
@@ -1595,23 +1586,16 @@
   translate: 0 -1px;
 }
 
-/* the starter screen: the skin worn (a reward) */
-.skinRow {
-  display: block;
-  margin: 6px auto 0;
-  padding: 3px 8px;
-  border: 0;
-  border-radius: 3px;
-  background: var(--c3);
-  font-size: 7px;
-  box-shadow: 0 0 0 1px var(--c0);
+/* the starter screen: Mewtwo's tag (a reward) */
+.legend {
+  margin-left: 4px;
+  padding: 1px 3px;
+  border-radius: 2px;
+  background: #ffc93d;
+  color: var(--c0);
+  font-size: 6px;
 }
 
-.skinRow.on {
-  background: #d8b6ff;
-}
-
-.skinPerk {
-  font-style: normal;
-  color: var(--c1);
+.screen:not([data-palette="color"]) .legend {
+  background: var(--c2);
 }

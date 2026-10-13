@@ -28,6 +28,8 @@ const ROSTER = {
   ...Object.fromEntries([143, 95, 94, 130, 149, 150, 144, 145, 146, 151].map((n) => [n, BOSS])),
   // Mewtwo, a boss and a player's skin (a reward): the player's moves too
   150: PLAYER,
+  // Mega Mewtwo Y, its evolution in the game (a form: 10000 + its dex number, see FORMS)
+  10150: PLAYER,
   // Kecleon, the merchant
   352: ["Walk", "Idle"],
 };
@@ -37,6 +39,8 @@ const ROWS = 5;
 const ATLAS_W = 2048;
 
 const pad = (n) => String(n).padStart(4, "0");
+/** forms: their folder on SpriteCollab */
+const FORMS = { 10150: "0150/0002" };
 
 async function cached(url, file, binary) {
   const p = path.join(CACHE, file);
@@ -102,7 +106,7 @@ const creditNames = new Map(
 
 for (const [dexStr, wanted] of Object.entries(ROSTER)) {
   const dex = +dexStr;
-  const dir = pad(dex);
+  const dir = FORMS[dex] ?? pad(dex);
   const xml = await cached(`${RAW}/${dir}/AnimData.xml`, `${dir}/AnimData.xml`);
   const anims = parseAnims(xml);
   const cr = await cached(`${RAW}/${dir}/credits.txt`, `${dir}/credits.txt`).catch(() => "");

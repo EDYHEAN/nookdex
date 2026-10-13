@@ -101,7 +101,7 @@ declare
 begin
   if clean = '' then clean := 'Dresseur'; end if;
   if p_wave < 1 or p_wave > 500 or p_seconds < (p_wave - 1) * 30 or p_seconds > p_wave * 30 + 5
-     or p_kills < 0 or p_kills > p_seconds * 15 + 40 or p_level < 1 or p_level > 300 or p_starter not in (1, 4, 7, 25) then
+     or p_kills < 0 or p_kills > p_seconds * 15 + 40 or p_level < 1 or p_level > 300 or p_starter not in (1, 4, 7, 25, 150) then
     raise exception 'implausible score';
   end if;
   -- one run every 20 seconds per name
@@ -184,7 +184,7 @@ begin
   if p_mode not in ('classic', 'daily', 'coop') then raise exception 'unknown mode'; end if;
   if p_mode = 'daily' and (p_day is null or p_day < utc - 1 or p_day > utc + 1) then raise exception 'not today'; end if;
   if p_wave < 1 or p_wave > 500 or p_seconds < (p_wave - 1) * 30 or p_seconds > p_wave * 30 + 5
-     or p_kills < 0 or p_kills > p_seconds * 15 + 40 or p_level < 1 or p_level > 300 or p_starter not in (1, 4, 7, 25) then
+     or p_kills < 0 or p_kills > p_seconds * 15 + 40 or p_level < 1 or p_level > 300 or p_starter not in (1, 4, 7, 25, 150) then
     raise exception 'implausible score';
   end if;
   if exists (select 1 from public.game_scores s where lower(s.name) = lower(clean) and s.created_at > now() - interval '20 seconds') then

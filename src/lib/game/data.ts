@@ -24,9 +24,11 @@ export const NAMES: Record<number, Txt> = {
   15: ["Dardargnan", "Beedrill"], 59: ["Arcanin", "Arcanine"], 65: ["Alakazam", "Alakazam"], 68: ["Mackogneur", "Machamp"],
   76: ["Grolem", "Golem"], 89: ["Grotadmorv", "Muk"], 112: ["Rhinoféros", "Rhydon"], 142: ["Ptéra", "Aerodactyl"],
   352: ["Kecleon", "Kecleon"],
+  // forms get a number of their own: 10000 + the dex number
+  10150: ["Méga-Mewtwo Y", "Mega Mewtwo Y"],
 };
 
-export type BasicKind = "whip" | "ember" | "water" | "bolt";
+export type BasicKind = "whip" | "ember" | "water" | "bolt" | "psycut";
 
 export interface Starter {
   dex: number;
@@ -37,9 +39,18 @@ export interface Starter {
   basic: { kind: BasicKind; name: Txt; every: number; dmg: number };
   blurb: Txt;
   type: Elem;
+  /** only for the players given this reward (game_rewards) */
+  reward?: string;
+  /** stronger from the start, and more with each level: damage x power x (1 + growth per level) */
+  power?: number;
+  growth?: number;
+  /** max HP won per level (2 by default) */
+  hpPerLevel?: number;
+  /** a move of its own, always there, outside the 4 slots */
+  sig?: "psystrike";
 }
 
-export type Elem = "grass" | "fire" | "water" | "elec" | "ice" | "ghost" | "ground" | "psy" | "normal" | "fly" | "dragon" | "poison";
+export type Elem = "grass" | "fire" | "water" | "elec" | "ice" | "ghost" | "ground" | "psy" | "normal" | "fly" | "dragon" | "poison" | "fight";
 
 /** how rare a level-up card is: the rarer, the less often it comes up (and the stronger) */
 export type Rarity = "common" | "rare" | "epic" | "legendary";
@@ -89,15 +100,38 @@ export const STARTERS: Starter[] = [
   },
 ];
 
+/**
+ * Mewtwo, a character of its own for the players given it (Johan, 2026-10-13: godlike, from the start and over time):
+ * piercing psychic blades, Psystrike sweeping the whole screen every few seconds, more HP, and damage that grows with
+ * every level; Mega Mewtwo Y at level 16. Never in the daily challenge (the same for all).
+ */
+export const MEWTWO: Starter = {
+  dex: 150,
+  evolves: [[10150, 16]],
+  hp: 170,
+  speed: 76,
+  basic: { kind: "psycut", name: ["Coupe Psycho", "Psycho Cut"], every: 0.4, dmg: 15 },
+  blurb: ["Légendaire. Lames psychiques, et Frappe Psy balaie tout l'écran.", "Legendary. Psychic blades, and Psystrike sweeps the whole screen."],
+  type: "psy",
+  reward: "skin-mewtwo",
+  power: 1.35,
+  growth: 0.03,
+  hpPerLevel: 5,
+  sig: "psystrike",
+};
+
 /* ---------------- moves (auto-cast on their cooldown, or keys 1-4) and held items ---------------- */
 
 export type MoveId =
   | "thunder" | "flamethrower" | "surf" | "leaf" | "ice" | "quake" | "shadow" | "protect" | "swift" | "psychic"
   | "quick" | "sleep" | "hyper" | "rocks" | "toxic" | "solar" | "twister"
+  | "bubble" | "discharge" | "bone" | "firespin" | "sludge" | "icebeam" | "gigadrain" | "hex" | "aura" | "future"
   // the evolved ones
-  | "fulgur" | "blast" | "hydro" | "petal" | "blizzard" | "draco" | "fissure";
+  | "fulgur" | "blast" | "hydro" | "petal" | "blizzard" | "draco" | "fissure"
+  | "scald" | "zapcannon" | "poltergeist" | "sacredfire" | "closecombat" | "doomdesire" | "gunk";
 export type ItemId =
-  | "leftovers" | "band" | "scarf" | "claw" | "lens" | "magnet" | "share" | "hpup" | "root" | "shellbell" | "belt" | "lifeorb" | "helmet";
+  | "leftovers" | "band" | "scarf" | "claw" | "lens" | "magnet" | "share" | "hpup" | "root" | "shellbell" | "belt" | "lifeorb" | "helmet"
+  | "eviolite" | "kingsrock" | "sash" | "spoon";
 
 export interface MoveDef {
   id: MoveId;
@@ -130,6 +164,16 @@ export const MOVES: MoveDef[] = [
   { id: "toxic", rarity: "common", name: ["Toxik", "Toxic"], type: "poison", desc: ["Empoisonne les ennemis proches.", "Poisons the foes around you."], cd: [4, 3.7, 3.4, 3.1, 2.7] },
   { id: "solar", rarity: "epic", name: ["Lance-Soleil", "Solar Beam"], type: "grass", desc: ["Se charge, puis un rayon de soleil dévastateur.", "Charges, then a devastating beam of sunlight."], cd: [7, 6.5, 6, 5.5, 5] },
   { id: "twister", rarity: "rare", name: ["Ouragan", "Twister"], type: "fly", desc: ["Une tornade qui aspire les ennemis.", "A tornado that sucks foes in."], cd: [5, 4.7, 4.4, 4.1, 3.7] },
+  { id: "bubble", rarity: "common", name: ["Bulles d'O", "Bubble"], type: "water", desc: ["Des bulles qui flottent et mouillent.", "Bubbles that drift and soak foes."], cd: [2.6, 2.5, 2.4, 2.2, 2] },
+  { id: "discharge", rarity: "rare", name: ["Coup d'Jus", "Discharge"], type: "elec", desc: ["Une décharge autour de toi qui paralyse.", "A shock all around you that paralyses."], cd: [5, 4.7, 4.4, 4.1, 3.7] },
+  { id: "bone", rarity: "rare", name: ["Osmerang", "Bonemerang"], type: "ground", desc: ["Un os qui part, transperce, et revient.", "A bone that flies out, pierces, and comes back."], cd: [2.4, 2.3, 2.2, 2.1, 1.9] },
+  { id: "firespin", rarity: "rare", name: ["Danse Flammes", "Fire Spin"], type: "fire", desc: ["Un cercle de feu te suit et brûle.", "A ring of fire follows you and burns."], cd: [6, 5.6, 5.2, 4.8, 4.4] },
+  { id: "sludge", rarity: "common", name: ["Bomb-Beurk", "Sludge Bomb"], type: "poison", desc: ["Des boules qui laissent des flaques toxiques.", "Blobs that leave toxic puddles."], cd: [3.6, 3.4, 3.2, 3, 2.7] },
+  { id: "icebeam", rarity: "epic", name: ["Laser Glace", "Ice Beam"], type: "ice", desc: ["Un rayon glacé qui gèle ce qu'il touche.", "An icy beam that freezes what it hits."], cd: [4.5, 4.2, 3.9, 3.6, 3.2] },
+  { id: "gigadrain", rarity: "rare", name: ["Giga-Sangsue", "Giga Drain"], type: "grass", desc: ["Aspire la vie des plus proches, te soigne.", "Drains the closest foes, heals you."], cd: [4, 3.8, 3.6, 3.4, 3] },
+  { id: "hex", rarity: "epic", name: ["Châtiment", "Hex"], type: "ghost", desc: ["Frappe fort chaque ennemi qui a un statut.", "Hits hard every foe with a status."], cd: [5, 4.6, 4.2, 3.8, 3.4] },
+  { id: "aura", rarity: "rare", name: ["Aurasphère", "Aura Sphere"], type: "fight", desc: ["Une sphère qui ne rate jamais, et éclate.", "A sphere that never misses, and bursts."], cd: [3, 2.9, 2.8, 2.6, 2.3] },
+  { id: "future", rarity: "epic", name: ["Prescience", "Future Sight"], type: "psy", desc: ["Marque les plus costauds… qui explosent après.", "Marks the toughest foes… who blow up later."], cd: [6, 5.6, 5.2, 4.8, 4.2] },
   // evolutions: a move at level 5 + an item
   { id: "fulgur", rarity: "legendary", name: ["Fatal-Foudre", "Thunder"], type: "elec", desc: ["La foudre s'abat partout et rebondit.", "Lightning everywhere, bouncing on."], cd: [1.5, 1.5, 1.5, 1.5, 1.5], evo: { from: "thunder", item: "magnet" } },
   { id: "blast", rarity: "legendary", name: ["Déflagration", "Fire Blast"], type: "fire", desc: ["Une boule de feu qui explose en étoile.", "A fireball that bursts into a star."], cd: [2.6, 2.6, 2.6, 2.6, 2.6], evo: { from: "flamethrower", item: "band" } },
@@ -138,6 +182,13 @@ export const MOVES: MoveDef[] = [
   { id: "blizzard", rarity: "legendary", name: ["Blizzard", "Blizzard"], type: "ice", desc: ["Des cristaux éternels qui gèlent sur place.", "Crystals that never melt, and freeze foes."], cd: [1, 1, 1, 1, 1], evo: { from: "ice", item: "claw" } },
   { id: "draco", rarity: "legendary", name: ["Draco-Météore", "Draco Meteor"], type: "dragon", desc: ["Une pluie de météores sur les ennemis.", "A meteor shower on your foes."], cd: [2.4, 2.4, 2.4, 2.4, 2.4], evo: { from: "swift", item: "scarf" } },
   { id: "fissure", rarity: "legendary", name: ["Abîme", "Fissure"], type: "ground", desc: ["Le sol s'ouvre : certains ne s'en relèvent pas.", "The ground opens: some never get up."], cd: [5, 5, 5, 5, 5], evo: { from: "quake", item: "lens" } },
+  { id: "scald", rarity: "legendary", name: ["Ébullition", "Scald"], type: "water", desc: ["Des bulles bouillantes : mouillé ET brûlé.", "Boiling bubbles: soaked AND burnt."], cd: [1.6, 1.6, 1.6, 1.6, 1.6], evo: { from: "bubble", item: "spoon" } },
+  { id: "zapcannon", rarity: "legendary", name: ["Élecanon", "Zap Cannon"], type: "elec", desc: ["Une onde énorme qui paralyse tout le monde.", "A huge wave that paralyses everyone."], cd: [4, 4, 4, 4, 4], evo: { from: "discharge", item: "magnet" } },
+  { id: "poltergeist", rarity: "legendary", name: ["Poltergeist", "Poltergeist"], type: "ghost", desc: ["Tout l'écran hanté ; les ennemis à statut souffrent.", "The whole screen haunted; foes with a status suffer."], cd: [2, 2, 2, 2, 2], evo: { from: "hex", item: "kingsrock" } },
+  { id: "sacredfire", rarity: "legendary", name: ["Feu Sacré", "Sacred Fire"], type: "fire", desc: ["Un grand cercle de feu sacré qui te soigne.", "A great ring of sacred fire that heals you."], cd: [4, 4, 4, 4, 4], evo: { from: "firespin", item: "sash" } },
+  { id: "closecombat", rarity: "legendary", name: ["Close Combat", "Close Combat"], type: "fight", desc: ["Une rafale de coups devant toi.", "A flurry of blows in front of you."], cd: [1.1, 1.1, 1.1, 1.1, 1.1], evo: { from: "aura", item: "band" } },
+  { id: "doomdesire", rarity: "legendary", name: ["Vœu Destructeur", "Doom Desire"], type: "psy", desc: ["Six cibles marquées, six explosions.", "Six foes marked, six blasts."], cd: [3, 3, 3, 3, 3], evo: { from: "future", item: "lens" } },
+  { id: "gunk", rarity: "legendary", name: ["Détricanon", "Gunk Shot"], type: "poison", desc: ["D'énormes flaques toxiques partout.", "Huge toxic puddles everywhere."], cd: [2.5, 2.5, 2.5, 2.5, 2.5], evo: { from: "sludge", item: "eviolite" } },
 ];
 
 export interface ItemDef {
@@ -161,6 +212,10 @@ export const ITEMS: ItemDef[] = [
   { id: "belt", rarity: "epic", name: ["Ceinture Pro", "Expert Belt"], desc: ["Coups critiques plus forts (+25 %).", "Stronger critical hits (+25%)."] },
   { id: "helmet", rarity: "epic", name: ["Casque Brut", "Rocky Helmet"], desc: ["Qui te touche se fait mal.", "Whoever touches you gets hurt."] },
   { id: "lifeorb", rarity: "legendary", name: ["Orbe Vie", "Life Orb"], desc: ["+20 % de dégâts, −5 % de PV max.", "+20% damage, −5% max HP."] },
+  { id: "eviolite", rarity: "rare", name: ["Évoluroc", "Eviolite"], desc: ["−7 % de dégâts subis.", "−7% damage taken."] },
+  { id: "kingsrock", rarity: "rare", name: ["Roche Royale", "King's Rock"], desc: ["Tes coups peuvent endormir (4 %).", "Your hits may put foes to sleep (4%)."] },
+  { id: "sash", rarity: "epic", name: ["Ceinture Force", "Focus Sash"], desc: ["Survit à un coup fatal, de temps en temps.", "Survives a fatal blow, now and then."] },
+  { id: "spoon", rarity: "rare", name: ["Cuillère Tordue", "Twisted Spoon"], desc: ["Brûlures et poisons +30 % plus forts.", "Burns and poisons 30% stronger."] },
 ];
 
 /** when there's nothing left to learn or raise: boosts that stack forever */
@@ -177,6 +232,11 @@ export const COMBOS: { on: "wet" | "burn" | "poison" | "sleep"; by: Elem; mul: n
   { on: "poison", by: "psy", mul: 1.6, name: ["Empoisonné + Psy : migraine", "Poisoned + Psychic: migraine"] },
   { on: "sleep", by: "ghost", mul: 2, name: ["Endormi + Spectre : cauchemar", "Asleep + Ghost: nightmare"] },
   { on: "sleep", by: "fire", mul: 1.5, name: ["Gelé/endormi + Feu : réveil brûlant", "Frozen/asleep + Fire: a hot wake-up"] },
+  { on: "sleep", by: "psy", mul: 1.8, name: ["Endormi + Psy : Dévorêve", "Asleep + Psychic: Dream Eater"] },
+  { on: "sleep", by: "fight", mul: 1.7, name: ["Gelé/endormi + Combat : brise-glace", "Frozen/asleep + Fighting: ice breaker"] },
+  { on: "poison", by: "fire", mul: 1.6, name: ["Empoisonné + Feu : le gaz s'enflamme", "Poisoned + Fire: the gas ignites"] },
+  { on: "wet", by: "ground", mul: 1.4, name: ["Mouillé + Sol : dans la boue", "Wet + Ground: stuck in the mud"] },
+  { on: "burn", by: "ghost", mul: 1.5, name: ["Brûlé + Spectre : feu follet", "Burnt + Ghost: will-o'-wisp"] },
 ];
 export const BONUSES: { id: BonusId; name: Txt; desc: Txt }[] = [
   { id: "protein", name: ["Protéine", "Protein"], desc: ["+6 % de dégâts, pour toujours.", "+6% damage, for good."] },

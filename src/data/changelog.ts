@@ -26,8 +26,12 @@ export const CHANGELOG: Release[] = [
         en: "The daily challenge: the same Pokémon and rule for everyone, a wave to reach to meet it (and a big gold bonus), then a daily ladder to go furthest.",
       },
       {
-        fr: "De l'or à ramasser, gardé d'une partie à l'autre dans ta bourse. Après chaque boss, une pause : le Centre Pokémon, l'échoppe de Kecleon, puis 3, 2, 1 et c'est reparti. La Pension dépense ta bourse en bonus pour toutes tes parties, sauvegardés avec ton compte.",
-        en: "Gold to pick up, kept from run to run in your purse. After each boss, a break: the Pokémon Center, Kecleon's stall, then 3, 2, 1 and off again. The Pension spends your purse on boosts for all your runs, saved with your account.",
+        fr: "De l'or à ramasser, gardé d'une partie à l'autre dans ta bourse. Après chaque boss, une pause : tout le monde est soigné, l'échoppe de Kecleon, puis 3, 2, 1 et c'est reparti. La Pension dépense ta bourse en bonus pour toutes tes parties, sauvegardés avec ton compte.",
+        en: "Gold to pick up, kept from run to run in your purse. After each boss, a break: everyone healed, Kecleon's stall, then 3, 2, 1 and off again. The Pension spends your purse on boosts for all your runs, saved with your account.",
+      },
+      {
+        fr: "10 nouvelles capacités (Bulles d'O, Osmerang, Danse Flammes, Bomb-Beurk, Laser Glace, Châtiment, Aurasphère, Prescience…), 7 nouvelles évolutions de capacités, 4 objets et 5 combos de plus : de quoi monter des builds bien différents.",
+        en: "10 new moves (Bubble, Bonemerang, Fire Spin, Sludge Bomb, Ice Beam, Hex, Aura Sphere, Future Sight…), 7 new move evolutions, 4 held items and 5 more combos: room for very different builds.",
       },
       {
         fr: "Le classement repart à zéro chaque mois : une nouvelle saison, une nouvelle chance d'être premier.",

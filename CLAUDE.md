@@ -221,8 +221,9 @@ doesn't show.
 
 - The Game Boy painted by the mug (`GAMEBOY` in PaintedRoom) runs Nook Survivors, a survivors-like (a name of our own: no brand in the game's title): a starter (Bulbasaur,
   Charmander, Squirtle, Pikachu; they evolve mid-run) against waves of wild Pokémon, 30 s a wave, a boss every 5th,
-  candies → levels → 3 cards (14 moves, auto-cast or keys 1-4, 4 at most; 11 held items; once all is maxed, stacking
-  bonuses). A move at level 5 + its item (`evo` in lib/game/data) offers its evolution first (7 of them). Foes' HP and
+  candies → levels → 3 cards (24 moves, auto-cast or keys 1-4, 4 at most; 17 held items; once all is maxed, stacking
+  bonuses). A move at level 5 + its item (`evo` in lib/game/data) offers its evolution first (14 of them). Statuses (wet,
+  burnt, poisoned, asleep/frozen, slowed) and `COMBOS` (11) are what the moves play on (Hex, Poltergeist hit the statused). Foes' HP and
   damage grow with the square of the wave and the XP curve steepens past level 15 (Johan, 2026-10-12: wave 23 was too
   easy); a god-mode bot run per wave (damage taken, foes on screen) is how it was tuned. Score = the wave reached.
   Computers only: on a phone the Game Boy is out of frame (its tip says so).
@@ -244,11 +245,13 @@ doesn't show.
   (permanent boosts, capped, dearer each level, merged by the higher level) from the menu or the game over. The **daily
   challenge** (`dailyOf`: the UTC day's starter and rule, seeded cards) starts with no purse nor Pension; its gold and a
   bonus (once a day) go to the purse. A moment after each boss falls, a **break**: the field is cleared, then the
-  Pokémon Center (full heal, forget moves), the levels won, Kecleon's stall (cards, heal, reroll: prices up 8 % a wave),
+  Pokémon Center's heal (no screen: forgetting moves was dropped, Johan 2026-10-13), the levels won, Kecleon's stall (cards, heal, reroll: prices up 8 % a wave),
   a 3-2-1. Statuses and combos: `COMBOS` in lib/game/data.
 - Rewards: Supabase `game_rewards` (docs/supabase.sql, given by hand with an insert, read by the player only), e.g.
-  `skin-mewtwo`: player 1 wears Mewtwo (`SKINS` in NookBoy; the sprite needs the player anims) and is stronger outside the daily
-  (+30 % damage and HP, +10 % speed, 12 % faster moves: `mew` in the engine).
+  `skin-mewtwo`: **Mewtwo**, a fifth Pokémon on the starter screen (`MEWTWO` in lib/game/data, `roster` in the engine),
+  godlike on purpose (Johan, 2026-10-13): Psycho Cut blades, Psystrike on the whole screen every few seconds (`stepSig`),
+  more HP, damage growing 3 % a level, Mega Mewtwo Y at 16 (a form: dex 10150, `FORMS` in build-game). Never in the
+  daily. The ladder takes starter 150 (`game_submit2` in docs/supabase.sql).
 - Local coop (two Game Boys side by side, WASD + mouse for P1, the arrows for P2, auto-aim): the engine's player state is
   a `Player` (`players`, `cur`); the Game's accessors reach the current one, switched to whoever acts (their move, a
   foe's nearest target, who picks up, the screen drawn: `draw(ctx, viewer)`). A downed player is got up by standing by

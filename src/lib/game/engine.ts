@@ -4,13 +4,13 @@
 import { unlock } from "@/lib/trophyStore";
 import { gsfx, music } from "./audio";
 import {
-  BONUSES, BOSSES, COMBOS, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, STARTERS, WAVE_SECONDS, WILD, xpFor,
+  BONUSES, BOSSES, COMBOS, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MEWTWO, MOVES, NAMES, POOLS, RARITY, RETIRE, STARTERS, WAVE_SECONDS, WILD, xpFor,
   DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type Starter, type Wild,
 } from "./data";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
 
-/** after each boss, a break: center (the Pokémon Center: healed, moves to forget), shop (Kecleon's), countdown (3-2-1) */
-export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over" | "center" | "shop" | "countdown";
+/** after each boss, a break: everyone healed, the levels won, shop (Kecleon's), countdown (3-2-1) */
+export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over" | "shop" | "countdown";
 export type Mode = "classic" | "daily" | "coop";
 
 /** what a run is played with: the Pension's levels (none in the daily), the daily's rule */
@@ -19,8 +19,6 @@ export interface RunSetup {
   perm: Partial<Record<PensionId, number>>;
   /** the purse brought in: what's in it at the end goes back */
   wallet?: number;
-  /** player 1 dressed as another Pokémon (a reward) */
-  skin?: number;
   daily?: { day: string; mod: DailyMod; starter: number; target: number };
 }
 
@@ -142,7 +140,7 @@ interface Enemy {
 }
 
 interface Shot {
-  kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe" | "blast";
+  kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe" | "blast" | "bubble" | "scald" | "bone" | "sludge" | "aura" | "psycut";
   x: number;
   y: number;
   vx: number;
@@ -155,6 +153,10 @@ interface Shot {
   hit?: Set<Enemy>;
   target?: Enemy | null;
   t: number;
+  /** a bone on its way back */
+  back?: boolean;
+  /** a blob of sludge: the puddle it leaves */
+  pool?: { r: number; dps: number };
 }
 
 interface Pickup {
@@ -170,7 +172,9 @@ interface Pickup {
 }
 
 interface Fx {
-  kind: "whip" | "bolt" | "strike" | "ring" | "quake" | "boom" | "warn" | "beam" | "levelup" | "text" | "slashwarn" | "poof" | "cloud" | "hbeam" | "meteor" | "tornado";
+  kind:
+    | "whip" | "bolt" | "strike" | "ring" | "quake" | "boom" | "warn" | "beam" | "levelup" | "text" | "slashwarn" | "poof" | "cloud" | "hbeam" | "meteor"
+    | "tornado" | "zone" | "mark" | "punch";
   x: number;
   y: number;
   t: number;
@@ -198,6 +202,8 @@ interface Fx {
   foe?: boolean;
   x2?: number;
   y2?: number;
+  /** Future Sight: the foe it follows */
+  target?: Enemy | null;
 }
 
 interface Part {
@@ -268,8 +274,10 @@ export class Player {
   hurtFlash: number = 0;
   cam: { x: number; y: number } = { x: 0, y: 0 };
   aimV: { x: number; y: number } = { x: 0, y: 1 };
-  /** dressed as another Pokémon (a reward): only the look changes */
-  skin?: number;
+  /** Mewtwo's Psystrike, its next one */
+  sigT = 2;
+  /** Focus Sash: when it can save them again */
+  sashCd = 0;
   /** knocked out in a coop run, waiting for a partner to get them up */
   down = false;
   reviveT = 0;
@@ -577,10 +585,11 @@ export class Game {
   private menuT = 0;
   private wanderers: { dex: number; x: number; y: number; vx: number; t: number }[] = [];
   selected = 0;
-  /** the starter screen shows the chosen one in this skin */
-  selectSkin?: number;
-  showSkin(dex?: number) {
-    this.selectSkin = dex;
+  /** who can be picked: the four starters, and Mewtwo for the players given it */
+  roster: Starter[] = STARTERS;
+  setRoster(mewtwo: boolean) {
+    this.roster = mewtwo ? [...STARTERS, MEWTWO] : STARTERS;
+    if (this.selected >= this.roster.length) this.selected = 0;
   }
 
   constructor(gfx: Gfx, lang: Lang) {
@@ -622,7 +631,7 @@ export class Game {
     }
   }
   select(i: number) {
-    this.selected = (i + STARTERS.length) % STARTERS.length;
+    this.selected = (i + this.roster.length) % this.roster.length;
     this.onChange();
   }
   get canChoose() {
@@ -644,18 +653,14 @@ export class Game {
   private perm(id: PensionId) {
     return this.setup.perm[id] ?? 0;
   }
-  /** dressed as Mewtwo (a reward), the player is stronger too (Johan, 2026-10-13); not in the daily, the same for all */
-  private get mew() {
-    return this.cur.skin === 150 && this.setup.mode !== "daily";
-  }
   get power() {
-    return (1 + 0.02 * this.perm("power")) * (this.setup.daily?.mod.playerDmg ?? 1) * (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower) * (this.mew ? 1.3 : 1);
+    return (1 + 0.02 * this.perm("power")) * (this.setup.daily?.mod.playerDmg ?? 1) * (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower) * (this.starter.power ?? 1) * (1 + (this.starter.growth ?? 0) * (this.level - 1));
   }
   get speed() {
-    return this.starter.speed * (1 + 0.08 * this.itemLevel("scarf")) * (1 + this.stage * 0.04) * (1 + 0.015 * this.perm("speed")) * (this.mew ? 1.1 : 1);
+    return this.starter.speed * (1 + 0.08 * this.itemLevel("scarf")) * (1 + this.stage * 0.04) * (1 + 0.015 * this.perm("speed"));
   }
   get haste() {
-    return Math.max(0.4, (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste * (1 - 0.015 * this.perm("haste")) * (this.mew ? 0.88 : 1));
+    return Math.max(0.4, (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste * (1 - 0.015 * this.perm("haste")));
   }
   get area() {
     return (1 + 0.1 * this.itemLevel("root")) * (1 + this.stage * 0.08);
@@ -677,7 +682,7 @@ export class Game {
   }
   private computeMaxHp() {
     return Math.round(
-      (this.starter.hp + this.stage * 30 + 20 * this.itemLevel("hpup") + (this.level - 1) * 2) * (1 - 0.03 * this.itemLevel("lifeorb")) * (1 + 0.04 * this.perm("hp")) * (this.mew ? 1.3 : 1),
+      (this.starter.hp + this.stage * 30 + 20 * this.itemLevel("hpup") + (this.level - 1) * (this.starter.hpPerLevel ?? 2)) * (1 - 0.03 * this.itemLevel("lifeorb")) * (1 + 0.04 * this.perm("hp")),
     );
   }
 
@@ -705,10 +710,10 @@ export class Game {
       time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1,
       bossAlive: null, breakAt: 0, shake: 0, flash: 0, dyingT: 0,
     });
-    const picks = setup.mode === "coop" && i2 != null ? [i, i2] : [setup.daily ? setup.daily.starter : i];
-    this.players = picks.map((k, id) => {
+    // the daily is the same for all: its own starter, never Mewtwo
+    const picks = setup.daily ? [STARTERS[setup.daily.starter]] : setup.mode === "coop" && i2 != null ? [this.roster[i], this.roster[i2]] : [this.roster[i]];
+    this.players = picks.map((s, id) => {
       const p = new Player(id);
-      const s = STARTERS[k];
       Object.assign(p, { starter: s, dex: s.dex, x: id * 24, y: 0, cam: { x: id * 24, y: 0 }, invuln: 1 });
       this.cur = p;
       p.rerolls = this.perm("reroll");
@@ -718,12 +723,6 @@ export class Game {
       return p;
     });
     this.cur = this.players[0];
-    if (setup.skin) {
-      const p = this.players[0];
-      p.skin = setup.skin;
-      p.maxHp = this.computeMaxHp();
-      p.hp = p.maxHp;
-    }
     this.showBanner(this.tr("VAGUE 1", "WAVE 1"), this.tr("des Pokémon sauvages approchent", "wild Pokémon are coming"));
     gsfx.waveStart();
     music.boss(false);
@@ -804,9 +803,9 @@ export class Game {
     const base: Record<Rarity, number> = { common: 30, rare: 55, epic: 90, legendary: 150 };
     return this.drawChoices(3).map((c) => ({ choice: c, price: Math.round(base[c.rarity ?? "common"] * w), sold: false }));
   }
-  /** prices climb 8 % a wave after the first shop (wave 6) */
+  /** prices climb 12 % a wave after the first shop (wave 6) */
   private get priceUp() {
-    return Math.pow(1.08, Math.max(0, this.wave - 6));
+    return Math.pow(1.12, Math.max(0, this.wave - 6));
   }
   get rerollPrice() {
     return Math.round((15 + 15 * this.shopRerolls) * this.priceUp);
@@ -897,30 +896,6 @@ export class Game {
       return this.set("countdown");
     }
     this.set("play");
-  }
-
-  /** at the Pokémon Center: forget a move or drop an item (it frees its slot) */
-  forget(kind: "move" | "item", id: MoveId | ItemId) {
-    if (this.phase !== "center") return;
-    if (kind === "move") this.moves = this.moves.filter((m) => m.id !== id);
-    else this.items = this.items.filter((i) => i.id !== id);
-    this.maxHp = this.computeMaxHp();
-    this.hp = Math.min(this.hp, this.maxHp);
-    gsfx.back();
-    this.onChange();
-  }
-
-  leaveCenter() {
-    if (this.phase !== "center") return;
-    gsfx.ok();
-    // in coop, the second player's turn at the counter
-    const next = this.players[this.cur.id + 1];
-    if (next) {
-      this.cur = next;
-      return this.onChange();
-    }
-    this.cur = this.players[0];
-    this.resume();
   }
 
   /** B during the evolution: it stops, like in the games */
@@ -1033,10 +1008,12 @@ export class Game {
     this.eachAlive((p) => this.movePlayer(p.input, dt));
     this.buildGrid();
     this.eachAlive((p) => {
+      p.sashCd = Math.max(0, p.sashCd - dt);
       this.stepDash(dt);
       this.stepRocks(dt);
       this.attack(p.input, dt);
       this.castMoves(dt);
+      this.stepSig(dt);
     });
     // a downed partner: the other stands by them to get them up
     for (const p of this.players) {
@@ -1207,9 +1184,12 @@ export class Game {
     }
     this.cur = this.players[0];
     this.release();
-    if (noCenter) return this.resume();
-    gsfx.heal();
-    this.set("center");
+    if (!noCenter) {
+      // the Pokémon Center's care, without a stop (Johan, 2026-10-13: forgetting moves had no use)
+      gsfx.heal();
+      for (const p of this.players) for (let i = 0; i < 10; i++) this.part(p.x + rand(-10, 10), p.y - rand(0, 20), 0, -rand(20, 40), "heal", 0.7, 2, 0, "spark");
+    }
+    this.resume();
   }
 
   private showBanner(title: string, sub: string) {
@@ -1290,6 +1270,14 @@ export class Game {
         this.shoot("water", ox, oy, Math.cos(a), Math.sin(a), 230, 2, dmg, 1 + this.stage, 0.7, "water");
       }
       gsfx.shoot("water");
+    } else if (b.kind === "psycut") {
+      // Psycho Cut: psychic blades that go through several foes
+      const n = 2 + this.stage;
+      for (let i = 0; i < n; i++) {
+        const a = Math.atan2(ay, ax) + (i - (n - 1) / 2) * 0.2;
+        this.shoot("psycut", ox, oy, Math.cos(a), Math.sin(a), 220, 4, dmg, 2 + this.stage, 0.75, "psy");
+      }
+      gsfx.shoot("bolt");
     } else {
       // a bolt to the foe closest to the aim, then it jumps from foe to foe
       const reach = 125 * this.area;
@@ -1493,8 +1481,7 @@ export class Game {
       case "toxic": {
         const n = 4 + L;
         for (const e of this.nearestN(this.x, this.y, n, 120 * this.area)) {
-          e.poisonT = 5;
-          e.poisonDps = Math.max(e.poisonDps, (4 + 2 * L) * pw);
+          this.poisonFoe(e, (4 + 2 * L) * pw, 5);
           for (let i = 0; i < 4; i++) this.part(e.x + rand(-6, 6), e.y - rand(4, 16), 0, -16, "poison", 0.6, 2, 0, "puff");
         }
         gsfx.shoot("water");
@@ -1517,7 +1504,122 @@ export class Game {
         });
         gsfx.wave();
         break;
+      case "bubble": {
+        const n = 3 + L;
+        const base = Math.atan2(this.aimV.y, this.aimV.x);
+        for (let i = 0; i < n; i++) {
+          const a = base + rand(-0.7, 0.7);
+          this.shoot("bubble", this.x, this.y - 8, Math.cos(a), Math.sin(a), rand(60, 110), 4, (10 + 4 * L) * pw, 0, 2.4, "water");
+        }
+        gsfx.shoot("water");
+        break;
+      }
+      case "discharge":
+        this.shockwave((60 + 8 * L) * this.area, (20 + 9 * L) * pw, 0.5 + 0.1 * L, 6);
+        break;
+      case "bone": {
+        const n = L >= 4 ? 2 : 1;
+        const base = Math.atan2(this.aimV.y, this.aimV.x);
+        for (let i = 0; i < n; i++) {
+          const a = base + (i - (n - 1) / 2) * 0.5;
+          this.shoot("bone", this.x, this.y - 8, Math.cos(a), Math.sin(a), 180, 5, (16 + 6 * L) * pw, 999, 2, "ground");
+        }
+        gsfx.shoot("whip");
+        break;
+      }
+      case "firespin":
+        this.fx.push({ kind: "zone", x: this.x, y: this.y, t: 0, life: 2.5 + 0.3 * L, r: (40 + 5 * L) * this.area, dmg: (6 + 3 * L) * pw, tick: 0, elem: "fire", owner: this.cur });
+        gsfx.fire();
+        break;
+      case "sludge": {
+        const targets = this.nearestN(this.x, this.y, 1 + Math.floor(L / 2), 160);
+        if (!targets.length) {
+          m.cd = 0.3;
+          return;
+        }
+        for (const t of targets) this.lob(t.x, t.y, 5, (14 + 5 * L) * pw, { r: (22 + 3 * L) * this.area, dps: (4 + 2 * L) * pw });
+        gsfx.shoot("water");
+        break;
+      }
+      case "icebeam": {
+        const len = 220;
+        this.fx.push({
+          kind: "hbeam", x: this.x, y: this.y - 8, x2: this.x + this.aimV.x * len, y2: this.y - 8 + this.aimV.y * len, owner: this.cur,
+          t: 0, life: 0.45, charge: 0.12, r: (8 + L) * this.area, dmg: (30 + 14 * L) * pw, elem: "ice",
+        });
+        gsfx.zap();
+        break;
+      }
+      case "gigadrain": {
+        const targets = this.nearestN(this.x, this.y, 3 + L, 130 * this.area);
+        if (!targets.length) {
+          m.cd = 0.3;
+          return;
+        }
+        for (const e of targets) {
+          this.damage(e, (14 + 6 * L) * pw, 0, 0, "grass", true);
+          // the life flows back to the player
+          for (let i = 0; i < 4; i++) this.part(e.x, e.y - 8, (this.x - e.x) * rand(1.6, 2.4), (this.y - 8 - e.y) * rand(1.6, 2.4), "grassFx", 0.45, 2, 0, "spark");
+        }
+        this.hp = Math.min(this.maxHp, this.hp + (0.6 + 0.3 * L) * targets.length);
+        gsfx.heal();
+        break;
+      }
+      case "hex":
+        if (!this.hexAll((30 + 14 * L) * pw, 0)) m.cd = 0.4;
+        break;
+      case "aura": {
+        const n = L >= 3 ? 2 : 1;
+        const targets = this.nearestN(this.x, this.y, n, 220);
+        if (!targets.length) {
+          m.cd = 0.3;
+          return;
+        }
+        for (let i = 0; i < n; i++) {
+          const t = targets[i % targets.length];
+          const a = Math.atan2(t.y - this.y, t.x - this.x) + (n > 1 ? (i ? 0.6 : -0.6) : 0);
+          this.shoot("aura", this.x, this.y - 8, Math.cos(a), Math.sin(a), 130, 5, (26 + 10 * L) * pw, 0, 3, "fight", t);
+        }
+        gsfx.shoot("shadow");
+        break;
+      }
+      case "future":
+        if (!this.foresee(2 + Math.floor(L / 2), (60 + 25 * L) * pw, 30 * this.area)) m.cd = 0.4;
+        break;
       // ---- the evolved moves ----
+      case "scald":
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2 + this.time;
+          this.shoot("scald", this.x, this.y - 8, Math.cos(a), Math.sin(a), 95, 5, 40 * pw, 2, 2.2, "water");
+        }
+        gsfx.wave();
+        break;
+      case "zapcannon":
+        this.shockwave(140 * this.area, 110 * pw, 1.8, 12);
+        this.flash = 0.35;
+        break;
+      case "poltergeist":
+        this.hexAll(140 * pw, 50 * pw);
+        break;
+      case "sacredfire":
+        this.fx.push({ kind: "zone", x: this.x, y: this.y, t: 0, life: 4, r: 80 * this.area, dmg: 30 * pw, tick: 0, elem: "fire", owner: this.cur, heal: 1 });
+        gsfx.fire();
+        break;
+      case "closecombat":
+        this.flurry(70 * pw);
+        break;
+      case "doomdesire":
+        if (!this.foresee(6, 220 * pw, 40 * this.area)) m.cd = 0.4;
+        break;
+      case "gunk": {
+        const targets = this.nearestN(this.x, this.y, 8, 180);
+        for (let i = 0; i < 3; i++) {
+          const t = targets.length ? targets[Math.floor(Math.random() * targets.length)] : null;
+          this.lob(t ? t.x : this.x + rand(-80, 80), t ? t.y : this.y + rand(-60, 60), 8, 60 * pw, { r: 50 * this.area, dps: 18 * pw });
+        }
+        gsfx.shoot("water");
+        break;
+      }
       case "fulgur": {
         const onScreen = this.enemies.filter((e) => !e.dead && Math.abs(e.x - this.cam.x) < SW / 2 && Math.abs(e.y - this.cam.y) < SH / 2);
         if (!onScreen.length) {
@@ -1592,6 +1694,96 @@ export class Game {
     }
   }
 
+  /** the foes on the current player's screen */
+  private onScreen() {
+    return this.enemies.filter((e) => !e.dead && Math.abs(e.x - this.cam.x) < SW / 2 && Math.abs(e.y - this.cam.y) < SH / 2);
+  }
+
+  /** Mewtwo's Psystrike: every few seconds, a psychic blast on every foe on screen (Mega Mewtwo: sooner) */
+  private stepSig(dt: number) {
+    if (this.starter.sig !== "psystrike") return;
+    const p = this.cur;
+    p.sigT -= dt;
+    if (p.sigT > 0) return;
+    const foes = this.onScreen();
+    if (!foes.length) {
+      p.sigT = 0.3;
+      return;
+    }
+    p.sigT = (this.stage ? 4 : 5.5) * this.haste;
+    const dmg = (45 + 9 * this.level) * this.power;
+    for (const e of foes) {
+      this.damage(e, dmg, (e.x - this.x) * 1.5, (e.y - this.y) * 1.5, "psy", true);
+      if (!e.boss) e.slowT = Math.max(e.slowT, 1.2);
+      for (let i = 0; i < 3; i++) this.part(e.x + rand(-6, 6), e.y - rand(4, 16), rand(-20, 20), -rand(20, 50), "psy2", 0.5, 2, 0, "spark");
+    }
+    this.fx.push({ kind: "ring", x: this.x, y: this.y, t: 0, life: 0.5, r: 230, elem: "psy" });
+    this.flash = 0.35;
+    this.shake = Math.max(this.shake, 5);
+    gsfx.thunder();
+  }
+
+  /** a poison that holds (Twisted Spoon: stronger) */
+  private poisonFoe(e: Enemy, dps: number, t: number) {
+    e.poisonT = Math.max(e.poisonT, t);
+    e.poisonDps = Math.max(e.poisonDps, dps * (1 + 0.3 * this.itemLevel("spoon")));
+  }
+
+  /** a blob lobbed at a spot: it bursts there, and leaves a toxic puddle */
+  private lob(tx: number, ty: number, r: number, dmg: number, pool: { r: number; dps: number }) {
+    const dx = tx - this.x, dy = ty - 8 - (this.y - 8), d = Math.hypot(dx, dy) || 1;
+    this.shoot("sludge", this.x, this.y - 8, dx / d, dy / d, 130, r, dmg, 0, Math.min(1.4, d / 130 + 0.05), "poison");
+    this.shots[this.shots.length - 1].pool = pool;
+  }
+
+  /** Discharge, Zap Cannon: a shock all around, paralysing a moment (the bosses only slowed) */
+  private shockwave(R: number, dmg: number, stun: number, bolts: number) {
+    const hit = this.around(this.x, this.y, R);
+    for (const e of hit) {
+      this.damage(e, dmg, 0, 0, "elec", true);
+      if (!e.boss) e.sleepT = Math.max(e.sleepT, stun);
+      e.slowT = Math.max(e.slowT, stun + 1);
+    }
+    for (const e of hit.slice(0, bolts)) this.fx.push({ kind: "bolt", x: 0, y: 0, t: 0, life: 0.16, pts: jag([[this.x, this.y - 8], [e.x, e.y - 8]]) });
+    this.fx.push({ kind: "ring", x: this.x, y: this.y, t: 0, life: 0.35, r: R, elem: "elec" });
+    gsfx.thunder();
+  }
+
+  /** Hex, Poltergeist: every foe on screen with a status takes a heavy hit (Poltergeist: the others a lighter one) */
+  private hexAll(hard: number, soft: number) {
+    let n = 0;
+    for (const e of this.onScreen()) {
+      const marked = e.wetT > 0 || e.burnT > 0 || e.poisonT > 0 || e.sleepT > 0 || e.slowT > 0;
+      if (!marked && !soft) continue;
+      n++;
+      this.damage(e, marked ? hard : soft, 0, 0, "ghost", true);
+      if (marked && n <= 14) this.fx.push({ kind: "strike", x: e.x, y: e.y, t: 0, life: 0.3, pts: jag([[e.x + rand(-10, 10), e.y - 60], [e.x, e.y - 4]], 6), elem: "ghost" });
+    }
+    if (n) gsfx.shoot("shadow");
+    return n > 0;
+  }
+
+  /** Future Sight, Doom Desire: the toughest foes on screen marked; they blow up a moment later */
+  private foresee(n: number, dmg: number, r: number) {
+    const foes = this.onScreen().sort((a, b) => b.hp - a.hp).slice(0, n);
+    for (const e of foes) this.fx.push({ kind: "mark", x: e.x, y: e.y, t: 0, life: 1.3, r, dmg, elem: "psy", target: e, owner: this.cur });
+    if (foes.length) gsfx.zap();
+    return foes.length > 0;
+  }
+
+  /** Close Combat: three blows in a row, in front */
+  private flurry(dmg: number) {
+    const reach = 58 * this.area;
+    const angle = Math.atan2(this.aimV.y, this.aimV.x);
+    for (let k = 0; k < 3; k++) this.fx.push({ kind: "punch", x: this.x, y: this.y - 8, t: -k * 0.08, life: 0.2, a: angle + (k - 1) * 0.35, r: reach, elem: "fight" });
+    for (const e of this.around(this.x, this.y, reach + 12)) {
+      const da = Math.abs(((Math.atan2(e.y - this.y, e.x - this.x) - angle + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+      if (da < 0.95 && dist2(e.x, e.y, this.x, this.y) < (reach + e.r) ** 2) this.damage(e, dmg, this.aimV.x * 160, this.aimV.y * 160, "fight");
+    }
+    this.shake = Math.max(this.shake, 3);
+    gsfx.shoot("whip");
+  }
+
   /** Quick Attack: the player rushes, hitting what it goes through */
   private stepDash(dt: number) {
     for (const t of this.trail) t.t += dt;
@@ -1655,7 +1847,7 @@ export class Game {
     if (elem === "water") e.wetT = 4;
     if (elem === "fire") {
       e.burnT = 3;
-      e.burnDps = Math.max(e.burnDps, base * 0.12);
+      e.burnDps = Math.max(e.burnDps, base * 0.12 * (1 + 0.3 * this.itemLevel("spoon")));
     }
     if (elem === "ice" && e.wetT > 0 && !e.boss) e.sleepT = Math.max(e.sleepT, 1.2);
     const crit = Math.random() < this.crit;
@@ -1669,6 +1861,9 @@ export class Game {
     }
     e.hp -= dmg;
     e.hitT = 0.1;
+    // King's Rock: now and then, the foe is knocked out cold for a moment
+    const rock = this.itemLevel("kingsrock");
+    if (rock && !e.boss && e.hp > 0 && Math.random() < 0.04 * rock) e.sleepT = Math.max(e.sleepT, 1);
     const heavy = e.boss ? 0.15 : 1;
     e.kx += kx * heavy;
     e.ky += ky * heavy;
@@ -1700,20 +1895,21 @@ export class Game {
       this.drop("rare", e.x, e.y, 0);
       this.drop("oran", e.x + 8, e.y, 0);
       for (let i = 0; i < 14; i++) this.drop("candy", e.x + rand(-20, 20), e.y + rand(-20, 20), 8);
-      for (let i = 0; i < 12; i++) this.drop("coin", e.x + rand(-24, 24), e.y + rand(-24, 24), 3 + Math.floor(this.wave / 3));
+      for (let i = 0; i < 10; i++) this.drop("coin", e.x + rand(-24, 24), e.y + rand(-24, 24), 2 + Math.floor(this.wave / 4));
       gsfx.rare();
       this.showBanner(this.tr(`${this.name(e.dex)} est K.O. !`, `${this.name(e.dex)} fainted!`), this.tr("un Super Bonbon est tombé", "a Rare Candy dropped"));
     } else if (e.w?.act === "treasure") {
       unlock("game-chansey");
       for (let i = 0; i < 8; i++) this.drop("candy", e.x + rand(-14, 14), e.y + rand(-14, 14), 8);
-      for (let i = 0; i < 8; i++) this.drop("coin", e.x + rand(-14, 14), e.y + rand(-14, 14), 2 + Math.floor(this.wave / 4));
+      for (let i = 0; i < 6; i++) this.drop("coin", e.x + rand(-14, 14), e.y + rand(-14, 14), 2 + Math.floor(this.wave / 5));
       this.drop("egg", e.x, e.y, 0);
       gsfx.rare();
     } else {
       this.drop("candy", e.x, e.y, xp);
-      const v = 1 + Math.floor(this.wave / 4);
-      if (e.elite) for (let i = 0; i < 4; i++) this.drop("coin", e.x + rand(-8, 8), e.y + rand(-8, 8), v);
-      else if (Math.random() < 0.1) this.drop("coin", e.x, e.y, v);
+      // gold: now and then, worth a little more as the waves go on (the late waves bring many more foes already)
+      const v = 1 + Math.floor(this.wave / 6);
+      if (e.elite) for (let i = 0; i < 2; i++) this.drop("coin", e.x + rand(-8, 8), e.y + rand(-8, 8), v);
+      else if (Math.random() < 0.06) this.drop("coin", e.x, e.y, v);
       const r = Math.random();
       if (r < 0.012) this.drop("oran", e.x, e.y, 0);
       else if (r < 0.016) this.drop("magnet", e.x, e.y, 0);
@@ -1742,6 +1938,16 @@ export class Game {
       gsfx.shield();
       return;
     }
+    dmg *= 1 - 0.07 * this.itemLevel("eviolite");
+    // Focus Sash: a fatal blow leaves 1 HP, then it needs a while
+    const sash = this.itemLevel("sash");
+    if (sash && this.hp - dmg <= 0 && this.hp > 1 && this.cur.sashCd <= 0) {
+      dmg = this.hp - 1;
+      this.cur.sashCd = 100 - 15 * sash;
+      this.invuln = 1.5;
+      this.fx.push({ kind: "text", x: this.x, y: this.y - 30, t: 0, life: 1.2, text: this.tr("TIENT BON !", "HOLDS ON!"), color: "gold" });
+      gsfx.shield();
+    }
     this.hp -= dmg;
     // a little less breathing room as the waves go on
     this.invuln = Math.max(0.45, 0.8 - this.wave * 0.012);
@@ -1757,12 +1963,12 @@ export class Game {
     const w = WILD[dex] ?? null;
     const k = this.wave - 1;
     // they get tougher faster than the player does, past the first waves
-    const hpMul = 1 + 0.18 * k + 0.012 * k * k;
+    const hpMul = 1 + 0.18 * k + 0.009 * k * k;
     const elite = !!w && w.act !== "treasure" && w.act !== "flop" && Math.random() < (0.015 + 0.004 * this.wave) * (this.setup.daily?.mod.elite ?? 1);
     const hp = (w?.hp ?? 100) * hpMul * (elite ? 4 : 1);
     return {
       w, boss: null, dex, x, y, kx: 0, ky: 0, hp, max: hp, speed: (w?.speed ?? 30) * (1 + Math.min(0.35, 0.012 * k)) * (elite ? 0.9 : 1),
-      dmg: (w?.dmg ?? 10) * (1 + 0.08 * k + 0.004 * k * k) * (elite ? 1.5 : 1) * (this.setup.daily?.mod.enemyDmg ?? 1), r: (w?.r ?? 7) * (elite ? 1.3 : 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0, wetT: 0, burnT: 0, burnDps: 0, poisonT: 0, poisonDps: 0, dotT: 0.5,
+      dmg: (w?.dmg ?? 10) * (1 + 0.07 * k + 0.003 * k * k) * (elite ? 1.5 : 1) * (this.setup.daily?.mod.enemyDmg ?? 1), r: (w?.r ?? 7) * (elite ? 1.3 : 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0, wetT: 0, burnT: 0, burnDps: 0, poisonT: 0, poisonDps: 0, dotT: 0.5,
       state: "", stateT: rand(1, 3), actT: 2, elite, z: 0, alpha: 1, aim: { x: 0, y: 0 }, touchT: 0, n: 0, dead: false, deadT: 0, seed: Math.random() * 100,
     };
   }
@@ -2121,7 +2327,7 @@ export class Game {
     for (const s of this.shots) {
       s.t += dt;
       s.life -= dt;
-      if ((s.kind === "leaf" || s.kind === "swift") && s.target) {
+      if ((s.kind === "leaf" || s.kind === "swift" || s.kind === "aura") && s.target) {
         if (s.target.dead) s.target = this.nearest(s.x, s.y, 120);
         if (s.target) {
           const dx = s.target.x - s.x, dy = s.target.y - 8 - s.y;
@@ -2138,6 +2344,29 @@ export class Game {
         s.vx *= 0.97;
         s.vy *= 0.97;
       }
+      if (s.kind === "bubble" || s.kind === "scald") {
+        // they slow down and wobble
+        s.vx *= 0.985;
+        s.vy *= 0.985;
+        s.x += Math.sin(s.t * 6 + s.r) * 0.3;
+      }
+      if (s.kind === "bone") {
+        // out, then back to the closest player, hitting again on the way
+        if (!s.back && s.t > 0.5) {
+          s.back = true;
+          s.hit!.clear();
+        }
+        if (s.back) {
+          const p = this.nearestPlayer(s.x, s.y);
+          const dx = p.x - s.x, dy = p.y - 8 - s.y, d = Math.hypot(dx, dy) || 1;
+          s.vx = (dx / d) * 200;
+          s.vy = (dy / d) * 200;
+          if (d < 10) s.life = 0;
+        }
+      }
+      if (s.kind === "psycut" && Math.random() < 0.4) this.part(s.x, s.y, 0, 0, "psy2", 0.25, 1, 0, "spark");
+      if (s.kind === "aura" && Math.random() < 0.5) this.part(s.x + rand(-3, 3), s.y + rand(-3, 3), 0, -6, "fight2", 0.3, 1, 0, "spark");
+      if (s.kind === "sludge" && Math.random() < 0.3) this.part(s.x, s.y, 0, 10, "poison", 0.3, 1, 60, "dot");
       if (s.kind === "ember" && Math.random() < 0.5) this.part(s.x, s.y, rand(-8, 8), rand(-14, 0), "fire2", 0.25, 1, 0, "dot");
       if (s.kind === "shadow" && Math.random() < 0.6) this.part(s.x + rand(-s.r, s.r), s.y + rand(-s.r, s.r), 0, -8, "ghost2", 0.4, 1, 0, "dot");
       if (s.kind === "swift" && Math.random() < 0.4) this.part(s.x, s.y, 0, 0, "gold", 0.3, 1, 0, "spark");
@@ -2147,8 +2376,17 @@ export class Game {
         if (dist2(s.x, s.y + 8, e.x, e.y) > (s.r + e.r) ** 2) continue;
         s.hit!.add(e);
         const sp = Math.hypot(s.vx, s.vy) || 1;
-        const kb = s.kind === "water" ? 90 : s.kind === "shadow" ? 20 : 30;
+        const kb = s.kind === "water" ? 90 : s.kind === "shadow" ? 20 : s.kind === "bone" ? 60 : 30;
         this.damage(e, s.dmg, (s.vx / sp) * kb, (s.vy / sp) * kb, s.elem, s.kind === "flame");
+        // Scald: soaked and burnt at once
+        if (s.kind === "scald") {
+          e.burnT = 3;
+          e.burnDps = Math.max(e.burnDps, s.dmg * 0.15 * (1 + 0.3 * this.itemLevel("spoon")));
+        }
+        if (s.kind === "aura") {
+          this.fx.push({ kind: "boom", x: s.x, y: s.y, t: 0, life: 0.3, r: 22 * this.area, elem: "fight" });
+          for (const o of this.around(s.x, s.y + 8, 22 * this.area)) if (o !== e) this.damage(o, s.dmg * 0.5, 0, 0, "fight", true);
+        }
         if (s.kind === "ember") {
           // the fireball bursts
           this.fx.push({ kind: "boom", x: s.x, y: s.y, t: 0, life: 0.25, r: 14 * this.area, elem: "fire" });
@@ -2158,6 +2396,10 @@ export class Game {
         if (s.pierce-- <= 0) s.life = 0;
       }
       if (s.kind === "blast" && s.life <= 0) this.blastStar(s);
+      if (s.kind === "sludge" && s.life <= 0 && s.pool) {
+        this.fx.push({ kind: "boom", x: s.x, y: s.y + 6, t: 0, life: 0.25, r: s.pool.r * 0.6, elem: "poison" });
+        this.fx.push({ kind: "zone", x: s.x, y: s.y + 8, t: 0, life: 3, r: s.pool.r, dmg: s.pool.dps, tick: 0, elem: "poison" });
+      }
     }
     this.shots = this.shots.filter((s) => s.life > 0);
     // what circles each player
@@ -2230,7 +2472,7 @@ export class Game {
             const d = Math.hypot(e.x - f.x, e.y - f.y) || 1;
             if (d > r + e.r) continue;
             f.hit.add(e);
-            this.damage(e, f.dmg!, ((e.x - f.x) / d) * 150, ((e.y - f.y) / d) * 150, "water", f.heal != null);
+            this.damage(e, f.dmg!, ((e.x - f.x) / d) * 150, ((e.y - f.y) / d) * 150, f.elem ?? "water", f.heal != null);
             // Hydro Pump: each foe it hits gives back a little
             if (f.heal != null && f.heal < 25) {
               f.heal++;
@@ -2261,7 +2503,14 @@ export class Game {
         f.x2 = f.x + dx;
         f.y2 = f.y + dy;
         for (const e of this.enemies)
-          if (!e.dead && segDist(e.x, e.y - 8, f.x, f.y, f.x2, f.y2) < f.r! / 2 + e.r) this.damage(e, f.dmg!, 0, 0, f.elem ?? "normal", true);
+          if (!e.dead && segDist(e.x, e.y - 8, f.x, f.y, f.x2, f.y2) < f.r! / 2 + e.r) {
+            this.damage(e, f.dmg!, 0, 0, f.elem ?? "normal", true);
+            // Ice Beam freezes
+            if (f.elem === "ice") {
+              if (!e.boss) e.sleepT = Math.max(e.sleepT, 1.3);
+              e.slowT = Math.max(e.slowT, 2);
+            }
+          }
       }
       if (f.kind === "tornado") {
         f.vx! += Math.sin(f.t * 2.3) * 30 * dt;
@@ -2279,6 +2528,46 @@ export class Game {
           for (const e of this.around(f.x, f.y, f.r!)) this.damage(e, f.dmg!, 0, 0, "fly", true);
         }
         if (Math.random() < 0.5) this.part(f.x + rand(-f.r!, f.r!) * 0.6, f.y - rand(0, 30), rand(-30, 30), -rand(10, 40), "pebble", 0.5, 1, 0, "dot");
+      }
+      if (f.kind === "zone") {
+        // Fire Spin follows its caster; a toxic puddle stays
+        if (f.owner) {
+          f.x = f.owner.x;
+          f.y = f.owner.y;
+        }
+        f.tick! -= dt;
+        if (f.tick! <= 0) {
+          f.tick = f.elem === "fire" ? 0.35 : 0.5;
+          const keep = this.cur;
+          if (f.owner) this.cur = f.owner;
+          for (const e of this.around(f.x, f.y, f.r!)) {
+            if (dist2(e.x, e.y, f.x, f.y) > (f.r! + e.r) ** 2) continue;
+            if (f.elem === "poison") this.poisonFoe(e, f.dmg!, 3);
+            this.damage(e, f.dmg!, 0, 0, f.elem ?? "fire", true);
+          }
+          if (f.heal && f.owner && !f.owner.down) f.owner.hp = Math.min(f.owner.maxHp, f.owner.hp + f.heal);
+          this.cur = keep;
+        }
+        if (f.elem === "fire" && Math.random() < 0.6) {
+          const a = Math.random() * Math.PI * 2;
+          this.part(f.x + Math.cos(a) * f.r!, f.y + Math.sin(a) * f.r! * 0.6, 0, -rand(20, 40), Math.random() < 0.5 ? "fire" : "fire2", 0.4, 2, 0, "puff");
+        }
+      }
+      if (f.kind === "mark") {
+        if (f.target && !f.target.dead) {
+          f.x = f.target.x;
+          f.y = f.target.y;
+        }
+        if (!f.done && f.t >= f.life) {
+          f.done = 1;
+          const keep = this.cur;
+          if (f.owner) this.cur = f.owner;
+          this.fx.push({ kind: "boom", x: f.x, y: f.y - 6, t: 0, life: 0.35, r: f.r, elem: "psy" });
+          for (const e of this.around(f.x, f.y, f.r!)) this.damage(e, f.dmg!, (e.x - f.x) * 3, (e.y - f.y) * 3, "psy", true);
+          this.cur = keep;
+          this.shake = Math.max(this.shake, 3);
+          gsfx.boom();
+        }
       }
       if (f.kind === "meteor" && !f.done && f.t >= f.life) {
         f.done = 1;
@@ -2520,7 +2809,7 @@ export class Game {
     ctx.globalAlpha = 1;
     this.drawPickups(ctx, ox, oy);
     for (const p of this.players) this.as(p, () => this.drawGroundOf(ctx, ox, oy));
-    for (const f of this.fx) if (f.kind === "slashwarn" || f.kind === "warn" || f.kind === "cloud" || f.kind === "meteor") this.drawFx(ctx, f, ox, oy);
+    for (const f of this.fx) if (f.kind === "slashwarn" || f.kind === "warn" || f.kind === "cloud" || f.kind === "meteor" || f.kind === "zone") this.drawFx(ctx, f, ox, oy);
 
     const bodies: { y: number; draw: () => void }[] = [];
     for (const e of this.enemies) bodies.push({ y: e.y, draw: () => this.drawEnemy(ctx, e, ox, oy) });
@@ -2591,7 +2880,7 @@ export class Game {
 
   private drawTop(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
     const g = this.gfx;
-    for (const f of this.fx) if (!["slashwarn", "warn", "cloud", "meteor"].includes(f.kind)) this.drawFx(ctx, f, ox, oy);
+    for (const f of this.fx) if (!["slashwarn", "warn", "cloud", "meteor", "zone"].includes(f.kind)) this.drawFx(ctx, f, ox, oy);
     this.drawParts(ctx, ox, oy);
 
     // damage numbers
@@ -2660,7 +2949,7 @@ export class Game {
 
   private drawPlayer(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
     const g = this.gfx;
-    const look = this.cur.skin ?? this.dex;
+    const look = this.dex;
     if (this.phase === "dying" || this.cur.down) {
       const a = anim(look, "Faint");
       g.sprite(ctx, look, "Faint", frameAt(a, this.cur.down ? 9 : this.dyingT, false), this.dir, this.x + ox, this.y + oy - 8);
@@ -2786,6 +3075,41 @@ export class Game {
         if (Math.random() < 0.25) this.part(s.x + rand(-r, r), s.y + rand(-r, r), 0, -12, "ghost2", 0.4, 1, 0, "spark");
         break;
       }
+      case "bubble":
+        pix(ctx, g, PIX.bubble, x, y);
+        break;
+      case "scald":
+        pix(ctx, g, PIX.bubble, x, y, 0, { b: "fire", l: "fire2" });
+        break;
+      case "bone":
+        pix(ctx, g, PIX.bone, x, y, Math.floor(s.t * 14) % 4);
+        break;
+      case "sludge":
+        pix(ctx, g, PIX.orb, x, y, 0, { a: "poison", b: "poison2" });
+        break;
+      case "psycut":
+        pix(ctx, g, PIX.blade, x, y, dir4(s.vx, s.vy));
+        break;
+      case "aura": {
+        // Aura Sphere: a blue-white core in its glow
+        ctx.fillStyle = g.c.fight;
+        ctx.globalAlpha = 0.35 + 0.15 * Math.sin(s.t * 20);
+        ctx.beginPath();
+        ctx.arc(x, y, s.r + 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = g.c.ink;
+        ctx.beginPath();
+        ctx.arc(x, y, s.r + 1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = g.c.fight;
+        ctx.beginPath();
+        ctx.arc(x, y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = g.c.fight2;
+        ctx.fillRect(x - 2, y - 2, 3, 3);
+        break;
+      }
       case "swift":
         // Swift: an outlined star, turning
         pix(ctx, g, PIX.star, x, y, Math.floor(s.t * 10) % 2);
@@ -2845,6 +3169,72 @@ export class Game {
     const k = f.t / f.life;
     const x = f.x + ox, y = f.y + oy;
     switch (f.kind) {
+      case "zone": {
+        // a ring of flames, or a bubbling puddle
+        const [c1, c2] = TYPE_FX[f.elem ?? "fire"];
+        const fade = Math.max(0, Math.min(1, (f.life - f.t) * 3, f.t * 6));
+        ctx.globalAlpha = 0.18 * fade;
+        ctx.fillStyle = g.c[c1];
+        ellipse(ctx, x, y, f.r!, f.r! * 0.6);
+        ctx.globalAlpha = fade;
+        if (f.elem === "fire") {
+          const n = Math.max(8, Math.round(f.r! / 4));
+          for (let i = 0; i < n; i++) {
+            const a = (i / n) * Math.PI * 2 + f.t * 2;
+            const h = 3 + ((i + Math.floor(f.t * 12)) % 3);
+            const px = Math.round(x + Math.cos(a) * f.r!), py = Math.round(y + Math.sin(a) * f.r! * 0.6);
+            ctx.fillStyle = g.c.fire;
+            ctx.fillRect(px - 1, py - h, 3, h);
+            ctx.fillStyle = g.c.fire2;
+            ctx.fillRect(px, py - h + 1, 1, h - 1);
+          }
+        } else {
+          ctx.strokeStyle = g.c[c1];
+          ring(ctx, x, y, f.r!, 0.6);
+          for (let i = 0; i < 6; i++) {
+            const a = hash(i, 7) * Math.PI * 2, d = hash(i, 9) * f.r! * 0.8;
+            const b = (f.t * 2 + hash(i, 5)) % 1;
+            ctx.fillStyle = g.c[c2];
+            ctx.globalAlpha = fade * (1 - b);
+            ctx.fillRect(Math.round(x + Math.cos(a) * d), Math.round(y + Math.sin(a) * d * 0.6 - b * 4), 2, 2);
+          }
+        }
+        ctx.globalAlpha = 1;
+        break;
+      }
+      case "mark": {
+        // a psychic target closing in, blinking at the end
+        const k2 = f.t / f.life;
+        if (k2 > 0.75 && Math.floor(f.t * 20) % 2) break;
+        const R = Math.round(14 - 7 * k2), cy = y - 8;
+        ctx.fillStyle = g.c.psy;
+        for (let i = 0; i < 4; i++) {
+          const a = (i / 4) * Math.PI * 2 + f.t * 3;
+          const px = Math.round(x + Math.cos(a) * R), py = Math.round(cy + Math.sin(a) * R);
+          ctx.fillRect(px - 1, py - 1, 3, 3);
+        }
+        ctx.strokeStyle = g.c.psy2;
+        ctx.lineWidth = 1;
+        ring(ctx, x, cy, R, 1);
+        break;
+      }
+      case "punch": {
+        // a blow: an arc of force bursting out in front
+        const [c1, c2] = TYPE_FX.fight;
+        ctx.globalAlpha = 1 - k;
+        ctx.strokeStyle = g.c[c1];
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(x, y, f.r! * (0.4 + 0.6 * k), f.a! - 0.6, f.a! + 0.6);
+        ctx.stroke();
+        ctx.strokeStyle = g.c[c2];
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(x, y, f.r! * (0.3 + 0.6 * k), f.a! - 0.4, f.a! + 0.4);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        break;
+      }
       case "cloud": {
         // Sleep Powder: a soft cloud, fading in and out
         ctx.fillStyle = g.c.psy2;
@@ -3384,12 +3774,10 @@ export class Game {
       // the classic flicker between the two shapes, faster and faster
       const speed = 2 + e.t * e.t * 3;
       const showNew = !e.cancelled && Math.floor(e.t * speed) % 2 === 1 && e.t > 0.8;
-      const skin = this.cur.skin;
-      g.sprite(ctx, skin ?? (showNew ? e.to : e.from), "Idle", frameAt(anim(skin ?? e.from, "Idle"), this.animT), 0, x, y, { white: e.t > 0.6 && !e.cancelled, scale: 2 });
+      g.sprite(ctx, showNew ? e.to : e.from, "Idle", frameAt(anim(e.from, "Idle"), this.animT), 0, x, y, { white: e.t > 0.6 && !e.cancelled, scale: 2 });
     } else {
-      const look = this.cur.skin ?? e.to;
-      const a = anim(look, "Pose");
-      g.sprite(ctx, look, "Pose", frameAt(a, e.t - 3.2, a.d.length > 1 && animSeconds(a) < 1.8), 0, x, y, { scale: 2 });
+      const a = anim(e.to, "Pose");
+      g.sprite(ctx, e.to, "Pose", frameAt(a, e.t - 3.2, a.d.length > 1 && animSeconds(a) < 1.8), 0, x, y, { scale: 2 });
     }
     if (Math.random() < 0.4) this.part(this.x + rand(-30, 30), this.y + 20, 0, -rand(20, 50), "gold", 1, 1, 0, "spark");
     this.drawParts(ctx, ox, oy);
@@ -3409,8 +3797,8 @@ export class Game {
       ctx.globalAlpha = 0.55;
       ctx.fillRect(0, 0, SW, SH);
       ctx.globalAlpha = 1;
-      STARTERS.forEach((s, i) => {
-        const x = 52 + i * 72, y = 118;
+      this.roster.forEach((s, i) => {
+        const x = pickX(i, this.roster.length), y = 118;
         const sel = i === this.selected;
         if (sel) {
           ctx.fillStyle = g.c.gold;
@@ -3423,7 +3811,7 @@ export class Game {
         ellipse(ctx, x, y + 14, 10, 4);
         ctx.globalAlpha = 1;
         const name: AnimName = sel ? "Walk" : "Idle";
-        const dex = sel && this.selectSkin ? this.selectSkin : s.dex;
+        const dex = s.dex;
         g.sprite(ctx, dex, name, frameAt(anim(dex, name), this.menuT * (sel ? 1.4 : 1)), sel ? 0 : 0, x, y + 6 - (sel ? Math.abs(Math.sin(this.menuT * 6)) * 3 : 0), { scale: 2 });
       });
     }
@@ -3571,6 +3959,30 @@ const PIX = {
     "k...kaaak...k",
     ".....kkk.....",
   ],
+  bubble: [
+    ".bbbb.",
+    "bwl..b",
+    "bl...b",
+    "b....b",
+    "b...lb",
+    ".bbbb.",
+  ],
+  bone: [
+    "kkk...kkk",
+    "kwwkkkwwk",
+    "kwwwwwwwk",
+    "kwwkkkwwk",
+    "kkk...kkk",
+  ],
+  blade: [
+    ".pp..",
+    "..pP.",
+    "...PP",
+    "...PW",
+    "...PP",
+    "..pP.",
+    ".pp..",
+  ],
   rare: [
     ".....kkk.....",
     "k...kllbk...k",
@@ -3582,7 +3994,9 @@ const PIX = {
   ],
 } as const;
 type PixArt = (typeof PIX)[keyof typeof PIX];
-const PIX_KEYS: Record<string, ColorKey> = { k: "ink", w: "white", r: "fire", y: "fire2", b: "water", l: "water2", g: "grassFx", G: "grassFx2", a: "elec", c: "xp2" };
+const PIX_KEYS: Record<string, ColorKey> = {
+  k: "ink", w: "white", r: "fire", y: "fire2", b: "water", l: "water2", g: "grassFx", G: "grassFx2", a: "elec", c: "xp2", p: "psy", P: "psy2", W: "white",
+};
 /** each picture's colours, where they differ from PIX_KEYS */
 const PIX_OWN = new Map<PixArt, Record<string, ColorKey>>([
   [PIX.star, { y: "gold" }],
@@ -3622,6 +4036,9 @@ function pix(ctx: CanvasRenderingContext2D, g: Gfx, rows: PixArt, x: number, y: 
 
 /** where a shot heads, a quarter at a time */
 const dir4 = (vx: number, vy: number) => (Math.abs(vx) >= Math.abs(vy) ? (vx >= 0 ? 0 : 2) : vy >= 0 ? 1 : 3);
+
+/** the starter screen: where the i-th of n Pokémon stands */
+export const pickX = (i: number, n: number) => Math.round(SW / 2 + (i - (n - 1) / 2) * (n > 4 ? 60 : 72));
 
 function segDist(px: number, py: number, ax: number, ay: number, bx: number, by: number) {
   const dx = bx - ax, dy = by - ay;
