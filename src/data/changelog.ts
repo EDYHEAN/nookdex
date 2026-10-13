@@ -26,8 +26,8 @@ export const CHANGELOG: Release[] = [
         en: "The daily challenge: the same Pokémon and rule for everyone, a wave to reach to meet it (and a big gold bonus), then a daily ladder to go furthest.",
       },
       {
-        fr: "De l'or à ramasser, et Kecleon qui tient boutique toutes les 3 vagues. Ce qu'il te reste à la fin va à la Pension : des bonus pour toutes tes parties, sauvegardés avec ton compte.",
-        en: "Gold to pick up, and Kecleon running a shop every 3 waves. What's left at the end goes to the Pension: boosts for all your runs, saved with your account.",
+        fr: "De l'or à ramasser, gardé d'une partie à l'autre dans ta bourse. Après chaque boss, une pause : le Centre Pokémon, l'échoppe de Kecleon, puis 3, 2, 1 et c'est reparti. La Pension dépense ta bourse en bonus pour toutes tes parties, sauvegardés avec ton compte.",
+        en: "Gold to pick up, kept from run to run in your purse. After each boss, a break: the Pokémon Center, Kecleon's stall, then 3, 2, 1 and off again. The Pension spends your purse on boosts for all your runs, saved with your account.",
       },
       {
         fr: "Le classement repart à zéro chaque mois : une nouvelle saison, une nouvelle chance d'être premier.",

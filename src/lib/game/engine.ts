@@ -9,14 +9,18 @@ import {
 } from "./data";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
 
-/** center: the Pokémon Center between two boss waves (healed, moves to forget); shop: Kecleon's */
-export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over" | "center" | "shop";
+/** after each boss, a break: center (the Pokémon Center: healed, moves to forget), shop (Kecleon's), countdown (3-2-1) */
+export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over" | "center" | "shop" | "countdown";
 export type Mode = "classic" | "daily" | "coop";
 
 /** what a run is played with: the Pension's levels (none in the daily), the daily's rule */
 export interface RunSetup {
   mode: Mode;
   perm: Partial<Record<PensionId, number>>;
+  /** the purse brought in: what's in it at the end goes back */
+  wallet?: number;
+  /** player 1 dressed as another Pokémon (a reward) */
+  skin?: number;
   daily?: { day: string; mod: DailyMod; starter: number; target: number };
 }
 
@@ -264,6 +268,8 @@ export class Player {
   hurtFlash: number = 0;
   cam: { x: number; y: number } = { x: 0, y: 0 };
   aimV: { x: number; y: number } = { x: 0, y: 1 };
+  /** dressed as another Pokémon (a reward): only the look changes */
+  skin?: number;
   /** knocked out in a coop run, waiting for a partner to get them up */
   down = false;
   reviveT = 0;
@@ -541,9 +547,12 @@ export class Game {
   setup: RunSetup = { mode: "classic", perm: {} };
   gold = 0;
   /** Kecleon on the field, and its offers once you meet it */
-  merchant: { x: number; y: number; t: number; life: number } | null = null;
   offers: ShopOffer[] = [];
   shopRerolls = 0;
+  /** the break after a boss is on (Center, levels, shop, then the 3-2-1) */
+  private inBreak = false;
+  private shopDone = false;
+  countT = 0;
   private cardRng: () => number = Math.random;
   private enemies: Enemy[] = [];
   private shots: Shot[] = [];
@@ -555,6 +564,8 @@ export class Game {
   private spawnAcc = 0;
   private treasureAt = -1;
   private bossAlive: Enemy | null = null;
+  /** when the break starts: a moment after the boss falls, its loot bursting out first */
+  private breakAt = 0;
   private shake = 0;
   private flash = 0;
   private grid = new Map<number, Enemy[]>();
@@ -566,6 +577,11 @@ export class Game {
   private menuT = 0;
   private wanderers: { dex: number; x: number; y: number; vx: number; t: number }[] = [];
   selected = 0;
+  /** the starter screen shows the chosen one in this skin */
+  selectSkin?: number;
+  showSkin(dex?: number) {
+    this.selectSkin = dex;
+  }
 
   constructor(gfx: Gfx, lang: Lang) {
     this.gfx = gfx;
@@ -677,13 +693,13 @@ export class Game {
   start(i: number, setup: RunSetup = { mode: "classic", perm: {} }, i2?: number) {
     this.setup = setup;
     this.cardRng = setup.daily ? seeded(dailyOf(setup.daily.day).seed) : Math.random;
-    this.gold = 0;
-    this.merchant = null;
+    this.gold = setup.wallet ?? 0;
     this.offers = [];
     this.shopRerolls = 0;
+    this.inBreak = false;
     Object.assign(this, {
       time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1,
-      bossAlive: null, shake: 0, flash: 0, dyingT: 0,
+      bossAlive: null, breakAt: 0, shake: 0, flash: 0, dyingT: 0,
     });
     const picks = setup.mode === "coop" && i2 != null ? [i, i2] : [setup.daily ? setup.daily.starter : i];
     this.players = picks.map((k, id) => {
@@ -698,6 +714,7 @@ export class Game {
       return p;
     });
     this.cur = this.players[0];
+    if (setup.skin) this.players[0].skin = setup.skin;
     this.showBanner(this.tr("VAGUE 1", "WAVE 1"), this.tr("des Pokémon sauvages approchent", "wild Pokémon are coming"));
     gsfx.waveStart();
     music.boss(false);
@@ -767,21 +784,26 @@ export class Game {
   /* ---------------- Kecleon's shop ---------------- */
 
   private openShop() {
+    this.shopRerolls = 0;
     this.offers = this.makeOffers();
     this.release();
     gsfx.coin();
     this.set("shop");
   }
   private makeOffers(): ShopOffer[] {
-    const w = 1 + this.wave * 0.04;
-    const base: Record<Rarity, number> = { common: 25, rare: 45, epic: 80, legendary: 140 };
+    const w = this.priceUp;
+    const base: Record<Rarity, number> = { common: 30, rare: 55, epic: 90, legendary: 150 };
     return this.drawChoices(3).map((c) => ({ choice: c, price: Math.round(base[c.rarity ?? "common"] * w), sold: false }));
   }
+  /** prices climb 8 % a wave after the first shop (wave 6) */
+  private get priceUp() {
+    return Math.pow(1.08, Math.max(0, this.wave - 6));
+  }
   get rerollPrice() {
-    return 10 + 10 * this.shopRerolls;
+    return Math.round((15 + 15 * this.shopRerolls) * this.priceUp);
   }
   get healPrice() {
-    return Math.round(20 * (1 + this.wave * 0.04));
+    return Math.round(25 * this.priceUp);
   }
   buy(i: number) {
     const o = this.offers[i];
@@ -809,10 +831,16 @@ export class Game {
   }
   leaveShop() {
     if (this.phase !== "shop") return;
-    // Kecleon waves goodbye and goes
-    if (this.merchant) for (let i = 0; i < 10; i++) this.part(this.merchant.x + rand(-8, 8), this.merchant.y - rand(0, 20), rand(-30, 30), -rand(10, 40), "white", 0.5, 3, -10, "puff");
-    this.merchant = null;
     gsfx.ok();
+    // in coop, the second player's turn at the stall (the gold is shared)
+    const next = this.players[this.cur.id + 1];
+    if (next) {
+      this.cur = next;
+      this.shopRerolls = 0;
+      this.offers = this.makeOffers();
+      return this.onChange();
+    }
+    this.shopDone = true;
     this.resume();
   }
 
@@ -841,13 +869,25 @@ export class Game {
     this.resume();
   }
 
-  /** back to the game, unless a player still has levels to take (the current one first) */
+  /** what comes next: a player's levels (the current one first), the break's shop and 3-2-1, else the game */
   private resume() {
     const next = this.cur.pendingLevels > 0 && !this.cur.down ? this.cur : this.players.find((p) => p.pendingLevels > 0 && !p.down);
     if (next) {
       this.cur = next;
-      this.offerChoices();
-    } else this.set("play");
+      return this.offerChoices();
+    }
+    if (this.inBreak && !this.shopDone) {
+      this.cur = this.players[0];
+      return this.openShop();
+    }
+    if (this.inBreak) {
+      this.inBreak = false;
+      this.countT = 3;
+      this.bannerT = 0;
+      this.cur = this.players[0];
+      return this.set("countdown");
+    }
+    this.set("play");
   }
 
   /** at the Pokémon Center: forget a move or drop an item (it frees its slot) */
@@ -958,6 +998,17 @@ export class Game {
       }
       return;
     }
+    if (this.phase === "countdown") {
+      const before = Math.ceil(this.countT);
+      this.countT -= STEP;
+      this.stepParts(STEP);
+      if (Math.ceil(this.countT) !== before && this.countT > 0) gsfx.move();
+      if (this.countT <= 0) {
+        gsfx.waveStart();
+        this.set("play");
+      }
+      return;
+    }
     if (this.phase !== "play") return;
     const dt = STEP;
     this.time += dt;
@@ -965,22 +1016,13 @@ export class Game {
     // a new wave every 30 s; every fifth one brings a boss
     const wave = 1 + Math.floor(this.time / WAVE_SECONDS);
     if (wave !== this.wave) this.newWave(wave);
+    if (this.breakAt && this.time >= this.breakAt) {
+      this.breakAt = 0;
+      return this.startBreak();
+    }
 
     this.eachAlive((p) => this.movePlayer(p.input, dt));
     this.buildGrid();
-    if (this.merchant) {
-      this.merchant.t += dt;
-      if (this.merchant.t > this.merchant.life) this.merchant = null;
-      else {
-        const m = this.merchant;
-        const near = this.alive().find((p) => dist2(p.x, p.y, m.x, m.y) < 18 * 18);
-        if (near) {
-          this.cur = near;
-          this.openShop();
-          return;
-        }
-      }
-    }
     this.eachAlive((p) => {
       this.stepDash(dt);
       this.stepRocks(dt);
@@ -1121,27 +1163,44 @@ export class Game {
       for (let i = 0; i < 40; i++) this.spawnOne(129, i / 40);
       this.showBanner(this.tr("VAGUE 11", "WAVE 11"), this.tr("une horde de Magicarpe ?!", "a shoal of Magikarp?!"));
     } else this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), "");
-    if (wave % 5 === 1 && wave > 1 && !this.setup.daily?.mod.noCenter) {
-      // the Pokémon Center, after a boss's wave: everyone healed (and up), and a moment to forget moves
-      for (const p of this.players) {
-        p.down = false;
-        p.hp = p.maxHp;
-      }
-      this.cur = this.players[0];
-      this.release();
-      gsfx.heal();
-      this.set("center");
-    }
-    if (wave % 3 === 0 && wave % 5 !== 0) {
-      const a = Math.random() * Math.PI * 2;
-      this.merchant = { x: this.x + Math.cos(a) * 140, y: this.y + Math.sin(a) * 110, t: 0, life: 40 };
-      if (this.phase === "play") this.showBanner(this.tr("KECLEON EST LA", "KECLEON IS HERE"), this.tr("sa boutique t'attend (or)", "its shop awaits (gold)"));
-    }
     // the daily met: its banner wins over the others
     if (daily && wave === daily.target)
       this.showBanner(this.tr("DEFI REUSSI !", "CHALLENGE MET!"), this.tr(`+${dailyReward(wave, true)} or, et plus si tu tiens`, `+${dailyReward(wave, true)} gold, more if you hold on`));
     // a Chansey runs by sometimes: catch it if you can
     this.treasureAt = wave >= 3 && Math.random() < 0.45 ? this.time + rand(5, 25) : -1;
+  }
+
+  /**
+   * A moment after a boss falls: a break (Johan, 2026-10-13). The field is cleared (the foes vanish, what lay on the ground comes to the
+   * players), then the Pokémon Center, the levels won, Kecleon's shop, and a 3-2-1 before it starts again.
+   */
+  private startBreak() {
+    for (const e of this.enemies)
+      if (!e.dead) for (let i = 0; i < 3; i++) this.part(e.x + rand(-4, 4), e.y - 6, rand(-20, 20), rand(-30, 0), "white", 0.5, 3, -10, "puff");
+    this.enemies = [];
+    this.foes = [];
+    this.bossAlive = null;
+    music.boss(false);
+    this.inBreak = true;
+    this.shopDone = false;
+    const keep = this.cur;
+    for (const p of this.pickups) {
+      this.cur = this.nearestPlayer(p.x, p.y);
+      this.collect(p);
+    }
+    this.pickups = [];
+    this.cur = keep;
+    const noCenter = this.setup.daily?.mod.noCenter;
+    for (const p of this.players) {
+      p.down = false;
+      if (!noCenter) p.hp = p.maxHp;
+      else p.hp = Math.max(p.hp, 1);
+    }
+    this.cur = this.players[0];
+    this.release();
+    if (noCenter) return this.resume();
+    gsfx.heal();
+    this.set("center");
   }
 
   private showBanner(title: string, sub: string) {
@@ -1625,25 +1684,27 @@ export class Game {
     if (e.boss) {
       unlock("game-boss");
       this.bossAlive = null;
+      this.breakAt = this.time + 1.5;
       music.boss(false);
       this.shake = 10;
       this.flash = 0.8;
       this.drop("rare", e.x, e.y, 0);
       this.drop("oran", e.x + 8, e.y, 0);
       for (let i = 0; i < 14; i++) this.drop("candy", e.x + rand(-20, 20), e.y + rand(-20, 20), 8);
-      for (let i = 0; i < 10; i++) this.drop("coin", e.x + rand(-24, 24), e.y + rand(-24, 24), 3 + Math.floor(this.wave / 3));
+      for (let i = 0; i < 12; i++) this.drop("coin", e.x + rand(-24, 24), e.y + rand(-24, 24), 3 + Math.floor(this.wave / 3));
       gsfx.rare();
       this.showBanner(this.tr(`${this.name(e.dex)} est K.O. !`, `${this.name(e.dex)} fainted!`), this.tr("un Super Bonbon est tombé", "a Rare Candy dropped"));
     } else if (e.w?.act === "treasure") {
       unlock("game-chansey");
       for (let i = 0; i < 8; i++) this.drop("candy", e.x + rand(-14, 14), e.y + rand(-14, 14), 8);
-      for (let i = 0; i < 6; i++) this.drop("coin", e.x + rand(-14, 14), e.y + rand(-14, 14), 2 + Math.floor(this.wave / 4));
+      for (let i = 0; i < 8; i++) this.drop("coin", e.x + rand(-14, 14), e.y + rand(-14, 14), 2 + Math.floor(this.wave / 4));
       this.drop("egg", e.x, e.y, 0);
       gsfx.rare();
     } else {
       this.drop("candy", e.x, e.y, xp);
-      if (e.elite) for (let i = 0; i < 3; i++) this.drop("coin", e.x + rand(-8, 8), e.y + rand(-8, 8), 1 + Math.floor(this.wave / 6));
-      else if (Math.random() < 0.05) this.drop("coin", e.x, e.y, 1 + Math.floor(this.wave / 6));
+      const v = 1 + Math.floor(this.wave / 4);
+      if (e.elite) for (let i = 0; i < 4; i++) this.drop("coin", e.x + rand(-8, 8), e.y + rand(-8, 8), v);
+      else if (Math.random() < 0.1) this.drop("coin", e.x, e.y, v);
       const r = Math.random();
       if (r < 0.012) this.drop("oran", e.x, e.y, 0);
       else if (r < 0.016) this.drop("magnet", e.x, e.y, 0);
@@ -2299,7 +2360,7 @@ export class Game {
       this.fx.push({ kind: "levelup", x: this.x, y: this.y, t: 0, life: 0.9, owner: this.cur });
       for (let i = 0; i < 16; i++) this.part(this.x + rand(-10, 10), this.y, 0, -rand(30, 80), "gold", 0.8, 1, 0, "spark");
     }
-    if (this.pendingLevels > 0 && this.phase === "play") {
+    if (this.pendingLevels > 0 && this.phase === "play" && !this.inBreak) {
       gsfx.levelUp();
       this.offerChoices();
     }
@@ -2486,36 +2547,12 @@ export class Game {
   }
 
   private drawBodies(ctx: CanvasRenderingContext2D, bodies: { y: number; draw: () => void }[], ox: number, oy: number) {
-    const g = this.gfx;
-    const m = this.merchant;
-    if (m)
-      bodies.push({
-        y: m.y,
-        draw: () => {
-          ctx.fillStyle = g.c.shadow;
-          ctx.globalAlpha = 0.28;
-          ellipse(ctx, m.x + ox, m.y + oy, 8, 3);
-          ctx.globalAlpha = 1;
-          // it blinks in and out of sight, like a Kecleon does, in its last seconds
-          if (m.life - m.t < 6 && Math.floor(m.t * 6) % 2) return;
-          g.sprite(ctx, 352, "Idle", frameAt(anim(352, "Idle"), m.t), 0, m.x + ox, m.y + oy - 8);
-          // its sign: a coin bobbing over its head
-          this.drawPickup(ctx, { kind: "coin", x: m.x, y: m.y - 30 - Math.round(Math.sin(m.t * 4) * 2), z: 0, vz: 1, value: 0, pull: false, t: m.t }, ox, oy);
-        },
-      });
     bodies.sort((a, b) => a.y - b.y);
     for (const b of bodies) b.draw();
 
     // shots
     for (const s of this.shots) this.drawShot(ctx, s, ox, oy);
-    for (const s of this.foes) {
-      const [c1, c2] = TYPE_FX[s.elem];
-      const bl = Math.floor(s.t * 10) % 2;
-      ctx.fillStyle = g.c.ink;
-      ctx.fillRect(Math.round(s.x + ox) - 3, Math.round(s.y + oy) - 3, 6, 6);
-      ctx.fillStyle = g.c[bl ? c1 : c2];
-      ctx.fillRect(Math.round(s.x + ox) - 2, Math.round(s.y + oy) - 2, 4, 4);
-    }
+    for (const s of this.foes) this.drawFoeShot(ctx, s, ox, oy);
     for (const p of this.players) this.as(p, () => this.drawOrbits(ctx, ox, oy));
     this.drawTop(ctx, ox, oy);
   }
@@ -2572,6 +2609,19 @@ export class Game {
     this.drawPointers(ctx, ox, oy);
     if (this.phase === "evolve" && this.evo) this.drawEvolution(ctx, ox, oy);
     else this.drawHud(ctx);
+    if (this.phase === "countdown") {
+      // 3, 2, 1, each one popping in
+      const n = Math.ceil(this.countT);
+      const k = 1 - (this.countT - Math.floor(this.countT));
+      ctx.fillStyle = g.c.uiDark;
+      ctx.globalAlpha = 0.45;
+      ctx.fillRect(0, 0, SW, SH);
+      ctx.globalAlpha = 1;
+      const sc = k < 0.15 ? 9 : 7;
+      for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2], [2, 2]]) g.text(ctx, String(n), SW / 2 + dx, 40 + dy, "uiDark", { align: "center", scale: sc, outline: "uiDark" });
+      g.text(ctx, String(n), SW / 2, 40, "gold", { align: "center", scale: sc, outline: "gold" });
+      g.text(ctx, this.tr(`VAGUE ${this.wave}`, `WAVE ${this.wave}`), SW / 2, 100, "ui", { align: "center", scale: 2 });
+    }
     if (this.cur.down && this.players.length > 1 && this.phase === "play") {
       // knocked out: waiting for the partner
       ctx.fillStyle = g.c.uiDark;
@@ -2601,9 +2651,10 @@ export class Game {
 
   private drawPlayer(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
     const g = this.gfx;
+    const look = this.cur.skin ?? this.dex;
     if (this.phase === "dying" || this.cur.down) {
-      const a = anim(this.dex, "Faint");
-      g.sprite(ctx, this.dex, "Faint", frameAt(a, this.cur.down ? 9 : this.dyingT, false), this.dir, this.x + ox, this.y + oy - 8);
+      const a = anim(look, "Faint");
+      g.sprite(ctx, look, "Faint", frameAt(a, this.cur.down ? 9 : this.dyingT, false), this.dir, this.x + ox, this.y + oy - 8);
       if (this.cur.down && this.cur.reviveT > 0) {
         ctx.strokeStyle = g.c.hp;
         ctx.lineWidth = 2;
@@ -2614,7 +2665,7 @@ export class Game {
       }
       return;
     }
-    for (const t of this.trail) g.sprite(ctx, this.dex, "Walk", 0, t.dir, t.x + ox, t.y + oy - 8, { white: true, alpha: 0.5 * (1 - t.t / 0.25) });
+    for (const t of this.trail) g.sprite(ctx, look, "Walk", 0, t.dir, t.x + ox, t.y + oy - 8, { white: true, alpha: 0.5 * (1 - t.t / 0.25) });
     if (this.invuln > 0 && this.hurtT <= 0 && this.dashT <= 0 && Math.floor(this.invuln * 20) % 2) return;
     let name: AnimName = this.moving ? "Walk" : "Idle";
     let t = this.animT;
@@ -2625,8 +2676,8 @@ export class Game {
       name = "Shoot";
       t = this.starter.basic.every - this.basicT;
     }
-    const a = anim(this.dex, name);
-    g.sprite(ctx, this.dex, name, frameAt(a, t, name !== "Shoot"), this.dir, this.x + ox, this.y + oy - 8);
+    const a = anim(look, name);
+    g.sprite(ctx, look, name, frameAt(a, t, name !== "Shoot"), this.dir, this.x + ox, this.y + oy - 8);
     if (this.shieldT > 0) {
       ctx.strokeStyle = g.c.grassFx2;
       ctx.globalAlpha = 0.5 + Math.sin(this.time * 20) * 0.2;
@@ -2675,17 +2726,19 @@ export class Game {
     const [c1, c2] = TYPE_FX[s.elem];
     switch (s.kind) {
       case "ember":
-        ctx.fillStyle = g.c.fire;
-        ctx.fillRect(x - s.r, y - s.r + 1, s.r * 2, s.r * 2 - 2);
-        ctx.fillRect(x - s.r + 1, y - s.r, s.r * 2 - 2, s.r * 2);
-        ctx.fillStyle = g.c.fire2;
-        ctx.fillRect(x - 1, y - 1, 2, 2);
+        // a fireball, its flame flickering behind; the evolved ones glow wider
+        if (s.r > 3) {
+          ctx.fillStyle = g.c.fire;
+          ctx.globalAlpha = 0.3;
+          ctx.beginPath();
+          ctx.arc(x, y, s.r + 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+        pix(ctx, g, Math.floor(s.t * 14) % 2 ? PIX.ember2 : PIX.ember, x, y, dir4(s.vx, s.vy));
         break;
       case "water":
-        ctx.fillStyle = g.c.water;
-        ctx.fillRect(x - 2, y - 2, 4, 4);
-        ctx.fillStyle = g.c.water2;
-        ctx.fillRect(x - 1, y - 2, 1, 1);
+        pix(ctx, g, PIX.drop, x, y, dir4(s.vx, s.vy));
         break;
       case "flame": {
         const k = 1 - s.life / 0.7;
@@ -2696,28 +2749,38 @@ export class Game {
         ctx.globalAlpha = 1;
         break;
       }
-      case "leaf": {
-        const a = s.t * 14;
-        ctx.fillStyle = g.c.grassFx;
-        ctx.fillRect(x - 2 + Math.round(Math.cos(a)), y - 1, 4, 2);
-        ctx.fillStyle = g.c.grassFx2;
-        ctx.fillRect(x - 1, y - 2 + Math.round(Math.sin(a)), 2, 4);
+      case "leaf":
+        // Razor Leaf: a leaf spinning a quarter at a time
+        pix(ctx, g, PIX.leaf, x, y, Math.floor(s.t * 12) % 4);
         break;
-      }
-      case "shadow":
+      case "shadow": {
+        // Shadow Ball: a dark core, two wisps turning around it, its rim flickering
+        const r = s.r;
         ctx.fillStyle = g.c.ink;
         ctx.beginPath();
-        ctx.arc(x, y, s.r + 1, 0, Math.PI * 2);
+        ctx.arc(x, y, r + 1, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = g.c.ghost;
         ctx.beginPath();
-        ctx.arc(x, y, s.r, 0, Math.PI * 2);
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = g.c.ink;
+        ctx.beginPath();
+        ctx.arc(x, y, Math.max(1, r - 3), 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = g.c.ghost2;
-        ctx.fillRect(x - Math.round(s.r / 2), y - Math.round(s.r / 2), 2, 2);
+        for (let i = 0; i < 2; i++) {
+          const a = s.t * 7 + i * Math.PI;
+          ctx.fillRect(Math.round(x + Math.cos(a) * (r - 1.5)) - 1, Math.round(y + Math.sin(a) * (r - 1.5)) - 1, 2, 2);
+        }
+        ctx.fillRect(x - Math.round(r / 2), y - Math.round(r / 2) - 1, 1, 1);
+        if (Math.random() < 0.25) this.part(s.x + rand(-r, r), s.y + rand(-r, r), 0, -12, "ghost2", 0.4, 1, 0, "spark");
         break;
+      }
       case "swift":
-        star(ctx, x, y, s.t, g.c.gold, g.c.white);
+        // Swift: an outlined star, turning
+        pix(ctx, g, PIX.star, x, y, Math.floor(s.t * 10) % 2);
+        if (Math.random() < 0.2) this.part(s.x, s.y, 0, 0, "gold", 0.25, 1, 0, "spark");
         break;
       case "blast": {
         const r = 6 + (Math.floor(s.t * 12) % 2);
@@ -2739,6 +2802,31 @@ export class Game {
         ctx.fillRect(x - 2, y - 2, 4, 4);
         ctx.fillStyle = g.c[c2];
         ctx.fillRect(x - 1, y - 1, 2, 2);
+    }
+  }
+
+  /** the wild ones' shots: each element its own little picture */
+  private drawFoeShot(ctx: CanvasRenderingContext2D, s: Shot, ox: number, oy: number) {
+    const g = this.gfx;
+    const x = Math.round(s.x + ox), y = Math.round(s.y + oy);
+    if (x < -8 || x > SW + 8 || y < -8 || y > SH + 8) return;
+    const d = dir4(s.vx, s.vy);
+    const [a, b] = TYPE_FX[s.elem];
+    switch (s.elem) {
+      case "fire":
+        return pix(ctx, g, Math.floor(s.t * 14) % 2 ? PIX.ember2 : PIX.ember, x, y, d);
+      case "water":
+      case "ice":
+        return pix(ctx, g, PIX.drop, x, y, d, { b: a, l: b });
+      case "grass":
+        return pix(ctx, g, PIX.leaf, x, y, Math.floor(s.t * 12) % 4);
+      case "elec":
+        return pix(ctx, g, PIX.zap, x, y, (d + (Math.floor(s.t * 16) % 2) * 2) % 4);
+      case "ground":
+        return pix(ctx, g, PIX.pebble, x, y, Math.floor(s.t * 8) % 4, { a, b });
+      default:
+        // an orb, blinking
+        return pix(ctx, g, PIX.orb, x, y, 0, Math.floor(s.t * 10) % 2 ? { a, b } : { a: b, b: "white" });
     }
   }
 
@@ -2988,19 +3076,13 @@ export class Game {
         return;
       }
       if (p.kind === "candy") {
-        // a wrapped candy; the big ones are pink
+        // a wrapped candy; the big ones are pink, and a glint runs over them now and then
         const big = p.value >= 8;
-        const c = big ? g.c.xpBig : g.c.xp;
-        ctx.fillStyle = g.c.ink;
-        ctx.fillRect(x - 3, y - 2, 6, 4);
-        ctx.fillStyle = c;
-        ctx.fillRect(x - 2, y - 1, 4, 2);
-        ctx.fillRect(x - 4, y - 2, 1, 1);
-        ctx.fillRect(x - 4, y + 1, 1, 1);
-        ctx.fillRect(x + 3, y - 2, 1, 1);
-        ctx.fillRect(x + 3, y + 1, 1, 1);
-        ctx.fillStyle = g.c.xp2;
-        ctx.fillRect(x - 1, y - 1, 1, 1);
+        pix(ctx, g, big ? PIX.bigCandy : PIX.candy, x, y);
+        if ((p.t + p.x * 0.01) % 2.4 < 0.12) {
+          ctx.fillStyle = g.c.white;
+          ctx.fillRect(x - 1, y - (big ? 2 : 1), 1, 1);
+        }
       } else if (p.kind === "oran" || p.kind === "egg") {
         ctx.fillStyle = g.c.ink;
         ctx.fillRect(x - 3, y - 3, 7, 7);
@@ -3010,14 +3092,9 @@ export class Game {
         ctx.fillRect(x, y - 4, 1, 2);
         if (p.kind === "egg") ctx.fillRect(x - 1, y, 2, 1);
       } else if (p.kind === "rare") {
-        // the Rare Candy: blue with its yellow band, twinkling
-        ctx.fillStyle = g.c.ink;
-        ctx.fillRect(x - 4, y - 3, 9, 7);
-        ctx.fillStyle = g.c.water;
-        ctx.fillRect(x - 3, y - 2, 7, 5);
-        ctx.fillStyle = g.c.gold;
-        ctx.fillRect(x - 3, y, 7, 1);
-        if (Math.floor(p.t * 6) % 2) star(ctx, x + 4, y - 4, p.t, g.c.gold, g.c.white);
+        // the Rare Candy: blue with its golden band and wrappers, twinkling
+        pix(ctx, g, PIX.rare, x, y);
+        if (Math.floor(p.t * 6) % 2) star(ctx, x + 5, y - 4, p.t, g.c.gold, g.c.white);
       } else {
         ctx.fillStyle = g.c.ink;
         ctx.fillRect(x - 4, y - 4, 8, 7);
@@ -3119,20 +3196,6 @@ export class Game {
       ctx.lineTo(cx + Math.cos(a + 2.4) * 6, cy + Math.sin(a + 2.4) * 6);
       ctx.lineTo(cx + Math.cos(a - 2.4) * 6, cy + Math.sin(a - 2.4) * 6);
       ctx.fill();
-    }
-    const m = this.merchant;
-    if (m) {
-      const x = m.x + ox, y = m.y + oy;
-      if (!(x > 0 && x < SW && y > 16 && y < SH)) {
-        const cx = Math.max(8, Math.min(SW - 8, x)), cy = Math.max(24, Math.min(SH - 30, y));
-        const a = Math.atan2(y - cy, x - cx);
-        ctx.fillStyle = this.gfx.c.coin;
-        ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(a) * 6, cy + Math.sin(a) * 6);
-        ctx.lineTo(cx + Math.cos(a + 2.4) * 5, cy + Math.sin(a + 2.4) * 5);
-        ctx.lineTo(cx + Math.cos(a - 2.4) * 5, cy + Math.sin(a - 2.4) * 5);
-        ctx.fill();
-      }
     }
     for (const e of this.enemies) {
       if (e.dead || !(e.boss || e.w?.act === "treasure")) continue;
@@ -3271,7 +3334,6 @@ export class Game {
       else if (e.elite) dot(e.x, e.y, c.gold, 2);
       else dot(e.x, e.y, c.uiDim, 1);
     }
-    if (this.merchant) dot(this.merchant.x, this.merchant.y, c.coin, 3);
     for (const p of this.players) if (p !== this.cur) dot(p.x, p.y, p.down ? c.hpLow : c.xp, 3);
     dot(this.x, this.y, c.white, 2);
   }
@@ -3313,10 +3375,12 @@ export class Game {
       // the classic flicker between the two shapes, faster and faster
       const speed = 2 + e.t * e.t * 3;
       const showNew = !e.cancelled && Math.floor(e.t * speed) % 2 === 1 && e.t > 0.8;
-      g.sprite(ctx, showNew ? e.to : e.from, "Idle", frameAt(anim(e.from, "Idle"), this.animT), 0, x, y, { white: e.t > 0.6 && !e.cancelled, scale: 2 });
+      const skin = this.cur.skin;
+      g.sprite(ctx, skin ?? (showNew ? e.to : e.from), "Idle", frameAt(anim(skin ?? e.from, "Idle"), this.animT), 0, x, y, { white: e.t > 0.6 && !e.cancelled, scale: 2 });
     } else {
-      const a = anim(e.to, "Pose");
-      g.sprite(ctx, e.to, "Pose", frameAt(a, e.t - 3.2, a.d.length > 1 && animSeconds(a) < 1.8), 0, x, y, { scale: 2 });
+      const look = this.cur.skin ?? e.to;
+      const a = anim(look, "Pose");
+      g.sprite(ctx, look, "Pose", frameAt(a, e.t - 3.2, a.d.length > 1 && animSeconds(a) < 1.8), 0, x, y, { scale: 2 });
     }
     if (Math.random() < 0.4) this.part(this.x + rand(-30, 30), this.y + 20, 0, -rand(20, 50), "gold", 1, 1, 0, "spark");
     this.drawParts(ctx, ox, oy);
@@ -3350,7 +3414,8 @@ export class Game {
         ellipse(ctx, x, y + 14, 10, 4);
         ctx.globalAlpha = 1;
         const name: AnimName = sel ? "Walk" : "Idle";
-        g.sprite(ctx, s.dex, name, frameAt(anim(s.dex, name), this.menuT * (sel ? 1.4 : 1)), sel ? 0 : 0, x, y + 6 - (sel ? Math.abs(Math.sin(this.menuT * 6)) * 3 : 0), { scale: 2 });
+        const dex = sel && this.selectSkin ? this.selectSkin : s.dex;
+        g.sprite(ctx, dex, name, frameAt(anim(dex, name), this.menuT * (sel ? 1.4 : 1)), sel ? 0 : 0, x, y + 6 - (sel ? Math.abs(Math.sin(this.menuT * 6)) * 3 : 0), { scale: 2 });
       });
     }
   }
@@ -3410,6 +3475,144 @@ function star(ctx: CanvasRenderingContext2D, x: number, y: number, t: number, c1
   ctx.fillStyle = c2;
   ctx.fillRect(x, y, 1, 1);
 }
+
+/**
+ * Little pixel pictures, drawn facing right: one character a pixel, a colour of the palette ("." = see-through). k ink,
+ * w white; the others are each picture's own (see PIX_KEYS), and a caller can swap them (a foe's element).
+ */
+const PIX = {
+  ember: [
+    ".....kkk..",
+    "r...krrrk.",
+    ".rrkrryyrk",
+    "rrrkryywyk",
+    ".rrkrryyrk",
+    "....krrrk.",
+    ".....kkk..",
+  ],
+  ember2: [
+    ".....kkk..",
+    "....krrrk.",
+    "r.rkrryyrk",
+    ".rrkryywyk",
+    "rrrkrryyrk",
+    ".r..krrrk.",
+    ".....kkk..",
+  ],
+  drop: [
+    "...kkkk.",
+    ".kkbbllk",
+    "kbbbbblk",
+    ".kkbbbbk",
+    "...kkkk.",
+  ],
+  leaf: [
+    "....kkk",
+    "..kkggk",
+    ".kgggGk",
+    "kgGGgk.",
+    "kGgkk..",
+    "kk.....",
+  ],
+  star: [
+    "...k...",
+    "..kyk..",
+    "kkyyykk",
+    "kyywyyk",
+    ".kyyyk.",
+    ".kykyk.",
+    ".kk.kk.",
+  ],
+  zap: [
+    "...kk",
+    "..kak",
+    ".kak.",
+    "kaaak",
+    ".kak.",
+    "kak..",
+    "kk...",
+  ],
+  pebble: [
+    ".kkk.",
+    "kabak",
+    "kaaak",
+    ".kkk.",
+  ],
+  orb: [
+    ".kkkk.",
+    "kbaaak",
+    "kbaaak",
+    "kaaaak",
+    "kaaaak",
+    ".kkkk.",
+  ],
+  candy: [
+    "...kkk...",
+    "k.kbaak.k",
+    "kckaaakck",
+    "k.kaaak.k",
+    "...kkk...",
+  ],
+  bigCandy: [
+    ".....kkk.....",
+    "k...kbbak...k",
+    "kc.kbaaaak.ck",
+    "kcckaaaaakcck",
+    "kc.kaaaaak.ck",
+    "k...kaaak...k",
+    ".....kkk.....",
+  ],
+  rare: [
+    ".....kkk.....",
+    "k...kllbk...k",
+    "ky.klbbbbk.yk",
+    "kyykyyyyykyyk",
+    "ky.kbbbbbk.yk",
+    "k...kbbbk...k",
+    ".....kkk.....",
+  ],
+} as const;
+type PixArt = (typeof PIX)[keyof typeof PIX];
+const PIX_KEYS: Record<string, ColorKey> = { k: "ink", w: "white", r: "fire", y: "fire2", b: "water", l: "water2", g: "grassFx", G: "grassFx2", a: "elec", c: "xp2" };
+/** each picture's colours, where they differ from PIX_KEYS */
+const PIX_OWN = new Map<PixArt, Record<string, ColorKey>>([
+  [PIX.star, { y: "gold" }],
+  [PIX.pebble, { a: "ground", b: "ground2" }],
+  [PIX.candy, { a: "xp", b: "xp2", c: "xp" }],
+  [PIX.bigCandy, { a: "xpBig", b: "white", c: "xpBig" }],
+  [PIX.rare, { y: "gold" }],
+]);
+/** made once per palette, picture, turn and colours */
+const pixMade = new WeakMap<object, Map<string, HTMLCanvasElement>>();
+
+/** a picture centred on x, y; dir turns it a quarter at a time (0 right, 1 down, 2 left, 3 up) */
+function pix(ctx: CanvasRenderingContext2D, g: Gfx, rows: PixArt, x: number, y: number, dir = 0, swap?: Record<string, ColorKey>) {
+  let made = pixMade.get(g.c);
+  if (!made) pixMade.set(g.c, (made = new Map()));
+  const id = `${Object.keys(PIX).find((k) => PIX[k as keyof typeof PIX] === rows)}${dir}${swap ? JSON.stringify(swap) : ""}`;
+  let cv = made.get(id);
+  if (!cv) {
+    const keys = { ...PIX_KEYS, ...PIX_OWN.get(rows), ...swap };
+    const h = rows.length, w = rows[0].length, turned = dir % 2 === 1;
+    cv = document.createElement("canvas");
+    cv.width = turned ? h : w;
+    cv.height = turned ? w : h;
+    const c = cv.getContext("2d")!;
+    for (let i = 0; i < h; i++)
+      for (let j = 0; j < w; j++) {
+        const ch = rows[i][j];
+        if (ch === ".") continue;
+        c.fillStyle = g.c[keys[ch]];
+        const [px, py] = dir === 0 ? [j, i] : dir === 1 ? [h - 1 - i, j] : dir === 2 ? [w - 1 - j, i] : [i, w - 1 - j];
+        c.fillRect(px, py, 1, 1);
+      }
+    made.set(id, cv);
+  }
+  ctx.drawImage(cv, Math.round(x - cv.width / 2), Math.round(y - cv.height / 2));
+}
+
+/** where a shot heads, a quarter at a time */
+const dir4 = (vx: number, vy: number) => (Math.abs(vx) >= Math.abs(vy) ? (vx >= 0 ? 0 : 2) : vy >= 0 ? 1 : 3);
 
 function segDist(px: number, py: number, ax: number, ay: number, bx: number, by: number) {
   const dx = bx - ax, dy = by - ay;

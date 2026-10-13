@@ -26,6 +26,8 @@ const ROSTER = {
     ),
   ),
   ...Object.fromEntries([143, 95, 94, 130, 149, 150, 144, 145, 146, 151].map((n) => [n, BOSS])),
+  // Mewtwo, a boss and a player's skin (a reward): the player's moves too
+  150: PLAYER,
   // Kecleon, the merchant
   352: ["Walk", "Idle"],
 };

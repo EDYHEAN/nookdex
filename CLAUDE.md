@@ -238,11 +238,16 @@ doesn't show.
   lasts 30 s, one run per name every 20 s, best run per name), open to everyone, account or not. A board per mode
   (classic, daily, coop) and period (the month's season, the daily's UTC day, all time); `game_top` / `game_submit` are
   the v1 the client falls back on.
-- Economy (Johan, 2026-10-13): gold (Nuggets) is for the run only: Kecleon (every 3rd wave, not with a boss) sells cards,
-  heals, rerolls; what's left at the end goes to the **Pension** (`lib/pensionStore`, permanent boosts, capped, in the
-  save and the cloud like the trophies, merged by the higher level). The **daily challenge** (`dailyOf`: the UTC day's
-  starter and rule, seeded cards) runs without the Pension and pays a gold bonus once a day. Every 5 waves after a boss:
-  the Pokémon Center (full heal, forget moves). Statuses and combos: `COMBOS` in lib/game/data.
+- Economy (Johan, 2026-10-13): gold (Nuggets, ~10 % of foes, more from elites, bosses, Chansey) goes in a **purse** kept
+  from run to run (`lib/pensionStore` `gold`, in the save and the cloud, the latest wins): a classic or coop run starts
+  with it and gives back what it ends with (game over, or the console put away mid-run). It buys the **Pension**
+  (permanent boosts, capped, dearer each level, merged by the higher level) from the menu or the game over. The **daily
+  challenge** (`dailyOf`: the UTC day's starter and rule, seeded cards) starts with no purse nor Pension; its gold and a
+  bonus (once a day) go to the purse. A moment after each boss falls, a **break**: the field is cleared, then the
+  Pokémon Center (full heal, forget moves), the levels won, Kecleon's stall (cards, heal, reroll: prices up 8 % a wave),
+  a 3-2-1. Statuses and combos: `COMBOS` in lib/game/data.
+- Rewards: Supabase `game_rewards` (docs/supabase.sql, given by hand with an insert, read by the player only), e.g.
+  `skin-mewtwo`: player 1 wears Mewtwo (`SKINS` in NookBoy, only the look changes; the sprite needs the player anims).
 - Local coop (two Game Boys side by side, WASD + mouse for P1, the arrows for P2, auto-aim): the engine's player state is
   a `Player` (`players`, `cur`); the Game's accessors reach the current one, switched to whoever acts (their move, a
   foe's nearest target, who picks up, the screen drawn: `draw(ctx, viewer)`). A downed player is got up by standing by

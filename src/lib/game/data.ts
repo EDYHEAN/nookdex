@@ -312,7 +312,7 @@ export interface PensionDef {
   /** what one level gives */
   desc: Txt;
   max: number;
-  /** price of the first level; each next one costs 55 % more */
+  /** price of the first level (doubled in pensionCost); each next one costs 60 % more */
   cost: number;
   /** what one level adds, and what it is (shown "+4 % -> +6 % PV") */
   per: number;
@@ -331,7 +331,8 @@ export const PENSION: PensionDef[] = [
   { id: "reroll", name: ["Dé pipé", "Lucky die"], desc: ["+1 relance des cartes par partie", "+1 card reroll per run"], max: 3, cost: 120, per: 1, stat: ["relance", "reroll"], pct: false },
   { id: "revive", name: ["Rappel", "Revive"], desc: ["te relève une fois par partie", "gets you up once per run"], max: 1, cost: 400, per: 1, stat: ["rappel", "revive"], pct: false },
 ];
-export const pensionCost = (d: PensionDef, level: number) => Math.round(d.cost * Math.pow(1.55, level));
+/** the purse is kept from run to run: dearer, and climbing faster (Johan, 2026-10-13) */
+export const pensionCost = (d: PensionDef, level: number) => Math.round(d.cost * 2 * Math.pow(1.6, level));
 
 /* ---------------- the daily challenge: the same starter and rule for everyone, no Pension ---------------- */
 
