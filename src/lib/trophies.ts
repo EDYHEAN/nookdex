@@ -143,7 +143,7 @@ export const TROPHIES: Trophy[] = [
   { id: "game-combo", tier: "bronze", cat: "game", name: { fr: "Électrocution", en: "Electrocution" }, desc: { fr: "Réussis un combo.", en: "Land a combo." } },
   { id: "game-shop", tier: "bronze", cat: "game", name: { fr: "Bon client", en: "Good customer" }, desc: { fr: "Achète quelque chose chez Kecleon.", en: "Buy something from Kecleon." } },
   { id: "game-pension", tier: "bronze", cat: "game", name: { fr: "À la Pension", en: "At the Pension" }, desc: { fr: "Achète un bonus à la Pension.", en: "Buy a boost at the Pension." } },
-  { id: "game-daily", tier: "silver", cat: "game", name: { fr: "Défi relevé", en: "Challenge met" }, desc: { fr: "Termine un défi du jour.", en: "Finish a daily challenge." } },
+  { id: "game-daily", tier: "silver", cat: "game", name: { fr: "Défi relevé", en: "Challenge met" }, desc: { fr: "Réussis un défi du jour.", en: "Meet a daily challenge." } },
   { id: "game-coop", tier: "silver", cat: "game", name: { fr: "À deux c'est mieux", en: "Better together" }, desc: { fr: "Termine une partie à deux.", en: "Finish a two-player run." } },
   { id: "game-chansey", tier: "silver", cat: "game", name: { fr: "Œuf Chance", en: "Lucky Egg" }, desc: { fr: "Attrape un Leveinard.", en: "Catch a Chansey." } },
   { id: "game-rarecandy", tier: "bronze", cat: "game", name: { fr: "Super Bonbon", en: "Rare Candy" }, desc: { fr: "Ramasse un Super Bonbon.", en: "Pick up a Rare Candy." } },

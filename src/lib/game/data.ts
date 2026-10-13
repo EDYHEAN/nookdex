@@ -314,17 +314,22 @@ export interface PensionDef {
   max: number;
   /** price of the first level; each next one costs 55 % more */
   cost: number;
+  /** what one level adds, and what it is (shown "+4 % -> +6 % PV") */
+  per: number;
+  stat: Txt;
+  /** a share (%), else a count */
+  pct: boolean;
 }
 export const PENSION: PensionDef[] = [
-  { id: "power", name: ["Entraînement", "Training"], desc: ["+2 % de dégâts", "+2% damage"], max: 10, cost: 30 },
-  { id: "hp", name: ["Vitamines", "Vitamins"], desc: ["+4 % de PV max", "+4% max HP"], max: 10, cost: 30 },
-  { id: "speed", name: ["Footing", "Jogging"], desc: ["+1,5 % de vitesse", "+1.5% speed"], max: 8, cost: 40 },
-  { id: "haste", name: ["Méditation", "Meditation"], desc: ["capacités 1,5 % plus vite prêtes", "moves 1.5% sooner"], max: 8, cost: 50 },
-  { id: "magnet", name: ["Gourmandise", "Sweet tooth"], desc: ["bonbons attirés 8 % plus loin", "candies pulled 8% further"], max: 6, cost: 20 },
-  { id: "xp", name: ["Leçons", "Lessons"], desc: ["+3 % d'expérience", "+3% experience"], max: 8, cost: 40 },
-  { id: "gold", name: ["Flair", "Flair"], desc: ["+6 % d'or ramassé", "+6% gold picked up"], max: 8, cost: 25 },
-  { id: "reroll", name: ["Dé pipé", "Lucky die"], desc: ["+1 relance des cartes par partie", "+1 card reroll per run"], max: 3, cost: 120 },
-  { id: "revive", name: ["Rappel", "Revive"], desc: ["te relève une fois par partie", "gets you up once per run"], max: 1, cost: 400 },
+  { id: "power", name: ["Entraînement", "Training"], desc: ["+2 % de dégâts", "+2% damage"], max: 10, cost: 30, per: 2, stat: ["dégâts", "damage"], pct: true },
+  { id: "hp", name: ["Vitamines", "Vitamins"], desc: ["+4 % de PV max", "+4% max HP"], max: 10, cost: 30, per: 4, stat: ["PV max", "max HP"], pct: true },
+  { id: "speed", name: ["Footing", "Jogging"], desc: ["+1,5 % de vitesse", "+1.5% speed"], max: 8, cost: 40, per: 1.5, stat: ["vitesse", "speed"], pct: true },
+  { id: "haste", name: ["Méditation", "Meditation"], desc: ["capacités 1,5 % plus vite prêtes", "moves 1.5% sooner"], max: 8, cost: 50, per: 1.5, stat: ["recharge", "cooldowns"], pct: true },
+  { id: "magnet", name: ["Gourmandise", "Sweet tooth"], desc: ["bonbons attirés 8 % plus loin", "candies pulled 8% further"], max: 6, cost: 20, per: 8, stat: ["aimant", "pull"], pct: true },
+  { id: "xp", name: ["Leçons", "Lessons"], desc: ["+3 % d'expérience", "+3% experience"], max: 8, cost: 40, per: 3, stat: ["XP", "XP"], pct: true },
+  { id: "gold", name: ["Flair", "Flair"], desc: ["+6 % d'or ramassé", "+6% gold picked up"], max: 8, cost: 25, per: 6, stat: ["or", "gold"], pct: true },
+  { id: "reroll", name: ["Dé pipé", "Lucky die"], desc: ["+1 relance des cartes par partie", "+1 card reroll per run"], max: 3, cost: 120, per: 1, stat: ["relance", "reroll"], pct: false },
+  { id: "revive", name: ["Rappel", "Revive"], desc: ["te relève une fois par partie", "gets you up once per run"], max: 1, cost: 400, per: 1, stat: ["rappel", "revive"], pct: false },
 ];
 export const pensionCost = (d: PensionDef, level: number) => Math.round(d.cost * Math.pow(1.55, level));
 

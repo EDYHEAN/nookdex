@@ -22,8 +22,8 @@ export const CHANGELOG: Release[] = [
         en: "Play two on the same computer: two Game Boys side by side, WASD and the mouse for one, the arrows for the other. If your mate goes down, stand by them to get them up. A coop ladder all of your own.",
       },
       {
-        fr: "Le défi du jour : le même Pokémon et la même règle pour tout le monde, un classement par jour et un bonus d'or.",
-        en: "The daily challenge: the same Pokémon and rule for everyone, a ladder per day and a gold bonus.",
+        fr: "Le défi du jour : le même Pokémon et la même règle pour tout le monde, une vague à atteindre pour le réussir (et un gros bonus d'or), puis un classement du jour pour aller le plus loin.",
+        en: "The daily challenge: the same Pokémon and rule for everyone, a wave to reach to meet it (and a big gold bonus), then a daily ladder to go furthest.",
       },
       {
         fr: "De l'or à ramasser, et Kecleon qui tient boutique toutes les 3 vagues. Ce qu'il te reste à la fin va à la Pension : des bonus pour toutes tes parties, sauvegardés avec ton compte.",

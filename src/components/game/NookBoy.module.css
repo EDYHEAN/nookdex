@@ -915,6 +915,156 @@
   font-size: 7px;
 }
 
+/* the Pension: a grid of tiles, airy */
+.pHead {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.goldPill {
+  padding: 2px 5px 1px;
+  border-radius: 3px;
+  background: #ffc93d;
+  color: var(--c0);
+  text-shadow: none;
+  box-shadow: 0 0 0 1px var(--c0), 0 2px 0 var(--c0);
+}
+
+.screen:not([data-palette="color"]) .goldPill {
+  background: var(--c3);
+}
+
+.pensionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.pTile {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 64px;
+  padding: 5px 6px 5px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--c3);
+  text-align: left;
+  box-shadow:
+    0 0 0 1px var(--c0),
+    inset 0 0 0 1px var(--c2);
+  transition: transform 0.1s steps(2);
+}
+
+.pTile.on {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px var(--c0),
+    0 0 0 3px var(--c3),
+    0 0 0 4px var(--c0);
+}
+
+.pDim {
+  opacity: 0.6;
+}
+
+.pName {
+  font: 7px/9px var(--font-press), monospace;
+}
+
+.pPips {
+  display: flex;
+  gap: 1px;
+}
+
+.pPips i {
+  width: 5px;
+  height: 3px;
+  background: var(--c2);
+}
+
+.pPips i.pPipOn {
+  background: #ffc93d;
+  box-shadow: inset 0 -1px 0 #c47f00;
+}
+
+.screen:not([data-palette="color"]) .pPips i.pPipOn {
+  background: var(--c0);
+  box-shadow: none;
+}
+
+.pEff {
+  font: 11px/11px var(--font-vt), monospace;
+  color: var(--c1);
+}
+
+.pEff b {
+  font-weight: normal;
+  color: var(--c0);
+}
+
+.pPrice {
+  margin-top: auto;
+  align-self: flex-start;
+  padding: 2px 4px 1px;
+  border-radius: 2px;
+  background: var(--c2);
+  color: var(--c0);
+  font: 6px/8px var(--font-press), monospace;
+}
+
+.pPriceOk {
+  background: #ffc93d;
+  box-shadow: 0 1px 0 #c47f00;
+}
+
+.screen:not([data-palette="color"]) .pPriceOk {
+  background: var(--c0);
+  color: var(--c3);
+}
+
+.pFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pFoot p {
+  flex: 1;
+  margin: 0;
+  font: 11px/11px var(--font-vt), monospace;
+  color: var(--c3);
+  text-shadow: 1px 1px var(--c0);
+}
+
+.pFoot button {
+  padding: 4px 7px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--c3);
+  font-size: 7px;
+  box-shadow: 0 0 0 1px var(--c0), 0 2px 0 var(--c0);
+}
+
+.pFoot button.on {
+  background: #ffc93d;
+}
+
+/* the daily's goal and reward */
+.dailyGoal span {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 1px 3px 0;
+  border-radius: 2px;
+  background: var(--c0);
+  color: var(--c3);
+  font: 6px/8px var(--font-press), monospace;
+}
+
 .pension {
   min-width: 0;
   padding-top: 4px;
