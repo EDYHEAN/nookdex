@@ -139,8 +139,9 @@ post has none. A progress bar on top tells how many scenes are left (people stay
 
 - **A top 5 counts down** in the video: give the `price` slides from #5 to #1 (the carousel shows #1 first: write the
   carousel order in `slides` and the countdown in `"motion"`, a second list of slides used for the video only).
-- TikTok and Instagram cover the right edge and the bottom of the screen: the scenes keep their text between y 200 and
-  y 1480; don't write long kickers or banners (a banner shrinks past ~26 characters).
+- TikTok and Instagram cover the top (their header) and the bottom (caption, buttons): every scene keeps its text in the
+  middle band, y 280 to 1250 (Johan, 2026-10-13); only pictures go past it. Don't write long kickers or banners (a banner
+  shrinks past ~26 characters), and keep paper slides short: their card is cut at y 1250.
 - The first two seconds decide: the cover must show the cards and the hook at once.
 
 ## Fun posts

@@ -1,8 +1,9 @@
 // TikTok (and Instagram Reels) videos of a post, 1080×1920, made from the same slides as its carousel but animated: each
 // slide type has its own scene (cards flying in, prices counting up, a countdown from #5 to #1, duels with a VS and a
 // 3-2-1, zooms that pull back to the whole card…). Every frame is drawn at an exact time (Web Animations paused and set),
-// so the video is smooth whatever the machine. Safe zones: TikTok's buttons cover the right edge and the bottom: the
-// important things stay between y 200 and y 1480, away from x > 960 in the lower half.
+// so the video is smooth whatever the machine. Safe zone: every text stays in the middle band, y 280 to 1250 (Johan,
+// 2026-10-13: TikTok and Instagram put their header on top, their caption and buttons at the bottom); only pictures go
+// past it.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -47,24 +48,24 @@ body { position: relative; font-family: VT, monospace; color: #2b2230; backgroun
   animation: glint 1.1s var(--at, 1s) ease-in-out both; }
 .spark { position: absolute; z-index: 8; color: #ffd35a; font-size: 44px; text-shadow: 0 0 12px rgba(255, 210, 90, 0.9);
   animation: spark 0.9s var(--at) ease-out both; }
-.paper { position: absolute; left: 60px; right: 60px; top: 250px; max-height: 1260px; z-index: 5; display: flex; flex-direction: column; padding: 56px 56px 44px;
+.paper { position: absolute; left: 60px; right: 60px; top: 290px; max-height: 960px; overflow: hidden; z-index: 5; display: flex; flex-direction: column; padding: 56px 56px 44px;
   background-color: #f4ecdc; background-image: ${GRAIN}; border: 7px solid #2b2230; border-radius: 26px; box-shadow: 16px 18px 0 rgba(20, 12, 28, 0.5);
   animation: rise 0.6s cubic-bezier(.2, 1.3, .4, 1) both; }
 .kicker { font-family: Press; font-size: 26px; color: #a8701a; letter-spacing: 1px; }
-.paper h1 { font-family: Press; font-weight: normal; font-size: 64px; line-height: 1.38; margin-top: 30px; overflow-wrap: anywhere; }
+.paper h1 { font-family: Press; font-weight: normal; font-size: 54px; line-height: 1.38; margin-top: 30px; overflow-wrap: anywhere; }
 .paper h1 em { font-style: normal; color: #b8433d; }
-.lead { font-size: 58px; line-height: 1.15; margin-top: 26px; }
+.lead { font-size: 48px; line-height: 1.15; margin-top: 22px; }
 .paper ul { list-style: none; padding: 0; margin-top: 30px; }
-.paper li { position: relative; padding-left: 54px; font-size: 56px; line-height: 1.12; margin-bottom: 26px; animation: popl 0.45s var(--at) cubic-bezier(.3, 1.6, .5, 1) both; }
+.paper li { position: relative; padding-left: 50px; font-size: 46px; line-height: 1.12; margin-bottom: 20px; animation: popl 0.45s var(--at) cubic-bezier(.3, 1.6, .5, 1) both; }
 .paper li::before { content: "✦"; position: absolute; left: 0; color: #a8701a; }
 .shot { margin-top: 40px; border: 6px solid #2b2230; border-radius: 14px; overflow: hidden; box-shadow: 9px 11px 0 rgba(20, 12, 28, 0.35);
   animation: tilt 0.7s var(--at) cubic-bezier(.2, 1.3, .4, 1) both; }
 .shot img { display: block; width: 100%; }
 .stat { margin-top: 34px; padding: 30px 34px 26px; border: 6px solid #2b2230; border-radius: 18px; background: #fbf5e8; box-shadow: 9px 10px 0 rgba(20, 12, 28, 0.3); }
-.stat b { display: block; font-family: Press; font-weight: normal; font-size: 92px; line-height: 1.1; color: #a8701a; white-space: nowrap; }
-.stat > span { display: block; margin-top: 12px; font-size: 48px; line-height: 1.05; }
+.stat b { display: block; font-family: Press; font-weight: normal; font-size: 80px; line-height: 1.1; color: #a8701a; white-space: nowrap; }
+.stat > span { display: block; margin-top: 10px; font-size: 42px; line-height: 1.05; }
 .stat.hero { margin-top: 40px; background: #ffd35a; }
-.stat.hero b { font-size: 156px; color: #2b2230; text-shadow: 8px 8px 0 rgba(184, 67, 61, 0.45); }
+.stat.hero b { font-size: 130px; color: #2b2230; text-shadow: 8px 8px 0 rgba(184, 67, 61, 0.45); }
 .stat.hero > span { font-family: Press; font-size: 34px; line-height: 1.35; }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
 .stats .stat:nth-child(even) b { color: #b8433d; }
@@ -176,26 +177,26 @@ const SCENES = {
     const fan = cards
       .map((c, i) => {
         const d = i - (cards.length - 1) / 2;
-        const w = d === 0 ? 460 : 380;
+        const w = d === 0 ? 400 : 330;
         const ghost = (s.ghosts ?? []).includes(i);
-        return `<div style="position:absolute;left:${540 - w / 2 + d * 270}px;top:${(d === 0 ? 720 : 780) + Math.abs(d) * 14}px;width:${w}px;z-index:${d === 0 ? 3 : 2};
+        return `<div style="position:absolute;left:${540 - w / 2 + d * 250}px;top:${(d === 0 ? 650 : 700) + Math.abs(d) * 14}px;width:${w}px;z-index:${d === 0 ? 3 : 2};
             --r:${d * 9}deg;--fx:${d * 300}px;animation:fly 0.8s ${(0.6 + i * 0.14).toFixed(2)}s cubic-bezier(.2,1.2,.4,1) both">
           <div class="float" style="--at:${(i * 0.4).toFixed(1)}s"><img class="cardimg" src="${c.hi}" style="${ghost ? "filter:grayscale(.9) sepia(.3);opacity:.9" : ""}">
           ${ghost ? "" : `<div class="glint" style="--at:${(1.6 + i * 0.15).toFixed(2)}s"></div>`}</div></div>`;
       })
       .join("");
     const shot = s.asset
-      ? `<img src="${asset(s.asset)}" style="position:absolute;left:60px;width:960px;top:760px;border:7px solid #2b2230;border-radius:16px;--r:-3deg;
+      ? `<img src="${asset(s.asset)}" style="position:absolute;left:90px;width:900px;top:690px;border:7px solid #2b2230;border-radius:16px;--r:-3deg;
           box-shadow:12px 14px 0 rgba(20,12,28,.55);animation:fly 0.8s 0.6s cubic-bezier(.2,1.2,.4,1) both">`
       : "";
     return {
       dur: 3.4,
       bg: cards.length ? cards.map((c) => c.hi) : [asset(s.asset)],
       body: `<div class="stage shake" style="--at:1.55s">
-        ${s.kicker ? `<span class="pill" style="left:50%;top:180px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.kicker)}</span>` : ""}
-        <p class="mega" style="top:300px;font-size:${Math.round((s.size ?? 110) * 1.05)}px">${letters(s.title, 0.2)}</p>
+        ${s.kicker ? `<span class="pill" style="left:50%;top:290px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.kicker)}</span>` : ""}
+        <p class="mega" style="top:390px;font-size:${Math.round((s.size ?? 110) * 0.95)}px">${letters(s.title, 0.2)}</p>
         ${cards.length ? fan : shot}
-        ${s.banner ? `<span class="sticker" style="left:50%;top:1400px;translate:-50% 0;font-size:${Math.min(34, Math.floor(880 / s.banner.length))}px;--r:-2deg;animation:slam .5s 1.5s both">${txt(s.banner)}</span>` : ""}
+        ${s.banner ? `<span class="sticker" style="left:50%;top:1160px;translate:-50% 0;font-size:${Math.min(34, Math.floor(880 / s.banner.length))}px;--r:-2deg;animation:slam .5s 1.5s both">${txt(s.banner)}</span>` : ""}
       </div>`,
     };
   },
@@ -217,7 +218,7 @@ const SCENES = {
             ? `<div style="display:flex;justify-content:center;margin-top:44px">${cards
                 .map((c, i) => {
                   const d = i - (cards.length - 1) / 2;
-                  return `<img class="cardimg" src="${c.hi}" style="width:${cards.length > 2 ? 310 : cards.length === 2 ? 400 : 440}px;margin:0 -12px;z-index:${d === 0 ? 2 : 1};--r:${d * 8}deg;
+                  return `<img class="cardimg" src="${c.hi}" style="width:${cards.length > 2 ? 250 : cards.length === 2 ? 320 : 350}px;margin:0 -12px;z-index:${d === 0 ? 2 : 1};--r:${d * 8}deg;
                     animation:fly .7s ${(t + 0.4 + list.length * 0.5 + i * 0.12).toFixed(2)}s cubic-bezier(.2,1.2,.4,1) both">`;
                 })
                 .join("")}</div>`
@@ -236,13 +237,13 @@ const SCENES = {
       dur: 3.6,
       bg: [c.hi],
       body: `<div class="stage shake" style="--at:.4s">
-        ${s.rank ? `<p class="mega" style="top:170px;font-size:190px;color:#ffd35a;animation:slam .55s .05s both">#${s.rank}</p>` : ""}
-        <div style="position:absolute;left:225px;width:630px;top:420px;animation:flip .8s .35s cubic-bezier(.2,1,.4,1) both">
+        ${s.rank ? `<p class="mega" style="top:270px;font-size:160px;color:#ffd35a;animation:slam .55s .05s both">#${s.rank}</p>` : ""}
+        <div style="position:absolute;left:290px;width:500px;top:470px;animation:flip .8s .35s cubic-bezier(.2,1,.4,1) both">
           <div class="float" style="--at:1.2s"><img class="cardimg" src="${c.hi}"><div class="glint" style="--at:1.3s"></div></div></div>
-        <span class="pill" style="left:50%;top:1300px;translate:-50% 0;font-size:30px;animation:drop .45s .9s cubic-bezier(.3,1.6,.5,1) both"><span data-type="${esc(s.name ?? c.name)}" data-t0="1" data-t1="1.5"></span></span>
-        <span class="sticker" style="left:50%;top:1400px;translate:-50% 0;font-size:58px;--r:-3deg;animation:slam .5s 1.15s both"><span ${priceAttrs(c.price.trend, c.set, 1.2, 2.3)}></span></span>
-        ${sparks(540, 1450, 2.3)}
-        <p style="position:absolute;left:0;right:0;top:1540px;text-align:center;font-size:32px;color:#f4ecdc;text-shadow:2px 2px 0 #2b2230;animation:fade .4s 2.4s both">
+        <span class="pill" style="left:50%;top:1010px;translate:-50% 0;font-size:30px;animation:drop .45s .9s cubic-bezier(.3,1.6,.5,1) both"><span data-type="${esc(s.name ?? c.name)}" data-t0="1" data-t1="1.5"></span></span>
+        <span class="sticker" style="left:50%;top:1080px;translate:-50% 0;font-size:58px;--r:-3deg;animation:slam .5s 1.15s both"><span ${priceAttrs(c.price.trend, c.set, 1.2, 2.3)}></span></span>
+        ${sparks(540, 1130, 2.3)}
+        <p style="position:absolute;left:0;right:0;top:1200px;text-align:center;font-size:32px;color:#f4ecdc;text-shadow:2px 2px 0 #2b2230;animation:fade .4s 2.4s both">
           prix tendance ${market(c.set)} du ${dayOf(c.set)}</p>
       </div>`,
     };
@@ -257,12 +258,12 @@ const SCENES = {
       dur: 3.8,
       bg: top.map((c) => `${c.img}/high.webp`),
       body: `<div class="stage shake" style="--at:2.05s">
-        <span class="pill" style="left:50%;top:190px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.kicker ?? "ET POUR TOUT AVOIR ?")}</span>
-        <p class="mega" style="top:330px;font-size:84px">${letters("Une carte<br>de chaque", 0.25)}</p>
-        ${top.map((c, i) => `<img class="cardimg" src="${c.img}/high.webp" style="position:absolute;left:${300 + (i - 1) * 240}px;top:${700 + Math.abs(i - 1) * 40}px;width:480px;z-index:${i === 1 ? 3 : 2};--r:${(i - 1) * 10}deg;animation:fly .7s ${(0.6 + i * 0.12).toFixed(2)}s cubic-bezier(.2,1.2,.4,1) both">`).join("")}
-        <span class="sticker" style="left:50%;top:1320px;translate:-50% 0;font-size:84px;--r:-3deg;animation:slam .5s 1.2s both">≈ <span data-count="${all}" data-t0="1.25" data-t1="2.05" data-fmt="int"></span> ${set.currency === "USD" ? "$" : "€"}</span>
-        ${sparks(540, 1380, 2.05, 16)}
-        <p style="position:absolute;left:0;right:0;top:1500px;text-align:center;font-size:38px;color:#f4ecdc;text-shadow:2px 2px 0 #2b2230;animation:fade .4s 2.2s both">
+        <span class="pill" style="left:50%;top:290px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.kicker ?? "ET POUR TOUT AVOIR ?")}</span>
+        <p class="mega" style="top:380px;font-size:76px">${letters("Une carte<br>de chaque", 0.25)}</p>
+        ${top.map((c, i) => `<img class="cardimg" src="${c.img}/high.webp" style="position:absolute;left:${340 + (i - 1) * 220}px;top:${620 + Math.abs(i - 1) * 40}px;width:400px;z-index:${i === 1 ? 3 : 2};--r:${(i - 1) * 10}deg;animation:fly .7s ${(0.6 + i * 0.12).toFixed(2)}s cubic-bezier(.2,1.2,.4,1) both">`).join("")}
+        <span class="sticker" style="left:50%;top:1040px;translate:-50% 0;font-size:76px;--r:-3deg;animation:slam .5s 1.2s both">≈ <span data-count="${all}" data-t0="1.25" data-t1="2.05" data-fmt="int"></span> ${set.currency === "USD" ? "$" : "€"}</span>
+        ${sparks(540, 1100, 2.05, 16)}
+        <p style="position:absolute;left:0;right:0;top:1190px;text-align:center;font-size:38px;color:#f4ecdc;text-shadow:2px 2px 0 #2b2230;animation:fade .4s 2.2s both">
           les ${set.cards.length} cartes de ${esc(set.name)}, cote du ${dayOf(set)}</p>
       </div>`,
     };
@@ -300,8 +301,8 @@ const SCENES = {
     return {
       dur: 2.2 + cards.length * 0.12,
       bg: cards.filter((_, i) => i % 3 === 0).map((c) => c.hi),
-      body: `${s.label ? `<span class="pill" style="left:50%;top:170px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.label)}</span>` : ""}
-        <div style="position:absolute;left:${(W - w) / 2}px;width:${w}px;top:${s.label ? 290 : 250}px;display:grid;grid-template-columns:repeat(${cols},1fr);gap:16px;
+      body: `${s.label ? `<span class="pill" style="left:50%;top:290px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.label)}</span>` : ""}
+        <div style="position:absolute;left:${(W - w) / 2}px;width:${w}px;top:${s.label ? 400 : 300}px;display:grid;grid-template-columns:repeat(${cols},1fr);gap:16px;
           animation:drift ${(2.2 + cards.length * 0.12).toFixed(1)}s 1.2s linear both">
           ${cards.map((c, i) => `<img class="cardimg" src="${c.hi}" style="--r:${((rnd() - 0.5) * 8).toFixed(1)}deg;animation:pop .45s ${(0.25 + i * 0.12).toFixed(2)}s cubic-bezier(.3,1.6,.5,1) both">`).join("")}
         </div>`,
@@ -315,15 +316,15 @@ const SCENES = {
       dur: 5.2,
       bg: [a.hi, b.hi],
       body: `<div class="stage shake" style="--at:.95s">
-        <span class="pill" style="left:50%;top:180px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.label ?? "DEVINE LE PRIX")}</span>
-        <p class="mega" style="top:300px;font-size:58px">${letters(s.question ?? "Laquelle vaut le plus ?", 0.2, 0.025)}</p>
-        <div style="position:absolute;left:50px;top:560px;width:470px;--fx:-1100px;--r:-4deg;animation:side .7s .3s cubic-bezier(.2,1.2,.4,1) both">
+        <span class="pill" style="left:50%;top:290px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.label ?? "DEVINE LE PRIX")}</span>
+        <p class="mega" style="top:380px;font-size:54px">${letters(s.question ?? "Laquelle vaut le plus ?", 0.2, 0.025)}</p>
+        <div style="position:absolute;left:90px;top:580px;width:420px;--fx:-1100px;--r:-4deg;animation:side .7s .3s cubic-bezier(.2,1.2,.4,1) both">
           <img class="cardimg" src="${a.hi}"><span class="sticker" style="left:-16px;top:-30px;font-size:70px;animation:pop .4s 1.1s cubic-bezier(.3,1.8,.5,1) both">A</span></div>
-        <div style="position:absolute;left:560px;top:560px;width:470px;--fx:1100px;--r:4deg;animation:side .7s .45s cubic-bezier(.2,1.2,.4,1) both">
+        <div style="position:absolute;left:570px;top:580px;width:420px;--fx:1100px;--r:4deg;animation:side .7s .45s cubic-bezier(.2,1.2,.4,1) both">
           <img class="cardimg" src="${b.hi}"><span class="sticker" style="right:-16px;top:-30px;font-size:70px;animation:pop .4s 1.2s cubic-bezier(.3,1.8,.5,1) both">B</span></div>
-        <p class="mega" style="top:820px;font-size:150px;color:#ffd35a;animation:slam .5s .9s both">VS</p>
-        <div class="timer" style="top:1300px;--d:3.6s;--at:1.5s;animation:fade .3s 1.5s both"><b></b></div>
-        <span class="pill" style="left:50%;top:1370px;translate:-50% 0;font-size:30px;animation:fade .3s 1.5s both">ta réponse en commentaire <span data-left="3" data-t0="1.5" data-end="!"></span></span>
+        <p class="mega" style="top:780px;font-size:140px;color:#ffd35a;animation:slam .5s .9s both">VS</p>
+        <div class="timer" style="top:1170px;--d:3.6s;--at:1.5s;animation:fade .3s 1.5s both"><b></b></div>
+        <span class="pill" style="left:50%;top:1190px;translate:-50% 0;font-size:28px;animation:fade .3s 1.5s both">ta réponse en commentaire <span data-left="3" data-t0="1.5" data-end="!"></span></span>
       </div>`,
     };
   },
@@ -334,16 +335,16 @@ const SCENES = {
     const set = rounds[0][0].set;
     const scenes = rounds.map(([a, b], i) => {
       const aWins = (a.price.trend ?? 0) > (b.price.trend ?? 0);
-      const side = (c, left, wins, letter) => `<div style="position:absolute;left:${left}px;top:520px;width:470px;--r:${left < 400 ? -4 : 4}deg;
+      const side = (c, left, wins, letter) => `<div style="position:absolute;left:${left}px;top:560px;width:430px;--r:${left < 400 ? -4 : 4}deg;
           animation:${wins ? "win" : "lose"} .6s .6s cubic-bezier(.3,1.4,.5,1) both">
           <img class="cardimg" src="${c.hi}" style="${wins ? "animation:halo 1.2s 1s ease-in-out infinite;border-radius:24px" : ""}">
           <span class="sticker" style="${left < 400 ? "left:-16px" : "right:-16px"};top:-30px;font-size:60px">${letter}</span>
-          <span class="${wins ? "sticker" : "pill"}" style="left:50%;top:690px;translate:-50% 0;font-size:${wins ? 42 : 30}px"><span ${priceAttrs(c.price.trend, c.set, 0.3, 1.4)}></span></span></div>`;
+          <span class="${wins ? "sticker" : "pill"}" style="left:50%;top:500px;translate:-50% 0;font-size:${wins ? 42 : 30}px;z-index:4"><span ${priceAttrs(c.price.trend, c.set, 0.3, 1.4)}></span></span></div>`;
       return {
         dur: 3.2,
         bg: [a.hi, b.hi],
-        body: `<span class="pill" style="left:50%;top:180px;translate:-50% 0">REPONSE ${i + 1}/${rounds.length}</span>
-          <p class="mega" style="top:300px;font-size:120px;color:#ffd35a;animation:slam .5s .1s both">${aWins ? "A" : "B"} !</p>
+        body: `<span class="pill" style="left:50%;top:290px;translate:-50% 0">REPONSE ${i + 1}/${rounds.length}</span>
+          <p class="mega" style="top:380px;font-size:100px;color:#ffd35a;animation:slam .5s .1s both">${aWins ? "A" : "B"} !</p>
           ${side(a, 50, aWins, "A")}${side(b, 560, !aWins, "B")}
           ${sparks(aWins ? 285 : 795, 860, 1.1, 14)}`,
       };
@@ -356,7 +357,7 @@ const SCENES = {
         <p class="lead" style="margin-top:34px;font-size:48px">C'est le <b>prix tendance ${market(set)}</b> du ${dayOf(set)} : la cote que ${market(set)}
           calcule à partir des ventes récentes de la carte${set.currency === "USD" ? "" : ", toutes langues confondues"}.</p>
         <p class="lead" style="margin-top:30px;font-size:48px;animation:fade .4s 1.6s both">C'est elle que NookDex affiche, mise à jour chaque jour.</p>
-        <p class="lead" style="margin-top:44px;font-family:Press;font-size:30px;color:#b8433d;animation:fade .4s 2.4s both">T'as eu combien ? ▸</p>
+        <p class="lead" style="margin-top:44px;font-family:Press;font-size:30px;color:#b8433d;animation:fade .4s 2.4s both">T'as eu combien ?</p>
       </div>`,
     });
     return scenes;
@@ -373,9 +374,9 @@ const SCENES = {
       bg: [c.hi],
       body: `<div style="position:absolute;inset:0;overflow:hidden"><div style="position:absolute;inset:0;background:url(${c.hi}) no-repeat;
           background-size:${600 * k}px auto;background-position:${-(x * k) + (W - w * k) / 2}px ${-y * k}px;animation:drift 4.4s linear both"></div></div>
-        <span class="pill" style="left:50%;top:180px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.label ?? "QUEL POKEMON ?")}</span>
-        <span class="sticker" style="left:50%;top:1300px;translate:-50% 0;font-size:110px;--r:-4deg;animation:slam .5s .5s both, pulse 1s 1s ease-in-out infinite">?</span>
-        <span class="pill" style="left:50%;top:1500px;translate:-50% 0;font-size:34px;animation:fade .3s 1.2s both"><span data-left="3" data-t0="1.2" data-end="dis-le en commentaire !"></span></span>`,
+        <span class="pill" style="left:50%;top:290px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.label ?? "QUEL POKEMON ?")}</span>
+        <span class="sticker" style="left:50%;top:1000px;translate:-50% 0;font-size:110px;--r:-4deg;animation:slam .5s .5s both, pulse 1s 1s ease-in-out infinite">?</span>
+        <span class="pill" style="left:50%;top:1170px;translate:-50% 0;font-size:34px;animation:fade .3s 1.2s both"><span data-left="3" data-t0="1.2" data-end="dis-le en commentaire !"></span></span>`,
     };
   },
 
@@ -387,13 +388,13 @@ const SCENES = {
     return {
       dur: 4.6,
       bg: [c.hi],
-      body: `<span class="pill" style="left:50%;top:180px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.label ?? "UN POKEMON FLOU SE CACHE ICI")}</span>
-        <div style="position:absolute;left:130px;top:300px;width:820px;animation:flip .7s .1s cubic-bezier(.2,1,.4,1) both"><img class="cardimg" src="${c.hi}">
+      body: `<span class="pill" style="left:50%;top:280px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.label ?? "UN POKEMON FLOU SE CACHE ICI")}</span>
+        <div style="position:absolute;left:240px;top:360px;width:600px;animation:flip .7s .1s cubic-bezier(.2,1,.4,1) both"><img class="cardimg" src="${c.hi}">
           <span class="mask" style="top:2.2%;height:6.6%;font-size:38px">? ? ?</span>
           <span style="position:absolute;left:${pct(x, 600)};top:${pct(y, 825)};width:${pct(w, 600)};height:${pct(h, 825)};border-radius:40%;backdrop-filter:blur(10px)"></span>
           ${s.hideText === false ? "" : `<span class="mask" style="top:59%;height:17%">attaques cachées 🤫</span><span class="mask" style="top:84.5%;height:11%;font-size:26px">et les indices aussi 😈</span>`}
           <span class="ring"></span></div>
-        <span class="pill" style="left:50%;top:1500px;translate:-50% 0;font-size:34px;animation:fade .3s 1.4s both"><span data-left="3" data-t0="1.4" data-end="lequel ? en commentaire !"></span></span>`,
+        <span class="pill" style="left:50%;top:1195px;translate:-50% 0;font-size:30px;animation:fade .3s 1.4s both"><span data-left="3" data-t0="1.4" data-end="lequel ? en commentaire !"></span></span>`,
     };
   },
 
@@ -402,9 +403,9 @@ const SCENES = {
     return s.items.map((it, i) => {
       const c = card(it.card);
       const [rx, ry, rw, rh] = it.rect ?? [0, 0, 600, 825];
-      const cw = 760;
+      const cw = 620;
       const L = (W - cw) / 2;
-      const T = 300;
+      const T = 370;
       const p = cw / 600;
       const S = (H / (rh * p)) * 0.95;
       const cx = (rx + rw / 2) * p;
@@ -417,9 +418,9 @@ const SCENES = {
         body: `<div style="position:absolute;left:${L}px;top:${T}px;width:${cw}px;transform-origin:0 0;--from:${from};animation:cam 1.3s .5s cubic-bezier(.65,0,.35,1) both">
             <img class="cardimg" src="${c.hi}">
             ${it.rect ? `<span class="box" style="left:${pct(rx, 600)};top:${pct(ry, 825)};width:${pct(rw, 600)};height:${pct(rh, 825)};--at:1.85s"></span>` : ""}</div>
-          <span class="pill" style="left:50%;top:180px;translate:-50% 0">${txt(s.label ?? "LA REPONSE")} ${s.items.length > 1 ? `${i + 1}/${s.items.length}` : ""}</span>
-          <span class="sticker" style="left:50%;top:1400px;translate:-50% 0;font-size:56px;--r:-3deg;animation:slam .5s 1.9s both">${esc(it.name ?? c.name)} !</span>
-          ${sparks(540, 1450, 2.3, 14)}`,
+          <span class="pill" style="left:50%;top:280px;translate:-50% 0">${txt(s.label ?? "LA REPONSE")} ${s.items.length > 1 ? `${i + 1}/${s.items.length}` : ""}</span>
+          <span class="sticker" style="left:50%;top:1150px;translate:-50% 0;font-size:56px;--r:-3deg;animation:slam .5s 1.9s both">${esc(it.name ?? c.name)} !</span>
+          ${sparks(540, 1190, 2.3, 14)}`,
       };
     });
   },
@@ -428,12 +429,12 @@ const SCENES = {
     return {
       dur: 3.2,
       bg: [DESK],
-      body: `<img src="${AVATAR}" style="position:absolute;left:50%;top:330px;width:300px;margin-left:-150px;border-radius:50%;box-shadow:0 0 0 9px #2b2230,14px 16px 0 9px rgba(20,12,28,.5);
+      body: `<img src="${AVATAR}" style="position:absolute;left:50%;top:300px;width:260px;margin-left:-130px;border-radius:50%;box-shadow:0 0 0 9px #2b2230,14px 16px 0 9px rgba(20,12,28,.5);
           animation:pop .6s .1s cubic-bezier(.3,1.6,.5,1) both">
-        <p class="mega" style="top:720px;font-size:66px">${letters(s.title ?? "Ta collec, sur un bureau cosy", 0.4, 0.03)}</p>
-        ${s.lead ? `<p style="position:absolute;left:80px;right:80px;top:1020px;text-align:center;font-size:52px;color:#f4ecdc;text-shadow:3px 3px 0 #2b2230;animation:fade .4s 1.2s both">${txt(s.lead)}</p>` : ""}
-        <span class="sticker" style="left:50%;top:1220px;translate:-50% 0;font-size:46px;--r:-3deg;animation:slam .5s 1.5s both, pulse 1.2s 2.1s ease-in-out infinite">nookdex.com ▸</span>
-        <span class="pill" style="left:50%;top:1380px;translate:-50% 0;font-size:28px;animation:fade .4s 2s both">gratuit · sans pub · abonne-toi ✦</span>`,
+        <p class="mega" style="top:620px;font-size:62px">${letters(s.title ?? "Ta collec, sur un bureau cosy", 0.4, 0.03)}</p>
+        ${s.lead ? `<p style="position:absolute;left:80px;right:80px;top:860px;text-align:center;font-size:46px;color:#f4ecdc;text-shadow:3px 3px 0 #2b2230;animation:fade .4s 1.2s both">${txt(s.lead)}</p>` : ""}
+        <span class="sticker" style="left:50%;top:1010px;translate:-50% 0;font-size:46px;--r:-3deg;animation:slam .5s 1.5s both, pulse 1.2s 2.1s ease-in-out infinite">nookdex.com ▸</span>
+        <span class="pill" style="left:50%;top:1140px;translate:-50% 0;font-size:28px;animation:fade .4s 2s both">gratuit · sans pub · abonne-toi ✦</span>`,
     };
   },
 };
