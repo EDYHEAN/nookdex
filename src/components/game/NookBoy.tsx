@@ -757,6 +757,7 @@ export default function NookBoy({ origin, onClose }: Props) {
           {skins.length > 0 && (selectMode === "classic" || coopFirst == null) && (
             <button className={`${styles.skinRow} ${wornSkin ? styles.on : ""}`} onClick={toggleSkin}>
               ▲▼ {t("Tenue", "Skin")} : <b>{wornSkin ? nameOf(wornSkin) : t("aucune", "none")}</b>
+              {wornSkin === 150 && <i className={styles.skinPerk}>{t(" +30 % dégâts et PV, +10 % vitesse", " +30% damage and HP, +10% speed")}</i>}
             </button>
           )}
           <p className={styles.keys}>

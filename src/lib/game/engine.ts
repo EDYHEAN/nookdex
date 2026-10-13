@@ -644,14 +644,18 @@ export class Game {
   private perm(id: PensionId) {
     return this.setup.perm[id] ?? 0;
   }
+  /** dressed as Mewtwo (a reward), the player is stronger too (Johan, 2026-10-13); not in the daily, the same for all */
+  private get mew() {
+    return this.cur.skin === 150 && this.setup.mode !== "daily";
+  }
   get power() {
-    return (1 + 0.02 * this.perm("power")) * (this.setup.daily?.mod.playerDmg ?? 1) * (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower);
+    return (1 + 0.02 * this.perm("power")) * (this.setup.daily?.mod.playerDmg ?? 1) * (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower) * (this.mew ? 1.3 : 1);
   }
   get speed() {
-    return this.starter.speed * (1 + 0.08 * this.itemLevel("scarf")) * (1 + this.stage * 0.04) * (1 + 0.015 * this.perm("speed"));
+    return this.starter.speed * (1 + 0.08 * this.itemLevel("scarf")) * (1 + this.stage * 0.04) * (1 + 0.015 * this.perm("speed")) * (this.mew ? 1.1 : 1);
   }
   get haste() {
-    return Math.max(0.4, (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste * (1 - 0.015 * this.perm("haste")));
+    return Math.max(0.4, (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste * (1 - 0.015 * this.perm("haste")) * (this.mew ? 0.88 : 1));
   }
   get area() {
     return (1 + 0.1 * this.itemLevel("root")) * (1 + this.stage * 0.08);
@@ -673,7 +677,7 @@ export class Game {
   }
   private computeMaxHp() {
     return Math.round(
-      (this.starter.hp + this.stage * 30 + 20 * this.itemLevel("hpup") + (this.level - 1) * 2) * (1 - 0.03 * this.itemLevel("lifeorb")) * (1 + 0.04 * this.perm("hp")),
+      (this.starter.hp + this.stage * 30 + 20 * this.itemLevel("hpup") + (this.level - 1) * 2) * (1 - 0.03 * this.itemLevel("lifeorb")) * (1 + 0.04 * this.perm("hp")) * (this.mew ? 1.3 : 1),
     );
   }
 
@@ -714,7 +718,12 @@ export class Game {
       return p;
     });
     this.cur = this.players[0];
-    if (setup.skin) this.players[0].skin = setup.skin;
+    if (setup.skin) {
+      const p = this.players[0];
+      p.skin = setup.skin;
+      p.maxHp = this.computeMaxHp();
+      p.hp = p.maxHp;
+    }
     this.showBanner(this.tr("VAGUE 1", "WAVE 1"), this.tr("des Pokémon sauvages approchent", "wild Pokémon are coming"));
     gsfx.waveStart();
     music.boss(false);
