@@ -34,6 +34,10 @@ export const CHANGELOG: Release[] = [
         en: "10 new moves (Bubble, Bonemerang, Fire Spin, Sludge Bomb, Ice Beam, Hex, Aura Sphere, Future Sight…), 7 new move evolutions, 4 held items and 5 more combos: room for very different builds.",
       },
       {
+        fr: "Plus besoin de compte pour commencer : un pseudo, un classeur, et c'est parti. On te propose de sauvegarder ta collec une fois tes premières cartes rangées.",
+        en: "No account needed to start: a nickname, a binder, and off you go. Saving your collection is offered once your first cards are in.",
+      },
+      {
         fr: "Le classement repart à zéro chaque mois : une nouvelle saison, une nouvelle chance d'être premier.",
         en: "The ladder starts over every month: a new season, a new chance to be first.",
       },

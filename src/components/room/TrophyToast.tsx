@@ -93,6 +93,8 @@ export function TrophyToasts({ ready, onOpen }: { ready: boolean; onOpen: () => 
     };
   }, [shown, ready, queue]);
 
+  useEffect(() => useTrophyQueue.setState({ showing: !!shown || queue.length > 0 }), [shown, queue]);
+
   const top = shown && ("trophy" in shown ? shown.trophy : shown.batch[0]);
   const tier = top?.tier ?? "bronze";
   const secret = !!(shown && "trophy" in shown && shown.trophy.secret);

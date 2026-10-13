@@ -25,8 +25,11 @@ export const useTrophyStore = create<TrophyState>()(
   }),
 );
 
-/** Trophies won and waiting for their toast, one batch per unlock (a big batch gets a single summary toast). */
-export const useTrophyQueue = create<{ batches: string[][] }>(() => ({ batches: [] }));
+/**
+ * Trophies won and waiting for their toast, one batch per unlock (a big batch gets a single summary toast); showing: one
+ * is on screen or about to be (other pop-ins wait for it).
+ */
+export const useTrophyQueue = create<{ batches: string[][]; showing: boolean }>(() => ({ batches: [], showing: false }));
 
 /** Wins these trophies (the ones not won yet), with their toast. */
 export function unlock(...ids: string[]) {
