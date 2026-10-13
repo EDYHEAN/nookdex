@@ -3,12 +3,13 @@
 
 import { gsfx, music } from "./audio";
 import {
-  BONUSES, BOSSES, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RETIRE, STARTERS, WAVE_SECONDS, WILD, xpFor,
-  type BonusId, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type Starter, type Wild,
+  BONUSES, BOSSES, COMBOS, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, STARTERS, WAVE_SECONDS, WILD, xpFor,
+  type BonusId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type Starter, type Wild,
 } from "./data";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
 
-export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over";
+/** center: the Pokémon Center between two boss waves (healed, moves to forget) */
+export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over" | "center";
 export type FireMode = "auto" | "click" | "nearest";
 
 export interface Input {
@@ -26,6 +27,7 @@ export interface Choice {
   /** evolve: a move at its last level and its item make a stronger move; bonus: what's left once all is learnt */
   kind: "move" | "item" | "heal" | "evolve" | "bonus";
   id?: MoveId | ItemId | BonusId;
+  rarity?: Rarity;
   /** the level it goes to (1 = new) */
   level: number;
 }
@@ -59,6 +61,13 @@ interface Enemy {
   slowT: number;
   /** asleep (Sleep Powder) or frozen (Blizzard): it doesn't move nor hurt */
   sleepT: number;
+  /** wet (water), burnt and poisoned: they set up the combos; burns and poison hurt over time */
+  wetT: number;
+  burnT: number;
+  burnDps: number;
+  poisonT: number;
+  poisonDps: number;
+  dotT: number;
   state: string;
   stateT: number;
   /** a boss's next move */
@@ -106,7 +115,7 @@ interface Pickup {
 }
 
 interface Fx {
-  kind: "whip" | "bolt" | "strike" | "ring" | "quake" | "boom" | "warn" | "beam" | "levelup" | "text" | "slashwarn" | "poof" | "cloud" | "hbeam" | "meteor";
+  kind: "whip" | "bolt" | "strike" | "ring" | "quake" | "boom" | "warn" | "beam" | "levelup" | "text" | "slashwarn" | "poof" | "cloud" | "hbeam" | "meteor" | "tornado";
   x: number;
   y: number;
   t: number;
@@ -121,8 +130,12 @@ interface Fx {
   hit?: Set<Enemy>;
   /** a wave that heals the player for each foe it hits (Hydro Pump), its total so far */
   heal?: number;
-  /** a cloud's next tick */
+  /** a cloud's (or a tornado's) next tick */
   tick?: number;
+  /** a beam's charging time */
+  charge?: number;
+  vx?: number;
+  vy?: number;
   done?: number;
   dmg?: number;
   foe?: boolean;
@@ -289,7 +302,7 @@ export class Game {
     return this.items.find((i) => i.id === id)?.level ?? 0;
   }
   get power() {
-    return (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + this.bonusPower);
+    return (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower);
   }
   get speed() {
     return this.starter.speed * (1 + 0.08 * this.itemLevel("scarf")) * (1 + this.stage * 0.04);
@@ -313,7 +326,7 @@ export class Game {
     return 1 + 0.12 * this.itemLevel("share");
   }
   private computeMaxHp() {
-    return Math.round(this.starter.hp + this.stage * 30 + 20 * this.itemLevel("hpup") + (this.level - 1) * 2);
+    return Math.round((this.starter.hp + this.stage * 30 + 20 * this.itemLevel("hpup") + (this.level - 1) * 2) * (1 - 0.03 * this.itemLevel("lifeorb")));
   }
 
   /* ---------------- phases ---------------- */
@@ -403,6 +416,24 @@ export class Game {
     else this.set("play");
   }
 
+  /** at the Pokémon Center: forget a move or drop an item (it frees its slot) */
+  forget(kind: "move" | "item", id: MoveId | ItemId) {
+    if (this.phase !== "center") return;
+    if (kind === "move") this.moves = this.moves.filter((m) => m.id !== id);
+    else this.items = this.items.filter((i) => i.id !== id);
+    this.maxHp = this.computeMaxHp();
+    this.hp = Math.min(this.hp, this.maxHp);
+    gsfx.back();
+    this.onChange();
+  }
+
+  leaveCenter() {
+    if (this.phase !== "center") return;
+    gsfx.ok();
+    if (this.pendingLevels > 0) this.offerChoices();
+    else this.set("play");
+  }
+
   /** B during the evolution: it stops, like in the games */
   cancelEvolution() {
     if (this.phase !== "evolve" || !this.evo || this.evo.t > 3.2 || this.evo.cancelled) return;
@@ -419,21 +450,28 @@ export class Game {
     const evolutions: Choice[] = MOVES.filter(
       (d) => d.evo && this.moves.some((m) => m.id === d.evo!.from && m.level >= MAX_LEVEL) && this.itemLevel(d.evo.item) > 0,
     ).map((d) => ({ kind: "evolve", id: d.id, level: MAX_LEVEL }));
+    const weights: number[] = [];
     for (const m of MOVES) {
       if (m.evo) continue;
       const has = this.moves.find((x) => x.id === m.id);
-      if (has ? has.level < MAX_LEVEL : this.moves.length < MAX_MOVES) pool.push({ kind: "move", id: m.id, level: (has?.level ?? 0) + 1 });
+      if (!(has ? has.level < MAX_LEVEL : this.moves.length < MAX_MOVES)) continue;
+      pool.push({ kind: "move", id: m.id, level: (has?.level ?? 0) + 1, rarity: m.rarity });
+      // what you have comes back more; new moves too while the four slots aren't full
+      weights.push(RARITY[m.rarity].weight * (has ? 1.6 : this.moves.length < 2 ? 2.5 : 1));
     }
     for (const it of ITEMS) {
       const has = this.items.find((x) => x.id === it.id);
-      if (has ? has.level < MAX_LEVEL : this.items.length < MAX_ITEMS) pool.push({ kind: "item", id: it.id, level: (has?.level ?? 0) + 1 });
+      if (!(has ? has.level < MAX_LEVEL : this.items.length < MAX_ITEMS)) continue;
+      pool.push({ kind: "item", id: it.id, level: (has?.level ?? 0) + 1, rarity: it.rarity });
+      weights.push(RARITY[it.rarity].weight * (has ? 1.6 : 1));
     }
-    // new moves come up more often while the four slots aren't full
-    const weighted = pool.flatMap((c) => (c.kind === "move" && c.level === 1 && this.moves.length < 2 ? [c, c, c] : c.level > 1 ? [c, c] : [c]));
-    const out: Choice[] = evolutions.slice(0, 2);
-    while (out.length < 3 && weighted.length) {
-      const c = weighted.splice(Math.floor(Math.random() * weighted.length), 1)[0];
-      if (!out.some((o) => o.id === c.id)) out.push(c);
+    const out: Choice[] = evolutions.slice(0, 2).map((c) => ({ ...c, rarity: "legendary" as const }));
+    while (out.length < 3 && pool.length) {
+      let r = Math.random() * weights.reduce((a, b) => a + b, 0);
+      let i = 0;
+      while (i < pool.length - 1 && (r -= weights[i]) > 0) i++;
+      out.push(pool.splice(i, 1)[0]);
+      weights.splice(i, 1);
     }
     // everything learnt and raised: boosts that stack, and a berry
     for (const b of BONUSES) if (out.length < 3) out.push({ kind: "bonus", id: b.id, level: 0 });
@@ -566,6 +604,13 @@ export class Game {
       for (let i = 0; i < 40; i++) this.spawnOne(129, i / 40);
       this.showBanner(this.tr("VAGUE 11", "WAVE 11"), this.tr("une horde de Magicarpe ?!", "a shoal of Magikarp?!"));
     } else this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), "");
+    if (wave % 5 === 1 && wave > 1) {
+      // the Pokémon Center, after a boss's wave: healed, and a moment to forget moves
+      this.hp = this.maxHp;
+      this.release();
+      gsfx.heal();
+      this.set("center");
+    }
     // a Chansey runs by sometimes: catch it if you can
     this.treasureAt = wave >= 3 && Math.random() < 0.45 ? this.time + rand(5, 25) : -1;
   }
@@ -848,6 +893,33 @@ export class Game {
         gsfx.shoot("whip");
         break;
       }
+      case "toxic": {
+        const n = 4 + L;
+        for (const e of this.nearestN(this.x, this.y, n, 120 * this.area)) {
+          e.poisonT = 5;
+          e.poisonDps = Math.max(e.poisonDps, (4 + 2 * L) * pw);
+          for (let i = 0; i < 4; i++) this.part(e.x + rand(-6, 6), e.y - rand(4, 16), 0, -16, "poison", 0.6, 2, 0, "puff");
+        }
+        gsfx.shoot("water");
+        break;
+      }
+      case "solar": {
+        // the sun gathers, then the beam
+        const len = 260;
+        this.fx.push({
+          kind: "hbeam", x: this.x, y: this.y - 8, x2: this.x + this.aimV.x * len, y2: this.y - 8 + this.aimV.y * len,
+          t: 0, life: 1.25, charge: 0.8, r: (14 + 2 * L) * this.area, dmg: (70 + 25 * L) * pw, elem: "grass",
+        });
+        gsfx.levelUp();
+        break;
+      }
+      case "twister":
+        this.fx.push({
+          kind: "tornado", x: this.x + this.aimV.x * 20, y: this.y + this.aimV.y * 20, vx: this.aimV.x * 40, vy: this.aimV.y * 40,
+          t: 0, life: 4 + 0.3 * L, r: 34 * this.area, dmg: (6 + 3 * L) * pw, tick: 0, elem: "fly",
+        });
+        gsfx.wave();
+        break;
       // ---- the evolved moves ----
       case "fulgur": {
         const onScreen = this.enemies.filter((e) => !e.dead && Math.abs(e.x - this.cam.x) < SW / 2 && Math.abs(e.y - this.cam.y) < SH / 2);
@@ -979,15 +1051,29 @@ export class Game {
 
   private damage(e: Enemy, base: number, kx: number, ky: number, elem: Elem, quiet = false) {
     if (e.dead || e.alpha < 0.5) return;
+    // a combo: the right type on a foe in the right state
+    let mul = 1;
+    for (const c of COMBOS)
+      if (c.by === elem && c.mul > mul && (c.on === "wet" ? e.wetT : c.on === "burn" ? e.burnT : c.on === "poison" ? e.poisonT : e.sleepT) > 0) mul = c.mul;
+    if (elem === "water") e.wetT = 4;
+    if (elem === "fire") {
+      e.burnT = 3;
+      e.burnDps = Math.max(e.burnDps, base * 0.12);
+    }
+    if (elem === "ice" && e.wetT > 0 && !e.boss) e.sleepT = Math.max(e.sleepT, 1.2);
     const crit = Math.random() < this.crit;
-    const dmg = Math.max(1, Math.round(base * (crit ? this.critMul : 1) * rand(0.9, 1.1)));
+    const dmg = Math.max(1, Math.round(base * mul * (crit ? this.critMul : 1) * rand(0.9, 1.1)));
+    if (mul > 1) {
+      for (let i = 0; i < 5; i++) this.part(e.x, e.y - 10, rand(-40, 40), rand(-60, -10), "gold", 0.4, 2, 60, "spark");
+      if (!quiet) gsfx.zap();
+    }
     e.hp -= dmg;
     e.hitT = 0.1;
     const heavy = e.boss ? 0.15 : 1;
     e.kx += kx * heavy;
     e.ky += ky * heavy;
     if (this.nums.length > 50) this.nums.shift();
-    this.nums.push({ x: e.x + rand(-4, 4), y: e.y - 14 - (e.boss ? 14 : 0), t: 0, text: String(dmg), color: crit ? "gold" : "ui", big: crit });
+    this.nums.push({ x: e.x + rand(-4, 4), y: e.y - 14 - (e.boss ? 14 : 0), t: 0, text: mul > 1 ? `${dmg}!` : String(dmg), color: mul > 1 ? "psy" : crit ? "gold" : "ui", big: crit || mul > 1 });
     if (!quiet) gsfx.hit(crit);
     const [c1] = TYPE_FX[elem];
     for (let i = 0; i < (crit ? 6 : 2); i++) this.part(e.x, e.y - 8, rand(-50, 50), rand(-60, 10), c1, 0.3, 1, 100, "spark");
@@ -1036,8 +1122,10 @@ export class Game {
     if (hurtsPlayer && dist2(this.x, this.y, e.x, e.y) < (R + PLAYER_R) ** 2) this.hurt(e.dmg);
   }
 
-  private hurt(dmg: number) {
+  private hurt(dmg: number, from?: Enemy) {
     if (this.invuln > 0 || this.shieldT > 0) return;
+    const helmet = this.itemLevel("helmet");
+    if (from && helmet && !from.dead) this.damage(from, (20 + 12 * helmet) * this.power, (from.x - this.x) * 4, (from.y - this.y) * 4, "ground", true);
     const protect = this.moves.find((m) => m.id === "protect" && m.cd <= 0);
     if (protect) {
       // Protect takes the hit, then keeps a bubble up for a moment
@@ -1066,7 +1154,7 @@ export class Game {
     const hp = (w?.hp ?? 100) * hpMul * (elite ? 4 : 1);
     return {
       w, boss: null, dex, x, y, kx: 0, ky: 0, hp, max: hp, speed: (w?.speed ?? 30) * (1 + Math.min(0.35, 0.012 * k)) * (elite ? 0.9 : 1),
-      dmg: (w?.dmg ?? 10) * (1 + 0.08 * k + 0.004 * k * k) * (elite ? 1.5 : 1), r: (w?.r ?? 7) * (elite ? 1.3 : 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0,
+      dmg: (w?.dmg ?? 10) * (1 + 0.08 * k + 0.004 * k * k) * (elite ? 1.5 : 1), r: (w?.r ?? 7) * (elite ? 1.3 : 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0, wetT: 0, burnT: 0, burnDps: 0, poisonT: 0, poisonDps: 0, dotT: 0.5,
       state: "", stateT: rand(1, 3), actT: 2, elite, z: 0, alpha: 1, aim: { x: 0, y: 0 }, touchT: 0, n: 0, dead: false, deadT: 0, seed: Math.random() * 100,
     };
   }
@@ -1118,6 +1206,29 @@ export class Game {
       e.slowT = Math.max(0, e.slowT - dt);
       e.sleepT = Math.max(0, e.sleepT - dt);
       e.touchT = Math.max(0, e.touchT - dt);
+      e.wetT = Math.max(0, e.wetT - dt);
+      e.burnT = Math.max(0, e.burnT - dt);
+      e.poisonT = Math.max(0, e.poisonT - dt);
+      if (e.burnT <= 0) e.burnDps = 0;
+      if (e.poisonT <= 0) e.poisonDps = 0;
+      e.dotT -= dt;
+      if (e.dotT <= 0) {
+        e.dotT = 0.5;
+        const dot = (e.burnDps + e.poisonDps) * 0.5;
+        if (dot > 0) {
+          const d = Math.max(1, Math.round(dot));
+          e.hp -= d;
+          if (this.nums.length > 50) this.nums.shift();
+          this.nums.push({ x: e.x + rand(-4, 4), y: e.y - 12, t: 0.2, text: String(d), color: e.poisonDps ? "poison" : "fire", big: false });
+          if (e.hp <= 0) {
+            this.kill(e);
+            continue;
+          }
+        }
+      }
+      if (e.wetT > 0 && Math.random() < 0.04) this.part(e.x + rand(-5, 5), e.y - 12, 0, 20, "water2", 0.5, 1, 60, "dot");
+      if (e.burnT > 0 && Math.random() < 0.1) this.part(e.x + rand(-5, 5), e.y - 10, 0, -25, "fire2", 0.4, 1, -20, "dot");
+      if (e.poisonT > 0 && Math.random() < 0.06) this.part(e.x + rand(-5, 5), e.y - 14, 0, -14, "poison2", 0.6, 1, 0, "puff");
       const dx = px - e.x, dy = py - e.y;
       const d = Math.hypot(dx, dy) || 1;
       const ux = dx / d, uy = dy / d;
@@ -1229,7 +1340,7 @@ export class Game {
       if (sp > 0) e.dir = dirOf(vx, vy);
       // touching the player
       if (e.alpha >= 0.5 && e.z < 4 && e.sleepT <= 0 && e.w?.act !== "treasure" && d < e.r + PLAYER_R) {
-        this.hurt(e.dmg);
+        this.hurt(e.dmg, e);
         if (e.w?.act === "explode" && e.state !== "fuse") {
           e.state = "fuse";
           e.stateT = 0.4;
@@ -1514,12 +1625,35 @@ export class Game {
         }
         if (Math.random() < 0.3) this.part(f.x + rand(-f.r!, f.r!), f.y + rand(-f.r! / 2, f.r! / 2), 0, -8, "psy2", 0.8, 2, 0, "puff");
       }
-      if (f.kind === "hbeam" && !f.done && f.t > 0.22) {
+      if (f.kind === "hbeam" && !f.done && f.t > (f.charge ?? 0.22)) {
         f.done = 1;
         this.shake = Math.max(this.shake, 4);
         gsfx.boom();
+        // the beam leaves from where the player is now
+        const dx = f.x2! - f.x, dy = f.y2! - f.y;
+        f.x = this.x;
+        f.y = this.y - 8;
+        f.x2 = f.x + dx;
+        f.y2 = f.y + dy;
         for (const e of this.enemies)
-          if (!e.dead && segDist(e.x, e.y - 8, f.x, f.y, f.x2!, f.y2!) < f.r! / 2 + e.r) this.damage(e, f.dmg!, 0, 0, "normal", true);
+          if (!e.dead && segDist(e.x, e.y - 8, f.x, f.y, f.x2, f.y2) < f.r! / 2 + e.r) this.damage(e, f.dmg!, 0, 0, f.elem ?? "normal", true);
+      }
+      if (f.kind === "tornado") {
+        f.vx! += Math.sin(f.t * 2.3) * 30 * dt;
+        f.vy! += Math.cos(f.t * 1.7) * 30 * dt;
+        f.x += f.vx! * dt;
+        f.y += f.vy! * dt;
+        for (const e of this.around(f.x, f.y, f.r! * 1.4)) {
+          if (e.boss) continue;
+          e.kx += (f.x - e.x) * 2.2 * dt * 60;
+          e.ky += (f.y - e.y) * 2.2 * dt * 60;
+        }
+        f.tick! -= dt;
+        if (f.tick! <= 0) {
+          f.tick = 0.3;
+          for (const e of this.around(f.x, f.y, f.r!)) this.damage(e, f.dmg!, 0, 0, "fly", true);
+        }
+        if (Math.random() < 0.5) this.part(f.x + rand(-f.r!, f.r!) * 0.6, f.y - rand(0, 30), rand(-30, 30), -rand(10, 40), "pebble", 0.5, 1, 0, "dot");
       }
       if (f.kind === "meteor" && !f.done && f.t >= f.life) {
         f.done = 1;
@@ -1992,32 +2126,50 @@ export class Game {
         break;
       }
       case "hbeam": {
-        if (f.t < 0.22) {
-          // charging: a thin flickering line, light gathering at the mouth
+        const ch = f.charge ?? 0.22;
+        const [b1, b2] = f.elem && f.elem !== "normal" ? TYPE_FX[f.elem] : (["gold", "white"] as ColorKey[]);
+        if (f.t < ch) {
+          // charging: a thin flickering line, light gathering at the player
+          const px = this.x + ox, py = this.y + oy - 8;
+          ctx.fillStyle = g.c[b2];
+          ctx.globalAlpha = 0.8;
+          ctx.beginPath();
+          ctx.arc(px, py, 2 + (f.t / ch) * 9, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
           if (Math.floor(f.t * 30) % 2) break;
-          ctx.strokeStyle = g.c.gold;
+          ctx.strokeStyle = g.c[b1];
           ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.moveTo(x, y);
-          ctx.lineTo(f.x2! + ox, f.y2! + oy);
+          ctx.moveTo(px, py);
+          ctx.lineTo(px + (f.x2! - f.x), py + (f.y2! - f.y));
           ctx.stroke();
-          ctx.fillStyle = g.c.white;
-          ctx.beginPath();
-          ctx.arc(x, y, 2 + f.t * 20, 0, Math.PI * 2);
-          ctx.fill();
           break;
         }
-        const w = f.r! * (1 - (f.t - 0.22) / (f.life - 0.22));
-        ctx.strokeStyle = g.c.gold;
+        const w = f.r! * (1 - (f.t - ch) / (f.life - ch));
+        ctx.strokeStyle = g.c[b1];
         ctx.lineWidth = w;
         ctx.beginPath();
         ctx.moveTo(x, y);
         ctx.lineTo(f.x2! + ox, f.y2! + oy);
         ctx.stroke();
-        ctx.strokeStyle = g.c.white;
+        ctx.strokeStyle = g.c[b2];
         ctx.lineWidth = Math.max(1, w * 0.4);
         ctx.stroke();
         ctx.lineWidth = 1;
+        break;
+      }
+      case "tornado": {
+        // stacked rings, turning, wider at the top
+        const fade = Math.min(1, (f.life - f.t) * 2, f.t * 4);
+        for (let i = 0; i < 6; i++) {
+          const rr = (f.r! * (0.3 + i * 0.14));
+          const sx = x + Math.sin(f.t * 9 + i) * 3;
+          ctx.strokeStyle = g.c[i % 2 ? "fly" : "fly2"];
+          ctx.globalAlpha = 0.55 * fade;
+          ring(ctx, sx, y - i * 7, rr * 0.6, 0.35);
+        }
+        ctx.globalAlpha = 1;
         break;
       }
       case "meteor": {
@@ -2168,10 +2320,23 @@ export class Game {
   }
 
   private drawPickups(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
+    for (const p of this.pickups) this.drawPickup(ctx, p, ox, oy);
+  }
+
+  private drawPickup(ctx: CanvasRenderingContext2D, p: Pickup, ox: number, oy: number) {
     const g = this.gfx;
-    for (const p of this.pickups) {
+    {
       const x = Math.round(p.x + ox), y = Math.round(p.y + oy - p.z - (p.vz ? 0 : Math.sin(p.t * 5 + p.x) * 1));
-      if (x < -8 || x > SW + 8 || y < -8 || y > SH + 8) continue;
+      if (x < -8 || x > SW + 8 || y < -8 || y > SH + 8) return;
+      // the precious ones glow
+      if (p.kind !== "candy" || p.value >= 8) {
+        ctx.fillStyle = g.c[p.kind === "rare" ? "gold" : p.kind === "candy" ? "xpBig" : p.kind === "magnet" ? "hpLow" : "heal"];
+        ctx.globalAlpha = 0.18 + 0.12 * Math.sin(p.t * 6);
+        ctx.beginPath();
+        ctx.arc(x, y, p.kind === "rare" ? 9 : 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
       if (p.kind === "candy") {
         // a wrapped candy; the big ones are pink
         const big = p.value >= 8;
@@ -2379,6 +2544,9 @@ export class Game {
       }
     });
 
+    this.drawRadar(ctx);
+    if (this.phase === "paused") this.drawLegend(ctx);
+
     // the wave's banner slides in and out
     if (this.bannerT > 0) {
       const k = this.bannerT;
@@ -2391,6 +2559,55 @@ export class Game {
       g.text(ctx, this.banner, x, 101, "gold", { align: "center", scale: 2 });
       if (this.bannerSub) g.text(ctx, this.bannerSub, x - slide * 40, 119, "ui", { align: "center" });
     }
+  }
+
+  /** a radar in the corner: the crowd, the boss, a Chansey */
+  private drawRadar(ctx: CanvasRenderingContext2D) {
+    const c = this.gfx.c;
+    const S = 44, x0 = SW - S - 4, y0 = 22, k = S / 2 / 330;
+    ctx.fillStyle = c.uiDark;
+    ctx.globalAlpha = 0.55;
+    ctx.fillRect(x0, y0, S, S);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = c.uiDim;
+    ctx.strokeRect(x0 + 0.5, y0 + 0.5, S - 1, S - 1);
+    const dot = (wx: number, wy: number, col: string, s: number) => {
+      const dx = (wx - this.x) * k, dy = (wy - this.y) * k;
+      if (Math.abs(dx) > S / 2 - 1 || Math.abs(dy) > S / 2 - 1) return;
+      ctx.fillStyle = col;
+      ctx.fillRect(Math.round(x0 + S / 2 + dx - s / 2), Math.round(y0 + S / 2 + dy - s / 2), s, s);
+    };
+    for (const e of this.enemies) {
+      if (e.dead) continue;
+      if (e.boss) dot(e.x, e.y, c.hpLow, 3);
+      else if (e.w?.act === "treasure") dot(e.x, e.y, c.psy, 3);
+      else if (e.elite) dot(e.x, e.y, c.gold, 2);
+      else dot(e.x, e.y, c.uiDim, 1);
+    }
+    dot(this.x, this.y, c.white, 2);
+  }
+
+  /** the pause's legend: what lies on the ground */
+  private drawLegend(ctx: CanvasRenderingContext2D) {
+    const g = this.gfx;
+    const items: [Pickup["kind"], number, string][] = [
+      ["candy", 1, this.tr("BONBON XP", "XP CANDY")],
+      ["candy", 10, this.tr("GROS BONBON", "BIG CANDY")],
+      ["rare", 0, "SUPER BONBON"],
+      ["oran", 0, this.tr("BAIE ORAN", "ORAN BERRY")],
+      ["egg", 0, this.tr("OEUF CHANCE", "LUCKY EGG")],
+      ["magnet", 0, this.tr("AIMANT", "MAGNET")],
+    ];
+    const y = SH - 56;
+    ctx.fillStyle = g.c.uiDark;
+    ctx.globalAlpha = 0.8;
+    ctx.fillRect(0, y - 6, SW, 36);
+    ctx.globalAlpha = 1;
+    items.forEach(([kind, value, label], i) => {
+      const x = 14 + (i % 3) * 104, yy = y + 4 + Math.floor(i / 3) * 14;
+      this.drawPickup(ctx, { kind, x, y: yy, z: 0, vz: 0, value, pull: false, t: this.animT }, 0, 0);
+      g.text(ctx, label, x + 10, yy - 3, "ui");
+    });
   }
 
   private drawEvolution(ctx: CanvasRenderingContext2D, ox: number, oy: number) {

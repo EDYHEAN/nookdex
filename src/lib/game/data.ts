@@ -38,7 +38,16 @@ export interface Starter {
   type: Elem;
 }
 
-export type Elem = "grass" | "fire" | "water" | "elec" | "ice" | "ghost" | "ground" | "psy" | "normal" | "fly" | "dragon";
+export type Elem = "grass" | "fire" | "water" | "elec" | "ice" | "ghost" | "ground" | "psy" | "normal" | "fly" | "dragon" | "poison";
+
+/** how rare a level-up card is: the rarer, the less often it comes up (and the stronger) */
+export type Rarity = "common" | "rare" | "epic" | "legendary";
+export const RARITY: Record<Rarity, { weight: number; name: Txt }> = {
+  common: { weight: 1, name: ["commune", "common"] },
+  rare: { weight: 0.6, name: ["rare", "rare"] },
+  epic: { weight: 0.3, name: ["épique", "epic"] },
+  legendary: { weight: 0.12, name: ["légendaire", "legendary"] },
+};
 
 export const STARTERS: Starter[] = [
   {
@@ -83,13 +92,15 @@ export const STARTERS: Starter[] = [
 
 export type MoveId =
   | "thunder" | "flamethrower" | "surf" | "leaf" | "ice" | "quake" | "shadow" | "protect" | "swift" | "psychic"
-  | "quick" | "sleep" | "hyper" | "rocks"
+  | "quick" | "sleep" | "hyper" | "rocks" | "toxic" | "solar" | "twister"
   // the evolved ones
   | "fulgur" | "blast" | "hydro" | "petal" | "blizzard" | "draco" | "fissure";
-export type ItemId = "leftovers" | "band" | "scarf" | "claw" | "lens" | "magnet" | "share" | "hpup" | "root" | "shellbell" | "belt";
+export type ItemId =
+  | "leftovers" | "band" | "scarf" | "claw" | "lens" | "magnet" | "share" | "hpup" | "root" | "shellbell" | "belt" | "lifeorb" | "helmet";
 
 export interface MoveDef {
   id: MoveId;
+  rarity: Rarity;
   name: Txt;
   type: Elem;
   /** what each level does, short */
@@ -101,52 +112,71 @@ export interface MoveDef {
 }
 
 export const MOVES: MoveDef[] = [
-  { id: "thunder", name: ["Tonnerre", "Thunderbolt"], type: "elec", desc: ["La foudre frappe des ennemis au hasard.", "Lightning strikes random foes."], cd: [2.8, 2.6, 2.4, 2.2, 1.9] },
-  { id: "flamethrower", name: ["Lance-Flammes", "Flamethrower"], type: "fire", desc: ["Un cône de feu vers ta visée.", "A cone of fire where you aim."], cd: [4.5, 4.2, 3.9, 3.6, 3.2] },
-  { id: "surf", name: ["Surf", "Surf"], type: "water", desc: ["Une vague autour de toi, qui repousse.", "A wave all around you, pushing back."], cd: [7, 6.5, 6, 5.5, 5] },
-  { id: "leaf", name: ["Feuille Magik", "Magical Leaf"], type: "grass", desc: ["Des feuilles qui ne ratent jamais.", "Leaves that never miss."], cd: [2.2, 2.1, 2, 1.9, 1.7] },
-  { id: "ice", name: ["Vent Glace", "Icy Wind"], type: "ice", desc: ["Des cristaux tournent autour de toi et ralentissent.", "Crystals circle you and slow foes."], cd: [6, 5.6, 5.2, 4.8, 4.4] },
-  { id: "quake", name: ["Séisme", "Earthquake"], type: "ground", desc: ["Tout tremble : gros dégâts autour.", "Everything shakes: big damage around."], cd: [9, 8.4, 7.8, 7.2, 6.4] },
-  { id: "shadow", name: ["Ball'Ombre", "Shadow Ball"], type: "ghost", desc: ["Une boule lente qui traverse tout.", "A slow orb that goes through it all."], cd: [3.4, 3.2, 3, 2.8, 2.5] },
-  { id: "protect", name: ["Abri", "Protect"], type: "normal", desc: ["Une bulle qui bloque les coups.", "A bubble that blocks the hits."], cd: [12, 11, 10, 9, 8] },
-  { id: "swift", name: ["Météores", "Swift"], type: "normal", desc: ["Des étoiles vers les plus proches.", "Stars at the closest foes."], cd: [1.6, 1.5, 1.4, 1.3, 1.1] },
-  { id: "psychic", name: ["Psyko", "Psychic"], type: "psy", desc: ["Une aura qui blesse ceux qui s'approchent.", "An aura that hurts whoever comes close."], cd: [0.35, 0.33, 0.31, 0.29, 0.26] },
-  { id: "quick", name: ["Vive-Attaque", "Quick Attack"], type: "normal", desc: ["Une ruée à travers les ennemis, intouchable.", "A dash through foes, untouchable."], cd: [4, 3.6, 3.2, 2.8, 2.4] },
-  { id: "sleep", name: ["Poudre Dodo", "Sleep Powder"], type: "grass", desc: ["Des nuages qui endorment les ennemis.", "Clouds that put foes to sleep."], cd: [6, 5.6, 5.2, 4.8, 4.2] },
-  { id: "hyper", name: ["Ultralaser", "Hyper Beam"], type: "normal", desc: ["Un rayon énorme qui traverse tout.", "A huge beam through everything."], cd: [6.5, 6, 5.5, 5, 4.5] },
-  { id: "rocks", name: ["Piège de Roc", "Stealth Rock"], type: "ground", desc: ["Des pierres pointues autour de toi.", "Pointed stones around you."], cd: [3.5, 3.3, 3.1, 2.9, 2.6] },
+  { id: "thunder", rarity: "epic", name: ["Tonnerre", "Thunderbolt"], type: "elec", desc: ["La foudre frappe des ennemis au hasard.", "Lightning strikes random foes."], cd: [2.8, 2.6, 2.4, 2.2, 1.9] },
+  { id: "flamethrower", rarity: "rare", name: ["Lance-Flammes", "Flamethrower"], type: "fire", desc: ["Un cône de feu vers ta visée.", "A cone of fire where you aim."], cd: [4.5, 4.2, 3.9, 3.6, 3.2] },
+  { id: "surf", rarity: "rare", name: ["Surf", "Surf"], type: "water", desc: ["Une vague autour de toi, qui repousse.", "A wave all around you, pushing back."], cd: [7, 6.5, 6, 5.5, 5] },
+  { id: "leaf", rarity: "common", name: ["Feuille Magik", "Magical Leaf"], type: "grass", desc: ["Des feuilles qui ne ratent jamais.", "Leaves that never miss."], cd: [2.2, 2.1, 2, 1.9, 1.7] },
+  { id: "ice", rarity: "rare", name: ["Vent Glace", "Icy Wind"], type: "ice", desc: ["Des cristaux tournent autour de toi et ralentissent.", "Crystals circle you and slow foes."], cd: [6, 5.6, 5.2, 4.8, 4.4] },
+  { id: "quake", rarity: "epic", name: ["Séisme", "Earthquake"], type: "ground", desc: ["Tout tremble : gros dégâts autour.", "Everything shakes: big damage around."], cd: [9, 8.4, 7.8, 7.2, 6.4] },
+  { id: "shadow", rarity: "rare", name: ["Ball'Ombre", "Shadow Ball"], type: "ghost", desc: ["Une boule lente qui traverse tout.", "A slow orb that goes through it all."], cd: [3.4, 3.2, 3, 2.8, 2.5] },
+  { id: "protect", rarity: "epic", name: ["Abri", "Protect"], type: "normal", desc: ["Une bulle qui bloque les coups.", "A bubble that blocks the hits."], cd: [12, 11, 10, 9, 8] },
+  { id: "swift", rarity: "common", name: ["Météores", "Swift"], type: "normal", desc: ["Des étoiles vers les plus proches.", "Stars at the closest foes."], cd: [1.6, 1.5, 1.4, 1.3, 1.1] },
+  { id: "psychic", rarity: "common", name: ["Psyko", "Psychic"], type: "psy", desc: ["Une aura qui blesse ceux qui s'approchent.", "An aura that hurts whoever comes close."], cd: [0.35, 0.33, 0.31, 0.29, 0.26] },
+  { id: "quick", rarity: "common", name: ["Vive-Attaque", "Quick Attack"], type: "normal", desc: ["Une ruée à travers les ennemis, intouchable.", "A dash through foes, untouchable."], cd: [4, 3.6, 3.2, 2.8, 2.4] },
+  { id: "sleep", rarity: "rare", name: ["Poudre Dodo", "Sleep Powder"], type: "grass", desc: ["Des nuages qui endorment les ennemis.", "Clouds that put foes to sleep."], cd: [6, 5.6, 5.2, 4.8, 4.2] },
+  { id: "hyper", rarity: "epic", name: ["Ultralaser", "Hyper Beam"], type: "normal", desc: ["Un rayon énorme qui traverse tout.", "A huge beam through everything."], cd: [6.5, 6, 5.5, 5, 4.5] },
+  { id: "rocks", rarity: "common", name: ["Piège de Roc", "Stealth Rock"], type: "ground", desc: ["Des pierres pointues autour de toi.", "Pointed stones around you."], cd: [3.5, 3.3, 3.1, 2.9, 2.6] },
+  { id: "toxic", rarity: "common", name: ["Toxik", "Toxic"], type: "poison", desc: ["Empoisonne les ennemis proches.", "Poisons the foes around you."], cd: [4, 3.7, 3.4, 3.1, 2.7] },
+  { id: "solar", rarity: "epic", name: ["Lance-Soleil", "Solar Beam"], type: "grass", desc: ["Se charge, puis un rayon de soleil dévastateur.", "Charges, then a devastating beam of sunlight."], cd: [7, 6.5, 6, 5.5, 5] },
+  { id: "twister", rarity: "rare", name: ["Ouragan", "Twister"], type: "fly", desc: ["Une tornade qui aspire les ennemis.", "A tornado that sucks foes in."], cd: [5, 4.7, 4.4, 4.1, 3.7] },
   // evolutions: a move at level 5 + an item
-  { id: "fulgur", name: ["Fatal-Foudre", "Thunder"], type: "elec", desc: ["La foudre s'abat partout et rebondit.", "Lightning everywhere, bouncing on."], cd: [1.5, 1.5, 1.5, 1.5, 1.5], evo: { from: "thunder", item: "magnet" } },
-  { id: "blast", name: ["Déflagration", "Fire Blast"], type: "fire", desc: ["Une boule de feu qui explose en étoile.", "A fireball that bursts into a star."], cd: [2.6, 2.6, 2.6, 2.6, 2.6], evo: { from: "flamethrower", item: "band" } },
-  { id: "hydro", name: ["Hydrocanon", "Hydro Pump"], type: "water", desc: ["Deux raz-de-marée qui te soignent.", "Two tidal waves that heal you."], cd: [4.5, 4.5, 4.5, 4.5, 4.5], evo: { from: "surf", item: "leftovers" } },
-  { id: "petal", name: ["Tempête Florale", "Petal Blizzard"], type: "grass", desc: ["Des pétales tourbillonnent sans fin.", "Petals whirl around you, endlessly."], cd: [0.6, 0.6, 0.6, 0.6, 0.6], evo: { from: "leaf", item: "root" } },
-  { id: "blizzard", name: ["Blizzard", "Blizzard"], type: "ice", desc: ["Des cristaux éternels qui gèlent sur place.", "Crystals that never melt, and freeze foes."], cd: [1, 1, 1, 1, 1], evo: { from: "ice", item: "claw" } },
-  { id: "draco", name: ["Draco-Météore", "Draco Meteor"], type: "dragon", desc: ["Une pluie de météores sur les ennemis.", "A meteor shower on your foes."], cd: [2.4, 2.4, 2.4, 2.4, 2.4], evo: { from: "swift", item: "scarf" } },
-  { id: "fissure", name: ["Abîme", "Fissure"], type: "ground", desc: ["Le sol s'ouvre : certains ne s'en relèvent pas.", "The ground opens: some never get up."], cd: [5, 5, 5, 5, 5], evo: { from: "quake", item: "lens" } },
+  { id: "fulgur", rarity: "legendary", name: ["Fatal-Foudre", "Thunder"], type: "elec", desc: ["La foudre s'abat partout et rebondit.", "Lightning everywhere, bouncing on."], cd: [1.5, 1.5, 1.5, 1.5, 1.5], evo: { from: "thunder", item: "magnet" } },
+  { id: "blast", rarity: "legendary", name: ["Déflagration", "Fire Blast"], type: "fire", desc: ["Une boule de feu qui explose en étoile.", "A fireball that bursts into a star."], cd: [2.6, 2.6, 2.6, 2.6, 2.6], evo: { from: "flamethrower", item: "band" } },
+  { id: "hydro", rarity: "legendary", name: ["Hydrocanon", "Hydro Pump"], type: "water", desc: ["Deux raz-de-marée qui te soignent.", "Two tidal waves that heal you."], cd: [4.5, 4.5, 4.5, 4.5, 4.5], evo: { from: "surf", item: "leftovers" } },
+  { id: "petal", rarity: "legendary", name: ["Tempête Florale", "Petal Blizzard"], type: "grass", desc: ["Des pétales tourbillonnent sans fin.", "Petals whirl around you, endlessly."], cd: [0.6, 0.6, 0.6, 0.6, 0.6], evo: { from: "leaf", item: "root" } },
+  { id: "blizzard", rarity: "legendary", name: ["Blizzard", "Blizzard"], type: "ice", desc: ["Des cristaux éternels qui gèlent sur place.", "Crystals that never melt, and freeze foes."], cd: [1, 1, 1, 1, 1], evo: { from: "ice", item: "claw" } },
+  { id: "draco", rarity: "legendary", name: ["Draco-Météore", "Draco Meteor"], type: "dragon", desc: ["Une pluie de météores sur les ennemis.", "A meteor shower on your foes."], cd: [2.4, 2.4, 2.4, 2.4, 2.4], evo: { from: "swift", item: "scarf" } },
+  { id: "fissure", rarity: "legendary", name: ["Abîme", "Fissure"], type: "ground", desc: ["Le sol s'ouvre : certains ne s'en relèvent pas.", "The ground opens: some never get up."], cd: [5, 5, 5, 5, 5], evo: { from: "quake", item: "lens" } },
 ];
 
 export interface ItemDef {
   id: ItemId;
+  rarity: Rarity;
   name: Txt;
   desc: Txt;
 }
 
 export const ITEMS: ItemDef[] = [
-  { id: "leftovers", name: ["Restes", "Leftovers"], desc: ["Régénère des PV.", "Restores HP over time."] },
-  { id: "band", name: ["Bandeau Choix", "Choice Band"], desc: ["+12 % de dégâts.", "+12% damage."] },
-  { id: "scarf", name: ["Mouchoir Choix", "Choice Scarf"], desc: ["+8 % de vitesse.", "+8% speed."] },
-  { id: "claw", name: ["Vive Griffe", "Quick Claw"], desc: ["Capacités plus vite prêtes (−8 %).", "Moves ready sooner (−8%)."] },
-  { id: "lens", name: ["Lentilscope", "Scope Lens"], desc: ["+7 % de coups critiques.", "+7% critical hits."] },
-  { id: "magnet", name: ["Aimant", "Magnet"], desc: ["Attire les bonbons de plus loin.", "Pulls candies from further away."] },
-  { id: "share", name: ["Multi Exp", "Exp. Share"], desc: ["+12 % d'expérience.", "+12% experience."] },
-  { id: "hpup", name: ["PV Plus", "HP Up"], desc: ["+20 PV max (et soigne).", "+20 max HP (and heals)."] },
-  { id: "root", name: ["Grosse Racine", "Big Root"], desc: ["+10 % de zone d'effet.", "+10% area of effect."] },
-  { id: "shellbell", name: ["Grelot Coque", "Shell Bell"], desc: ["Chaque K.O. te soigne un peu.", "Each KO heals you a little."] },
-  { id: "belt", name: ["Ceinture Pro", "Expert Belt"], desc: ["Coups critiques plus forts (+25 %).", "Stronger critical hits (+25%)."] },
+  { id: "leftovers", rarity: "rare", name: ["Restes", "Leftovers"], desc: ["Régénère des PV.", "Restores HP over time."] },
+  { id: "band", rarity: "rare", name: ["Bandeau Choix", "Choice Band"], desc: ["+12 % de dégâts.", "+12% damage."] },
+  { id: "scarf", rarity: "common", name: ["Mouchoir Choix", "Choice Scarf"], desc: ["+8 % de vitesse.", "+8% speed."] },
+  { id: "claw", rarity: "rare", name: ["Vive Griffe", "Quick Claw"], desc: ["Capacités plus vite prêtes (−8 %).", "Moves ready sooner (−8%)."] },
+  { id: "lens", rarity: "epic", name: ["Lentilscope", "Scope Lens"], desc: ["+7 % de coups critiques.", "+7% critical hits."] },
+  { id: "magnet", rarity: "common", name: ["Aimant", "Magnet"], desc: ["Attire les bonbons de plus loin.", "Pulls candies from further away."] },
+  { id: "share", rarity: "common", name: ["Multi Exp", "Exp. Share"], desc: ["+12 % d'expérience.", "+12% experience."] },
+  { id: "hpup", rarity: "common", name: ["PV Plus", "HP Up"], desc: ["+20 PV max (et soigne).", "+20 max HP (and heals)."] },
+  { id: "root", rarity: "rare", name: ["Grosse Racine", "Big Root"], desc: ["+10 % de zone d'effet.", "+10% area of effect."] },
+  { id: "shellbell", rarity: "epic", name: ["Grelot Coque", "Shell Bell"], desc: ["Chaque K.O. te soigne un peu.", "Each KO heals you a little."] },
+  { id: "belt", rarity: "epic", name: ["Ceinture Pro", "Expert Belt"], desc: ["Coups critiques plus forts (+25 %).", "Stronger critical hits (+25%)."] },
+  { id: "helmet", rarity: "epic", name: ["Casque Brut", "Rocky Helmet"], desc: ["Qui te touche se fait mal.", "Whoever touches you gets hurt."] },
+  { id: "lifeorb", rarity: "legendary", name: ["Orbe Vie", "Life Orb"], desc: ["+20 % de dégâts, −5 % de PV max.", "+20% damage, −5% max HP."] },
 ];
 
 /** when there's nothing left to learn or raise: boosts that stack forever */
 export type BonusId = "protein" | "ppup" | "sitrus";
+
+/**
+ * Combos: a hit of one type on a foe in a state. Water wets, fire burns, Toxic poisons, Sleep Powder and Blizzard put to
+ * sleep; the right type next does more. Shown in the pause screen.
+ */
+export const COMBOS: { on: "wet" | "burn" | "poison" | "sleep"; by: Elem; mul: number; name: Txt }[] = [
+  { on: "wet", by: "elec", mul: 1.8, name: ["Mouillé + Électrik : électrocution", "Wet + Electric: electrocution"] },
+  { on: "wet", by: "ice", mul: 1.5, name: ["Mouillé + Glace : gelé net", "Wet + Ice: frozen solid"] },
+  { on: "burn", by: "fly", mul: 1.6, name: ["Brûlé + Vol : le vent attise", "Burnt + Flying: the wind fans it"] },
+  { on: "poison", by: "psy", mul: 1.6, name: ["Empoisonné + Psy : migraine", "Poisoned + Psychic: migraine"] },
+  { on: "sleep", by: "ghost", mul: 2, name: ["Endormi + Spectre : cauchemar", "Asleep + Ghost: nightmare"] },
+  { on: "sleep", by: "fire", mul: 1.5, name: ["Gelé/endormi + Feu : réveil brûlant", "Frozen/asleep + Fire: a hot wake-up"] },
+];
 export const BONUSES: { id: BonusId; name: Txt; desc: Txt }[] = [
   { id: "protein", name: ["Protéine", "Protein"], desc: ["+6 % de dégâts, pour toujours.", "+6% damage, for good."] },
   { id: "ppup", name: ["PP Plus", "PP Up"], desc: ["Capacités 4 % plus vite prêtes.", "Moves ready 4% sooner."] },

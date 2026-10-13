@@ -148,8 +148,12 @@
 }
 
 /* aiming at the mouse: a crosshair */
+/* aiming at the mouse: a crosshair that stands out on the grass (light ring, dark outline) */
 .aiming {
-  cursor: crosshair;
+  cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cg fill='none' stroke-linecap='square'%3E%3Ccircle cx='14' cy='14' r='8' stroke='%232b2230' stroke-width='5'/%3E%3Ccircle cx='14' cy='14' r='8' stroke='%23ffd36e' stroke-width='2'/%3E%3Cpath d='M14 1v7M14 20v7M1 14h7M20 14h7' stroke='%232b2230' stroke-width='5'/%3E%3Cpath d='M14 2v6M14 20v6M2 14h6M20 14h6' stroke='%23fff8f0' stroke-width='2'/%3E%3C/g%3E%3Crect x='13' y='13' width='2' height='2' fill='%23ff5d5d'/%3E%3C/svg%3E")
+      14 14,
+    crosshair;
 }
 
 /* the LCD: a soft glare and faint scanlines, over everything */
@@ -827,6 +831,85 @@
 
 .cardTag {
   font-size: 6px;
+  color: var(--c1);
+}
+
+/* how rare a card is: a word, and its frame */
+.rarity {
+  font: 12px/1 var(--font-vt), monospace;
+  color: var(--c1);
+}
+
+.screen[data-palette="color"] .r_rare { box-shadow: 0 0 0 1px var(--c0), inset 0 0 0 2px #5fb8ff; }
+.screen[data-palette="color"] .r_rare .rarity { color: #2f7fd0; }
+.screen[data-palette="color"] .r_epic { box-shadow: 0 0 0 1px var(--c0), inset 0 0 0 2px #a35bc9; }
+.screen[data-palette="color"] .r_epic .rarity { color: #8a3fb0; }
+.screen[data-palette="color"] .r_legendary { box-shadow: 0 0 0 1px var(--c0), inset 0 0 0 2px #ffb820; }
+.screen[data-palette="color"] .r_legendary .rarity { color: #c47f00; }
+.screen:not([data-palette="color"]) .r_epic,
+.screen:not([data-palette="color"]) .r_legendary { box-shadow: 0 0 0 1px var(--c0), inset 0 0 0 2px var(--c0); }
+
+/* the pause: what the Pokémon has, and the combos; the menu under */
+.pause {
+  position: absolute;
+  inset: 0;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: color-mix(in srgb, var(--c0) 45%, transparent);
+}
+
+.recap {
+  display: flex;
+  gap: 6px;
+  align-self: stretch;
+}
+
+.recap .box {
+  flex: 1;
+  padding: 4px 6px;
+  font: 11px/11px var(--font-vt), monospace;
+}
+
+.recap p {
+  margin: 0;
+}
+
+.recap i {
+  font-style: normal;
+  color: var(--c1);
+}
+
+.recapTitle {
+  font: 6px/10px var(--font-press), monospace;
+  color: var(--c1);
+}
+
+/* the Pokémon Center */
+.centerMsg {
+  font: 12px/12px var(--font-vt), monospace;
+}
+
+.forget {
+  margin-top: 6px;
+  min-width: 0;
+}
+
+.forget li {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.forget i {
+  font-style: normal;
+  color: var(--c1);
+}
+
+.forget b {
+  font-weight: normal;
   color: var(--c1);
 }
 

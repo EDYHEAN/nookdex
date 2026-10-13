@@ -5,7 +5,7 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BONUSES, MOVES, ITEMS, NAMES, STARTERS, say, type Lang } from "@/lib/game/data";
+import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, RARITY, STARTERS, say, type ItemId, type Lang, type MoveId } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
 import { Game, type FireMode, type Phase } from "@/lib/game/engine";
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
@@ -154,7 +154,7 @@ export default function NookBoy({ origin, onClose }: Props) {
 
   // The music plays during a run (if wanted).
   useEffect(() => {
-    const playing = phase === "play" || phase === "levelup" || phase === "paused" || phase === "evolve";
+    const playing = phase === "play" || phase === "levelup" || phase === "paused" || phase === "evolve" || phase === "center";
     if (playing && opts.music) music.start();
     else if (!playing || !opts.music) music.stop();
   }, [phase, opts.music]);
@@ -292,6 +292,20 @@ export default function NookBoy({ origin, onClose }: Props) {
       return;
     }
     if (p === "evolve" && b === "b") return eng.cancelEvolution();
+    if (p === "center") {
+      const rows = centerRows(eng);
+      if (b === "up" || b === "down") {
+        gsfx.move();
+        setCursor((c) => (c + (b === "up" ? -1 : 1) + rows.length + 1) % (rows.length + 1));
+      } else if (b === "start" || (b === "a" && cursor >= rows.length)) {
+        setCursor(0);
+        eng.leaveCenter();
+      } else if (b === "a") {
+        eng.forget(rows[cursor].kind, rows[cursor].id);
+        setCursor((c) => Math.min(c, rows.length - 1));
+      }
+      return;
+    }
   };
 
   const quitRun = () => {
@@ -533,13 +547,14 @@ export default function NookBoy({ origin, onClose }: Props) {
               return (
                 <button
                   key={`${c.kind}${c.id}`}
-                  className={`${styles.card} ${i === cursor ? styles.on : ""} ${move ? styles[`t_${move.type}`] : ""} ${c.kind === "evolve" ? styles.evoCard : ""}`}
+                  className={`${styles.card} ${i === cursor ? styles.on : ""} ${move ? styles[`t_${move.type}`] : ""} ${c.kind === "evolve" ? styles.evoCard : ""} ${c.rarity ? styles[`r_${c.rarity}`] : ""}`}
                   onPointerEnter={() => i !== cursor && (gsfx.move(), setCursor(i))}
                   onClick={() => g.choose(c)}
                 >
                   <span className={styles.cardTag}>
                     {i + 1} · {tag}
                   </span>
+                  {c.rarity && <span className={styles.rarity}>{say(RARITY[c.rarity].name, lang)}</span>}
                   <span className={styles.cardName}>{def ? say(def.name, lang) : t("Baie Sitrus", "Sitrus Berry")}</span>
                   <span className={styles.cardLvl}>
                     {c.kind === "heal"
@@ -562,9 +577,37 @@ export default function NookBoy({ origin, onClose }: Props) {
           )}
         </div>
       );
+    if (phase === "center") {
+      const rows = centerRows(g);
+      return (
+        <div className={styles.page}>
+          <h2>{t("CENTRE POKéMON", "POKéMON CENTER")}</h2>
+          <p className={`${styles.box} ${styles.centerMsg}`}>
+            {t(
+              `${nameOf(g.dex)} est en pleine forme ! Tu peux oublier des capacités ou lâcher des objets pour faire de la place.`,
+              `${nameOf(g.dex)} is fully healed! You can forget moves or drop items to make room.`,
+            )}
+          </p>
+          <ul className={`${styles.box} ${styles.menu} ${styles.forget}`}>
+            {rows.map((r, i) => (
+              <li key={r.id} className={i === cursor ? styles.on : ""} onPointerEnter={() => setCursor(i)} onClick={() => g.forget(r.kind, r.id)}>
+                <span>
+                  {r.name} <i>{"●".repeat(r.level)}</i>
+                </span>
+                <b>{r.kind === "move" ? t("oublier", "forget") : t("lâcher", "drop")}</b>
+              </li>
+            ))}
+            <li className={cursor >= rows.length ? styles.on : ""} onPointerEnter={() => setCursor(rows.length)} onClick={() => (setCursor(0), g.leaveCenter())}>
+              {t("Continuer ▶", "Continue ▶")}
+            </li>
+          </ul>
+        </div>
+      );
+    }
     if (phase === "paused")
       return (
-        <div className={styles.center}>
+        <div className={styles.pause}>
+          <Recap g={g} lang={lang} t={t} />
           <ul className={`${styles.box} ${styles.menu}`}>
             <li className={styles.menuTitle}>PAUSE</li>
             {[t("Reprendre", "Resume"), t("Abandonner", "Give up")].map((l, i) => (
@@ -746,6 +789,54 @@ export default function NookBoy({ origin, onClose }: Props) {
         {t("ZQSD / flèches : bouger · souris : viser · Entrée : pause · Tab : palette", "WASD / arrows: move · mouse: aim · Enter: pause · Tab: palette")}
       </p>
     </motion.div>
+  );
+}
+
+/** the Pokémon Center's list: the moves, then the items */
+function centerRows(g: Game) {
+  const lang = g.lang;
+  return [
+    ...g.moves.map((m) => ({ kind: "move" as const, id: m.id as MoveId | ItemId, level: m.level, name: say(MOVES.find((d) => d.id === m.id)!.name, lang) })),
+    ...g.items.map((it) => ({ kind: "item" as const, id: it.id as MoveId | ItemId, level: it.level, name: say(ITEMS.find((d) => d.id === it.id)!.name, lang) })),
+  ];
+}
+
+/** the pause's recap: moves, items, and the combos to look for */
+function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string) => string }) {
+  return (
+    <div className={styles.recap}>
+      <div className={styles.box}>
+        <p className={styles.recapTitle}>{t("CAPACITÉS", "MOVES")}</p>
+        {g.moves.length ? (
+          g.moves.map((m) => {
+            const d = MOVES.find((x) => x.id === m.id)!;
+            return (
+              <p key={m.id}>
+                {say(d.name, lang)} <i>{"●".repeat(m.level)}</i>
+              </p>
+            );
+          })
+        ) : (
+          <p className={styles.dim}>{t("aucune pour l'instant", "none yet")}</p>
+        )}
+        <p className={styles.recapTitle}>{t("OBJETS", "ITEMS")}</p>
+        {g.items.length ? (
+          g.items.map((it) => (
+            <p key={it.id}>
+              {say(ITEMS.find((x) => x.id === it.id)!.name, lang)} <i>{"●".repeat(it.level)}</i>
+            </p>
+          ))
+        ) : (
+          <p className={styles.dim}>{t("aucun pour l'instant", "none yet")}</p>
+        )}
+      </div>
+      <div className={styles.box}>
+        <p className={styles.recapTitle}>COMBOS</p>
+        {COMBOS.map((c) => (
+          <p key={c.on + c.by}>{say(c.name, lang)}</p>
+        ))}
+      </div>
+    </div>
   );
 }
 
