@@ -5,9 +5,9 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, RARITY, STARTERS, pensionCost, say, type ItemId, type Lang, type MoveId } from "@/lib/game/data";
+import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, RARITY, STARTERS, pensionCost, say, type Lang } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
-import { Game, dailyOf, dailyReward, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
+import { Game, dailyOf, dailyReward, pickX, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
 import { lastName, myRewards, submitScore, topScores, type Period, type Score } from "@/lib/game/scores";
 import { buyLevel, setGold, usePension } from "@/lib/pensionStore";
@@ -44,9 +44,6 @@ interface Options {
   music: boolean;
 }
 const OPTIONS_KEY = "nookdex:game-options";
-/** the skins a reward gives (game_rewards), and the one worn on this device */
-const SKINS: Record<string, { dex: number }> = { "skin-mewtwo": { dex: 150 } };
-const SKIN_KEY = "nookdex:game-skin";
 const DEFAULTS: Options = { fire: "auto", manual: false, palette: 0, music: true };
 function readOptions(): Options {
   try {
@@ -99,15 +96,8 @@ export default function NookBoy({ origin, onClose }: Props) {
   /** the run's gold went back to the purse */
   const settled = useRef(true);
   const [rewards, setRewards] = useState<string[]>([]);
-  const [skin, setSkin] = useState<number | null>(() => {
-    try {
-      return Number(localStorage.getItem(SKIN_KEY)) || null;
-    } catch {
-      return null;
-    }
-  });
-  const skins = rewards.map((r) => SKINS[r]?.dex).filter((d): d is number => !!d);
-  const wornSkin = skin && skins.includes(skin) ? skin : null;
+  /** Mewtwo, a Pokémon of its own for the players given it (game_rewards "skin-mewtwo") */
+  const mewtwo = rewards.includes("skin-mewtwo");
   /** picking the starters: solo, or coop (P1's pick kept while P2 chooses) */
   const [selectMode, setSelectMode] = useState<"classic" | "coop">("classic");
   const [coopFirst, setCoopFirst] = useState<number | null>(null);
@@ -157,10 +147,7 @@ export default function NookBoy({ origin, onClose }: Props) {
   useEffect(() => {
     void myRewards().then(setRewards);
   }, []);
-  // the starter screen shows player 1 in their skin
-  useEffect(() => {
-    g?.showSkin(selectMode === "classic" || coopFirst == null ? (wornSkin ?? undefined) : undefined);
-  }, [g, wornSkin, selectMode, coopFirst]);
+  useEffect(() => g?.setRoster(mewtwo), [g, mewtwo]);
 
   // The boot: the logo slides down, "ding", then the menu.
   useEffect(() => {
@@ -204,7 +191,7 @@ export default function NookBoy({ origin, onClose }: Props) {
 
   // The music plays during a run (if wanted).
   useEffect(() => {
-    const playing = phase === "play" || phase === "levelup" || phase === "paused" || phase === "evolve" || phase === "center" || phase === "countdown";
+    const playing = phase === "play" || phase === "levelup" || phase === "paused" || phase === "evolve" || phase === "countdown";
     if (playing && opts.music) music.start();
     else if (!playing || !opts.music) music.stop();
   }, [phase, opts.music]);
@@ -242,9 +229,9 @@ export default function NookBoy({ origin, onClose }: Props) {
     unlock("game-first");
     settled.current = false;
     const st = usePension.getState();
-    if (mode === "daily") g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()), skin: wornSkin ?? undefined });
-    else if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: st.levels, wallet: st.gold, skin: wornSkin ?? undefined }, g.selected);
-    else g.start(g.selected, { mode: "classic", perm: st.levels, wallet: st.gold, skin: wornSkin ?? undefined });
+    if (mode === "daily") g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()) });
+    else if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: st.levels, wallet: st.gold }, g.selected);
+    else g.start(g.selected, { mode: "classic", perm: st.levels, wallet: st.gold });
   };
   /**
    * The run's gold goes back to the purse, once: at the game over, or when the console is put away mid-run (Johan,
@@ -397,7 +384,6 @@ export default function NookBoy({ origin, onClose }: Props) {
       return;
     }
     if (p === "select") {
-      if ((b === "up" || b === "down") && skins.length && (selectMode === "classic" || coopFirst == null)) return toggleSkin();
       if (b === "left" || b === "right") {
         gsfx.move();
         eng.select(eng.selected + (b === "left" ? -1 : 1));
@@ -445,29 +431,6 @@ export default function NookBoy({ origin, onClose }: Props) {
       return;
     }
     if (p === "evolve" && b === "b") return eng.cancelEvolution();
-    if (p === "center") {
-      const rows = centerRows(eng);
-      if (b === "up" || b === "down") {
-        gsfx.move();
-        setCursor((c) => (c + (b === "up" ? -1 : 1) + rows.length + 1) % (rows.length + 1));
-      } else if (b === "start" || (b === "a" && cursor >= rows.length)) {
-        setCursor(0);
-        eng.leaveCenter();
-      } else if (b === "a") {
-        eng.forget(rows[cursor].kind, rows[cursor].id);
-        setCursor((c) => Math.min(c, rows.length - 1));
-      }
-      return;
-    }
-  };
-
-  const toggleSkin = () => {
-    gsfx.move();
-    const next = wornSkin ? null : skins[0];
-    setSkin(next);
-    try {
-      localStorage.setItem(SKIN_KEY, String(next ?? ""));
-    } catch {}
   };
 
   const quitRun = () => {
@@ -719,7 +682,7 @@ export default function NookBoy({ origin, onClose }: Props) {
       );
     }
     if (phase === "select") {
-      const s = STARTERS[g.selected];
+      const s = g.roster[g.selected];
       return (
         <div className={styles.select}>
           <h2>
@@ -730,10 +693,11 @@ export default function NookBoy({ origin, onClose }: Props) {
               : t("CHOISIS TON POKéMON", "CHOOSE YOUR POKéMON")}
           </h2>
           <div className={styles.pickRow}>
-            {STARTERS.map((st, i) => (
+            {g.roster.map((st, i) => (
               <button
                 key={st.dex}
                 className={i === g.selected ? styles.on : ""}
+                style={{ left: pickX(i, g.roster.length) - 32 }}
                 onPointerEnter={() => {
                   if (g.selected === i) return;
                   gsfx.move();
@@ -747,6 +711,7 @@ export default function NookBoy({ origin, onClose }: Props) {
           <div className={`${styles.box} ${styles.starter}`}>
             <p className={styles.starterName}>
               {nameOf(s.dex)} <span className={styles.type}>{say(s.basic.name, lang)}</span>
+              {s.reward && <span className={styles.legend}>{t("LÉGENDAIRE", "LEGENDARY")}</span>}
             </p>
             <p>{say(s.blurb, lang)}</p>
             <p className={styles.dim}>
@@ -754,12 +719,6 @@ export default function NookBoy({ origin, onClose }: Props) {
               {s.evolves.map(([d, l]) => `${nameOf(d)} (${t("N.", "lv")}${l})`).join(", ")}
             </p>
           </div>
-          {skins.length > 0 && (selectMode === "classic" || coopFirst == null) && (
-            <button className={`${styles.skinRow} ${wornSkin ? styles.on : ""}`} onClick={toggleSkin}>
-              ▲▼ {t("Tenue", "Skin")} : <b>{wornSkin ? nameOf(wornSkin) : t("aucune", "none")}</b>
-              {wornSkin === 150 && <i className={styles.skinPerk}>{t(" +30 % dégâts et PV, +10 % vitesse", " +30% damage and HP, +10% speed")}</i>}
-            </button>
-          )}
           <p className={styles.keys}>
             {selectMode === "coop"
               ? t("J1 : ZQSD + souris · J2 : flèches · Entrée : valider", "P1: WASD + mouse · P2: arrows · Enter: confirm")
@@ -819,33 +778,6 @@ export default function NookBoy({ origin, onClose }: Props) {
           )}
         </div>
       );
-    if (phase === "center") {
-      const rows = centerRows(g);
-      return (
-        <div className={styles.page}>
-          <h2>{t("CENTRE POKéMON", "POKéMON CENTER")}</h2>
-          <p className={`${styles.box} ${styles.centerMsg}`}>
-            {t(
-              `${nameOf(g.dex)} est en pleine forme ! Tu peux oublier des capacités ou lâcher des objets pour faire de la place.`,
-              `${nameOf(g.dex)} is fully healed! You can forget moves or drop items to make room.`,
-            )}
-          </p>
-          <ul className={`${styles.box} ${styles.menu} ${styles.forget}`}>
-            {rows.map((r, i) => (
-              <li key={r.id} className={i === cursor ? styles.on : ""} onPointerEnter={() => setCursor(i)} onClick={() => g.forget(r.kind, r.id)}>
-                <span>
-                  {r.name} <i>{"●".repeat(r.level)}</i>
-                </span>
-                <b>{r.kind === "move" ? t("oublier", "forget") : t("lâcher", "drop")}</b>
-              </li>
-            ))}
-            <li className={cursor >= rows.length ? styles.on : ""} onPointerEnter={() => setCursor(rows.length)} onClick={() => (setCursor(0), g.leaveCenter())}>
-              {t("Continuer ▶", "Continue ▶")}
-            </li>
-          </ul>
-        </div>
-      );
-    }
     if (phase === "shop") {
       // Kecleon's stall, between two waves: its own look, nothing like the level-up cards
       const cheapest = Math.min(g.healPrice, ...g.offers.filter((o) => !o.sold).map((o) => o.price));
@@ -855,7 +787,9 @@ export default function NookBoy({ origin, onClose }: Props) {
           ? t("Hmm… pas assez d'or. Ta bourse grossit d'une partie à l'autre !", "Hmm… not enough gold. Your purse grows from run to run!")
           : bought
             ? t("Merci bien ! Autre chose ?", "Thank you kindly! Anything else?")
-            : t("Bienvenue ! Les vagues attendent, prends ton temps.", "Welcome! The waves will wait, take your time.");
+            : g.setup.daily?.mod.noCenter
+              ? t("Bienvenue ! Les vagues attendent, prends ton temps.", "Welcome! The waves will wait, take your time.")
+              : t("Bienvenue ! Ton Pokémon est soigné. Les vagues attendent.", "Welcome! Your Pokémon is healed. The waves will wait.");
       return (
         <div className={styles.shop}>
           <div className={styles.awning} />
@@ -1127,7 +1061,7 @@ export default function NookBoy({ origin, onClose }: Props) {
               className={`${styles.canvas} ${pid === 0 && phase === "play" && opts.fire !== "nearest" ? styles.aiming : ""}`}
             />
             {pid === uiOn && (pensionView || overlay) && <div className={styles.ui}>{pensionView || overlay}</div>}
-            {pid !== uiOn && overlay && ["levelup", "center", "shop", "evolve"].includes(phase) && (
+            {pid !== uiOn && overlay && ["levelup", "shop", "evolve"].includes(phase) && (
               <div className={styles.ui}>
                 <p className={`${styles.box} ${styles.waiting}`}>{t(`J${uiOn + 1} choisit…`, `P${uiOn + 1} is choosing…`)}</p>
               </div>
@@ -1203,16 +1137,6 @@ export default function NookBoy({ origin, onClose }: Props) {
       </p>
     </motion.div>
   );
-}
-
-/** a card: a level-up's, or one of Kecleon's (with its price) */
-/** the Pokémon Center's list: the moves, then the items */
-function centerRows(g: Game) {
-  const lang = g.lang;
-  return [
-    ...g.moves.map((m) => ({ kind: "move" as const, id: m.id as MoveId | ItemId, level: m.level, name: say(MOVES.find((d) => d.id === m.id)!.name, lang) })),
-    ...g.items.map((it) => ({ kind: "item" as const, id: it.id as MoveId | ItemId, level: it.level, name: say(ITEMS.find((d) => d.id === it.id)!.name, lang) })),
-  ];
 }
 
 /** the pause's recap: moves, items, and the combos to look for */
