@@ -1,6 +1,7 @@
 // The NookBoy survival game: one starter against waves of wild Pokémon. A fixed 60 Hz step, drawn on a 320x288 canvas.
 // React (components/game/NookBoy) owns the menus and the shell; the engine tells it when its phase changes.
 
+import { unlock } from "@/lib/trophyStore";
 import { gsfx, music } from "./audio";
 import {
   BONUSES, BOSSES, COMBOS, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, STARTERS, WAVE_SECONDS, WILD, xpFor,
@@ -730,6 +731,7 @@ export class Game {
       const def = MOVES.find((d) => d.id === c.id)!;
       const m = this.moves.find((x) => x.id === def.evo!.from);
       if (m) Object.assign(m, { id: def.id, level: MAX_LEVEL, cd: 0.3, active: 0 });
+      unlock("game-evomove");
       this.flash = 0.8;
       for (let i = 0; i < 30; i++) this.part(this.x, this.y - 10, rand(-1, 1) * 80, rand(-1, 1) * 80, "gold", 1, 2, 0, "spark");
       gsfx.evolveDone();
@@ -779,6 +781,7 @@ export class Game {
     if (this.phase !== "shop" || !o || o.sold || this.gold < o.price) return gsfx.back();
     this.gold -= o.price;
     o.sold = true;
+    unlock("game-shop");
     this.apply(o.choice);
     this.onChange();
   }
@@ -937,6 +940,8 @@ export class Game {
       this.stepParts(STEP * 0.4);
       if (this.dyingT > 2.2) {
         const daily = this.setup.daily;
+        if (daily) unlock("game-daily");
+        if (this.setup.mode === "coop") unlock("game-coop");
         this.lastStats = {
           mode: this.setup.mode, day: daily?.day, gold: this.gold, dailyBonus: daily ? 50 + this.wave * 10 : 0,
           wave: this.wave, kills: this.kills, level: Math.max(...this.players.map((p) => p.level)), seconds: Math.floor(this.time),
@@ -983,6 +988,7 @@ export class Game {
       if (p.reviveT >= 3) {
         p.down = false;
         p.reviveT = 0;
+        unlock("game-revive");
         p.hp = p.maxHp * 0.4;
         p.invuln = 2;
         this.flash = 0.6;
@@ -1015,6 +1021,7 @@ export class Game {
       if (p.revives > 0) {
         // the Pension's Revive: up again, once
         p.revives--;
+        unlock("game-revive");
         p.hp = p.maxHp * 0.5;
         p.invuln = 2.5;
         this.flash = 1;
@@ -1062,6 +1069,7 @@ export class Game {
     if (e.t > 3.2 && e.t - STEP <= 3.2 && !e.cancelled) {
       this.dex = e.to;
       this.stage++;
+      unlock("game-evolve");
       this.maxHp = this.computeMaxHp();
       this.hp = this.maxHp;
       this.flash = 1;
@@ -1078,6 +1086,9 @@ export class Game {
 
   private newWave(wave: number) {
     this.wave = wave;
+    if (wave >= 10) unlock("game-wave10");
+    if (wave >= 20) unlock("game-wave20");
+    if (wave >= 30) unlock("game-wave30");
     gsfx.waveStart();
     if (wave % 5 === 0) {
       const round = Math.floor((wave / 5 - 1) / BOSSES.length);
@@ -1567,6 +1578,7 @@ export class Game {
     const boost = day && (elem === day[0] || (day[0] === "water" && elem === "elec")) ? day[1] : 1;
     const dmg = Math.max(1, Math.round(base * mul * boost * (crit ? this.critMul : 1) * rand(0.9, 1.1)));
     if (mul > 1) {
+      unlock("game-combo");
       for (let i = 0; i < 5; i++) this.part(e.x, e.y - 10, rand(-40, 40), rand(-60, -10), "gold", 0.4, 2, 60, "spark");
       if (!quiet) gsfx.zap();
     }
@@ -1594,6 +1606,7 @@ export class Game {
     if (e.w?.act === "explode") this.explode(e, false);
     const xp = (e.w?.xp ?? 0) * (e.elite ? 4 : 1);
     if (e.boss) {
+      unlock("game-boss");
       this.bossAlive = null;
       music.boss(false);
       this.shake = 10;
@@ -1605,6 +1618,7 @@ export class Game {
       gsfx.rare();
       this.showBanner(this.tr(`${this.name(e.dex)} est K.O. !`, `${this.name(e.dex)} fainted!`), this.tr("un Super Bonbon est tombé", "a Rare Candy dropped"));
     } else if (e.w?.act === "treasure") {
+      unlock("game-chansey");
       for (let i = 0; i < 8; i++) this.drop("candy", e.x + rand(-14, 14), e.y + rand(-14, 14), 8);
       for (let i = 0; i < 6; i++) this.drop("coin", e.x + rand(-14, 14), e.y + rand(-14, 14), 2 + Math.floor(this.wave / 4));
       this.drop("egg", e.x, e.y, 0);
@@ -2249,6 +2263,7 @@ export class Game {
       gsfx.heal();
       for (let i = 0; i < 8; i++) this.part(this.x + rand(-8, 8), this.y - rand(0, 16), 0, -30, "heal", 0.7, 1, 0, "spark");
     } else if (p.kind === "rare") {
+      unlock("game-rarecandy");
       gsfx.rare();
       this.gainXp(xpFor(this.level) - this.xp);
     } else if (p.kind === "magnet") {

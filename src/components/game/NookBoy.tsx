@@ -11,6 +11,7 @@ import { Game, dailyOf, today, type Choice, type FireMode, type Mode, type Phase
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
 import { lastName, submitScore, topScores, type Period, type Score } from "@/lib/game/scores";
 import { buyLevel, usePension } from "@/lib/pensionStore";
+import { unlock } from "@/lib/trophyStore";
 import { startAmbient, stopAmbient } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import { useLang } from "@/lib/lang";
@@ -210,6 +211,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     setSent("idle");
     setPension(null);
     setPensionUsed(false);
+    unlock("game-first");
     if (mode === "daily") g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()) });
     else if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: usePension.getState().levels }, g.selected);
     else g.start(g.selected, { mode: "classic", perm: usePension.getState().levels });
@@ -231,6 +233,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (!pension || pension.gold == null || lv >= d.max || pension.gold < pensionCost(d, lv)) return gsfx.back();
     gsfx.coin();
     buyLevel(d.id);
+    unlock("game-pension");
     setPension({ gold: pension.gold - pensionCost(d, lv) });
   };
 
@@ -426,6 +429,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     const rank = await submitScore(name.trim() || t("Dresseur", "Trainer"), run);
     setSent(rank ?? "error");
     if (rank != null) {
+      if (rank <= 3) unlock("game-top3");
       gsfx.ok();
       void openLadder();
     } else gsfx.back();

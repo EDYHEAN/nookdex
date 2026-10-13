@@ -8,7 +8,7 @@ import { rankOf, sortCards } from "./rarity";
 import type { CardData, Copy, SetData, UserBinder } from "./types";
 
 export type TrophyTier = "bronze" | "silver" | "gold" | "platinum";
-export type TrophyCat = "collection" | "binders" | "treasures" | "pokemon" | "desk" | "secret";
+export type TrophyCat = "collection" | "binders" | "treasures" | "pokemon" | "desk" | "game" | "secret";
 
 /** What a tier is worth in the trainer's score. */
 export const TIER_POINTS: Record<TrophyTier, number> = { bronze: 10, silver: 25, gold: 50, platinum: 100 };
@@ -19,6 +19,7 @@ export const CATS: { id: TrophyCat; fr: string; en: string }[] = [
   { id: "treasures", fr: "Trésors", en: "Treasures" },
   { id: "pokemon", fr: "Pokémon", en: "Pokémon" },
   { id: "desk", fr: "Le bureau", en: "The desk" },
+  { id: "game", fr: "Nook Survivors", en: "Nook Survivors" },
   { id: "secret", fr: "Secrets", en: "Secrets" },
 ];
 
@@ -131,6 +132,24 @@ export const TROPHIES: Trophy[] = [
   { id: "days-7", tier: "silver", cat: "desk", name: { fr: "Habitué", en: "Regular" }, desc: { fr: "Passe au bureau 7 jours différents.", en: "Come to the desk on 7 different days." } },
   { id: "days-30", tier: "gold", cat: "desk", name: { fr: "Comme à la maison", en: "Home sweet home" }, desc: { fr: "Passe au bureau 30 jours différents.", en: "Come to the desk on 30 different days." } },
 
+  // Nook Survivors, the game in the Game Boy (won by playing it; not needed for "all")
+  { id: "game-first", tier: "bronze", cat: "game", name: { fr: "Partie de console", en: "Console time" }, desc: { fr: "Lance une partie de Nook Survivors.", en: "Start a run of Nook Survivors." } },
+  { id: "game-wave10", tier: "bronze", cat: "game", name: { fr: "Ça tient bon", en: "Holding on" }, desc: { fr: "Atteins la vague 10.", en: "Reach wave 10." } },
+  { id: "game-wave20", tier: "silver", cat: "game", name: { fr: "Increvable", en: "Unstoppable" }, desc: { fr: "Atteins la vague 20.", en: "Reach wave 20." } },
+  { id: "game-wave30", tier: "gold", cat: "game", name: { fr: "Légende des vagues", en: "Wave legend" }, desc: { fr: "Atteins la vague 30.", en: "Reach wave 30." } },
+  { id: "game-boss", tier: "bronze", cat: "game", name: { fr: "Réveil difficile", en: "Rude awakening" }, desc: { fr: "Bats ton premier boss.", en: "Beat your first boss." } },
+  { id: "game-evolve", tier: "bronze", cat: "game", name: { fr: "Quoi ?!", en: "What?!" }, desc: { fr: "Fais évoluer ton Pokémon en pleine partie.", en: "Evolve your Pokémon mid-run." } },
+  { id: "game-evomove", tier: "silver", cat: "game", name: { fr: "Capacité ultime", en: "Ultimate move" }, desc: { fr: "Fais évoluer une capacité.", en: "Evolve a move." } },
+  { id: "game-combo", tier: "bronze", cat: "game", name: { fr: "Électrocution", en: "Electrocution" }, desc: { fr: "Réussis un combo.", en: "Land a combo." } },
+  { id: "game-shop", tier: "bronze", cat: "game", name: { fr: "Bon client", en: "Good customer" }, desc: { fr: "Achète quelque chose chez Kecleon.", en: "Buy something from Kecleon." } },
+  { id: "game-pension", tier: "bronze", cat: "game", name: { fr: "À la Pension", en: "At the Pension" }, desc: { fr: "Achète un bonus à la Pension.", en: "Buy a boost at the Pension." } },
+  { id: "game-daily", tier: "silver", cat: "game", name: { fr: "Défi relevé", en: "Challenge met" }, desc: { fr: "Termine un défi du jour.", en: "Finish a daily challenge." } },
+  { id: "game-coop", tier: "silver", cat: "game", name: { fr: "À deux c'est mieux", en: "Better together" }, desc: { fr: "Termine une partie à deux.", en: "Finish a two-player run." } },
+  { id: "game-chansey", tier: "silver", cat: "game", name: { fr: "Œuf Chance", en: "Lucky Egg" }, desc: { fr: "Attrape un Leveinard.", en: "Catch a Chansey." } },
+  { id: "game-rarecandy", tier: "bronze", cat: "game", name: { fr: "Super Bonbon", en: "Rare Candy" }, desc: { fr: "Ramasse un Super Bonbon.", en: "Pick up a Rare Candy." } },
+  { id: "game-revive", tier: "silver", cat: "game", name: { fr: "Rappel", en: "Revive" }, desc: { fr: "Reviens d'un K.O. en pleine partie.", en: "Come back from a KO mid-run." } },
+  { id: "game-top3", tier: "gold", cat: "game", name: { fr: "Sur le podium", en: "On the podium" }, desc: { fr: "Entre dans le top 3 d'un classement.", en: "Get into a ladder's top 3." } },
+
   // Secrets: no hint but "???" until found
   { id: "night-owl", tier: "silver", cat: "secret", secret: true, name: { fr: "Oiseau de nuit", en: "Night owl" }, desc: { fr: "Au bureau entre minuit et 5 h.", en: "At the desk between midnight and 5 am." } },
   { id: "moonlight", tier: "bronze", cat: "secret", secret: true, name: { fr: "Au clair de lune", en: "By moonlight" }, desc: { fr: "Éteins la lampe en pleine nuit.", en: "Switch the lamp off in the dead of night." } },
@@ -142,7 +161,7 @@ export const TROPHIES: Trophy[] = [
   { id: "treat", tier: "gold", cat: "secret", secret: true, name: { fr: "Un bonbon pour Warwick", en: "A treat for Warwick" }, desc: { fr: "Merci de soutenir NookDex ♥", en: "Thank you for supporting NookDex ♥" } },
 
   // The big one: every trophy that isn't a secret
-  { id: "all", tier: "platinum", cat: "collection", name: { fr: "Attrapez-les tous", en: "Gotta catch 'em all" }, desc: { fr: "Tous les trophées (sauf les secrets).", en: "Every trophy (secrets aside)." } },
+  { id: "all", tier: "platinum", cat: "collection", name: { fr: "Attrapez-les tous", en: "Gotta catch 'em all" }, desc: { fr: "Tous les trophées (sauf les secrets et ceux du jeu).", en: "Every trophy (secrets and the game's aside)." } },
 ];
 
 export const TROPHY = new Map(TROPHIES.map((t) => [t.id, t]));
@@ -221,6 +240,6 @@ export function factsOf({ collection, binders, cards, sets, signedIn }: Input): 
 export function earned(f: Facts, got: Record<string, number>): string[] {
   const out = TROPHIES.filter((t) => t.test?.(f) && !got[t.id]).map((t) => t.id);
   const won = new Set([...Object.keys(got), ...out]);
-  if (!won.has("all") && TROPHIES.every((t) => t.secret || t.id === "all" || won.has(t.id))) out.push("all");
+  if (!won.has("all") && TROPHIES.every((t) => t.secret || t.cat === "game" || t.id === "all" || won.has(t.id))) out.push("all");
   return out;
 }
