@@ -34,6 +34,10 @@ export const CHANGELOG: Release[] = [
         en: "14 moves, and 7 evolutions: a move at its peak with the right item becomes a mighty one (Thunder, Draco Meteor, Petal Blizzard…).",
       },
       {
+        fr: "Des combos : mouille un ennemi puis frappe-le en Électrik, endors-le puis vise-le en Spectre… Les cartes ont une rareté, et le Centre Pokémon soigne toutes les 5 vagues (et te laisse oublier des capacités).",
+        en: "Combos: wet a foe then hit it with Electric, put it to sleep then aim Ghost… Cards have a rarity, and the Pokémon Center heals you every 5 waves (and lets you forget moves).",
+      },
+      {
         fr: "Les vagues durcissent vraiment avec le temps, et de nouveaux Pokémon sauvages arrivent après la vague 20.",
         en: "The waves really toughen up as time goes on, and new wild Pokémon show up after wave 20.",
       },
