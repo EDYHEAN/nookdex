@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { APP_VERSION } from "@/data/changelog";
 import { MAX_BINDERS, shelfBinders } from "@/lib/binders";
 import { bareId, keyOf } from "@/lib/cardLang";
@@ -22,6 +22,7 @@ import { Grain } from "./fx/Grain";
 import { AboutBook } from "./room/AboutBook";
 import { PaintedRoom } from "./room/PaintedRoom";
 import { RoadLog, markSeen, seenVersion } from "./room/RoadLog";
+import { SavePrompt } from "./room/SavePrompt";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
 import { TrophyCase } from "./room/TrophyCase";
@@ -75,7 +76,9 @@ export function App() {
   const [revealed, setRevealed] = useState(false);
   const profile = useStore((s) => s.profile);
   const cloud = useCloud();
-  const offline = useStore((s) => s.offline);
+  /** the account was offered this visit: the cat waits for another one */
+  const [saveAsked, setSaveAsked] = useState(false);
+  const onSaveAsked = useCallback(() => setSaveAsked(true), []);
   // Dev screenshots (?skip ?open ?os ?demo ?game) skip the sign-in.
   const [devBypass] = useState(
     () => process.env.NODE_ENV !== "production" && /[?&](skip|open|os|demo|game)\b/.test(window.location.search),
@@ -199,14 +202,14 @@ export function App() {
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
   const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!game;
-  // Sign in (or play offline, warned), then a nickname, then a first binder.
+  // A nickname, then a first binder; the account is offered later (SavePrompt).
   const showWelcome =
     entered &&
     cloud.ready &&
     // While the online save is looked up, nothing pops: a returning player would see the card flash, then close.
     cloud.status !== "loading" &&
     !devBypass &&
-    ((!cloud.email && !offline) || !profile || (welcome && !userBinders.length));
+    (!profile || (welcome && !userBinders.length));
 
   const calm = entered && !busy && !tour && !showWelcome;
   useTrophyWatch(entered);
@@ -420,7 +423,9 @@ export function App() {
         }}
       />
       {/* a tip for the project, asked by the cat once the player has a few cards (never over a binder, the OS or the tour) */}
-      {entered && <SupportCat compact={compact} calm={calm && !news} />}
+      {/* the account, offered once the player without one has a few cards */}
+      {entered && <SavePrompt compact={compact} calm={calm && !news} onShown={onSaveAsked} />}
+      {entered && <SupportCat compact={compact} calm={calm && !news && !saveAsked} />}
       {/* a computer: the cat and its tip tag in the corner of the calm room (a phone has the pop-in only) */}
       {entered && !compact && <TipCorner show={calm && !news} />}
       {/* the version, in the room's corner: it opens the road log */}

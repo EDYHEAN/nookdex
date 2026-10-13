@@ -21,21 +21,20 @@ interface Props {
 }
 
 /**
- * The way in: 1. sign in (e-mail link or Google), the save lives online → 2. nickname → 3. first binder.
- * Playing without an account is allowed after a warning: no online save, the player exports it by hand.
- * A player coming back on a new device gets their save from the cloud, and App closes this screen on its own.
+ * The way in: 1. nickname → 2. first binder, nothing more (Johan, 2026-10-13: asking for an account first held people
+ * back). The account comes later, once the player has a few cards (`room/SavePrompt`). A player coming back on a new
+ * device signs in from the nickname card ("already have an account?"); App closes this screen once their save is in.
  */
 export function Welcome({ onPick, onDone, onExplore }: Props) {
   const profile = useStore((s) => s.profile);
   const binders = useStore((s) => s.binders);
   const { email, firstName, status } = useCloud();
-  const offline = useStore((s) => s.offline);
   const t = useT();
   const players = usePlayers((p) => p.count);
   useEffect(askPlayers, []);
-  const step = (!email && !offline) || status === "loading" ? "account" : !profile ? "hello" : "binder";
-  /** "Play without an account" asks once more, with what it costs. */
-  const [warn, setWarn] = useState(false);
+  /** "Already have an account?": the sign-in card, for a player coming back */
+  const [account, setAccount] = useState(false);
+  const step = status === "loading" || (account && !email && !profile) ? "account" : !profile ? "hello" : "binder";
   /** null = untouched: suggests the first name Google gave */
   const [name, setName] = useState<string | null>(null);
   const [address, setAddress] = useState("");
@@ -115,7 +114,7 @@ export function Welcome({ onPick, onDone, onExplore }: Props) {
       await loadSets(neededSets(s.binders, s.collection));
       sfx.add(1, "rare");
       const n = Object.keys(data.collection).length;
-      setNote(t(`${n} cartes récupérées ! Connecte-toi pour les sauvegarder en ligne.`, `${n} cards back! Sign in to save them online.`));
+      setNote(t(`${n} cartes récupérées ! Connecte-toi pour les sauvegarder en ligne, ou continue sans compte.`, `${n} cards back! Sign in to save them online, or go on without an account.`));
     } catch {
       sfx.locked();
       setNote(t(`Ce fichier n'est pas une sauvegarde ${SITE_NAME}.`, `This file isn't a ${SITE_NAME} save.`));
@@ -151,62 +150,8 @@ export function Welcome({ onPick, onDone, onExplore }: Props) {
           card(
             "account",
             <>
-              <h1>{t("Bienvenue au bureau !", "Welcome to the desk!")}</h1>
-              {players != null && players >= 50 && (
-                <p className={styles.players}>
-                  {t(`★ Rejoins les ${players} dresseurs de NookDex`, `★ Join NookDex's ${players} collectors`)}
-                </p>
-              )}
-              <p className={styles.steps}>
-                <b>{t("1. Connexion", "1. Sign in")}</b> · {t("2. Pseudo", "2. Nickname")} · {t("3. Premier classeur", "3. First binder")}
-              </p>
-              {warn && !email ? (
-                <div className={styles.form}>
-                  <p className={styles.warn}>
-                    {t(
-                      <>
-                        Sans compte, ta collec reste <b>uniquement dans ce navigateur</b> : pas de sauvegarde en ligne, pas de synchro entre tes
-                        appareils. Si tu vides les données du site ou changes d&apos;appareil, elle est perdue.
-                      </>,
-                      <>
-                        Without an account, your collection stays <b>in this browser only</b>: no online save, no sync between your devices. Clear
-                        the site&apos;s data or change device and it&apos;s gone.
-                      </>,
-                    )}
-                  </p>
-                  <p className={styles.text}>
-                    {t(
-                      <>
-                        Pense à l&apos;exporter de temps en temps depuis le PC du bureau (<b>NookDex OS → Sauvegarde</b>). Tu pourras aussi créer
-                        ton compte plus tard, au même endroit, sans rien perdre.
-                      </>,
-                      <>
-                        Remember to export it now and then from the desk computer (<b>NookDex OS → Save</b>). You can also create your account
-                        later, from the same place, without losing anything.
-                      </>,
-                    )}
-                  </p>
-                  <button
-                    className={styles.go}
-                    onClick={() => {
-                      sfx.click();
-                      useStore.getState().setOffline(true);
-                    }}
-                    onPointerEnter={sfx.hover}
-                  >
-                    {t("Jouer sans compte ▶", "Play without an account ▶")}
-                  </button>
-                  <button
-                    className={styles.linkBtn}
-                    onClick={() => {
-                      sfx.click();
-                      setWarn(false);
-                    }}
-                  >
-                    {t("← finalement, je me connecte", "← actually, I'll sign in")}
-                  </button>
-                </div>
-              ) : email ? (
+              <h1>{t("Content de te revoir !","Good to see you again!")}</h1>
+              {email ? (
                 <div className={styles.form}>
                   <p className={styles.text}>
                     {t("Connecté avec", "Signed in as")} <b>{email}</b>. {t("On cherche ta collection…", "Looking for your collection…")}
@@ -270,10 +215,7 @@ export function Welcome({ onPick, onDone, onExplore }: Props) {
                   </p>
                   {note && <p className={styles.note}>{note}</p>}
                   <p className={styles.small}>
-                    {t(
-                      "Ta collec est sauvegardée sur ton compte et te suit sur tous tes appareils. Tu as un fichier de sauvegarde ?",
-                      "Your collection is saved on your account and follows you on all your devices. Got a save file?",
-                    )}{" "}
+                    {t("Un fichier de sauvegarde ?", "Got a save file?")}{" "}
                     <button
                       className={styles.linkBtn}
                       onClick={() => {
@@ -282,20 +224,18 @@ export function Welcome({ onPick, onDone, onExplore }: Props) {
                       }}
                     >
                       {t("Importe-le", "Import it")}
-                    </button>{" "}
-                    {t("puis connecte-toi. Ou", "then sign in. Or")}{" "}
-                    <button
-                      className={styles.linkBtn}
-                      onClick={() => {
-                        sfx.click();
-                        setNote(null);
-                        setWarn(true);
-                      }}
-                    >
-                      {t("jouer sans compte", "play without an account")}
                     </button>
-                    .
                   </p>
+                  <button
+                    className={styles.linkBtn}
+                    onClick={() => {
+                      sfx.click();
+                      setNote(null);
+                      setAccount(false);
+                    }}
+                  >
+                    {t("← nouveau ici ? commence sans compte", "← new here? start without an account")}
+                  </button>
                   <input
                     ref={file}
                     type="file"
@@ -316,9 +256,14 @@ export function Welcome({ onPick, onDone, onExplore }: Props) {
           card(
             "hello",
             <>
-              <h1>{t("Comment on t'appelle ?", "What should we call you?")}</h1>
+              <h1>{t("Bienvenue au bureau !","Welcome to the desk!")}</h1>
+              {players != null && players >= 50 && (
+                <p className={styles.players}>
+                  {t(`★ Rejoins les ${players} dresseurs de NookDex`, `★ Join NookDex's ${players} collectors`)}
+                </p>
+              )}
               <p className={styles.steps}>
-                {t("1. Connexion", "1. Sign in")} · <b>{t("2. Pseudo", "2. Nickname")}</b> · {t("3. Premier classeur", "3. First binder")}
+                <b>{t("1. Pseudo", "1. Nickname")}</b> · {t("2. Premier classeur", "2. First binder")}
               </p>
               <form
                 className={styles.form}
@@ -328,7 +273,7 @@ export function Welcome({ onPick, onDone, onExplore }: Props) {
                 }}
               >
                 <label className={styles.field}>
-                  <span>{t("Ton pseudo de dresseur", "Your trainer name")}</span>
+                  <span>{t("Comment on t'appelle ?", "What should we call you?")}</span>
                   <motion.input
                     key={shake}
                     ref={input}
@@ -356,8 +301,17 @@ export function Welcome({ onPick, onDone, onExplore }: Props) {
                     </>
                   ) : (
                     <>
-                      {t("Sans compte : ta collec reste dans ce navigateur. Exporte-la depuis", "No account: your collection stays in this browser. Export it from")}{" "}
-                      <b>{t("NookDex OS → Sauvegarde", "NookDex OS → Save")}</b>.
+                      {t("Pas besoin de compte pour commencer.", "No account needed to start.")}{" "}
+                      <button
+                        type="button"
+                        className={styles.linkBtn}
+                        onClick={() => {
+                          sfx.click();
+                          setAccount(true);
+                        }}
+                      >
+                        {t("Déjà un compte ? Connecte-toi", "Already have an account? Sign in")}
+                      </button>
                     </>
                   )}
                 </p>

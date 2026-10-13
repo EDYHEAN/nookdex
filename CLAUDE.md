@@ -108,9 +108,12 @@ doesn't show.
 
 ## Onboarding
 
-- Welcome (`src/components/shelf/Welcome.tsx`): 1. sign in (or "jouer sans compte", after a warning: no online save,
-  export from NookDex OS) → 2. nickname → 3. first binder, or "explore every card first" (NookDex OS → "Toutes les
-  cartes"; their first binder from the shelf's + then starts the tour).
+- Welcome (`src/components/shelf/Welcome.tsx`): 1. nickname → 2. first binder, or "explore every card first" (NookDex OS
+  → "Toutes les cartes"; their first binder from the shelf's + then starts the tour). No account asked first (Johan,
+  2026-10-13: it held people back); "Déjà un compte ?" on the nickname card signs a returning player in.
+- The account comes later (`room/SavePrompt.tsx`): a player without one who owns 10 cards gets a short card in the calm
+  room (after any trophy toast; Google or an e-mail link). "Plus tard" waits for 15 more cards and 3 days (localStorage
+  `nookdex:save-ask`, per device); the cat's tip waits for another visit. NookDex OS → Save signs in at any time.
 - NookDex OS → "Toutes les cartes" (`computer/AllCards.tsx`): every card of the indexes (FR/EN/JAP), filters (rarity
   tiers of `lib/rarity`, year, set, owned) and sorts (price in the player's money first). A card opens its sheet over
   the OS; "Je l'ai !" there asks which binder the copy goes in (`binder/AddTo.tsx`). Plan and next steps (wishlist of

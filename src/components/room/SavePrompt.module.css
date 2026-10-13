@@ -1,0 +1,149 @@
+/* The account, offered once the player has cards: a paper card over the room (computer), a sheet from the bottom (phone). */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(24, 16, 36, 0.35);
+}
+
+.sheetWrap {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(24, 16, 36, 0.25);
+}
+
+.card,
+.sheet {
+  position: relative;
+  border: 3px solid var(--ink);
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+  color: var(--ink);
+  text-align: center;
+  font-family: var(--font-vt), monospace;
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+.card {
+  width: min(380px, 100%);
+  padding: 18px 26px 18px;
+  border-radius: 10px;
+  box-shadow:
+    8px 10px 0 rgba(20, 12, 28, 0.45),
+    0 24px 60px rgba(0, 0, 0, 0.4);
+}
+
+.sheet {
+  width: 100%;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  border-width: 3px 0 0;
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.floppy {
+  display: block;
+  width: 56px;
+  height: 56px;
+  margin: -46px auto 4px;
+  overflow: visible;
+}
+
+.card h2,
+.sheet h2 {
+  margin: 0 0 6px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-red);
+}
+
+.text {
+  margin: 0 0 14px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.go,
+.alt {
+  padding: 9px 16px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  color: var(--ink);
+  font-family: var(--font-press), monospace;
+  font-size: 11px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.go {
+  background: #ffd35a;
+}
+
+.alt {
+  background: var(--paper);
+}
+
+.go:hover,
+.alt:hover {
+  transform: translate(-1px, -3px) rotate(-2deg);
+}
+
+.go:active,
+.alt:active {
+  transform: scale(0.92);
+}
+
+.go:disabled {
+  opacity: 0.6;
+}
+
+.inline {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.inline input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: #fffaf2;
+  color: var(--ink);
+  /* 16 px at least: no zoom on phones */
+  font: 18px var(--font-vt), monospace;
+}
+
+.note {
+  margin: 10px 0 0;
+  color: var(--ink-red);
+  font-size: 18px;
+}
+
+.later {
+  margin-top: 12px;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 18px;
+  text-decoration: underline;
+  cursor: pointer;
+}
