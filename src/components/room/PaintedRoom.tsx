@@ -8,7 +8,7 @@ import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, OS_NAME } from "@/lib/site";
 import { setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
-import { useActiveSkin, type LavaTheme } from "@/lib/shop";
+import { useLook, type LavaTheme } from "@/lib/shop";
 import { useStore } from "@/lib/store";
 import { TROPHIES } from "@/lib/trophies";
 import { bump, unlock, useTrophyStore } from "@/lib/trophyStore";
@@ -127,8 +127,8 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   const sunDust = useRef<HTMLCanvasElement>(null);
   const sky = useRef<HTMLDivElement>(null);
   const lavaTheme = useRef(0);
-  /** the skin worn (lib/shop): its pictures over the room, its lava colour first in the lamp's cycle */
-  const skin = useActiveSkin();
+  /** the shop's items worn (lib/shop): their pictures over the room, a lava colour first in the lamp's cycle */
+  const skin = useLook();
   const skinLava = skin?.lava;
   const lavaThemes = useMemo<LavaTheme[]>(() => (skinLava ? [skinLava, ...LAVA_THEMES] : LAVA_THEMES), [skinLava]);
   const themesRef = useRef(lavaThemes);
@@ -526,30 +526,9 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             alt=""
             draggable={false}
           />
-          {/* a skin's hat on Warwick's head, asleep or awake */}
-          {/* inside a box that breathes (or pops up) like Warwick's picture, so the hat moves with his head */}
-          {skin?.art.hat &&
-            ([
-              [skin.art.hat.sleep, SCENE.catSleep, styles.catSleep],
-              [skin.art.hat.awake, SCENE.catAwake, styles.catAwake],
-            ] as const).map(([h, cat, cls], i) => (
-              <span
-                key={i}
-                className={`${styles.sprite} ${cls} ${(i === 1) === !!petting ? "" : styles.hidden}`}
-                style={place(cat)}
-              >
-                <img
-                  className={styles.sprite}
-                  src={h.src}
-                  style={{ left: h.x - cat.x, top: h.y - cat.y, width: h.w, height: h.h, transform: h.rot ? `rotate(${h.rot}deg)` : undefined }}
-                  alt=""
-                  draggable={false}
-                />
-              </span>
-            ))}
           {!petting && (
-            // with a hat on, the z rises off its back instead
-            <span className={styles.zzz} style={skin?.art.hat ? { left: SCENE.catSleep.x + 190, top: SCENE.catSleep.y - 30 } : { left: SCENE.catSleep.x + 70, top: SCENE.catSleep.y - 20 }} aria-hidden>
+            // with a witch hat on, the z rises off its back instead
+            <span className={styles.zzz} style={skin?.art.cat ? { left: SCENE.catSleep.x + 190, top: SCENE.catSleep.y - 30 } : { left: SCENE.catSleep.x + 70, top: SCENE.catSleep.y - 20 }} aria-hidden>
               z
             </span>
           )}

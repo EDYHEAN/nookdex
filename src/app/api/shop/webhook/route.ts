@@ -1,4 +1,4 @@
-import { SKIN } from "@/lib/skins";
+import { BUNDLE, ITEM } from "@/lib/skins";
 import { recordPurchase, verifyStripe } from "@/lib/shopServer";
 
 interface Session {
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   if (s.payment_status !== "paid") return new Response("ok");
   const skin = s.metadata?.skin;
   const user = s.client_reference_id ?? s.metadata?.user_id;
-  if (!skin || !SKIN.has(skin) || !user) {
+  if (!skin || !(ITEM.has(skin) || BUNDLE.has(skin)) || !user) {
     console.error("[shop] webhook: a session without its skin or player", s.id);
     return new Response("ok");
   }

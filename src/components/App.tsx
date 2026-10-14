@@ -26,7 +26,7 @@ import { SavePrompt } from "./room/SavePrompt";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
 import { TrophyCase } from "./room/TrophyCase";
-import { refreshOwned, useShopOpen, useSkins } from "@/lib/shop";
+import { itemsOf, refreshOwned, useShopOpen, useSkins, wear } from "@/lib/shop";
 import { Shop, TryOnBar } from "./room/Shop";
 import { Box } from "./room/Box";
 import { TrophyToasts } from "./room/TrophyToast";
@@ -99,11 +99,11 @@ export function App() {
     let tries = 0;
     const timer = window.setInterval(async () => {
       await refreshOwned();
-      const owned = useSkins.getState().owned.includes(bought);
+      const owned = itemsOf(bought).every((id) => useSkins.getState().owned.includes(id));
       if (!owned && ++tries < 20) return;
       clearInterval(timer);
       if (!owned) return;
-      useSkins.setState({ equipped: bought, trying: null });
+      itemsOf(bought).forEach((id) => wear(id, true));
       sfx.trophy("gold");
       setShop(true);
     }, 2000);
@@ -147,11 +147,11 @@ export function App() {
     void loadSets(neededSets(binders, collection));
   }, []);
 
-  // Dev-only shortcuts for screenshots: ?skip  ?open=swsh12  ?demo  ?os  ?game  ?skin=halloween (worn; ?skin alone takes it off)
+  // Dev-only shortcuts for screenshots: ?skip  ?open=swsh12  ?demo  ?os  ?game  ?skin=halloween (an item or a bundle worn; ?skin alone takes them off)
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const q = new URLSearchParams(window.location.search);
-    if (q.has("skin")) useSkins.setState({ equipped: q.get("skin") || null });
+    if (q.has("skin")) useSkins.setState({ equipped: itemsOf(q.get("skin") ?? "") });
     const demo = async () => {
       // the demo binder in the site's language
       const demoSet = keyOf(currentLang(), "swsh12");

@@ -1,4 +1,4 @@
-import { SKIN } from "@/lib/skins";
+import { BUNDLE, ITEM } from "@/lib/skins";
 import { shopOpenFor, stripe, userOf } from "@/lib/shopServer";
 
 /**
@@ -12,7 +12,8 @@ export async function POST(req: Request) {
   if (!user) return Response.json({ error: "sign in" }, { status: 401 });
   if (!shopOpenFor(user.email)) return Response.json({ error: "closed" }, { status: 403 });
   const body = (await req.json().catch(() => null)) as { skin?: string; lang?: string } | null;
-  const skin = body?.skin ? SKIN.get(body.skin) : undefined;
+  // an item or a bundle
+  const skin = body?.skin ? (ITEM.get(body.skin) ?? BUNDLE.get(body.skin)) : undefined;
   if (!skin) return Response.json({ error: "unknown skin" }, { status: 400 });
   const en = body?.lang === "en";
 

@@ -4,24 +4,44 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useLang, useT } from "@/lib/lang";
-import { SKIN, SKINS, buySkin, formatEuros, ownsSkin, useSkins, type Skin } from "@/lib/shop";
+import { BUNDLE, BUNDLES, ITEM, ITEMS, buySkin, formatEuros, itemsOf, onSale, useSkins, wear, worthOf, type Bundle, type Item, type Rarity } from "@/lib/shop";
 import { sfx } from "@/lib/sound";
 import styles from "./Shop.module.css";
 
+const RARITY: Record<Rarity, { fr: string; en: string }> = {
+  uncommon: { fr: "Peu commun", en: "Uncommon" },
+  rare: { fr: "Rare", en: "Rare" },
+  epic: { fr: "Épique", en: "Epic" },
+  legendary: { fr: "Légendaire", en: "Legendary" },
+};
+
+type Thing = Item | Bundle;
+const isBundle = (x: Thing): x is Bundle => "items" in x;
+/** days left before it leaves the shop (its last day counts) */
+const daysLeft = (until?: string) => (until ? Math.max(0, Math.ceil((new Date(`${until}T23:59:59`).getTime() - Date.now()) / 86_400_000)) : null);
+
 /**
- * The shop (lib/shop, docs/skins.md): a mail-order catalogue of NookDex's own skins. Each one can be tried on the
- * player's own desk before buying; a bought one is worn or taken off here. Buying needs an account (the skin is kept
- * with it).
+ * The shop (lib/shop, docs/skins.md), an item shop like a game's: the featured bundle, the items one by one on tiles
+ * coloured by rarity, a card to try on, buy or wear each, and the locker of what's owned (each item on or off).
  */
 export function Shop({ onClose }: { onClose: () => void }) {
   const t = useT();
+  const [tab, setTab] = useState<"shop" | "locker">("shop");
+  const [open, setOpen] = useState<string | null>(null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key !== "Escape") return;
+      if (open) setOpen(null);
+      else onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [open, onClose]);
+
+  const featured = BUNDLES.filter(onSale);
+  const items = ITEMS.filter(onSale);
+  const days = daysLeft(featured[0]?.until);
+  const thing = open ? (BUNDLE.get(open) ?? ITEM.get(open)) : undefined;
 
   return (
     <motion.div
@@ -34,113 +54,239 @@ export function Shop({ onClose }: { onClose: () => void }) {
       }}
     >
       <motion.section
-        className={styles.catalogue}
+        className={styles.shop}
         role="dialog"
         aria-label={t("La boutique", "The shop")}
-        initial={{ y: 40, rotate: -2, opacity: 0 }}
-        animate={{ y: 0, rotate: -0.6, opacity: 1 }}
-        exit={{ y: 30, rotate: 2, opacity: 0, transition: { duration: 0.2 } }}
-        transition={{ type: "spring", stiffness: 260, damping: 22 }}
+        initial={{ y: 50, scale: 0.96, opacity: 0 }}
+        animate={{ y: 0, scale: 1, opacity: 1 }}
+        exit={{ y: 40, opacity: 0, transition: { duration: 0.2 } }}
+        transition={{ type: "spring", stiffness: 260, damping: 24 }}
       >
-        <button className={styles.close} onClick={onClose} onPointerEnter={sfx.hover} aria-label={t("Refermer le catalogue", "Close the catalogue")}>
-          ✕
-        </button>
-        <header className={styles.cover}>
-          <p className={styles.issue}>{t("Catalogue · automne 2026", "Catalogue · autumn 2026")}</p>
-          <h2>{t("La boutique NookDex", "The NookDex shop")}</h2>
-          <p className={styles.tagline}>{t("De quoi habiller ton bureau. Essaie avant d'acheter.", "Things to dress up your desk. Try before you buy.")}</p>
-        </header>
-        <div className={styles.items}>
-          {SKINS.map((s, i) => (
-            <Item key={s.id} skin={s} index={i} onClose={onClose} />
-          ))}
-        </div>
-        <footer className={styles.small}>
-          {t(
-            "Contenus numériques NookDex, achat unique, gardés avec ton compte. Tout ce qui touche à Pokémon reste gratuit.",
-            "NookDex digital items, one-off purchase, kept with your account. Everything Pokémon stays free.",
+        <header className={styles.head}>
+          <h2>{t("Boutique", "Shop")}</h2>
+          <nav className={styles.tabs}>
+            {(["shop", "locker"] as const).map((k) => (
+              <button
+                key={k}
+                className={`${styles.tab} ${tab === k ? styles.tabOn : ""}`}
+                onPointerEnter={sfx.hover}
+                onClick={() => {
+                  sfx.click();
+                  setTab(k);
+                }}
+              >
+                {k === "shop" ? t("Vitrine", "Featured") : t("Mon casier", "My locker")}
+              </button>
+            ))}
+          </nav>
+          {days != null && tab === "shop" && (
+            <span className={styles.timer}>
+              ⏳ {days > 1 ? t(`Quitte la boutique dans ${days} j`, `Leaves the shop in ${days} days`) : t("Dernier jour !", "Last day!")}
+            </span>
           )}
-        </footer>
+          <button className={styles.close} onClick={onClose} onPointerEnter={sfx.hover} aria-label={t("Fermer la boutique", "Close the shop")}>
+            ✕
+          </button>
+        </header>
+
+        <div className={styles.body}>
+          {tab === "shop" ? (
+            <>
+              {featured.map((b, i) => (
+                <Tile key={b.id} thing={b} index={i} big onOpen={() => setOpen(b.id)} />
+              ))}
+              <h3 className={styles.section}>{t("À l'unité", "One by one")}</h3>
+              <div className={styles.grid}>
+                {items.map((it, i) => (
+                  <Tile key={it.id} thing={it} index={i + featured.length} onOpen={() => setOpen(it.id)} />
+                ))}
+              </div>
+              <p className={styles.small}>
+                {t(
+                  "Contenus numériques NookDex, achat unique, gardés avec ton compte. Paiement et reçus par Stripe. Tout ce qui touche à Pokémon reste gratuit.",
+                  "NookDex digital items, one-off purchase, kept with your account. Payment and receipts by Stripe. Everything Pokémon stays free.",
+                )}
+              </p>
+            </>
+          ) : (
+            <Locker />
+          )}
+        </div>
+
+        <AnimatePresence>{thing && <Card key={thing.id} thing={thing} onBack={() => setOpen(null)} onClose={onClose} />}</AnimatePresence>
       </motion.section>
     </motion.div>
   );
 }
 
-function Item({ skin, index, onClose }: { skin: Skin; index: number; onClose: () => void }) {
+/** A tile of the shop: its art on its rarity's colours, its name and price on a strip */
+function Tile({ thing, index, big, onOpen }: { thing: Thing; index: number; big?: boolean; onOpen: () => void }) {
   const t = useT();
   const lang = useLang();
-  const { equipped, owned } = useSkins();
-  const mine = ownsSkin(skin.id, owned);
-  const worn = mine && equipped === skin.id;
-  const [buying, setBuying] = useState(false);
-  const preview = `/skins/${skin.id}/preview.webp`;
-
+  const owned = useSkins((s) => s.owned);
+  const mine = itemsOf(thing.id).every((id) => owned.includes(id));
+  const worth = isBundle(thing) ? worthOf(thing) : null;
   return (
-    <motion.article
-      className={styles.item}
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.15 + index * 0.06, type: "spring", stiffness: 300, damping: 24 }}
+    <motion.button
+      className={`${styles.tile} ${styles[thing.rarity]} ${big ? styles.big : ""}`}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay: 0.08 + index * 0.06, type: "spring", stiffness: 320, damping: 22 }}
+      whileHover={{ y: -4, rotate: big ? 0 : -0.8 }}
+      whileTap={{ scale: 0.97 }}
+      onPointerEnter={sfx.hover}
+      onClick={() => {
+        sfx.pop();
+        onOpen();
+      }}
     >
-      <div className={styles.photo}>
-        <img src={preview} alt={t(`Le bureau en ${skin.name.fr}`, `The desk in ${skin.name.en}`)} />
-        {!mine && <span className={styles.price}>{formatEuros(skin.price, lang)}</span>}
-        {mine && <span className={`${styles.price} ${styles.owned}`}>{t("À toi", "Yours")}</span>}
-      </div>
-      <div className={styles.text}>
-        <h3>{t(skin.name.fr, skin.name.en)}</h3>
-        <p>{t(skin.blurb.fr, skin.blurb.en)}</p>
-        <ul>
-          {skin.contents.map((c) => (
-            <li key={c.fr}>{t(c.fr, c.en)}</li>
-          ))}
-        </ul>
-        <div className={styles.actions}>
+      <span className={styles.rays} aria-hidden />
+      <img className={thing.cutout ? styles.cutout : styles.framed} src={thing.icon} alt="" draggable={false} />
+      <span className={styles.badges}>
+        {!mine && <span className={styles.badgeNew}>{t("NOUVEAU", "NEW")}</span>}
+        {worth && !mine && <span className={styles.badgeDeal}>−{Math.round((1 - thing.price / worth) * 100)} %</span>}
+      </span>
+      <span className={styles.strip}>
+        <span className={styles.name}>{t(thing.name.fr, thing.name.en)}</span>
+        <span className={styles.rarity}>{t(RARITY[thing.rarity].fr, RARITY[thing.rarity].en)}</span>
+        <span className={styles.price}>
           {mine ? (
-            <button
-              className={`${styles.btn} ${worn ? "" : styles.primary}`}
-              onPointerEnter={sfx.hover}
-              onClick={() => {
-                sfx.stamp();
-                useSkins.setState({ equipped: worn ? null : skin.id, trying: null });
-              }}
-            >
-              {worn ? t("Retirer", "Take off") : t("Mettre sur mon bureau", "Put it on my desk")}
-            </button>
+            <b className={styles.owned}>✓ {t("Possédé", "Owned")}</b>
           ) : (
             <>
-              <button
-                className={styles.btn}
-                onPointerEnter={sfx.hover}
-                onClick={() => {
-                  sfx.pop();
-                  useSkins.setState({ trying: skin.id });
-                  onClose();
-                }}
-              >
-                {t("Essayer sur mon bureau", "Try it on my desk")}
-              </button>
-              <button
-                className={`${styles.btn} ${styles.primary}`}
-                onPointerEnter={sfx.hover}
-                onClick={() => {
-                  sfx.click();
-                  setBuying(!buying);
-                }}
-              >
-                {t(`Acheter · ${formatEuros(skin.price, lang)}`, `Buy · ${formatEuros(skin.price, lang)}`)}
-              </button>
+              {worth && <s>{formatEuros(worth, lang)}</s>}
+              <b>{formatEuros(thing.price, lang)}</b>
             </>
           )}
-        </div>
-        <AnimatePresence>{buying && !mine && <Checkout key="checkout" skin={skin} />}</AnimatePresence>
-      </div>
-    </motion.article>
+        </span>
+      </span>
+      <span className={styles.shine} aria-hidden />
+    </motion.button>
   );
 }
 
-/** Buying: signed in, off to Stripe's payment page; else sign in first (the skin is kept with the account). */
-function Checkout({ skin }: { skin: Skin }) {
+/** One item or bundle up close: what's in it, try it on, buy it, or wear it once owned */
+function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; onClose: () => void }) {
+  const t = useT();
+  const lang = useLang();
+  const { owned, equipped } = useSkins();
+  const ids = itemsOf(thing.id);
+  const mine = ids.every((id) => owned.includes(id));
+  const worn = ids.every((id) => equipped.includes(id));
+  const worth = isBundle(thing) ? worthOf(thing) : null;
+  const [buying, setBuying] = useState(false);
+  return (
+    <motion.div className={styles.cardWrap} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={(e) => e.target === e.currentTarget && onBack()}>
+      <motion.article
+        className={`${styles.card} ${styles[thing.rarity]}`}
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 320, damping: 24 }}
+      >
+        <button className={styles.back} onClick={onBack} onPointerEnter={sfx.hover}>
+          ← {t("Vitrine", "Shop")}
+        </button>
+        <div className={styles.cardArt}>
+          <span className={styles.rays} aria-hidden />
+          <img className={thing.cutout ? styles.cutout : styles.framed} src={thing.icon} alt="" draggable={false} />
+        </div>
+        <div className={styles.cardText}>
+          <span className={styles.rarity}>{t(RARITY[thing.rarity].fr, RARITY[thing.rarity].en)}</span>
+          <h3>{t(thing.name.fr, thing.name.en)}</h3>
+          <p>{t(thing.blurb.fr, thing.blurb.en)}</p>
+          {isBundle(thing) && (
+            <ul>
+              {thing.items.map((id) => {
+                const it = ITEM.get(id);
+                return it ? <li key={id}>{t(it.name.fr, it.name.en)}</li> : null;
+              })}
+            </ul>
+          )}
+          {!mine && (
+            <p className={styles.cardPrice}>
+              {worth && <s>{formatEuros(worth, lang)}</s>} <b>{formatEuros(thing.price, lang)}</b>
+            </p>
+          )}
+          <div className={styles.actions}>
+            {mine ? (
+              <button
+                className={`${styles.btn} ${worn ? "" : styles.primary}`}
+                onPointerEnter={sfx.hover}
+                onClick={() => {
+                  sfx.stamp();
+                  ids.forEach((id) => wear(id, !worn));
+                }}
+              >
+                {worn ? t("Retirer de mon bureau", "Take off my desk") : t("Mettre sur mon bureau", "Put it on my desk")}
+              </button>
+            ) : (
+              <>
+                <button
+                  className={styles.btn}
+                  onPointerEnter={sfx.hover}
+                  onClick={() => {
+                    sfx.pop();
+                    useSkins.setState({ trying: thing.id });
+                    onClose();
+                  }}
+                >
+                  {t("Essayer sur mon bureau", "Try it on my desk")}
+                </button>
+                <button
+                  className={`${styles.btn} ${styles.primary}`}
+                  onPointerEnter={sfx.hover}
+                  onClick={() => {
+                    sfx.click();
+                    setBuying(!buying);
+                  }}
+                >
+                  {t(`Acheter · ${formatEuros(thing.price, lang)}`, `Buy · ${formatEuros(thing.price, lang)}`)}
+                </button>
+              </>
+            )}
+          </div>
+          <AnimatePresence>{buying && !mine && <Checkout key="checkout" id={thing.id} />}</AnimatePresence>
+        </div>
+      </motion.article>
+    </motion.div>
+  );
+}
+
+/** What's owned, each item on or off the desk */
+function Locker() {
+  const t = useT();
+  const { owned, equipped } = useSkins();
+  const mine = ITEMS.filter((it) => owned.includes(it.id));
+  if (!mine.length)
+    return <p className={styles.empty}>{t("Ton casier est vide pour l'instant : ce que tu achètes t'attend ici.", "Your locker is empty for now: what you buy waits here.")}</p>;
+  return (
+    <div className={styles.locker}>
+      {mine.map((it) => {
+        const on = equipped.includes(it.id);
+        return (
+          <button
+            key={it.id}
+            className={`${styles.lockerRow} ${styles[it.rarity]} ${on ? styles.lockerOn : ""}`}
+            onPointerEnter={sfx.hover}
+            onClick={() => {
+              sfx.stamp();
+              wear(it.id, !on);
+            }}
+            aria-pressed={on}
+          >
+            <img className={it.cutout ? styles.cutout : styles.framed} src={it.icon} alt="" draggable={false} />
+            <span className={styles.name}>{t(it.name.fr, it.name.en)}</span>
+            <span className={styles.toggle}>{on ? t("Sur mon bureau", "On my desk") : t("Rangé", "Put away")}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Buying: signed in, off to Stripe's payment page; else sign in first (what's bought is kept with the account). */
+function Checkout({ id }: { id: string }) {
   const t = useT();
   const email = useCloud((s) => s.email);
   const [state, setState] = useState<"idle" | "going" | "soon" | "error" | "sent">("idle");
@@ -148,7 +294,7 @@ function Checkout({ skin }: { skin: Skin }) {
 
   const pay = async () => {
     setState("going");
-    const r = await buySkin(skin.id);
+    const r = await buySkin(id);
     if (r === "ok") return; // the page leaves for Stripe
     setState(r);
   };
@@ -157,9 +303,9 @@ function Checkout({ skin }: { skin: Skin }) {
     <motion.div className={styles.checkout} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
       {email ? (
         <>
-          <p>{t(`Lié à ton compte ${email}.`, `Kept with your account ${email}.`)}</p>
+          <p>{t(`Gardé avec ton compte ${email}.`, `Kept with your account ${email}.`)}</p>
           <button className={`${styles.btn} ${styles.primary}`} disabled={state === "going"} onClick={() => void pay()}>
-            {state === "going" ? t("Vers le paiement…", "To the payment…") : t("Payer avec Stripe", "Pay with Stripe")}
+            {state === "going" ? t("Vers le paiement…", "To the payment…") : t("Payer", "Pay")}
           </button>
           {state === "soon" && <p className={styles.note}>{t("Le paiement ouvre très bientôt.", "Payment opens very soon.")}</p>}
           {state === "error" && <p className={styles.note}>{t("Le paiement n'a pas pu s'ouvrir. Réessaie dans un instant.", "The payment couldn't open. Try again in a moment.")}</p>}
@@ -168,7 +314,7 @@ function Checkout({ skin }: { skin: Skin }) {
         <p>{t("Lien envoyé ! Ouvre-le, puis reviens acheter.", "Link sent! Open it, then come back to buy.")}</p>
       ) : (
         <>
-          <p>{t("Ton skin est gardé avec ton compte : connecte-toi d'abord.", "Your skin is kept with your account: sign in first.")}</p>
+          <p>{t("Tes achats sont gardés avec ton compte : connecte-toi d'abord.", "What you buy is kept with your account: sign in first.")}</p>
           <button className={`${styles.btn} ${styles.primary}`} onClick={() => void signInWithGoogle()}>
             {t("Avec Google", "With Google")}
           </button>
@@ -191,18 +337,18 @@ function Checkout({ skin }: { skin: Skin }) {
   );
 }
 
-/** While a skin is tried on: a strip at the bottom to buy it or give it back. */
+/** While something is tried on: a strip at the bottom to buy it or give it back. */
 export function TryOnBar({ onOpenShop }: { onOpenShop: () => void }) {
   const t = useT();
   const lang = useLang();
   const trying = useSkins((s) => s.trying);
-  const skin = trying ? SKIN.get(trying) : undefined;
+  const thing = trying ? (BUNDLE.get(trying) ?? ITEM.get(trying)) : undefined;
   return (
     <AnimatePresence>
-      {skin && (
-        <motion.div className={styles.tryBar} initial={{ y: 80 }} animate={{ y: 0 }} exit={{ y: 80 }} transition={{ type: "spring", stiffness: 300, damping: 26 }}>
+      {thing && (
+        <motion.div className={styles.tryBar} initial={{ y: 90 }} animate={{ y: 0 }} exit={{ y: 90 }} transition={{ type: "spring", stiffness: 300, damping: 26 }}>
           <span>
-            {t("Essai", "Trying")} · <b>{t(skin.name.fr, skin.name.en)}</b>
+            {t("Essai", "Trying")} · <b>{t(thing.name.fr, thing.name.en)}</b>
           </span>
           <button
             className={`${styles.btn} ${styles.primary}`}
@@ -212,7 +358,7 @@ export function TryOnBar({ onOpenShop }: { onOpenShop: () => void }) {
               onOpenShop();
             }}
           >
-            {t(`Acheter · ${formatEuros(skin.price, lang)}`, `Buy · ${formatEuros(skin.price, lang)}`)}
+            {t(`Acheter · ${formatEuros(thing.price, lang)}`, `Buy · ${formatEuros(thing.price, lang)}`)}
           </button>
           <button
             className={styles.btn}

@@ -1,4 +1,4 @@
-// Makes the shop's skins in Stripe (src/data/skins.json): one product per skin, eligible for Managed Payments (a
+// Makes the shop's items and bundles in Stripe (src/data/skins.json): one product each, eligible for Managed Payments (a
 // digital good's tax code), and its price in euros, taxes included, found by the site by its lookup key skin_<id>
 // (app/api/shop/checkout). Run again after a price change: a new price takes the lookup key, the old one is archived.
 // Test mode with the test key, live mode with the live one:
@@ -24,8 +24,9 @@ async function stripe(path, params, method = params ? "POST" : "GET") {
   return json;
 }
 
-const skins = JSON.parse(fs.readFileSync("src/data/skins.json", "utf8"));
-for (const s of skins) {
+const { items, bundles } = JSON.parse(fs.readFileSync("src/data/skins.json", "utf8"));
+// one product per item sold on its own, one per bundle
+for (const s of [...items, ...bundles]) {
   const lookup = `skin_${s.id}`;
   const cents = Math.round(s.price * 100);
   const name = `NookDex · ${s.name.fr}`;

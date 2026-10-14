@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { supabase, useCloud } from "./cloud";
 import { STUDIO_EMAIL_HASHES } from "./site";
-import { SKIN, type Skin } from "./skins";
+import { ITEM, itemsOf, lookOf, type Look } from "./skins";
 
 export * from "./skins";
 
@@ -38,35 +38,47 @@ export function useShopOpen() {
 }
 
 interface SkinState {
-  /** the skin worn (one at a time), on this device */
-  equipped: string | null;
-  /** skins bought (from the server) */
+  /** the items on (the locker): one per slot, on this device */
+  equipped: string[];
+  /** items bought (from the server: a bundle counts as its items) */
   owned: string[];
-  /** tried on from the shop: shown, not kept */
+  /** an item or a bundle tried on from the shop: shown over what's worn, not kept */
   trying: string | null;
 }
 
 export const useSkins = create<SkinState>()(
-  persist(() => ({ equipped: null, owned: [], trying: null }) as SkinState, {
+  persist(() => ({ equipped: [], owned: [], trying: null }) as SkinState, {
     name: "nookdex:skins",
+    version: 1,
     storage: createJSONStorage(() => localStorage),
     partialize: (s) => ({ equipped: s.equipped, owned: s.owned }),
+    // v0 wore one whole skin: its items now
+    migrate: (old, v) => {
+      const o = old as { equipped?: string | string[] | null; owned?: string[] };
+      if (v >= 1) return o as SkinState;
+      const one = typeof o.equipped === "string" ? itemsOf(o.equipped) : [];
+      return { equipped: one, owned: (o.owned ?? []).flatMap(itemsOf), trying: null };
+    },
   }),
 );
 
-export const ownsSkin = (id: string, owned: string[]) => owned.includes(id);
-
-/** The skin the room wears: the one tried on, else the one equipped and owned; none while the shop is closed. */
-export function useActiveSkin(): Skin | null {
-  const open = useShopOpen();
-  const { equipped, owned, trying } = useSkins();
-  if (!open) return null;
-  // in dev, ?skin= wears one without buying it (the shop still tells what's bought)
-  const wearable = equipped && (ownsSkin(equipped, owned) || process.env.NODE_ENV !== "production");
-  const id = trying ?? (wearable ? equipped : null);
-  return (id && SKIN.get(id)) || null;
+/** Puts an item on (taking off the one in its slot), or takes it off */
+export function wear(id: string, on: boolean) {
+  const slot = ITEM.get(id)?.slot;
+  useSkins.setState((s) => ({ equipped: [...s.equipped.filter((x) => x !== id && ITEM.get(x)?.slot !== slot), ...(on ? [id] : [])], trying: null }));
 }
 
+/** The room's look: the items worn and owned, with the one tried on over them; none while the shop is closed. */
+export function useLook(): Look | null {
+  const open = useShopOpen();
+  const { equipped, owned, trying } = useSkins();
+  return useMemo(() => {
+    if (!open) return null;
+    // in dev, ?skin= wears items without buying them (the shop still tells what's bought)
+    const worn = equipped.filter((id) => owned.includes(id) || process.env.NODE_ENV !== "production");
+    return lookOf([...worn, ...(trying ? itemsOf(trying) : [])]);
+  }, [open, equipped, owned, trying]);
+}
 
 /**
  * Off to Stripe's payment page for a skin (app/api/shop/checkout): the player's session tells the server who buys.
@@ -96,5 +108,5 @@ export async function buySkin(id: string): Promise<"ok" | "soon" | "error"> {
 export async function refreshOwned() {
   const { data, error } = await supabase.from("purchases").select("skin");
   if (error) return;
-  useSkins.setState({ owned: [...new Set((data ?? []).map((r: { skin: string }) => r.skin))] });
+  useSkins.setState({ owned: [...new Set((data ?? []).flatMap((r: { skin: string }) => itemsOf(r.skin)))] });
 }
