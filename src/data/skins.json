@@ -21,7 +21,7 @@
       "set": "halloween",
       "slot": "decor",
       "rarity": "rare",
-      "price": 1.49,
+      "price": 0.99,
       "icon": "/skins/halloween/lantern.webp",
       "cutout": true,
       "name": {
@@ -38,7 +38,7 @@
       "set": "halloween",
       "slot": "cat",
       "rarity": "epic",
-      "price": 0.99,
+      "price": 1.49,
       "icon": "/skins/halloween/cat-sleep.webp",
       "cutout": true,
       "name": {

@@ -79,10 +79,9 @@
 .timer {
   margin-left: auto;
   display: inline-flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  padding: 7px 14px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
   border-radius: 10px;
   background: linear-gradient(180deg, #ff5a3c, #c41d3a);
   color: #fff;
@@ -91,13 +90,6 @@
     0 0 22px rgba(255, 80, 60, 0.55),
     3px 4px 0 1px rgba(0, 0, 0, 0.45);
   animation: timerPulse 2s ease-in-out infinite;
-}
-
-.timerLabel {
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  opacity: 0.9;
 }
 
 .timer b {
@@ -129,8 +121,8 @@
   background: linear-gradient(180deg, #ff5a3c, #c41d3a);
   color: #fff;
   font-family: var(--font-press), monospace;
-  font-size: 11px;
-  text-transform: uppercase;
+  font-size: 12px;
+  /* not upper-cased: the pixel font draws accented capitals (É) smaller than the others */
   transform: rotate(2deg);
   box-shadow:
     0 0 0 2px #000,
@@ -704,7 +696,6 @@
 
   .timer {
     margin-left: 0;
-    align-items: flex-start;
   }
 
   .timer b {

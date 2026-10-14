@@ -35,8 +35,8 @@ function Countdown({ until, big }: { until: string; big?: boolean }) {
   const sec = left % 60;
   const pad = (n: number) => String(n).padStart(2, "0");
   return (
-    <span className={`${styles.timer} ${big ? styles.timerBig : ""}`} role="timer">
-      <span className={styles.timerLabel}>{t("Quitte la boutique dans", "Leaves the shop in")}</span>
+    <span className={`${styles.timer} ${big ? styles.timerBig : ""}`} role="timer" aria-label={t("Quitte la boutique dans", "Leaves the shop in")}>
+      <span aria-hidden>⏳</span>
       <b>
         {d > 0 && `${d} ${t("j", "d")} `}
         {pad(h)} h {pad(m)} min {pad(sec)} s
