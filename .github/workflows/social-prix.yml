@@ -3,8 +3,12 @@
 name: Posts sociaux, prix du jour
 
 on:
+  # dès que les prix du jour sont là : GitHub lance prices.yml des heures après son cron de 11 h UTC (18-20 h en octobre)
+  workflow_run:
+    workflows: ["Prix Cardmarket du jour"]
+    types: [completed]
   schedule:
-    # après les prix du jour (prices.yml, 11 h UTC)
+    # filet si prices.yml n'a pas tourné
     - cron: "30 12 * * *"
   workflow_dispatch:
 
@@ -22,6 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
+          ref: main
           path: app
       - uses: actions/checkout@v5
         with:

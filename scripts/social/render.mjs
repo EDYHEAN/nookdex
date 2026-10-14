@@ -10,7 +10,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { APP, AVATAR, FONT_FACES, GRAIN, asset, card, dayOf, esc, market, money, setAssets, txt, url } from "./lib.mjs";
+import { APP, AVATAR, FONT_FACES, GRAIN, asset, card, dayOf, esc, market, money, setAssets, setOf, txt, url } from "./lib.mjs";
 import { renderMotion, renderStills } from "./motion.mjs";
 
 const args = process.argv.slice(2);
@@ -363,6 +363,19 @@ function slideshow(files, out, story) {
   );
 }
 
+/** a caption's prices, written as `{price:me05-116}`, `{total:me05}` (one of each), `{day:me05}`: filled with the day's at
+ * each render, so the caption never lags the slides */
+const fill = (text) =>
+  text?.replace(/\{(price|total|day):([^}\s]+)\}/g, (_, kind, key) => {
+    if (kind === "price") {
+      const c = card(key);
+      return money(c.price.trend, c.set);
+    }
+    const set = setOf(key);
+    if (kind === "day") return dayOf(set);
+    return money(Math.round(set.cards.reduce((t, c) => t + (c.price.trend ?? 0), 0)), set).replace(/,00/, "");
+  }) ?? null;
+
 const today = new Date().toISOString().slice(0, 10);
 const tomorrow = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
 const ids = existsSync(POSTS) ? readdirSync(POSTS).filter((d) => existsSync(join(POSTS, d, "post.json"))) : [];
@@ -422,8 +435,8 @@ for (const id of ids.sort()) {
     format: post.format ?? "post",
     title: post.title ?? id,
     note: post.note ?? null,
-    caption: post.caption ?? "",
-    captionTiktok: post.captionTiktok ?? null,
+    caption: fill(post.caption) ?? "",
+    captionTiktok: fill(post.captionTiktok),
     prices: !!post.prices,
     slides: rendered.filter((f) => /^slide-\d+\.(jpg|png)$/.test(f)).map((f) => `${id}/${f}`),
     photos: rendered.filter((f) => /^photo-\d+\.jpg$/.test(f)).map((f) => `${id}/${f}`),

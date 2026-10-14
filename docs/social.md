@@ -165,6 +165,9 @@ post has none. A progress bar on top tells how many scenes are left (people stay
 French, the NookDex voice (warm, a bit playful, tutoiement), 3-8 short lines, one question to the reader, then
 `nookdex.com (lien en bio)`, then 6-9 hashtags (`#pokemontcg #cartespokemon #collectionpokemon #pokemonfr` + the
 subject's). A price is always "prix tendance Cardmarket du <day>". TikTok caption: one or two lines + 4-6 hashtags.
+In a `prices: true` post, never type a price or its day in the caption: write `{price:<card key>}`, `{total:<set key>}`
+(one of each) and `{day:<set key>}` (`{price:me05-116}`, `{day:en:sv08}`), filled with the day's at each render like the
+slides (the price posts are drawn again once `prices.yml` has run, the day before and the day they come out).
 
 ## After writing
 
