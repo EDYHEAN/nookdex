@@ -137,6 +137,7 @@ export const TROPHIES: Trophy[] = [
   { id: "game-wave10", tier: "bronze", cat: "game", name: { fr: "Ça tient bon", en: "Holding on" }, desc: { fr: "Atteins la vague 10.", en: "Reach wave 10." } },
   { id: "game-wave20", tier: "silver", cat: "game", name: { fr: "Increvable", en: "Unstoppable" }, desc: { fr: "Atteins la vague 20.", en: "Reach wave 20." } },
   { id: "game-wave30", tier: "gold", cat: "game", name: { fr: "Légende des vagues", en: "Wave legend" }, desc: { fr: "Atteins la vague 30.", en: "Reach wave 30." } },
+  { id: "game-wave100", tier: "gold", cat: "game", name: { fr: "Centenaire", en: "Centenarian" }, desc: { fr: "Survis aux 100 vagues.", en: "Survive all 100 waves." } },
   { id: "game-boss", tier: "bronze", cat: "game", name: { fr: "Réveil difficile", en: "Rude awakening" }, desc: { fr: "Bats ton premier boss.", en: "Beat your first boss." } },
   { id: "game-evolve", tier: "bronze", cat: "game", name: { fr: "Quoi ?!", en: "What?!" }, desc: { fr: "Fais évoluer ton Pokémon en pleine partie.", en: "Evolve your Pokémon mid-run." } },
   { id: "game-evomove", tier: "silver", cat: "game", name: { fr: "Capacité ultime", en: "Ultimate move" }, desc: { fr: "Fais évoluer une capacité.", en: "Evolve a move." } },
@@ -149,6 +150,14 @@ export const TROPHIES: Trophy[] = [
   { id: "game-rarecandy", tier: "bronze", cat: "game", name: { fr: "Super Bonbon", en: "Rare Candy" }, desc: { fr: "Ramasse un Super Bonbon.", en: "Pick up a Rare Candy." } },
   { id: "game-revive", tier: "silver", cat: "game", name: { fr: "Rappel", en: "Revive" }, desc: { fr: "Reviens d'un K.O. en pleine partie.", en: "Come back from a KO mid-run." } },
   { id: "game-top3", tier: "gold", cat: "game", name: { fr: "Sur le podium", en: "On the podium" }, desc: { fr: "Entre dans le top 3 d'un classement.", en: "Get into a ladder's top 3." } },
+  // the daily challenge (since 2026-10-15)
+  { id: "defi-first", tier: "bronze", cat: "game", name: { fr: "Premier chrono", en: "First time" }, desc: { fr: "Gagne un défi du jour.", en: "Win a daily challenge." } },
+  { id: "defi-fast", tier: "silver", cat: "game", name: { fr: "Sur les chapeaux de roue", en: "Flat out" }, desc: { fr: "Gagne un défi du jour en moins de 5:00.", en: "Win a daily challenge in under 5:00." } },
+  { id: "defi-blitz", tier: "gold", cat: "game", name: { fr: "Éclair", en: "Lightning" }, desc: { fr: "Gagne un défi du jour en moins de 3:30.", en: "Win a daily challenge in under 3:30." } },
+  { id: "defi-week", tier: "gold", cat: "game", name: { fr: "Semaine parfaite", en: "Perfect week" }, desc: { fr: "Gagne le défi avec chacun des 7 Pokémon.", en: "Win the challenge with each of the 7 Pokémon." } },
+  { id: "defi-titan", tier: "bronze", cat: "game", name: { fr: "Tueur de titans", en: "Titan slayer" }, desc: { fr: "Mets un titan K.O.", en: "Knock out a titan." } },
+  { id: "defi-karp", tier: "silver", cat: "game", name: { fr: "Si si, Magicarpe", en: "Yes, Magikarp" }, desc: { fr: "Gagne le défi de Magicarpe.", en: "Win Magikarp's challenge." } },
+  { id: "defi-top1", tier: "gold", cat: "game", name: { fr: "Champion du jour", en: "Champion of the day" }, desc: { fr: "Finis 1er du classement du défi.", en: "Top the challenge's board." } },
 
   // Secrets: no hint but "???" until found
   { id: "night-owl", tier: "silver", cat: "secret", secret: true, name: { fr: "Oiseau de nuit", en: "Night owl" }, desc: { fr: "Au bureau entre minuit et 5 h.", en: "At the desk between midnight and 5 am." } },
