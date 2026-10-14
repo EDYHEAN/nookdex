@@ -44,6 +44,10 @@ export interface SkinArt {
   decor?: Placed[];
   /** worn by Warwick, asleep and awake */
   hat?: { sleep: Placed; awake: Placed };
+  /** Warwick himself in costume, asleep and awake (his pictures swapped) */
+  cat?: { sleep: Placed; awake: Placed };
+  /** a spider that drops down its thread from (x, top) to `drop` now and then, and climbs back */
+  spider?: { src: string; w: number; h: number; x: number; top: number; drop: number };
 }
 
 export interface LavaTheme {

@@ -204,6 +204,12 @@ export const sfx = {
     tone({ freq: 180, to: 520, type: "sine", dur: 0.18, vol: 0.2 });
     tone({ freq: 300, to: 900, type: "sine", dur: 0.14, vol: 0.1, delay: 0.12 });
   },
+  /** Halloween's spider dropping down its thread: a slide down, a little wobble at the end */
+  spider() {
+    tone({ freq: 900, to: 260, type: "sine", dur: 0.55, vol: 0.06, attack: 0.01 });
+    tone({ freq: 300, to: 340, type: "triangle", dur: 0.12, vol: 0.04, delay: 0.55 });
+    tone({ freq: 330, to: 290, type: "triangle", dur: 0.12, vol: 0.03, delay: 0.68 });
+  },
   lamp() {
     noise({ dur: 0.02, vol: 0.3, type: "highpass", freq: 3000 });
     tone({ freq: 1800, dur: 0.015, vol: 0.05 });

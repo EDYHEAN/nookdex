@@ -16,6 +16,17 @@ const SHEETS = [
     light: ["web-tl", "web-tr"],
     /** pictures with one thing each (the whole picture is its cell) */
     singles: { garland: "img/halloween/garland.jpg" },
+    /**
+     * things cut out of a picture by hand (its px): left, top, width, height, and boxes painted white first where a
+     * neighbour reaches in (the sleeping cat's back by the sitting one)
+     */
+    crops: {
+      "img/halloween/cat-sheet.jpg": {
+        "cat-sleep": { box: [55, 647, 1101, 729] },
+        "cat-awake": { box: [1100, 255, 1026, 1114], erase: [[1100, 798, 56, 571], [1100, 255, 90, 70]] },
+        spider: { box: [2147, 725, 509, 321] },
+      },
+    },
     /** the views through the window, made like the room's (scripts/build-scene) */
     skies: { sky: "img/halloween/sky.jpg", "sky-day": "img/halloween/sky-day.jpg" },
   },
@@ -37,19 +48,25 @@ const PLACES = {
       { name: "web-tl", x: 1035, y: 0, w: 230 }, // the room's corner, by the poster
       { name: "web-tr", x: 2752 - 210, y: 0, w: 210 }, // the top right corner, above the box
     ],
-    hat: {
-      sleep: { name: "hat", cx: 2022, bottom: 1104, w: 136, rot: -24 },
-      awake: { name: "hat", cx: 2068, bottom: 934, w: 150, rot: -6 },
+    // Warwick in his witch hat, standing where he stands (scene.json catSleep / catAwake: same bottom, same middle)
+    cat: {
+      sleep: { name: "cat-sleep", cx: 2148, bottom: 1243, w: 400 },
+      awake: { name: "cat-awake", cx: 2163, bottom: 1250, w: 412 },
     },
+    // the spider of the corner's cobweb: its thread hangs from (x, top), it drops down to `drop` now and then
+    spider: { name: "spider", x: 1150, top: 30, drop: 560, w: 84 },
   },
 };
 
 const BG = 22; // how far from paper white the background may be (JPEG noise)
 const SOFT = 70;
 
-async function cutCell(file, left, top, width, height, light) {
+async function cutCell(file, left, top, width, height, light, erase = []) {
   const { data } = await sharp(file).extract({ left, top, width, height }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const W = width, H = height, N = W * H;
+  for (const [ex, ey, ew, eh] of erase)
+    for (let y = Math.max(0, ey - top); y < Math.min(H, ey - top + eh); y++)
+      for (let x = Math.max(0, ex - left); x < Math.min(W, ex - left + ew); x++) data.fill(255, (y * W + x) * 3, (y * W + x) * 3 + 3);
   const ink = new Float32Array(N);
   for (let i = 0; i < N; i++) ink[i] = 255 - Math.min(data[i * 3], data[i * 3 + 1], data[i * 3 + 2]);
   const out = Buffer.alloc(N * 4);
@@ -110,11 +127,14 @@ for (const sheet of SHEETS) {
   const cells = [
     ...sheet.names.map((name, k) => ({ name, file: sheet.src, left: (k % sheet.cols) * cw, top: Math.floor(k / sheet.cols) * ch, width: cw, height: ch })),
     ...(await Promise.all(Object.entries(sheet.singles ?? {}).map(async ([name, file]) => ({ name, file, left: 0, top: 0, ...(await sharp(file).metadata()) })))),
+    ...Object.entries(sheet.crops ?? {}).flatMap(([file, things]) =>
+      Object.entries(things).map(([name, { box: [left, top, width, height], erase }]) => ({ name, file, left, top, width, height, erase })),
+    ),
   ];
-  for (const { name, file, left, top, width: w, height: h } of cells) {
-    const img = await cutCell(file, left, top, w, h, sheet.light.includes(name));
+  for (const { name, file, left, top, width: w, height: h, erase } of cells) {
+    const img = await cutCell(file, left, top, w, h, sheet.light.includes(name), erase);
     // drawn at most ~2x its size in the room: no need for Gemini's full size
-    const max = name === "garland" ? 1000 : 300;
+    const max = name === "garland" || name.startsWith("cat") ? 900 : 300;
     const { data, info } = await img.resize({ width: max, height: max, fit: "inside", withoutEnlargement: true }).webp({ quality: 88, alphaQuality: 90 }).toBuffer({ resolveWithObject: true });
     fs.writeFileSync(`${dir}/${name}.webp`, data);
     sizes[name] = { w: info.width, h: info.height };
@@ -133,7 +153,8 @@ for (const sheet of SHEETS) {
     ...(fs.existsSync(`public/skins/${sheet.skin}/sky.webp`) ? { sky: `/skins/${sheet.skin}/sky.webp` } : {}),
     ...(fs.existsSync(`public/skins/${sheet.skin}/sky-day.webp`) ? { skyDay: `/skins/${sheet.skin}/sky-day.webp` } : {}),
     decor: pl.decor.map(place),
-    hat: { sleep: place(pl.hat.sleep), awake: place(pl.hat.awake) },
+    cat: { sleep: place(pl.cat.sleep), awake: place(pl.cat.awake) },
+    spider: (({ src, w, h }) => ({ src, w, h, x: pl.spider.x, top: pl.spider.top, drop: pl.spider.drop }))(place({ ...pl.spider, cx: 0, bottom: 0 })),
   };
   console.log(sheet.skin, Object.entries(sizes).map(([n, s]) => `${n} ${s.w}x${s.h}`).join(", "));
 }

@@ -948,3 +948,96 @@
     animation: none;
   }
 }
+
+/* a skin's spider: at rest in the cobweb, then down its thread (--fall), a little sway, and back up */
+.spider {
+  position: absolute;
+  pointer-events: none;
+}
+
+.spiderThread {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 6px;
+  margin-left: -1px;
+  background: rgba(235, 228, 245, 0.75);
+}
+
+.spiderBody {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  filter: url(#boil);
+  transform-origin: 50% 0;
+}
+
+.spiderBody img {
+  display: block;
+}
+
+.spiderDrop .spiderThread {
+  animation: spiderThread 7s cubic-bezier(0.3, 0.9, 0.4, 1) both;
+}
+
+.spiderDrop .spiderBody {
+  animation: spiderFall 7s cubic-bezier(0.3, 0.9, 0.4, 1) both;
+}
+
+/* down fast with a little bounce, hang and sway, then climb back at a spider's pace */
+@keyframes spiderFall {
+  0% {
+    transform: translateY(0);
+  }
+  14% {
+    transform: translateY(calc(var(--fall) + 14px));
+  }
+  19% {
+    transform: translateY(calc(var(--fall) - 8px));
+  }
+  24% {
+    transform: translateY(var(--fall)) rotate(0deg);
+  }
+  34% {
+    transform: translateY(var(--fall)) rotate(7deg);
+  }
+  44% {
+    transform: translateY(var(--fall)) rotate(-6deg);
+  }
+  54% {
+    transform: translateY(var(--fall)) rotate(3deg);
+  }
+  60% {
+    transform: translateY(var(--fall)) rotate(0deg);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes spiderThread {
+  0% {
+    height: 6px;
+  }
+  14% {
+    height: calc(var(--fall) + 18px);
+  }
+  19% {
+    height: calc(var(--fall) - 4px);
+  }
+  24%,
+  60% {
+    height: calc(var(--fall) + 4px);
+  }
+  100% {
+    height: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spiderDrop .spiderThread,
+  .spiderDrop .spiderBody {
+    animation: none;
+  }
+}

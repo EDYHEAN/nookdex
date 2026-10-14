@@ -17,6 +17,7 @@ import { useTotals } from "@/lib/useTotals";
 import { useViewport } from "@/lib/useViewport";
 import { LAVA_THEMES, drawDust, drawLava, drawRain, drawSunDust } from "./sceneAnim";
 import { Monitor } from "./Monitor";
+import { SkinSpider } from "./SkinSpider";
 import { ShelfBinder, binderLabel, binderSize } from "./ShelfBinder";
 import styles from "./PaintedRoom.module.css";
 import { langLabel } from "@/lib/cardLang";
@@ -351,6 +352,8 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             </span>
           ))}
 
+          {skin?.art.spider && <SkinSpider spider={skin.art.spider} paused={paused} />}
+
           {/* rain running down the window */}
           <canvas
             ref={rain}
@@ -511,15 +514,15 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
           {/* cat */}
           <img
             className={`${styles.sprite} ${styles.catSleep} ${petting ? styles.hidden : ""}`}
-            src={sceneImg("cat-sleep.webp")}
-            style={place(SCENE.catSleep)}
+            src={skin?.art.cat?.sleep.src ?? sceneImg("cat-sleep.webp")}
+            style={place(skin?.art.cat?.sleep ?? SCENE.catSleep)}
             alt=""
             draggable={false}
           />
           <img
             className={`${styles.sprite} ${styles.catAwake} ${petting ? "" : styles.hidden}`}
-            src={sceneImg("cat-awake.webp")}
-            style={place(SCENE.catAwake)}
+            src={skin?.art.cat?.awake.src ?? sceneImg("cat-awake.webp")}
+            style={place(skin?.art.cat?.awake ?? SCENE.catAwake)}
             alt=""
             draggable={false}
           />

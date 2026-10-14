@@ -81,23 +81,29 @@
         "h": 220
       }
     ],
-    "hat": {
+    "cat": {
       "sleep": {
-        "src": "/skins/halloween/hat.webp",
-        "x": 1954,
-        "y": 989,
-        "w": 136,
-        "h": 115,
-        "rot": -24
+        "src": "/skins/halloween/cat-sleep.webp",
+        "x": 1948,
+        "y": 979,
+        "w": 400,
+        "h": 264
       },
       "awake": {
-        "src": "/skins/halloween/hat.webp",
-        "x": 1993,
-        "y": 807,
-        "w": 150,
-        "h": 127,
-        "rot": -6
+        "src": "/skins/halloween/cat-awake.webp",
+        "x": 1957,
+        "y": 805,
+        "w": 412,
+        "h": 445
       }
+    },
+    "spider": {
+      "src": "/skins/halloween/spider.webp",
+      "w": 84,
+      "h": 54,
+      "x": 1150,
+      "top": 30,
+      "drop": 560
     }
   }
 }
