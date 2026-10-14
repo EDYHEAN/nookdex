@@ -101,7 +101,23 @@ export interface Look {
 }
 
 const ART = art as Record<string, SkinArt>;
-const CAT = catalogue as { items: Omit<Item, "until">[]; bundles: Bundle[] };
+/** The room as it comes, slot by slot: the locker's base collection (wearing it takes that slot's item off) */
+export interface BaseItem {
+  slot: Slot;
+  icon: string;
+  cutout?: boolean;
+  name: { fr: string; en: string };
+}
+
+const CAT = catalogue as {
+  sets: Record<string, { fr: string; en: string }>;
+  base: BaseItem[];
+  items: Omit<Item, "until">[];
+  bundles: Bundle[];
+};
+export const BASE: BaseItem[] = CAT.base;
+/** The collections, in the catalogue's order: each set's name and items */
+export const COLLECTIONS = Object.entries(CAT.sets).map(([id, name]) => ({ id, name, items: CAT.items.filter((i) => i.set === id).map((i) => i.id) }));
 
 export const BUNDLES: Bundle[] = CAT.bundles;
 export const ITEMS: Item[] = CAT.items.map((i) => ({ ...i, until: BUNDLES.find((b) => b.items.includes(i.id))?.until }));

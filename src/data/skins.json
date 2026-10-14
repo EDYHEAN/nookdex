@@ -1,4 +1,53 @@
 {
+  "sets": {
+    "halloween": {
+      "fr": "Halloween",
+      "en": "Halloween"
+    }
+  },
+  "base": [
+    {
+      "slot": "sky",
+      "icon": "/skins/base/sky.webp",
+      "name": {
+        "fr": "Nuit de pluie",
+        "en": "Rainy night"
+      }
+    },
+    {
+      "slot": "decor",
+      "icon": "/skins/base/decor.webp",
+      "name": {
+        "fr": "Bureau d'origine",
+        "en": "The usual desk"
+      }
+    },
+    {
+      "slot": "cat",
+      "icon": "/skins/base/cat.webp",
+      "cutout": true,
+      "name": {
+        "fr": "Warwick",
+        "en": "Warwick"
+      }
+    },
+    {
+      "slot": "lamp",
+      "icon": "/skins/base/lamp.webp",
+      "name": {
+        "fr": "Lampe à lave",
+        "en": "Lava lamp"
+      }
+    },
+    {
+      "slot": "radio",
+      "icon": "/skins/base/radio.webp",
+      "name": {
+        "fr": "Radio lofi",
+        "en": "Lofi radio"
+      }
+    }
+  ],
   "items": [
     {
       "id": "halloween-sky",

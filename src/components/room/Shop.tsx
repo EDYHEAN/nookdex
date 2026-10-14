@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useLang, useT } from "@/lib/lang";
-import { BUNDLE, BUNDLES, ITEM, ITEMS, buySkin, formatEuros, itemsOf, onSale, useSkins, wear, worthOf, type Bundle, type Item, type Rarity } from "@/lib/shop";
+import { BASE, BUNDLE, BUNDLES, COLLECTIONS, ITEM, ITEMS, buySkin, formatEuros, itemsOf, onSale, useSkins, wear, worthOf, type Bundle, type Item, type Rarity } from "@/lib/shop";
 import { sfx } from "@/lib/sound";
 import styles from "./Shop.module.css";
 
@@ -130,7 +130,12 @@ export function Shop({ onClose }: { onClose: () => void }) {
               </p>
             </>
           ) : (
-            <Locker />
+            <Locker
+              onShop={(id) => {
+                setTab("shop");
+                setOpen(id);
+              }}
+            />
           )}
         </div>
 
@@ -149,7 +154,7 @@ function Tile({ thing, index, big, onOpen }: { thing: Thing; index: number; big?
   const worth = isBundle(thing) ? worthOf(thing) : null;
   return (
     <motion.button
-      className={`${styles.tile} ${styles[thing.rarity]} ${big ? styles.big : ""}`}
+      className={`${styles.tile} ${styles[thing.rarity]} ${big ? styles.big : ""} ${mine ? styles.mine : ""}`}
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: 0.08 + index * 0.06, type: "spring", stiffness: 320, damping: 22 }}
@@ -171,20 +176,23 @@ function Tile({ thing, index, big, onOpen }: { thing: Thing; index: number; big?
       <span className={styles.strip}>
         <span className={styles.name}>{t(thing.name.fr, thing.name.en)}</span>
         <span className={styles.rarity}>{t(RARITY[thing.rarity].fr, RARITY[thing.rarity].en)}</span>
-        <span className={styles.price}>
-          {mine ? (
-            <b className={styles.owned}>✓ {t("Possédé", "Owned")}</b>
-          ) : (
-            <>
-              {worth && <s>{formatEuros(worth, lang)}</s>}
-              <b>{formatEuros(thing.price, lang)}</b>
-            </>
-          )}
-        </span>
+        {!mine && (
+          <span className={styles.price}>
+            {worth && <s>{formatEuros(worth, lang)}</s>}
+            <b>{formatEuros(thing.price, lang)}</b>
+          </span>
+        )}
       </span>
+      {mine && <Owned />}
       <span className={styles.shine} aria-hidden />
     </motion.button>
   );
+}
+
+/** Owned: the same stamp, at the same place, on every tile and card */
+function Owned() {
+  const t = useT();
+  return <span className={styles.ownedStamp}>✓ {t("Possédé", "Owned")}</span>;
 }
 
 /** One item or bundle up close: what's in it, try it on, buy it, or wear it once owned */
@@ -212,6 +220,7 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
         <div className={styles.cardArt}>
           <span className={styles.rays} aria-hidden />
           <img className={thing.cutout ? styles.cutout : styles.framed} src={thing.icon} alt="" draggable={false} />
+          {mine && <Owned />}
         </div>
         <div className={styles.cardText}>
           <span className={styles.rarity}>{t(RARITY[thing.rarity].fr, RARITY[thing.rarity].en)}</span>
@@ -275,35 +284,93 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
   );
 }
 
-/** What's owned, each item on or off the desk */
-function Locker() {
+/**
+ * The locker, by collection: the room as it comes (each slot back to its own), then each set, its items owned to put on
+ * or off, the others locked (a tap shows them in the shop).
+ */
+function Locker({ onShop }: { onShop: (id: string) => void }) {
   const t = useT();
   const { owned, equipped } = useSkins();
-  const mine = ITEMS.filter((it) => owned.includes(it.id));
-  if (!mine.length)
-    return <p className={styles.empty}>{t("Ton casier est vide pour l'instant : ce que tu achètes t'attend ici.", "Your locker is empty for now: what you buy waits here.")}</p>;
+  const slotTaken = (slot: string) => equipped.some((id) => ITEM.get(id)?.slot === slot);
   return (
     <div className={styles.locker}>
-      {mine.map((it) => {
-        const on = equipped.includes(it.id);
-        return (
-          <button
-            key={it.id}
-            className={`${styles.lockerRow} ${styles[it.rarity]} ${on ? styles.lockerOn : ""}`}
-            onPointerEnter={sfx.hover}
-            onClick={() => {
-              sfx.stamp();
-              wear(it.id, !on);
-            }}
-            aria-pressed={on}
-          >
-            <img className={it.cutout ? styles.cutout : styles.framed} src={it.icon} alt="" draggable={false} />
-            <span className={styles.name}>{t(it.name.fr, it.name.en)}</span>
-            <span className={styles.toggle}>{on ? t("Sur mon bureau", "On my desk") : t("Rangé", "Put away")}</span>
-          </button>
-        );
-      })}
+      <section>
+        <h3 className={styles.section}>{t("Collection de base", "Base collection")}</h3>
+        <div className={styles.lockGrid}>
+          {BASE.map((b) => {
+            const on = !slotTaken(b.slot);
+            return (
+              <LockCard
+                key={b.slot}
+                icon={b.icon}
+                cutout={b.cutout}
+                name={t(b.name.fr, b.name.en)}
+                state={on ? "on" : "off"}
+                onClick={() => {
+                  sfx.stamp();
+                  useSkins.setState((s) => ({ equipped: s.equipped.filter((id) => ITEM.get(id)?.slot !== b.slot), trying: null }));
+                }}
+              />
+            );
+          })}
+        </div>
+      </section>
+      {COLLECTIONS.map((c) => (
+        <section key={c.id}>
+          <h3 className={styles.section}>
+            {t(c.name.fr, c.name.en)}
+            <span className={styles.count}>
+              {c.items.filter((id) => owned.includes(id)).length}/{c.items.length}
+            </span>
+          </h3>
+          <div className={styles.lockGrid}>
+            {c.items.map((id) => {
+              const it = ITEM.get(id)!;
+              const mine = owned.includes(id);
+              const on = equipped.includes(id);
+              return (
+                <LockCard
+                  key={id}
+                  icon={it.icon}
+                  cutout={it.cutout}
+                  rarity={it.rarity}
+                  name={t(it.name.fr, it.name.en)}
+                  state={!mine ? "locked" : on ? "on" : "off"}
+                  onClick={() => {
+                    if (!mine) {
+                      sfx.pop();
+                      return onShop(id);
+                    }
+                    sfx.stamp();
+                    wear(id, !on);
+                  }}
+                />
+              );
+            })}
+          </div>
+        </section>
+      ))}
     </div>
+  );
+}
+
+function LockCard({ icon, cutout, rarity, name, state, onClick }: { icon: string; cutout?: boolean; rarity?: Rarity; name: string; state: "on" | "off" | "locked"; onClick: () => void }) {
+  const t = useT();
+  return (
+    <button
+      className={`${styles.lockCard} ${rarity ? styles[rarity] : styles.base} ${styles["lock_" + state]}`}
+      onPointerEnter={sfx.hover}
+      onClick={onClick}
+      aria-pressed={state === "on"}
+    >
+      <span className={styles.lockArt}>
+        <img className={cutout ? styles.cutout : styles.framed} src={icon} alt="" draggable={false} />
+      </span>
+      <span className={styles.lockText}>
+        <b>{name}</b>
+        <span className={styles.chip}>{state === "on" ? t("✓ Sur mon bureau", "✓ On my desk") : state === "off" ? t("Rangé", "Put away") : t("🔒 En boutique", "🔒 In the shop")}</span>
+      </span>
+    </button>
   );
 }
 
