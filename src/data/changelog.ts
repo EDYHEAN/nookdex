@@ -13,6 +13,17 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.12",
+    date: "2026-10-15",
+    title: { fr: "Le défi au chrono", en: "The challenge against the clock" },
+    items: [
+      { fr: "Nouveau défi du jour : 10 vagues, un giga boss au bout. Le plus rapide gagne.", en: "New daily challenge: 10 waves, a giga boss at the end. Fastest wins." },
+      { fr: "Chaque jour son Pokémon et son talent : Évoli, Caninos, Lokhlass, Magicarpe…", en: "A Pokémon and a talent each day: Eevee, Growlithe, Lapras, Magikarp…" },
+      { fr: "Les parties normales s'arrêtent à la vague 100.", en: "Classic runs end at wave 100." },
+      { fr: "8 nouveaux trophées.", en: "8 new trophies." },
+    ],
+  },
+  {
     version: "0.11",
     date: "2026-10-13",
     title: { fr: "Nook Survivors à deux", en: "Nook Survivors for two" },
@@ -44,10 +55,6 @@ export const CHANGELOG: Release[] = [
       {
         fr: "16 nouveaux trophées à gagner dans le jeu, sur leur propre étagère de la vitrine.",
         en: "16 new trophies to win in the game, on their own shelf of the trophy case.",
-      },
-      {
-        fr: "8 trophées de plus : gagner le défi du jour (et vite), avec chacun de ses 7 Pokémon, finir premier du jour, abattre un titan… et survivre aux 100 vagues.",
-        en: "8 more trophies: win the daily challenge (and fast), with each of its 7 Pokémon, top the day's board, fell a titan… and survive all 100 waves.",
       },
     ],
   },
