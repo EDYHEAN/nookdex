@@ -204,7 +204,15 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
   const mine = ids.every((id) => owned.includes(id));
   const worn = ids.every((id) => equipped.includes(id));
   const worth = isBundle(thing) ? worthOf(thing) : null;
+  const email = useCloud((s) => s.email);
+  // signed in: straight to Stripe's page; else the sign-in box opens under the button
   const [buying, setBuying] = useState(false);
+  const [going, setGoing] = useState<"idle" | "going" | "soon" | "error">("idle");
+  const buy = async () => {
+    setGoing("going");
+    const r = await buySkin(thing.id);
+    if (r !== "ok") setGoing(r);
+  };
   return (
     <motion.div className={styles.cardWrap} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={(e) => e.target === e.currentTarget && onBack()}>
       <motion.article
@@ -266,18 +274,24 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
                 </button>
                 <button
                   className={`${styles.btn} ${styles.primary}`}
+                  disabled={going === "going"}
                   onPointerEnter={sfx.hover}
                   onClick={() => {
                     sfx.click();
-                    setBuying(!buying);
+                    if (email) void buy();
+                    else setBuying(!buying);
                   }}
                 >
-                  {t(`Acheter · ${formatEuros(thing.price, lang)}`, `Buy · ${formatEuros(thing.price, lang)}`)}
+                  {going === "going"
+                    ? t("Vers le paiement…", "To the payment…")
+                    : t(`Acheter · ${formatEuros(thing.price, lang)}`, `Buy · ${formatEuros(thing.price, lang)}`)}
                 </button>
               </>
             )}
           </div>
-          <AnimatePresence>{buying && !mine && <Checkout key="checkout" id={thing.id} />}</AnimatePresence>
+          {going === "soon" && <p className={styles.note}>{t("Le paiement ouvre très bientôt.", "Payment opens very soon.")}</p>}
+          {going === "error" && <p className={styles.note}>{t("Le paiement n'a pas pu s'ouvrir. Réessaie dans un instant.", "The payment couldn't open. Try again in a moment.")}</p>}
+          <AnimatePresence>{buying && !mine && !email && <SignInFirst key="signin" />}</AnimatePresence>
         </div>
       </motion.article>
     </motion.div>
@@ -374,32 +388,14 @@ function LockCard({ icon, cutout, rarity, name, state, onClick }: { icon: string
   );
 }
 
-/** Buying: signed in, off to Stripe's payment page; else sign in first (what's bought is kept with the account). */
-function Checkout({ id }: { id: string }) {
+/** Buying without an account: sign in first (what's bought is kept with it), then "Buy" goes straight to Stripe */
+function SignInFirst() {
   const t = useT();
-  const email = useCloud((s) => s.email);
-  const [state, setState] = useState<"idle" | "going" | "soon" | "error" | "sent">("idle");
+  const [sent, setSent] = useState(false);
   const [mail, setMail] = useState("");
-
-  const pay = async () => {
-    setState("going");
-    const r = await buySkin(id);
-    if (r === "ok") return; // the page leaves for Stripe
-    setState(r);
-  };
-
   return (
     <motion.div className={styles.checkout} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
-      {email ? (
-        <>
-          <p>{t(`Gardé avec ton compte ${email}.`, `Kept with your account ${email}.`)}</p>
-          <button className={`${styles.btn} ${styles.primary}`} disabled={state === "going"} onClick={() => void pay()}>
-            {state === "going" ? t("Vers le paiement…", "To the payment…") : t("Payer", "Pay")}
-          </button>
-          {state === "soon" && <p className={styles.note}>{t("Le paiement ouvre très bientôt.", "Payment opens very soon.")}</p>}
-          {state === "error" && <p className={styles.note}>{t("Le paiement n'a pas pu s'ouvrir. Réessaie dans un instant.", "The payment couldn't open. Try again in a moment.")}</p>}
-        </>
-      ) : state === "sent" ? (
+      {sent ? (
         <p>{t("Lien envoyé ! Ouvre-le, puis reviens acheter.", "Link sent! Open it, then come back to buy.")}</p>
       ) : (
         <>
@@ -412,7 +408,7 @@ function Checkout({ id }: { id: string }) {
             onSubmit={(e) => {
               e.preventDefault();
               if (!mail.includes("@")) return;
-              void signIn(mail).then(() => setState("sent"));
+              void signIn(mail).then(() => setSent(true));
             }}
           >
             <input type="email" value={mail} onChange={(e) => setMail(e.target.value)} placeholder={t("ton e-mail", "your e-mail")} aria-label={t("Ton e-mail", "Your e-mail")} />
