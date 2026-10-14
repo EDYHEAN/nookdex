@@ -20,9 +20,8 @@ Décidé par Johan le 2026-10-14. Point de reprise : ce qui est décidé, ce qu'
 
 - La fenêtre : le ciel est une couche à part (`sky.webp`, `sky-day.webp`).
 - La lampe à lave : un thème de plus dans `LAVA_THEMES` (code seulement).
-- Les décos : une couche par-dessus la scène, découpée par différence (comme le chat) : une édition de la scène
-  maître avec les décos ajoutées, moins la scène maître. Une version nuit et une version jour.
-- Warwick : ses deux sprites (endormi, réveillé) redécoupés depuis une édition avec un costume.
+- Les décos : des objets peints seuls sur fond blanc (planche Gemini), découpés et placés dans la scène par le code.
+- Warwick : un accessoire (chapeau, écharpe) posé sur ses deux sprites par le code.
 - Plus tard : couvertures de classeurs, coques de Game Boy, thèmes de l'OS, une station de radio, des scènes entières.
 
 Une déco ne doit jamais recouvrir ce que le code anime ou rend cliquable : classeurs et étagères, Poké Ball, boîte
@@ -36,65 +35,52 @@ Ciel d'Halloween (nuit et jour), décos (nuit et jour), Warwick en sorcier, lamp
 
 ## Prompts Gemini (Nano Banana Pro, plus haute résolution)
 
-Toujours joindre l'image de départ indiquée, et garder le cadrage et la taille. Enregistrer les résultats dans
-`img/halloween/` sous le nom indiqué.
+**Pas d'édition de la scène entière** (essai du 2026-10-14) : Gemini repeint tout (≈1024 px au lieu de 2752, objets
+déplacés), le découpage par différence devient impossible, et le rendu fait clipart. On fait comme pour les trophées :
+les décos peintes **seules, sur fond blanc**, découpées par script puis placées dans la scène par le code (positions,
+échelle, lumière de la pièce, lueur des bougies animée). Le ciel, lui, est une image à part : une édition de
+`img/sky.jpg` suffit (le cadrage n'a pas besoin d'être identique).
 
-### H1. Décos, nuit → `img/halloween/decor.jpg` (joindre `img/scene.jpg`)
+Enregistrer dans `img/halloween/` sous le nom indiqué.
+
+### D1. Planche de décos → `img/halloween/decor-sheet.jpg` (format 4:3, aucune image jointe)
 
 ```text
-Edit the attached image. Keep EVERYTHING else exactly identical: same framing, same size, same painting, same lighting, every object in the same place. Only ADD these Halloween decorations, painted in exactly the same hand-painted style and light as the rest of the room:
-1. A string of small black paper bats and little white paper ghosts hanging in a gentle curve on the bare wall, from the right end of the curtain rod to just left of the top shelf, above the poster and the clock, not touching them.
-2. A small carved jack-o'-lantern glowing warmly from a candle inside, on the window sill, between the cactus and the jar.
-3. A tiny orange pumpkin sitting on top of the beige computer monitor, on its left corner.
-4. Three tiny black paper bats clipped on the photo string, between the polaroids.
-5. A thin dusty cobweb in the top left corner of the window frame, and another one high in the top right corner of the wall, above the purple box.
-6. A small cluster of three orange candles with tiny flames on the desk, in front of the boombox, near the front edge of the desk.
-Do NOT change, move or cover: the ring binders, the shelves and everything on them, the poster, the clock, the computer screen, the Game Boy, the mug and its steam, the lava lamp, the desk lamp, the sleeping cat, the cork board, the books, the chair, the window panes and the view through them.
+A sheet of 8 small Halloween decorations for a cozy bedroom, each one painted separately, arranged in a neat grid of 4 columns and 2 rows on a plain pure white background, evenly spaced, each object centered in its cell, nothing touching, no shadow on the background.
+Painted like the background of a 2000s hand-drawn Japanese animated film: gouache, soft painted edges, visible brushwork, rich textures, warm peach highlights and cool blue-violet shadows. NO black ink outlines, NOT vector clipart, NOT 3D, NOT pixel art.
+Row 1, left to right: a carved jack-o'-lantern with a friendly face glowing warmly from inside; a tiny round orange pumpkin with a curly green stem; a cluster of three short melted orange candles with small flames, on a little saucer; a small purple witch hat with an orange band, seen from the front, slightly bent tip.
+Row 2, left to right: a dusty white cobweb filling a corner, shaped like a right triangle with its corner at the top left; the same cobweb mirrored, corner at the top right; a black paper bat with open wings; a small glass bowl of wrapped orange and purple candies.
 No text, no letters, no logos.
 ```
 
-### H2. Décos, jour → `img/halloween/decor-day.jpg` (joindre `img/day.jpg`, puis le résultat de H1)
+### D2. Guirlande → `img/halloween/garland.jpg` (format 16:9, aucune image jointe)
 
 ```text
-Edit the first attached image. Keep EVERYTHING else exactly identical: same framing, same size, same painting, same daylight, every object in the same place. Only ADD the same Halloween decorations as in the second attached image, at exactly the same spots and the same size, painted in the daylight of the first image (the jack-o'-lantern and the candles are not lit): the paper bats and ghosts garland on the wall, the jack-o'-lantern on the window sill, the tiny pumpkin on the monitor, the paper bats on the photo string, the two cobwebs, the three candles in front of the boombox.
-Use the second image ONLY to know what to add and where. Do NOT change, move or cover anything else.
+A single long Halloween garland painted alone on a plain pure white background: a thin twine string hanging in a gentle loose curve from the top left corner to the top right corner, with small black paper bats and little white paper ghosts hanging from it by tiny clothespins, alternating, slightly irregular and hand-made, some a bit tilted. Nothing else.
+Painted like the background of a 2000s hand-drawn Japanese animated film: gouache, soft painted edges, visible brushwork, warm peach highlights and cool blue-violet shadows. NO black ink outlines, NOT vector clipart, NOT 3D.
 No text, no letters, no logos.
 ```
 
-### H3. Ciel de nuit → `img/halloween/sky.jpg` (joindre `img/sky.jpg`)
+### S1. Ciel de nuit → `img/halloween/sky.jpg` (joindre `img/sky.jpg`)
 
 ```text
-Edit the attached image. Keep the same framing, the same size, the same painting style and the same city. Turn it into a Halloween night: a big low orange full moon, a few small black bat silhouettes crossing in front of it, thin purple clouds, no rain. The city keeps its lights, and a few of its windows glow orange.
+Edit the attached image at the highest resolution. Keep the same painting style and the same city. Turn it into a Halloween night: a big low orange full moon, a few small black bat silhouettes crossing in front of it, thin purple clouds, no rain. The city keeps its lights, and a few of its windows glow orange.
 No text, no letters, no logos.
 ```
 
-### H4. Ciel de jour → `img/halloween/sky-day.jpg` (joindre `img/sky-day.jpg`)
+### S2. Ciel de jour → `img/halloween/sky-day.jpg` (joindre `img/sky-day.jpg`)
 
 ```text
-Edit the attached image. Keep the same framing, the same size, the same painting style and the same city. Turn it into a late October golden hour: a warm orange and pink autumn sky, soft glowing clouds, a few orange autumn leaves drifting in the air.
+Edit the attached image at the highest resolution. Keep the same painting style and the same city. Turn it into a late October golden hour: a warm orange and pink autumn sky, soft glowing clouds, a few orange autumn leaves drifting in the air.
 No text, no letters, no logos.
 ```
 
-### H5. Warwick endormi en sorcier → `img/halloween/cat-sleep.jpg` (joindre `img/scene.jpg`)
-
-```text
-Edit the attached image. Keep EVERYTHING else exactly identical: same framing, same size, same painting, same lighting. Only change the following:
-The sleeping black and white tuxedo cat on the desk wears a small purple witch hat with an orange band, slightly tilted on its head between its ears. The cat keeps exactly the same pose, the same size and the same place, still asleep. Same painting style as the rest of the image.
-```
-
-### H6. Warwick réveillé en sorcier → `img/halloween/cat-awake.jpg` (joindre `img/cat-awake.jpg`)
-
-```text
-Edit the attached image. Keep EVERYTHING else exactly identical: same framing, same size, same painting, same lighting. Only change the following:
-The black and white tuxedo cat on the desk wears a small purple witch hat with an orange band, slightly tilted on its head between its ears. The cat keeps exactly the same pose, the same size and the same place. Same painting style as the rest of the image.
-```
-
-Si Gemini recadre ou déplace des objets : redemander, en rappelant « same framing, every object in the same place ».
+Warwick en sorcier : le chapeau de la planche D1, posé sur sa tête par le code (endormi et réveillé).
 
 ## À faire
 
 **Johan**
-- Les 6 images ci-dessus.
+- Les 4 images ci-dessus (D1, D2, S1, S2).
 - Un compte Stripe activé avec la micro-entreprise (ou Lemon Squeezy, voir plus bas), puis ses clés dans Vercel.
 - Les infos des mentions légales : nom, SIRET, adresse (ou domiciliation), régime de TVA.
 - L'adhésion à un médiateur de la consommation (obligatoire pour vendre aux particuliers).
@@ -107,7 +93,7 @@ Si Gemini recadre ou déplace des objets : redemander, en rappelant « same fram
 - Supabase : table des achats (lecture par le joueur seulement, écriture par le serveur).
 - Routes : création du paiement (lié au compte du joueur), webhook signé qui enregistre l'achat.
 - Pages : mentions légales, CGV (FR/EN), case de renonciation au droit de rétractation.
-- Le découpage des images Halloween (script, sur le modèle de `build-scene`).
+- Le découpage des images Halloween (script, sur le modèle de `build-trophies`) et leur placement dans la scène.
 
 ## Paiement : Stripe ou un « merchant of record »
 

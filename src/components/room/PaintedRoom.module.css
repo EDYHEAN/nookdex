@@ -858,3 +858,35 @@
     animation: none;
   }
 }
+
+/* a skin's candle or lantern at night: a warm glow that flickers */
+.skinGlow {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 170, 70, 0.45), rgba(255, 130, 40, 0.12) 60%, transparent);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  animation: skinFlicker 2.6s steps(6) infinite;
+}
+
+@keyframes skinFlicker {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  30% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.7;
+  }
+  80% {
+    opacity: 0.95;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skinGlow {
+    animation: none;
+  }
+}
