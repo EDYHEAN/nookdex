@@ -77,23 +77,47 @@ No text, no letters, no logos.
 
 Warwick en sorcier : le chapeau de la planche D1, posé sur sa tête par le code (endormi et réveillé).
 
-## À faire
+## Où on en est (fin du 2026-10-14) : point de reprise
 
-**Johan**
-- Les 4 images ci-dessus (D1, D2, S1, S2).
-- Un compte Stripe activé avec la micro-entreprise (ou Lemon Squeezy, voir plus bas), puis ses clés dans Vercel.
-- Les infos des mentions légales : nom, SIRET, adresse (ou domiciliation), régime de TVA.
-- L'adhésion à un médiateur de la consommation (obligatoire pour vendre aux particuliers).
-- Lancer le SQL de la table des achats (`docs/supabase.sql`, une fois écrit).
+Tout est sur la branche `shop` (pas de PR, pas mergée). La boutique reste cachée : en prod, seuls les comptes de Johan
+(`STUDIO_EMAIL_HASHES`) la voient, jusqu'à `NEXT_PUBLIC_SHOP=on` dans Vercel.
 
-**Claude**
-- Le moteur de skins : couches par skin (ciel, décos jour/nuit, chat, lampe à lave), le skin choisi gardé dans la
-  sauvegarde et le cloud, l'essai avant achat.
-- La boutique (icône panier, catalogue, essai, achat).
-- Supabase : table des achats (lecture par le joueur seulement, écriture par le serveur).
-- Routes : création du paiement (lié au compte du joueur), webhook signé qui enregistre l'achat.
-- Pages : mentions légales, CGV (FR/EN), case de renonciation au droit de rétractation.
-- Le découpage des images Halloween (script, sur le modèle de `build-trophies`) et leur placement dans la scène.
+**Fait**
+- L'art Halloween : planches Gemini dans `img/halloween/`, découpées et placées par `scripts/build-skins.mjs` →
+  `public/skins/halloween/` + `src/data/skin-art.json`. Ciel nuit/jour, décos (guirlande, citrouille, bougies aux
+  flammes animées, toiles, bonbons, chauve-souris), araignée qui descend de sa toile (`room/SkinSpider`), Warwick sorcier
+  (sprites remplacés), lampe à lave citrouille + lumière orangée, radio « spooky » (`lib/sound` `setAmbientMood`).
+- Le catalogue : `src/data/skins.json` (collections, collection de base, objets par emplacement avec rareté et prix,
+  pack). `lib/skins.ts` (côté serveur aussi), `lib/shop.ts` (navigateur : verrou, objets portés/achetés/essayés, look).
+  Prix : Lune de sang 0,99 (épique), Bureau hanté 0,99 (rare), Warwick sorcier 1,49 (épique), Lueur citrouille 0,99,
+  Radio hantée 0,99 (peu communs), Pack 2,99 (légendaire, jusqu'au 2026-11-03).
+- La boutique `room/Shop.tsx` : bouton 🛍️ dans le coin, vitrine façon Fortnite (pack en vedette, tuiles par rareté,
+  compte à rebours en direct, tampon « Possédé »), fiche d'un objet (essayer / acheter / porter), casier par emplacement
+  (chaque emplacement montre l'actif ; options : base puis toutes les collections), barre d'essai (« Rendre » rouvre la
+  boutique là où on était). Connecté, « Acheter » part direct sur Stripe.
+- Paiement : Stripe **Managed Payments** (Stripe vendeur officiel : TVA, reçus, remboursements). Produits créés en test
+  par `scripts/stripe-skins.mjs` (un par objet et par pack, lookup key `skin_<id>`). `app/api/shop/checkout` (session
+  Checkout), `app/api/shop/webhook` (signature vérifiée, écrit l'achat), `lib/shopServer.ts`. Table Supabase
+  `purchases` créée (`docs/supabase.sql`). Achat test vérifié de bout en bout le 2026-10-14 (un achat test du pack est
+  enregistré sur le compte de Johan : à supprimer pour qu'il teste lui-même).
+- Perf : la pièce (`PaintedRoom`, memo) ne se redessine plus quand un panneau s'ouvre ; images de la boutique
+  préchargées.
+- En dev : `?skin=halloween` (ou un objet) porte sans acheter, `?skin` retire tout.
+
+**Clés** (`.env.local` sur le PC de Johan, jamais dans le repo ni le chat) : `STRIPE_SECRET_KEY` (test),
+`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_WEBHOOK_SECRET` (celui de `stripe listen`).
+Sans clés (session web), la route de paiement répond 503 et la boutique affiche « Le paiement ouvre très bientôt » :
+tout le reste se travaille quand même.
+
+**Reste à faire**
+- L'achat test de Johan lui-même (Supabase : redirect URL `http://localhost:3210/**` à ajouter).
+- Pages légales : mentions légales (éditeur : nom, SIRET, adresse ou domiciliation) et CGV des contenus numériques
+  (FR/EN, notebook pages comme /conditions), liées depuis la boutique.
+- Compte Stripe live (Johan) : Managed Payments activé, libellé `NOOKDEX`, support `contact@nookdex.com`.
+- Lancement : clés live + `SUPABASE_SERVICE_ROLE_KEY` dans Vercel, webhook de prod (`https://nookdex.com/api/shop/webhook`,
+  événements checkout.session.completed et async_payment_succeeded) et son secret, `node scripts/stripe-skins.mjs` avec
+  la clé live, une ligne au carnet de route (courte), merger `main` dans `shop` puis la PR, enfin `NEXT_PUBLIC_SHOP=on`.
+- Ménage : supprimer `Documents/NookDex/halloween-apercu/` (captures temporaires) une fois fini.
 
 ## Paiement : Stripe ou un « merchant of record »
 
