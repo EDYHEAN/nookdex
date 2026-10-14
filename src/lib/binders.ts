@@ -1,5 +1,5 @@
 import { bareId, langOfKey } from "./cardLang";
-import { catalogSet } from "./catalog";
+import { catalogSet, setIdOfCard } from "./catalog";
 import { SCENE } from "./scene";
 import type { BinderDef, CardData, Copy, UserBinder } from "./types";
 
@@ -77,6 +77,24 @@ export const PER_PAGE = 9;
 export function wantsOf(b: UserBinder | BinderDef | undefined) {
   const wants = b && "wants" in b ? (b.wants ?? {}) : {};
   return new Map(Object.entries(wants).map(([pocket, cardId]) => [Number(pocket), cardId]));
+}
+
+/**
+ * The box on the shelf: the cards no binder holds (copies kept by their set, whose binder isn't on the shelf; extra sets
+ * have none). By set, the biggest first. Nothing is stored for it: a set binder put back takes its cards again.
+ */
+export function boxOf(collection: Record<string, Copy[]>, binders: UserBinder[]) {
+  const onShelf = new Set(binders.flatMap((b) => (b.kind === "set" ? [b.setId] : [])));
+  const bySet = new Map<string, { cardId: string; copies: Copy[] }[]>();
+  for (const [cardId, copies] of Object.entries(collection)) {
+    const loose = copies.filter((c) => !c.at);
+    const setId = setIdOfCard(cardId);
+    if (!loose.length || !setId || onShelf.has(setId)) continue;
+    bySet.set(setId, [...(bySet.get(setId) ?? []), { cardId, copies: loose }]);
+  }
+  return [...bySet]
+    .map(([setId, items]) => ({ setId, set: catalogSet(setId), items, count: items.reduce((n, x) => n + x.copies.reduce((m, c) => m + c.qty, 0), 0) }))
+    .sort((a, b) => b.count - a.count);
 }
 
 /** First pocket of a free binder with neither a copy nor a wanted card. */

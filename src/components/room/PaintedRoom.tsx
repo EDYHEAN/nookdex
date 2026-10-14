@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MAX_BINDERS, pocketsOf, shelfBinders, wantsOf } from "@/lib/binders";
+import { MAX_BINDERS, boxOf, pocketsOf, shelfBinders, wantsOf } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
@@ -34,6 +34,8 @@ interface Props {
   onOpenAbout: () => void;
   /** the Poké Ball on the top shelf: the trophy case (where the ball is on screen) */
   onOpenTrophies: (at: { x: number; y: number }) => void;
+  /** the purple box next to it: the cards no binder holds */
+  onOpenBox: (at: { x: number; y: number }) => void;
   /** the Game Boy on the desk: the NookBoy game (computers only) */
   onOpenGame: (at: { x: number; y: number }) => void;
   /**
@@ -71,6 +73,9 @@ const BOOKS = { x: 2378, y: 515, w: 305, h: 272 };
 const BOARD = { x: 1944, y: 846, w: 328, h: 250 };
 /** the Poké Ball on its stand, top shelf: the trophy case */
 const BALL = { x: 2372, y: 204, w: 128, h: 156, cx: 2435, cy: 267 };
+/** the purple box beside it: the cards no binder holds; its tan label (LABEL) shows how many */
+const BOX = { x: 2522, y: 202, w: 216, h: 138, cx: 2630, cy: 270 };
+const BOX_LABEL = { cx: 2607, cy: 273 };
 /** the Game Boy by the mug, and its little screen: the NookBoy game */
 const GAMEBOY = { x: 1427, y: 932, w: 120, h: 178 };
 const GB_SCREEN = { x: 1461, y: 958, w: 58, h: 52 };
@@ -93,7 +98,7 @@ function useCamera(compact: boolean) {
   }, [vp.w, vp.h, compact]);
 }
 
-export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, onOpenTrophies, onOpenGame, veiled, behind }: Props) {
+export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, onOpenTrophies, onOpenBox, onOpenGame, veiled, behind }: Props) {
   const uiLang = useLang();
   const router = useRouter();
   /** "EN" on an English binder of the French site (and the other way round): the language it isn't in */
@@ -136,6 +141,8 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   const won = useTrophyStore((s) => s.got);
   const fresh = useTrophyStore((s) => Object.values(s.got).filter((at) => at > s.seenAt).length);
   const [ballHover, setBallHover] = useState(false);
+  const [boxHover, setBoxHover] = useState(false);
+  const inBox = useMemo(() => boxOf(collection, userBinders).reduce((n, g) => n + g.count, 0), [collection, userBinders]);
   /** the room's little games: a scale on the spines, the weather flipped on and on */
   const scale = useRef({ last: -1, t: 0, n: 0 });
   const weather = useRef({ t: 0, n: 0 });
@@ -698,6 +705,40 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
               setTip(null);
               setBallHover(false);
               onOpenTrophies(toScreen(BALL.cx, BALL.cy));
+            }}
+          />
+
+          {/* the purple box beside the ball: the cards no binder holds, their number pencilled on its label */}
+          <span className={`${styles.ballGlow} ${styles.boxGlow} ${boxHover ? styles.ballGlowOn : ""}`} style={{ left: BOX.cx - 150, top: BOX.cy - 110 }} aria-hidden />
+          {inBox > 0 && (
+            <span key={inBox} className={styles.boxCount} style={{ left: BOX_LABEL.cx, top: BOX_LABEL.cy }} aria-hidden>
+              {inBox > 999 ? "999+" : inBox}
+            </span>
+          )}
+          <button
+            className={`${styles.hotspot} ${styles.bookSpot}`}
+            style={place(BOX)}
+            aria-label={tr("La boîte : les cartes sans classeur", "The box: cards with no binder")}
+            onPointerEnter={() => {
+              sfx.hover();
+              setBoxHover(true);
+              showTip(
+                BOX.cx,
+                BOX.y - 8,
+                tr("La boîte", "The box"),
+                inBox ? tr(`${inBox} carte${inBox > 1 ? "s" : ""} sans classeur`, `${inBox} card${inBox > 1 ? "s" : ""} with no binder`) : tr("vide", "empty"),
+                BOX.y + BOX.h + 10,
+              );
+            }}
+            onPointerLeave={() => {
+              setBoxHover(false);
+              setTip(null);
+            }}
+            onClick={() => {
+              sfx.coverOpen();
+              setTip(null);
+              setBoxHover(false);
+              onOpenBox(toScreen(BOX.cx, BOX.cy));
             }}
           />
         </div>

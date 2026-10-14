@@ -121,8 +121,11 @@ interface State {
   obtainWish: (binderId: string, pocket: number, variant: Variant) => void;
   setBinderColor: (id: string, color: string) => void;
   setBinderSort: (id: string, sort: BinderSort) => void;
-  /** A set binder leaves the shelf, its cards stay owned. A free binder goes with the cards it holds. */
-  removeBinder: (id: string) => void;
+  /**
+   * A binder leaves the shelf. Its cards go in the box on the shelf (`keep`: a free binder's copies leave their pockets,
+   * a set binder's stay where they are, off the shelf) or are deleted with it.
+   */
+  removeBinder: (id: string, keep: boolean) => void;
   renameBinder: (id: string, name: string) => void;
   addCard: (cardId: string, variant: Variant) => void;
   /** Slips a new copy in a pocket of a free binder. */
@@ -215,11 +218,20 @@ export const useStore = create<State>()(
         set((s) => ({ binders: s.binders.map((b) => (b.id === id ? { ...b, sort } : b)) }));
         if (sort !== "num") unlock("sorter");
       },
-      removeBinder: (id) =>
-        set((s) => ({
-          binders: s.binders.filter((b) => b.id !== id),
-          collection: filterCopies(s.collection, (c) => c.at?.binder !== id),
-        })),
+      removeBinder: (id, keep) =>
+        set((s) => {
+          const b = s.binders.find((x) => x.id === id);
+          const binders = s.binders.filter((x) => x.id !== id);
+          if (!b) return {};
+          if (b.kind === "set") {
+            return { binders, collection: keep ? s.collection : filterCopies(s.collection, (c, cardId) => !!c.at || setIdOfCard(cardId) !== b.setId) };
+          }
+          if (!keep) return { binders, collection: filterCopies(s.collection, (c) => c.at?.binder !== id) };
+          const collection = Object.fromEntries(
+            Object.entries(s.collection).map(([cardId, copies]) => [cardId, copies.map((c) => (c.at?.binder === id ? { ...c, at: undefined } : c))]),
+          );
+          return { binders, collection };
+        }),
       renameBinder: (id, name) =>
         set((s) => ({ binders: s.binders.map((b) => (b.id === id && b.kind === "free" ? { ...b, name } : b)) })),
       addCard: (cardId, variant) =>

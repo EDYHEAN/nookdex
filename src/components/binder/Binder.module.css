@@ -728,6 +728,77 @@
   position: relative;
 }
 
+/* a binder with cards taken off the shelf: where do they go (RemoveChoice) */
+.removeWrap {
+  position: relative;
+}
+
+.removeAsk {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: max-content;
+  min-width: 200px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain);
+  color: var(--ink);
+  font-size: 18px;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    5px 6px 0 2px rgba(20, 12, 28, 0.4);
+  animation: askIn 0.22s cubic-bezier(0.34, 1.6, 0.5, 1);
+  transform-origin: top right;
+}
+
+@keyframes askIn {
+  from {
+    transform: scale(0.6) rotate(3deg);
+    opacity: 0;
+  }
+}
+
+.removeQ {
+  padding: 0 2px 2px;
+}
+
+.removeKeep,
+.removeBin {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px var(--ink);
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.removeKeep {
+  background: #9b82d0;
+  color: #fff;
+}
+
+.removeBin {
+  background: transparent;
+  color: var(--ink-red);
+}
+
+.removeArmed {
+  background: var(--ink-red);
+  color: #fff3e6;
+}
+
+.removeKeep:hover,
+.removeBin:hover {
+  transform: translateX(3px);
+}
+
 /* ---------- celebration ---------- */
 
 .party {

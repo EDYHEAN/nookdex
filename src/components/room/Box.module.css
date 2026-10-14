@@ -1,0 +1,227 @@
+/* The box on the top shelf: a purple cardboard box, the cards no binder holds, by set. Under a card's sheet (z 70). */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 66;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(24, 16, 36, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(860px, 100%);
+  max-height: min(820px, calc(100dvh - 32px));
+  padding: 22px 22px 18px;
+  border-radius: 12px;
+  /* the box's purple cardboard, painted */
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 9px),
+    linear-gradient(180deg, #7d62b8, #5d4592);
+  color: #efe3f8;
+  will-change: transform, opacity;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    inset 0 0 0 3px rgba(230, 210, 255, 0.2),
+    9px 11px 0 3px rgba(20, 12, 28, 0.45),
+    0 30px 80px rgba(0, 0, 0, 0.55);
+}
+
+.close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.close:hover {
+  transform: rotate(90deg) scale(1.08);
+}
+
+/* the tan label on the box's front, as painted */
+.head {
+  flex: none;
+  align-self: flex-start;
+  margin: 0 44px 16px 0;
+  padding: 10px 16px 8px;
+  border-radius: 6px;
+  background-color: #d8c19a;
+  background-image: var(--paper-grain);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 3px var(--ink),
+    4px 5px 0 2px rgba(20, 12, 28, 0.35);
+  transform: rotate(-1deg);
+}
+
+.head h2 {
+  margin: 0 0 6px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 15px;
+}
+
+.head p {
+  margin: 0;
+  font-size: 18px;
+}
+
+.head b {
+  font-weight: normal;
+  color: #5d4592;
+}
+
+.inside {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 4px 8px;
+  border-radius: 8px;
+  background: rgba(30, 18, 48, 0.4);
+  box-shadow: inset 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.empty {
+  margin: 28px 20px;
+  font-size: 18px;
+  text-align: center;
+  color: #d6c8ef;
+}
+
+.group {
+  padding: 12px 10px 10px;
+}
+
+.group + .group {
+  border-top: 2px dashed rgba(230, 210, 255, 0.18);
+}
+
+.groupHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.logo {
+  width: 64px;
+  height: 28px;
+  object-fit: contain;
+  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.4));
+}
+
+.name {
+  flex: 1;
+  min-width: 120px;
+  font-size: 19px;
+  color: #ffffff;
+}
+
+.langTag {
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-size: 12px;
+  vertical-align: 2px;
+}
+
+.count {
+  font-size: 17px;
+  color: #d6c8ef;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 2px var(--ink),
+    2px 3px 0 1px rgba(20, 12, 28, 0.4);
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px) rotate(-1deg);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.danger {
+  background: var(--ink-red);
+  color: #fff3e6;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+}
+
+.card {
+  position: relative;
+  aspect-ratio: 63 / 88;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 2px 3px 0 rgba(20, 12, 28, 0.45);
+  transition: transform 0.18s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.card:hover {
+  transform: translateY(-4px) rotate(-2deg) scale(1.06);
+}
+
+.card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 600px) {
+  .box {
+    padding: 16px 12px 12px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  }
+}

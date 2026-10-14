@@ -828,3 +828,33 @@
   opacity: 1;
   filter: brightness(1.15) drop-shadow(0 0 6px rgba(190, 230, 120, 0.8));
 }
+
+/* the purple box beside the ball (the cards no binder holds): a wider glow, its count pencilled on the tan label */
+.boxGlow {
+  width: 300px;
+}
+
+.boxCount {
+  position: absolute;
+  transform: translate(-50%, -50%) rotate(-3deg);
+  font-family: var(--font-press), monospace;
+  font-size: 22px;
+  line-height: 1;
+  color: #4a3a5e;
+  opacity: 0.85;
+  pointer-events: none;
+  animation: boxCountIn 0.4s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+@keyframes boxCountIn {
+  from {
+    transform: translate(-50%, -50%) rotate(-3deg) scale(1.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boxCount {
+    animation: none;
+  }
+}

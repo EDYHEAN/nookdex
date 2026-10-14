@@ -21,7 +21,7 @@ interface Place {
 
 /**
  * "Got it!" on a card found in NookDex OS: a copy lives in one place (lib/binders), so the player says which. Its set's
- * binder when it's on the shelf, a free binder, or a new binder for it (a newcomer's first one).
+ * binder when it's on the shelf, a free binder, the box on the shelf, or a new binder for it (a newcomer's first one).
  */
 export function AddTo({ card }: { card: CardData }) {
   const t = useT();
@@ -59,6 +59,8 @@ export function AddTo({ card }: { card: CardData }) {
       },
     });
   }
+  // no binder of its set on the shelf: the box takes it (lib/binders boxOf), a binder of its set later picks it up
+  if (!setBinder && setId) places.push({ id: "box", label: t("La boîte", "The box"), hint: t("à trier plus tard", "to sort later"), go: () => addCard(card.id, variant) });
   if (!frees.length) {
     places.push({
       id: "new-free",
