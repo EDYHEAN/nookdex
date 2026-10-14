@@ -81,9 +81,8 @@ appelle `g.tick` en boucle pour accélérer. Il passe par `window.nookboy` et `w
 
 ## À faire (prochaines fois)
 
-- **Trophées du défi** (ce soir) : la planche Gemini (prompt ci-dessous), puis les ajouter dans `lib/trophies.ts`,
-  `ORDER_GAME2` dans `scripts/build-trophies.mjs` (nouvelle planche `img/trophies-defi.jpg`), et les `unlock()` dans
-  le moteur (`bossDown`, `finish`).
+- ~~Trophées du défi~~ : faits le 2026-10-14 (planche `img/trophies-defi.jpg`, `ORDER_GAME2`, `defiWon` dans le
+  moteur). « Semaine parfaite » retient les Pokémon gagnés sur l'appareil (localStorage `nookdex:defi-wins`).
 - Retirer l'ancien défi (`dailyOf`, `DAILY_MODS`, `game-daily`…) une fois le 15 passé et son classement plus utile.
 - Régler avec les retours des joueurs : `DEFI_QUOTA`, les PV des boss dans `DEFI_DAYS`, l'XP ×1,8, `defiPower` ×1,5.
 - Idées : un 2e Pokémon par jour (le joueur choisit), des règles du jour en plus (comme l'ancien défi), une

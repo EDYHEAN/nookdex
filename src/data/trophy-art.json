@@ -1,6 +1,6 @@
 {
   "cols": 10,
-  "rows": 8,
+  "rows": 9,
   "cell": 128,
   "index": {
     "first-card": 0,
@@ -78,6 +78,14 @@
     "game-chansey": 72,
     "game-rarecandy": 73,
     "game-revive": 74,
-    "game-top3": 75
+    "game-top3": 75,
+    "defi-first": 76,
+    "defi-fast": 77,
+    "defi-blitz": 78,
+    "defi-week": 79,
+    "defi-titan": 80,
+    "defi-karp": 81,
+    "defi-top1": 82,
+    "game-wave100": 83
   }
 }

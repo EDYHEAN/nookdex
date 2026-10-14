@@ -7,7 +7,7 @@ import {
   BONUSES, BOSSES, COMBOS, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, WAVE_SECONDS, WILD, xpFor,
   DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type Starter, type Wild,
 } from "./data";
-import { DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
+import { DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
 
 /** after each boss, a break: everyone healed, the levels won, shop (Kecleon's), countdown (3-2-1) */
@@ -16,6 +16,8 @@ export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused
 export type Mode = "classic" | "daily" | "coop" | "defi";
 /** the classic and coop runs end there, won once its boss falls */
 export const MAX_WAVE = 100;
+/** the daily challenge's Pokémon won with (dex of their first form), for "defi-week": per device */
+const DEFI_WINS_KEY = "nookdex:defi-wins";
 
 /** what a run is played with: the Pension's levels (none in the daily), the daily's rule */
 export interface RunSetup {
@@ -1127,6 +1129,8 @@ export class Game {
   private finish(won: boolean) {
     const daily = this.setup.daily;
     if (this.setup.mode === "coop") unlock("game-coop");
+    if (won && !this.setup.defi) unlock("game-wave100");
+    if (won && this.setup.defi) this.defiWon(this.players[0].starter.dex, Math.floor(this.time));
     const met = !!daily && this.wave >= daily.target;
     this.lastStats = {
       mode: this.setup.mode, day: daily?.day ?? this.setup.defi?.day, gold: this.gold, dailyBonus: daily ? dailyReward(this.wave, met) : 0, dailyWon: met, won,
@@ -1135,6 +1139,20 @@ export class Game {
     };
     music.stop();
     this.set("over");
+  }
+
+  /** a daily challenge won: its trophies (the week's Pokémon won with are kept on this device) */
+  private defiWon(dex: number, seconds: number) {
+    unlock("defi-first");
+    if (seconds < 300) unlock("defi-fast");
+    if (seconds < 210) unlock("defi-blitz");
+    if (dex === 129) unlock("defi-karp");
+    try {
+      const wins: number[] = JSON.parse(localStorage.getItem(DEFI_WINS_KEY) ?? "[]");
+      if (!wins.includes(dex)) wins.push(dex);
+      localStorage.setItem(DEFI_WINS_KEY, JSON.stringify(wins));
+      if (DEFI_MONS.every((m) => wins.includes(m.dex))) unlock("defi-week");
+    } catch {}
   }
 
   private stepMenu() {
@@ -2173,6 +2191,7 @@ export class Game {
       }
     }
     const xp = (e.w?.xp ?? 0) * (e.elite ? 4 : e.titan ? TITAN.xp : 1);
+    if (e.titan) unlock("defi-titan");
     if (e.boss && (this.setup.defi || e.final)) this.bossDown(e);
     else if (e.boss) {
       unlock("game-boss");

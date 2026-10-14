@@ -45,6 +45,10 @@ export const CHANGELOG: Release[] = [
         fr: "16 nouveaux trophées à gagner dans le jeu, sur leur propre étagère de la vitrine.",
         en: "16 new trophies to win in the game, on their own shelf of the trophy case.",
       },
+      {
+        fr: "8 trophées de plus : gagner le défi du jour (et vite), avec chacun de ses 7 Pokémon, finir premier du jour, abattre un titan… et survivre aux 100 vagues.",
+        en: "8 more trophies: win the daily challenge (and fast), with each of its 7 Pokémon, top the day's board, fell a titan… and survive all 100 waves.",
+      },
     ],
   },
   {

@@ -462,6 +462,8 @@ export default function NookBoy({ origin, onClose }: Props) {
     setSent(rank ?? "error");
     if (rank != null) {
       if (rank <= 3) unlock("game-top3");
+      // the challenge's rank is the day's board
+      if (rank === 1 && run.mode === "defi") unlock("defi-top1");
       gsfx.ok();
       void openLadder(run.mode === "coop" ? 3 : run.mode === "classic" ? 0 : 1);
     } else gsfx.back();

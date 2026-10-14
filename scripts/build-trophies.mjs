@@ -1,5 +1,5 @@
 // Cuts the trophies' painted trinkets out of Gemini's sheets (on white, in a grid, in the order of their ORDER below:
-// img/trophies.jpg 10x6, img/trophies-game.jpg 4x4 for Nook Survivors) into one transparent sprite, public/trophies.webp
+// img/trophies.jpg 10x6, img/trophies-game.jpg 4x4 and img/trophies-defi.jpg 4x2 for Nook Survivors) into one transparent sprite, public/trophies.webp
 // (one CELL px square per trinket, 10 a row), and src/data/trophy-art.json (trophy id -> its place in the sprite).
 // Run: node scripts/build-trophies.mjs
 import fs from "node:fs";
@@ -26,14 +26,23 @@ const ORDER_GAME = [
   "game-shop", "game-pension", "game-daily", "game-coop",
   "game-chansey", "game-rarecandy", "game-revive", "game-top3",
 ];
+/** the daily challenge's sheet (2026-10-14), painted in the top 1300 px of a taller picture */
+const ORDER_GAME2 = [
+  "defi-first", "defi-fast", "defi-blitz", "defi-week",
+  "defi-titan", "defi-karp", "defi-top1", "game-wave100",
+];
 const SHEETS = [
   { src: "img/trophies.jpg", cols: 10, rows: 6, order: ORDER },
   { src: "img/trophies-game.jpg", cols: 4, rows: 4, order: ORDER_GAME },
+  { src: "img/trophies-defi.jpg", cols: 4, rows: 2, order: ORDER_GAME2, height: 1300 },
 ];
 
 /** one sheet's trinkets, placed in the sprite from cell offset on */
-async function cutSheet({ src: SRC, cols: COLS, rows: ROWS, order: ORDER }, offset) {
-  const { data, info } = await sharp(SRC).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+async function cutSheet({ src: SRC, cols: COLS, rows: ROWS, order: ORDER, height }, offset) {
+  // white paper left under the grid: only the painted part
+  const img = sharp(SRC);
+  if (height) img.extract({ left: 0, top: 0, width: (await sharp(SRC).metadata()).width, height });
+  const { data, info } = await img.removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H } = info;
   const px = (i) => [data[i * 3], data[i * 3 + 1], data[i * 3 + 2]];
   /** how far from paper white a pixel is (0 = white) */
