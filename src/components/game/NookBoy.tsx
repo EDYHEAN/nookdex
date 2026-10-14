@@ -96,8 +96,6 @@ export default function NookBoy({ origin, onClose }: Props) {
   /** the run's gold went back to the purse */
   const settled = useRef(true);
   const [rewards, setRewards] = useState<string[]>([]);
-  /** Mewtwo, a Pokémon of its own for the players given it (game_rewards "skin-mewtwo") */
-  const mewtwo = rewards.includes("skin-mewtwo");
   /** picking the starters: solo, or coop (P1's pick kept while P2 chooses) */
   const [selectMode, setSelectMode] = useState<"classic" | "coop">("classic");
   const [coopFirst, setCoopFirst] = useState<number | null>(null);
@@ -147,7 +145,8 @@ export default function NookBoy({ origin, onClose }: Props) {
   useEffect(() => {
     void myRewards().then(setRewards);
   }, []);
-  useEffect(() => g?.setRoster(mewtwo), [g, mewtwo]);
+  // Mewtwo, Gengar: Pokémon of their own for the players given them (game_rewards "skin-mewtwo", "skin-gengar")
+  useEffect(() => g?.setRoster(rewards), [g, rewards]);
 
   // The boot: the logo slides down, "ding", then the menu.
   useEffect(() => {
