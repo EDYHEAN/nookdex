@@ -5,7 +5,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { supabase, useCloud } from "./cloud";
 import { STUDIO_EMAIL_HASHES } from "./site";
-import { ITEM, itemsOf, lookOf, type Look } from "./skins";
+import { BUNDLES, ITEM, ITEMS, itemsOf, lookOf, type Look } from "./skins";
 
 export * from "./skins";
 
@@ -19,6 +19,16 @@ const sha256 = async (s: string) =>
   [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s.trim().toLowerCase())))]
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+
+let preloaded = false;
+/** The shop's pictures fetched and decoded while the room is idle, so the shop opens at once */
+export function preloadShop() {
+  if (preloaded || typeof window === "undefined") return;
+  preloaded = true;
+  const go = () => [...ITEMS, ...BUNDLES].forEach((x) => void Object.assign(new Image(), { src: x.icon }).decode().catch(() => {}));
+  if ("requestIdleCallback" in window) window.requestIdleCallback(go, { timeout: 4000 });
+  else setTimeout(go, 2000);
+}
 
 /** The shop is there: in dev, for everyone once launched, else for Johan's accounts only. */
 export function useShopOpen() {

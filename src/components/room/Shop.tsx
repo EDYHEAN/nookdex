@@ -17,8 +17,33 @@ const RARITY: Record<Rarity, { fr: string; en: string }> = {
 
 type Thing = Item | Bundle;
 const isBundle = (x: Thing): x is Bundle => "items" in x;
-/** days left before it leaves the shop (its last day counts) */
-const daysLeft = (until?: string) => (until ? Math.max(0, Math.ceil((new Date(`${until}T23:59:59`).getTime() - Date.now()) / 86_400_000)) : null);
+/** the moment it leaves the shop: the end of its last day */
+const endOf = (until: string) => new Date(`${until}T23:59:59`).getTime();
+
+/** The time left before it leaves the shop, ticking every second: a game shop's "leaves in…" */
+function Countdown({ until, big }: { until: string; big?: boolean }) {
+  const t = useT();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const left = Math.max(0, Math.floor((endOf(until) - now) / 1000));
+  const d = Math.floor(left / 86400);
+  const h = Math.floor((left % 86400) / 3600);
+  const m = Math.floor((left % 3600) / 60);
+  const sec = left % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    <span className={`${styles.timer} ${big ? styles.timerBig : ""}`} role="timer">
+      <span className={styles.timerLabel}>{t("Quitte la boutique dans", "Leaves the shop in")}</span>
+      <b>
+        {d > 0 && `${d} ${t("j", "d")} `}
+        {pad(h)} h {pad(m)} min {pad(sec)} s
+      </b>
+    </span>
+  );
+}
 
 /**
  * The shop (lib/shop, docs/skins.md), an item shop like a game's: the featured bundle, the items one by one on tiles
@@ -40,7 +65,7 @@ export function Shop({ onClose }: { onClose: () => void }) {
 
   const featured = BUNDLES.filter(onSale);
   const items = ITEMS.filter(onSale);
-  const days = daysLeft(featured[0]?.until);
+  const until = featured[0]?.until;
   const thing = open ? (BUNDLE.get(open) ?? ITEM.get(open)) : undefined;
 
   return (
@@ -79,11 +104,7 @@ export function Shop({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </nav>
-          {days != null && tab === "shop" && (
-            <span className={styles.timer}>
-              ⏳ {days > 1 ? t(`Quitte la boutique dans ${days} j`, `Leaves the shop in ${days} days`) : t("Dernier jour !", "Last day!")}
-            </span>
-          )}
+          {until && tab === "shop" && <Countdown until={until} />}
           <button className={styles.close} onClick={onClose} onPointerEnter={sfx.hover} aria-label={t("Fermer la boutique", "Close the shop")}>
             ✕
           </button>
@@ -142,6 +163,7 @@ function Tile({ thing, index, big, onOpen }: { thing: Thing; index: number; big?
     >
       <span className={styles.rays} aria-hidden />
       <img className={thing.cutout ? styles.cutout : styles.framed} src={thing.icon} alt="" draggable={false} />
+      {big && thing.until && <span className={styles.ribbon}>{t("Édition limitée", "Limited edition")}</span>}
       <span className={styles.badges}>
         {!mine && <span className={styles.badgeNew}>{t("NOUVEAU", "NEW")}</span>}
         {worth && !mine && <span className={styles.badgeDeal}>−{Math.round((1 - thing.price / worth) * 100)} %</span>}

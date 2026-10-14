@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { MAX_BINDERS, boxOf, pocketsOf, shelfBinders, wantsOf } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
@@ -100,7 +100,16 @@ function useCamera(compact: boolean) {
   }, [vp.w, vp.h, compact]);
 }
 
-export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, onOpenTrophies, onOpenBox, onOpenGame, veiled, behind }: Props) {
+/**
+ * Drawn again only when what it shows changes: its callbacks only set App's state (stable setters), so a panel opening
+ * over the room (the shop, the trophy case…) doesn't redraw it before the panel shows.
+ */
+export const PaintedRoom = memo(
+  PaintedRoomView,
+  (a, b) => a.openId === b.openId && a.compact === b.compact && a.paused === b.paused && a.veiled === b.veiled && a.behind === b.behind,
+);
+
+function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, onOpenTrophies, onOpenBox, onOpenGame, veiled, behind }: Props) {
   const uiLang = useLang();
   const router = useRouter();
   /** "EN" on an English binder of the French site (and the other way round): the language it isn't in */

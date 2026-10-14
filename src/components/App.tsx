@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { APP_VERSION } from "@/data/changelog";
 import { MAX_BINDERS, shelfBinders } from "@/lib/binders";
 import { bareId, keyOf } from "@/lib/cardLang";
@@ -26,7 +26,7 @@ import { SavePrompt } from "./room/SavePrompt";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
 import { TrophyCase } from "./room/TrophyCase";
-import { itemsOf, refreshOwned, useShopOpen, useSkins, wear } from "@/lib/shop";
+import { itemsOf, preloadShop, refreshOwned, useShopOpen, useSkins, wear } from "@/lib/shop";
 import { Shop, TryOnBar } from "./room/Shop";
 import { Box } from "./room/Box";
 import { TrophyToasts } from "./room/TrophyToast";
@@ -88,6 +88,9 @@ export function App() {
   useEffect(() => {
     if (shopOpen && cloud.email) void refreshOwned();
   }, [shopOpen, cloud.email]);
+  useEffect(() => {
+    if (shopOpen) preloadShop();
+  }, [shopOpen]);
   // back from Stripe's payment page (app/api/shop/checkout): the purchase comes with the webhook, a moment later.
   // Once it's in, the skin goes on the desk and the catalogue opens on it.
   useEffect(() => {
@@ -236,6 +239,8 @@ export function App() {
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
   const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || shop || !!game;
+  // the room pauses just after a panel opens: the panel is drawn first, the room's redraw doesn't hold it back
+  const roomPaused = useDeferredValue(busy);
   // A nickname, then a first binder; the account is offered later (SavePrompt).
   const showWelcome =
     entered &&
@@ -264,7 +269,7 @@ export function App() {
       <PaintedRoom
         openId={openBinder?.id ?? null}
         compact={compact}
-        paused={busy}
+        paused={roomPaused}
         onOpen={(binder) => setOpen({ binderId: binder.id })}
         onOpenComputer={(r) => setComputer({ x: r.left + r.width / 2, y: r.top + r.height / 2 })}
         onAddBinder={() => setAdding(true)}

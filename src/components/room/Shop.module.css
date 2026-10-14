@@ -8,9 +8,8 @@
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(16, 10, 30, 0.7);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  /* no blur: blurring the whole animated room behind made the opening stutter */
+  background: rgba(14, 9, 28, 0.78);
 }
 
 .shop {
@@ -76,14 +75,66 @@
   color: var(--ink);
 }
 
+/* the time left: loud, like a game shop's */
 .timer {
   margin-left: auto;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: rgba(255, 90, 60, 0.18);
-  color: #ffb199;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ff5a3c, #c41d3a);
+  color: #fff;
+  box-shadow:
+    0 0 0 2px #000,
+    0 0 22px rgba(255, 80, 60, 0.55),
+    3px 4px 0 1px rgba(0, 0, 0, 0.45);
+  animation: timerPulse 2s ease-in-out infinite;
+}
+
+.timerLabel {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.timer b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
   font-size: 16px;
-  box-shadow: inset 0 0 0 1px rgba(255, 120, 90, 0.4);
+  color: #ffe14a;
+  text-shadow: 2px 2px 0 #000;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes timerPulse {
+  50% {
+    box-shadow:
+      0 0 0 2px #000,
+      0 0 34px rgba(255, 90, 60, 0.85),
+      3px 4px 0 1px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* the featured pack's "limited edition" label, top right */
+.ribbon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #ff5a3c, #c41d3a);
+  color: #fff;
+  font-family: var(--font-press), monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  transform: rotate(2deg);
+  box-shadow:
+    0 0 0 2px #000,
+    2px 3px 0 1px rgba(0, 0, 0, 0.4);
 }
 
 .close {
@@ -177,13 +228,18 @@
   --c2: #8a3a0a;
 }
 
-/* light rays turning slowly behind the art */
+/* light rays behind the art: still on the small tiles (cheap), turning on the featured one and a card */
 .rays {
   position: absolute;
   inset: -40%;
   background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.12) 0deg 8deg, transparent 8deg 22deg);
-  animation: raysTurn 40s linear infinite;
   pointer-events: none;
+}
+
+.big .rays,
+.cardArt .rays {
+  will-change: transform;
+  animation: raysTurn 40s linear infinite;
 }
 
 @keyframes raysTurn {
@@ -648,6 +704,11 @@
 
   .timer {
     margin-left: 0;
+    align-items: flex-start;
+  }
+
+  .timer b {
+    font-size: 13px;
   }
 
   .body {
@@ -697,6 +758,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .timer,
   .rays,
   .tile:hover .shine {
     animation: none;
