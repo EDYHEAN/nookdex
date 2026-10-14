@@ -111,3 +111,8 @@
   color: #ffd35a;
   transform: translateY(-2px);
 }
+
+/* the shop's bag: warm, it's the one new button */
+.shopBtn {
+  color: #ff9f43;
+}

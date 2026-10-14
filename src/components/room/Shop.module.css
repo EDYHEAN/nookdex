@@ -1,0 +1,296 @@
+/* The shop: a 90s mail-order catalogue on paper, its prices on starburst stickers; the try-on strip at the bottom. */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 74;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(24, 16, 36, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.catalogue {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(820px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 26px 26px 18px;
+  border-radius: 6px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 3px var(--ink),
+    9px 11px 0 3px rgba(20, 12, 28, 0.45),
+    0 30px 80px rgba(0, 0, 0, 0.55);
+}
+
+.close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.close:hover {
+  transform: rotate(90deg) scale(1.08);
+}
+
+/* the catalogue's cover band */
+.cover {
+  margin: 0 40px 18px 0;
+  padding-bottom: 14px;
+  border-bottom: 3px double var(--ink);
+}
+
+.issue {
+  margin: 0 0 6px;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-red);
+}
+
+.cover h2 {
+  margin: 0 0 6px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 20px;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 18px;
+  color: var(--ink-soft);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.photo {
+  position: relative;
+  padding: 8px 8px 26px;
+  background: #fffaf0;
+  box-shadow:
+    0 0 0 2px var(--ink),
+    4px 5px 0 1px rgba(20, 12, 28, 0.3);
+  transform: rotate(-1.5deg);
+}
+
+.photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+/* the price, a starburst sticker on the photo's corner */
+.price {
+  position: absolute;
+  right: -14px;
+  bottom: 6px;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  clip-path: polygon(50% 0, 61% 18%, 82% 10%, 79% 32%, 100% 39%, 85% 55%, 98% 74%, 76% 77%, 72% 98%, 54% 86%, 36% 100%, 30% 79%, 8% 82%, 15% 61%, 0 47%, 19% 35%, 12% 13%, 34% 18%);
+  transform: rotate(12deg);
+  animation: stickerIn 0.5s 0.3s cubic-bezier(0.34, 1.8, 0.5, 1) both;
+}
+
+.owned {
+  background: #9dff7a;
+}
+
+@keyframes stickerIn {
+  from {
+    transform: rotate(-30deg) scale(0);
+  }
+}
+
+.text h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 17px;
+}
+
+.text p {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.text ul {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  font-size: 17px;
+}
+
+.text li::before {
+  content: "✦ ";
+  color: var(--ink-gold);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--paper-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 2px var(--ink),
+    3px 4px 0 1px rgba(20, 12, 28, 0.35);
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px) rotate(-1deg);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.primary {
+  background: #ff9f43;
+}
+
+.checkout {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 2px dashed var(--ink-soft);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.checkout p {
+  margin: 0;
+  font-size: 17px;
+}
+
+.note {
+  color: var(--ink-red);
+}
+
+.mailForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 16 px at least: no zoom on a phone when typing */
+.mailForm input {
+  min-width: 200px;
+  padding: 7px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: #fffaf0;
+  font: inherit;
+  font-size: 17px;
+}
+
+.small {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid var(--paper-3);
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+/* trying a skin on: a strip at the bottom of the room */
+.tryBar {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  z-index: 73;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: calc(min(560px, 100vw - 32px) / -2);
+  width: min(560px, calc(100vw - 32px));
+  padding: 10px 12px 10px 16px;
+  border-radius: 8px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain);
+  color: var(--ink);
+  font-size: 18px;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    5px 6px 0 2px rgba(20, 12, 28, 0.45);
+}
+
+.tryBar span {
+  flex: 1;
+}
+
+.tryBar b {
+  font-weight: normal;
+  color: var(--ink-red);
+}
+
+@media (max-width: 640px) {
+  .catalogue {
+    padding: 20px 14px 14px;
+  }
+
+  .item {
+    grid-template-columns: 1fr;
+  }
+
+  .price {
+    width: 76px;
+    height: 76px;
+    font-size: 11px;
+  }
+
+  .tryBar {
+    flex-wrap: wrap;
+  }
+}

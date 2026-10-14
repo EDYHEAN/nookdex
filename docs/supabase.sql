@@ -298,3 +298,23 @@ revoke all on function public.game_submit2(text, integer, integer, integer, inte
 grant execute on function public.game_top2(text, text, date, integer) to anon, authenticated;
 grant execute on function public.game_submit2(text, integer, integer, integer, integer, integer, text, date) to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------------------------------------------------
+-- The shop (docs/skins.md): the skins each player bought. Written by the Stripe webhook only (app/api/shop/webhook,
+-- with the service role key), read by the player, one row per Stripe Checkout session.
+-- ---------------------------------------------------------------------------------------------------------------
+create table if not exists public.purchases (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  skin text not null,
+  session_id text not null unique,
+  amount integer,
+  currency text,
+  created_at timestamptz not null default now()
+);
+create index if not exists purchases_user on public.purchases (user_id);
+alter table public.purchases enable row level security;
+drop policy if exists "a player reads their purchases" on public.purchases;
+create policy "a player reads their purchases" on public.purchases for select to authenticated using (auth.uid() = user_id);
+revoke insert, update, delete on public.purchases from anon, authenticated;
+notify pgrst, 'reload schema';

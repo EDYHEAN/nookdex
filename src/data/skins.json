@@ -1,0 +1,19 @@
+[
+  {
+    "id": "halloween",
+    "name": { "fr": "Halloween", "en": "Halloween" },
+    "blurb": { "fr": "Le bureau se déguise : citrouilles, chauves-souris et pleine lune orange.", "en": "The desk dresses up: pumpkins, bats and an orange full moon." },
+    "contents": [
+      { "fr": "Une nuit d'Halloween derrière la fenêtre", "en": "A Halloween night through the window" },
+      { "fr": "Citrouilles, bougies et toiles d'araignée", "en": "Pumpkins, candles and cobwebs" },
+      { "fr": "Warwick en sorcier", "en": "Warwick as a witch" },
+      { "fr": "Une araignée qui descend de sa toile", "en": "A spider dropping from its web" },
+      { "fr": "La lampe à lave citrouille", "en": "The pumpkin lava lamp" },
+      { "fr": "Une radio lofi d'Halloween", "en": "A Halloween lofi radio" }
+    ],
+    "price": 2.99,
+    "tint": "rgba(255, 128, 40, 0.22)",
+    "music": "spooky",
+    "lava": { "name": "citrouille", "nameEn": "pumpkin", "fill": "#ff8a1f", "light": "#ffd08a", "line": "#5a2a08", "glow": "rgba(255,140,40,0.34)" }
+  }
+]

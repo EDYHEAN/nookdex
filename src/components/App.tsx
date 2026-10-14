@@ -26,7 +26,8 @@ import { SavePrompt } from "./room/SavePrompt";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
 import { TrophyCase } from "./room/TrophyCase";
-import { useSkins } from "@/lib/shop";
+import { refreshOwned, useShopOpen, useSkins } from "@/lib/shop";
+import { Shop, TryOnBar } from "./room/Shop";
 import { Box } from "./room/Box";
 import { TrophyToasts } from "./room/TrophyToast";
 import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
@@ -63,6 +64,9 @@ export function App() {
   const [trophies, setTrophies] = useState<{ x: number; y: number } | null>(null);
   /** the box on the shelf, open (from where it is on screen) */
   const [box, setBox] = useState<{ x: number; y: number } | null>(null);
+  /** the shop (lib/shop): hidden for players until it opens */
+  const shopOpen = useShopOpen();
+  const [shop, setShop] = useState(false);
   /** the Game Boy, zoomed in (where it is on screen) */
   const [game, setGame] = useState<{ x: number; y: number } | null>(null);
   /**
@@ -80,6 +84,31 @@ export function App() {
   const [revealed, setRevealed] = useState(false);
   const profile = useStore((s) => s.profile);
   const cloud = useCloud();
+  // the skins this account bought, read again on each sign-in
+  useEffect(() => {
+    if (shopOpen && cloud.email) void refreshOwned();
+  }, [shopOpen, cloud.email]);
+  // back from Stripe's payment page (app/api/shop/checkout): the purchase comes with the webhook, a moment later.
+  // Once it's in, the skin goes on the desk and the catalogue opens on it.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (!q.has("shop")) return;
+    const bought = q.get("bought");
+    window.history.replaceState(null, "", window.location.pathname);
+    if (q.get("shop") !== "paid" || !bought) return;
+    let tries = 0;
+    const timer = window.setInterval(async () => {
+      await refreshOwned();
+      const owned = useSkins.getState().owned.includes(bought);
+      if (!owned && ++tries < 20) return;
+      clearInterval(timer);
+      if (!owned) return;
+      useSkins.setState({ equipped: bought, trying: null });
+      sfx.trophy("gold");
+      setShop(true);
+    }, 2000);
+    return () => clearInterval(timer);
+  }, []);
   /** the account was offered this visit: the cat waits for another one */
   const [saveAsked, setSaveAsked] = useState(false);
   const onSaveAsked = useCallback(() => setSaveAsked(true), []);
@@ -206,7 +235,7 @@ export function App() {
   };
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
-  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || !!game;
+  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || shop || !!game;
   // A nickname, then a first binder; the account is offered later (SavePrompt).
   const showWelcome =
     entered &&
@@ -327,6 +356,9 @@ export function App() {
 
       <AnimatePresence>{trophies && <TrophyCase key="trophies" origin={trophies} onClose={() => setTrophies(null)} />}</AnimatePresence>
 
+      <AnimatePresence>{shop && <Shop key="shop" onClose={() => setShop(false)} />}</AnimatePresence>
+      {shopOpen && !busy && <TryOnBar onOpenShop={() => setShop(true)} />}
+
       <AnimatePresence>
         {box && (
           <Box
@@ -381,6 +413,22 @@ export function App() {
 
       {/* while a binder, the OS or a menu covers the room, only the sound button stays (their own buttons go there) */}
       <div className={styles.corner}>
+        {shopOpen && !busy && (
+          <button
+            className={`${styles.iconBtn} ${styles.shopBtn}`}
+            onClick={() => {
+              sfx.pop();
+              setShop(true);
+            }}
+            aria-label={tr("La boutique", "The shop")}
+            title={tr("La boutique", "The shop")}
+          >
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
+              <path d="M5 8h14l-1.2 12H6.2z" fill="currentColor" />
+              <path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          </button>
+        )}
         {compact && !busy && (
           <>
             <button
