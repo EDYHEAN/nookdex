@@ -25,10 +25,10 @@ export const NAMES: Record<number, Txt> = {
   76: ["Grolem", "Golem"], 89: ["Grotadmorv", "Muk"], 112: ["Rhinoféros", "Rhydon"], 142: ["Ptéra", "Aerodactyl"],
   352: ["Kecleon", "Kecleon"],
   // forms get a number of their own: 10000 + the dex number
-  10150: ["Méga-Mewtwo Y", "Mega Mewtwo Y"],
+  10150: ["Méga-Mewtwo Y", "Mega Mewtwo Y"], 10094: ["Méga-Ectoplasma", "Mega Gengar"],
 };
 
-export type BasicKind = "whip" | "ember" | "water" | "bolt" | "psycut";
+export type BasicKind = "whip" | "ember" | "water" | "bolt" | "psycut" | "shadowball";
 
 export interface Starter {
   dex: number;
@@ -47,7 +47,7 @@ export interface Starter {
   /** max HP won per level (2 by default) */
   hpPerLevel?: number;
   /** a move of its own, always there, outside the 4 slots */
-  sig?: "psystrike";
+  sig?: "psystrike" | "phantom";
 }
 
 export type Elem = "grass" | "fire" | "water" | "elec" | "ice" | "ghost" | "ground" | "psy" | "normal" | "fly" | "dragon" | "poison" | "fight";
@@ -119,6 +119,30 @@ export const MEWTWO: Starter = {
   hpPerLevel: 5,
   sig: "psystrike",
 };
+
+/**
+ * Gengar, the same deal for the players given it (Johan, 2026-10-14: godlike too, with moves of its own): Shadow Balls
+ * that home in, Phantom Force (it sinks into the shadows, untouchable, then bursts out and puts the survivors to sleep:
+ * asleep + Ghost is the nightmare combo), Curse (each foe it knocks out sends a wisp at the next one); Mega Gengar at 16,
+ * whose Shadow Tag slows every foe close to it. Never in the daily challenge.
+ */
+export const GENGAR: Starter = {
+  dex: 94,
+  evolves: [[10094, 16]],
+  hp: 155,
+  speed: 80,
+  basic: { kind: "shadowball", name: ["Ball'Ombre", "Shadow Ball"], every: 0.45, dmg: 13 },
+  blurb: ["Légendaire. Hantise, Malédiction : chaque K.O. en hante un autre.", "Legendary. Phantom Force, Curse: each knockout haunts another."],
+  type: "ghost",
+  reward: "skin-gengar",
+  power: 1.35,
+  growth: 0.03,
+  hpPerLevel: 5,
+  sig: "phantom",
+};
+
+/** the characters given by hand (game_rewards), after the four starters on the select screen */
+export const REWARD_STARTERS: Starter[] = [MEWTWO, GENGAR];
 
 /* ---------------- moves (auto-cast on their cooldown, or keys 1-4) and held items ---------------- */
 

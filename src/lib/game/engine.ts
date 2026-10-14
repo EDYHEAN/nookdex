@@ -4,7 +4,7 @@
 import { unlock } from "@/lib/trophyStore";
 import { gsfx, music } from "./audio";
 import {
-  BONUSES, BOSSES, COMBOS, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MEWTWO, MOVES, NAMES, POOLS, RARITY, RETIRE, STARTERS, WAVE_SECONDS, WILD, xpFor,
+  BONUSES, BOSSES, COMBOS, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, WAVE_SECONDS, WILD, xpFor,
   DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type Starter, type Wild,
 } from "./data";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
@@ -140,7 +140,7 @@ interface Enemy {
 }
 
 interface Shot {
-  kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe" | "blast" | "bubble" | "scald" | "bone" | "sludge" | "aura" | "psycut";
+  kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe" | "blast" | "bubble" | "scald" | "bone" | "sludge" | "aura" | "psycut" | "gball";
   x: number;
   y: number;
   vx: number;
@@ -274,8 +274,10 @@ export class Player {
   hurtFlash: number = 0;
   cam: { x: number; y: number } = { x: 0, y: 0 };
   aimV: { x: number; y: number } = { x: 0, y: 1 };
-  /** Mewtwo's Psystrike, its next one */
+  /** Mewtwo's Psystrike, Gengar's Phantom Force: its next one */
   sigT = 2;
+  /** Gengar sunk into the shadows (Phantom Force): how long until it bursts out */
+  phaseT = 0;
   /** Focus Sash: when it can save them again */
   sashCd = 0;
   /** knocked out in a coop run, waiting for a partner to get them up */
@@ -585,10 +587,10 @@ export class Game {
   private menuT = 0;
   private wanderers: { dex: number; x: number; y: number; vx: number; t: number }[] = [];
   selected = 0;
-  /** who can be picked: the four starters, and Mewtwo for the players given it */
+  /** who can be picked: the four starters, and Mewtwo or Gengar for the players given them (game_rewards) */
   roster: Starter[] = STARTERS;
-  setRoster(mewtwo: boolean) {
-    this.roster = mewtwo ? [...STARTERS, MEWTWO] : STARTERS;
+  setRoster(rewards: string[]) {
+    this.roster = [...STARTERS, ...REWARD_STARTERS.filter((s) => rewards.includes(s.reward!))];
     if (this.selected >= this.roster.length) this.selected = 0;
   }
 
@@ -710,7 +712,7 @@ export class Game {
       time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1,
       bossAlive: null, breakAt: 0, shake: 0, flash: 0, dyingT: 0,
     });
-    // the daily is the same for all: its own starter, never Mewtwo
+    // the daily is the same for all: its own starter, never a reward one
     const picks = setup.daily ? [STARTERS[setup.daily.starter]] : setup.mode === "coop" && i2 != null ? [this.roster[i], this.roster[i2]] : [this.roster[i]];
     this.players = picks.map((s, id) => {
       const p = new Player(id);
@@ -1278,6 +1280,15 @@ export class Game {
         this.shoot("psycut", ox, oy, Math.cos(a), Math.sin(a), 220, 4, dmg, 2 + this.stage, 0.75, "psy");
       }
       gsfx.shoot("bolt");
+    } else if (b.kind === "shadowball") {
+      // Shadow Ball: ghostly orbs that home in on the closest foe and go through
+      const n = 2 + this.stage;
+      const target = this.nearest(this.x, this.y, 170);
+      for (let i = 0; i < n; i++) {
+        const a = Math.atan2(ay, ax) + (i - (n - 1) / 2) * 0.35;
+        this.shoot("gball", ox, oy, Math.cos(a), Math.sin(a), 170, 4, dmg, 1 + this.stage, 1.3, "ghost", target);
+      }
+      gsfx.shoot("shadow");
     } else {
       // a bolt to the foe closest to the aim, then it jumps from foe to foe
       const reach = 125 * this.area;
@@ -1699,9 +1710,14 @@ export class Game {
     return this.enemies.filter((e) => !e.dead && Math.abs(e.x - this.cam.x) < SW / 2 && Math.abs(e.y - this.cam.y) < SH / 2);
   }
 
-  /** Mewtwo's Psystrike: every few seconds, a psychic blast on every foe on screen (Mega Mewtwo: sooner) */
+  /** a move of its own, outside the 4 slots (Mewtwo, Gengar) */
   private stepSig(dt: number) {
-    if (this.starter.sig !== "psystrike") return;
+    if (this.starter.sig === "psystrike") this.stepPsystrike(dt);
+    else if (this.starter.sig === "phantom") this.stepPhantom(dt);
+  }
+
+  /** Mewtwo's Psystrike: every few seconds, a psychic blast on every foe on screen (Mega Mewtwo: sooner) */
+  private stepPsystrike(dt: number) {
     const p = this.cur;
     p.sigT -= dt;
     if (p.sigT > 0) return;
@@ -1721,6 +1737,50 @@ export class Game {
     this.flash = 0.35;
     this.shake = Math.max(this.shake, 5);
     gsfx.thunder();
+  }
+
+  /**
+   * Gengar's Phantom Force: every few seconds it sinks into the shadows, untouchable, then bursts out; the foes around it
+   * that hold on fall asleep (Hypnosis), which the nightmare combo turns into double Ghost damage. Mega Gengar: sooner,
+   * wider, and its Shadow Tag slows every foe close to it.
+   */
+  private stepPhantom(dt: number) {
+    const p = this.cur;
+    if (this.stage) for (const e of this.around(this.x, this.y, 70 * this.area)) if (!e.boss) e.slowT = Math.max(e.slowT, 0.3);
+    if (p.phaseT > 0) {
+      p.phaseT -= dt;
+      p.invuln = Math.max(p.invuln, p.phaseT + 0.1);
+      if (Math.random() < 0.6) this.part(this.x + rand(-10, 10), this.y - rand(0, 6), rand(-10, 10), -rand(10, 30), "ghost2", 0.5, 2, 0, "puff");
+      if (p.phaseT <= 0) this.phantomBurst();
+      return;
+    }
+    p.sigT -= dt;
+    if (p.sigT > 0) return;
+    if (!this.around(this.x, this.y, 130).length) {
+      p.sigT = 0.3;
+      return;
+    }
+    p.sigT = (this.stage ? 4.5 : 6) * this.haste;
+    p.phaseT = 0.7;
+    for (let i = 0; i < 10; i++) this.part(this.x + rand(-8, 8), this.y - rand(0, 16), rand(-30, 30), rand(-20, 10), "ghost", 0.5, 3, 0, "puff");
+    gsfx.shoot("shadow");
+  }
+
+  private phantomBurst() {
+    const R = (this.stage ? 110 : 90) * this.area;
+    const dmg = (40 + 8 * this.level) * this.power;
+    for (const e of this.around(this.x, this.y, R)) {
+      this.damage(e, dmg, (e.x - this.x) * 2, (e.y - this.y) * 2, "ghost", true);
+      if (!e.boss && !e.dead) e.sleepT = Math.max(e.sleepT, 1.6);
+    }
+    this.fx.push({ kind: "ring", x: this.x, y: this.y, t: 0, life: 0.45, r: R, elem: "ghost" });
+    for (let i = 0; i < 18; i++) {
+      const a = (i / 18) * Math.PI * 2;
+      this.part(this.x + Math.cos(a) * 8, this.y - 6 + Math.sin(a) * 6, Math.cos(a) * R * 1.6, Math.sin(a) * R * 1.2, i % 2 ? "ghost" : "ghost2", 0.45, 3, 0, "puff");
+    }
+    this.flash = 0.25;
+    this.shake = Math.max(this.shake, 6);
+    gsfx.boom();
   }
 
   /** a poison that holds (Twisted Spoon: stronger) */
@@ -1884,6 +1944,14 @@ export class Game {
     if (bell) this.hp = Math.min(this.maxHp, this.hp + 0.3 * bell);
     for (let i = 0; i < 6; i++) this.part(e.x + rand(-4, 4), e.y - 6, rand(-25, 25), rand(-30, 0), "white", 0.45, 3, -10, "puff");
     if (e.w?.act === "explode") this.explode(e, false);
+    // Gengar's Curse: each foe it knocks out sends a wisp at the next one (and that one's at the next...)
+    if (this.starter.sig === "phantom" && !e.boss && this.shots.length < 250) {
+      const next = this.nearest(e.x, e.y, 130);
+      if (next) {
+        const dx = next.x - e.x, dy = next.y - e.y, d = Math.hypot(dx, dy) || 1;
+        this.shoot("gball", e.x, e.y - 8, dx / d, dy / d, 150, 3, (12 + 3 * this.level) * this.power, 0, 1.5, "ghost", next);
+      }
+    }
     const xp = (e.w?.xp ?? 0) * (e.elite ? 4 : 1);
     if (e.boss) {
       unlock("game-boss");
@@ -2327,7 +2395,7 @@ export class Game {
     for (const s of this.shots) {
       s.t += dt;
       s.life -= dt;
-      if ((s.kind === "leaf" || s.kind === "swift" || s.kind === "aura") && s.target) {
+      if ((s.kind === "leaf" || s.kind === "swift" || s.kind === "aura" || s.kind === "gball") && s.target) {
         if (s.target.dead) s.target = this.nearest(s.x, s.y, 120);
         if (s.target) {
           const dx = s.target.x - s.x, dy = s.target.y - 8 - s.y;
@@ -2368,7 +2436,7 @@ export class Game {
       if (s.kind === "aura" && Math.random() < 0.5) this.part(s.x + rand(-3, 3), s.y + rand(-3, 3), 0, -6, "fight2", 0.3, 1, 0, "spark");
       if (s.kind === "sludge" && Math.random() < 0.3) this.part(s.x, s.y, 0, 10, "poison", 0.3, 1, 60, "dot");
       if (s.kind === "ember" && Math.random() < 0.5) this.part(s.x, s.y, rand(-8, 8), rand(-14, 0), "fire2", 0.25, 1, 0, "dot");
-      if (s.kind === "shadow" && Math.random() < 0.6) this.part(s.x + rand(-s.r, s.r), s.y + rand(-s.r, s.r), 0, -8, "ghost2", 0.4, 1, 0, "dot");
+      if ((s.kind === "shadow" || s.kind === "gball") && Math.random() < 0.6) this.part(s.x + rand(-s.r, s.r), s.y + rand(-s.r, s.r), 0, -8, "ghost2", 0.4, 1, 0, "dot");
       if (s.kind === "swift" && Math.random() < 0.4) this.part(s.x, s.y, 0, 0, "gold", 0.3, 1, 0, "spark");
       for (const e of this.around(s.x, s.y + 8, s.r + 12)) {
         if (s.life <= 0) break;
@@ -2964,7 +3032,9 @@ export class Game {
       return;
     }
     for (const t of this.trail) g.sprite(ctx, look, "Walk", 0, t.dir, t.x + ox, t.y + oy - 8, { white: true, alpha: 0.5 * (1 - t.t / 0.25) });
-    if (this.invuln > 0 && this.hurtT <= 0 && this.dashT <= 0 && Math.floor(this.invuln * 20) % 2) return;
+    // Gengar sunk into the shadows (Phantom Force): a faint shape, no blinking
+    const sunk = this.cur.phaseT > 0;
+    if (!sunk && this.invuln > 0 && this.hurtT <= 0 && this.dashT <= 0 && Math.floor(this.invuln * 20) % 2) return;
     let name: AnimName = this.moving ? "Walk" : "Idle";
     let t = this.animT;
     if (this.hurtT > 0) {
@@ -2975,7 +3045,7 @@ export class Game {
       t = this.starter.basic.every - this.basicT;
     }
     const a = anim(look, name);
-    g.sprite(ctx, look, name, frameAt(a, t, name !== "Shoot"), this.dir, this.x + ox, this.y + oy - 8);
+    g.sprite(ctx, look, name, frameAt(a, t, name !== "Shoot"), this.dir, this.x + ox, this.y + oy - 8, sunk ? { alpha: 0.3 } : undefined);
     if (this.shieldT > 0) {
       ctx.strokeStyle = g.c.grassFx2;
       ctx.globalAlpha = 0.5 + Math.sin(this.time * 20) * 0.2;
@@ -3051,8 +3121,9 @@ export class Game {
         // Razor Leaf: a leaf spinning a quarter at a time
         pix(ctx, g, PIX.leaf, x, y, Math.floor(s.t * 12) % 4);
         break;
-      case "shadow": {
-        // Shadow Ball: a dark core, two wisps turning around it, its rim flickering
+      case "shadow":
+      case "gball": {
+        // Shadow Ball (the move, and Gengar's smaller ones): a dark core, two wisps turning around it, its rim flickering
         const r = s.r;
         ctx.fillStyle = g.c.ink;
         ctx.beginPath();
@@ -4038,7 +4109,7 @@ function pix(ctx: CanvasRenderingContext2D, g: Gfx, rows: PixArt, x: number, y: 
 const dir4 = (vx: number, vy: number) => (Math.abs(vx) >= Math.abs(vy) ? (vx >= 0 ? 0 : 2) : vy >= 0 ? 1 : 3);
 
 /** the starter screen: where the i-th of n Pokémon stands */
-export const pickX = (i: number, n: number) => Math.round(SW / 2 + (i - (n - 1) / 2) * (n > 4 ? 60 : 72));
+export const pickX = (i: number, n: number) => Math.round(SW / 2 + (i - (n - 1) / 2) * (n > 5 ? 52 : n > 4 ? 60 : 72));
 
 function segDist(px: number, py: number, ax: number, ay: number, bx: number, by: number) {
   const dx = bx - ax, dy = by - ay;

@@ -253,8 +253,11 @@ doesn't show.
 - Rewards: Supabase `game_rewards` (docs/supabase.sql, given by hand with an insert, read by the player only), e.g.
   `skin-mewtwo`: **Mewtwo**, a fifth Pokémon on the starter screen (`MEWTWO` in lib/game/data, `roster` in the engine),
   godlike on purpose (Johan, 2026-10-13): Psycho Cut blades, Psystrike on the whole screen every few seconds (`stepSig`),
-  more HP, damage growing 3 % a level, Mega Mewtwo Y at 16 (a form: dex 10150, `FORMS` in build-game). Never in the
-  daily. The ladder takes starter 150 (`game_submit2` in docs/supabase.sql).
+  more HP, damage growing 3 % a level, Mega Mewtwo Y at 16 (a form: dex 10150, `FORMS` in build-game). `skin-gengar`:
+  **Gengar** (`GENGAR`, Johan 2026-10-14, as godlike): homing Shadow Balls, Phantom Force (sinks out of reach, bursts
+  out and puts the survivors to sleep for the Ghost nightmare combo), Curse (each foe it knocks out sends a wisp at the
+  next), Mega Gengar at 16 (dex 10094) and its Shadow Tag slow. Both in `REWARD_STARTERS`. Never in the daily. The
+  ladder takes starters 150 and 94 (`game_submit2` in docs/supabase.sql).
 - Local coop (two Game Boys side by side, WASD + mouse for P1, the arrows for P2, auto-aim): the engine's player state is
   a `Player` (`players`, `cur`); the Game's accessors reach the current one, switched to whoever acts (their move, a
   foe's nearest target, who picks up, the screen drawn: `draw(ctx, viewer)`). A downed player is got up by standing by

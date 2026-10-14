@@ -30,6 +30,9 @@ const ROSTER = {
   150: PLAYER,
   // Mega Mewtwo Y, its evolution in the game (a form: 10000 + its dex number, see FORMS)
   10150: PLAYER,
+  // Gengar, a boss and a reward too, and Mega Gengar
+  94: PLAYER,
+  10094: PLAYER,
   // Kecleon, the merchant
   352: ["Walk", "Idle"],
 };
@@ -40,7 +43,7 @@ const ATLAS_W = 2048;
 
 const pad = (n) => String(n).padStart(4, "0");
 /** forms: their folder on SpriteCollab */
-const FORMS = { 10150: "0150/0002" };
+const FORMS = { 10150: "0150/0002", 10094: "0094/0001" };
 
 async function cached(url, file, binary) {
   const p = path.join(CACHE, file);
