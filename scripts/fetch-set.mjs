@@ -724,6 +724,57 @@ const PRODUCTS = "https://downloads.s3.cardmarket.com/productCatalog/productList
 const cmName = (s) => String(s ?? "").replace(/\s*[[(].*$/, "").normalize("NFD").replace(/[^a-z0-9]/gi, "").toLowerCase();
 const byNumber = (a, b) => a.num.localeCompare(b.num, "en", { numeric: true });
 
+/*
+ * Sets TCGdex gives no Cardmarket product for (no cmId: no price, the link only searches): their Cardmarket expansion
+ * (idExpansion in the product list; a Products page's set, e.g. /Singles/30th-Celebration). Each card without a product
+ * gets the one of its English name; prints of one name go in number order, the set's own cards before its sub-sets'
+ * (30th: its 30 Pikachu are 907630-907659, the Classic Collection's 907939). A name off by a suffix ("Palkia" for
+ * "Palkia LV.X") takes the only free product starting with it. Prints Cardmarket names alike and that have no number to
+ * order them by (like the 30th's three RGB Mews, B, G, R, which TCGdex does link) get none rather than another's price.
+ * Checked 2026-10-14: the 30th's 188 other cards, French and English, each on its own product.
+ */
+const CM_EXPANSIONS = { "30th": 6601 };
+// "Palkia LV.X [Restructure | …]" -> ["palkia", "lv", "x"]
+const cmWords = (s) => String(s ?? "").replace(/\s*[[(].*$/, "").normalize("NFD").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+const startsWith = (a, b) => b.length <= a.length && b.every((w, i) => a[i] === w);
+
+function productsFromExpansions(sets, products) {
+  let n = 0;
+  for (const s of sets) {
+    const exp = CM_EXPANSIONS[s.data.id];
+    if (!exp) continue;
+    const taken = new Set(s.data.cards.map((x) => x.price?.cmId).filter(Boolean));
+    const free = products.filter((p) => p.idExpansion === exp && !taken.has(p.idProduct)).sort((a, b) => a.idProduct - b.idProduct);
+    // "30th-063" is the set's own, "30th-c-001" a sub-set's
+    const depth = s.data.id.split("-").length + 1;
+    const sub = (x) => (x.id.split("-").length > depth ? 1 : 0);
+    const waiting = s.data.cards
+      .filter((x) => !x.unavailable && !x.price?.cmId && s.names.get(x))
+      .sort((a, b) => sub(a) - sub(b) || byNumber(a, b));
+    const give = (x, p) => {
+      x.price = withProduct(x.price ?? {}, p.idProduct);
+      free.splice(free.indexOf(p), 1);
+      s.changed = true;
+      n++;
+    };
+    const groups = new Map();
+    for (const x of waiting) groups.set(s.names.get(x), [...(groups.get(s.names.get(x)) ?? []), x]);
+    for (const [name, prints] of groups) {
+      const ps = free.filter((p) => cmName(p.name) === name);
+      const alike = ps.length > 1 && new Set(ps.map((p) => p.name)).size === 1;
+      if (alike && prints.some((x) => !/^\d+$/.test(x.num))) continue;
+      for (const [i, x] of prints.entries()) if (ps[i]) give(x, ps[i]);
+    }
+    for (const x of waiting) {
+      if (x.price?.cmId) continue;
+      const words = cmWords(s.raw.get(x));
+      const near = free.filter((p) => startsWith(cmWords(p.name), words) || startsWith(words, cmWords(p.name)));
+      if (near.length === 1) give(x, near[0]);
+    }
+  }
+  if (n) console.log(`Cardmarket products: ${n} cards found in their set's expansion`);
+}
+
 /** A card's price once its Cardmarket product changed: what came from the old one goes, applyGuide fills the new one's. */
 function withProduct(price, id) {
   const { cmId: _, cm: __, ...rest } = price;
@@ -749,9 +800,11 @@ async function fixSharedProducts() {
     // French cards go by their English name (same ids in public/sets/en, written by yesterday's English run)
     const enFile = `public/sets/en/${c.id}.json`;
     const en = FR && existsSync(enFile) ? new Map(JSON.parse(await readFile(enFile, "utf8")).cards.map((x) => [x.id, x.name])) : null;
-    const names = new Map(data.cards.map((x) => [x, cmName(EN ? x.name : en?.get(x.id))]));
-    sets.push({ file, data, names, changed: false });
+    const raw = new Map(data.cards.map((x) => [x, EN ? x.name : en?.get(x.id)]));
+    const names = new Map(data.cards.map((x) => [x, cmName(raw.get(x))]));
+    sets.push({ file, data, raw, names, changed: false });
   }
+  productsFromExpansions(sets, products);
   const live = (s) => s.data.cards.filter((x) => x.price?.cmId && !x.unavailable);
   const holders = new Map(); // product id -> [{ s, card }]
   for (const s of sets) for (const card of live(s)) holders.set(card.price.cmId, [...(holders.get(card.price.cmId) ?? []), { s, card }]);
