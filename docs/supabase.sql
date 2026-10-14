@@ -223,3 +223,78 @@ drop policy if exists "read own rewards" on public.game_rewards;
 create policy "read own rewards" on public.game_rewards for select to authenticated using (auth.uid() = user_id);
 grant select on public.game_rewards to authenticated;
 notify pgrst, 'reload schema';
+
+-- Nook Survivors, v3 (2026-10-15): the daily challenge (mode 'defi', lib/game/defi): ten waves against the clock, a win
+-- sent as wave 11; its board ranks the wins by time (then how far the others went). The classic and coop runs stop at
+-- wave 100 (its boss can take longer than 30 s). The ladder takes the challenge's Pokémon (their first form's dex).
+create or replace function public.game_top2(p_mode text default 'classic', p_period text default 'season', p_day date default null, p_limit integer default 20)
+returns table (name text, wave integer, kills integer, level integer, starter integer, seconds integer, created_at timestamptz)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select b.name, b.wave, b.kills, b.level, b.starter, b.seconds, b.created_at from (
+    select distinct on (lower(s.name)) s.* from public.game_scores s
+    where s.mode = p_mode
+      and (p_period = 'all'
+        or (p_period = 'season' and s.created_at >= date_trunc('month', now()))
+        or (p_period = 'day' and s.day = p_day))
+    order by lower(s.name), s.wave desc, case when p_mode = 'defi' then s.seconds end, s.kills desc, s.seconds
+  ) b
+  order by b.wave desc, case when p_mode = 'defi' then b.seconds end, b.kills desc, b.seconds
+  limit least(greatest(p_limit, 1), 100)
+$$;
+
+create or replace function public.game_submit2(p_name text, p_wave integer, p_kills integer, p_level integer, p_starter integer, p_seconds integer, p_mode text, p_day date default null)
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  clean text := left(btrim(regexp_replace(coalesce(p_name, ''), '[[:cntrl:]]', '', 'g')), case when p_mode = 'coop' then 35 else 16 end);
+  utc date := (now() at time zone 'utc')::date;
+  timed boolean := p_mode = 'defi';
+  top integer := case when p_mode = 'daily' then 500 else 100 end;
+begin
+  if clean = '' then clean := 'Dresseur'; end if;
+  if p_mode not in ('classic', 'daily', 'coop', 'defi') then raise exception 'unknown mode'; end if;
+  if p_mode in ('daily', 'defi') and (p_day is null or p_day < utc - 1 or p_day > utc + 1) then raise exception 'not today'; end if;
+  if p_kills < 0 or p_kills > p_seconds * 15 + 40 or p_level < 1 or p_level > 300
+     or p_starter not in (1, 4, 7, 25, 94, 150, 63, 133, 58, 131, 129, 66, 143) then
+    raise exception 'implausible score';
+  end if;
+  if timed then
+    -- ten waves cleared one after the other: a few seconds each at the very least, an hour at most
+    if p_wave < 1 or p_wave > 11 or p_seconds < (p_wave - 1) * 6 or p_seconds > 3600 or (p_wave = 11 and p_seconds < 90) then
+      raise exception 'implausible score';
+    end if;
+  elsif p_wave < 1 or p_wave > top or p_seconds < (p_wave - 1) * 30
+     or (p_wave < 100 and p_seconds > p_wave * 30 + 5) then
+    raise exception 'implausible score';
+  end if;
+  if exists (select 1 from public.game_scores s where lower(s.name) = lower(clean) and s.created_at > now() - interval '20 seconds') then
+    raise exception 'too soon';
+  end if;
+  insert into public.game_scores (name, wave, kills, level, starter, seconds, user_id, mode, day)
+  values (clean, p_wave, p_kills, p_level, p_starter, p_seconds, auth.uid(), p_mode, case when p_mode in ('daily', 'defi') then p_day end);
+  return 1 + (
+    select count(*) from (
+      select distinct on (lower(s.name)) s.name, s.wave, s.kills, s.seconds from public.game_scores s
+      where s.mode = p_mode and lower(s.name) <> lower(clean)
+        and (case when p_mode in ('daily', 'defi') then s.day = p_day else s.created_at >= date_trunc('month', now()) end)
+      order by lower(s.name), s.wave desc, case when timed then s.seconds end, s.kills desc, s.seconds
+    ) b
+    where b.wave > p_wave
+      or (b.wave = p_wave and timed and (b.seconds < p_seconds or (b.seconds = p_seconds and b.kills > p_kills)))
+      or (b.wave = p_wave and not timed and (b.kills > p_kills or (b.kills = p_kills and b.seconds < p_seconds)))
+  );
+end $$;
+
+revoke all on function public.game_top2(text, text, date, integer) from public;
+revoke all on function public.game_submit2(text, integer, integer, integer, integer, integer, text, date) from public;
+grant execute on function public.game_top2(text, text, date, integer) to anon, authenticated;
+grant execute on function public.game_submit2(text, integer, integer, integer, integer, integer, text, date) to anon, authenticated;
+notify pgrst, 'reload schema';

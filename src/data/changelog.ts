@@ -13,6 +13,25 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.12",
+    date: "2026-10-15",
+    title: { fr: "Un vrai défi du jour", en: "A real daily challenge" },
+    items: [
+      {
+        fr: "Le défi du jour devient une course contre la montre : 10 vagues, chacune finit quand son dernier Pokémon tombe, un boss à la 5e et un Giga boss à la 10e, géant, en trois phases. Bats-le le plus vite possible : le classement du jour se joue au chrono.",
+        en: "The daily challenge becomes a race against the clock: 10 waves, each over when its last Pokémon falls, a boss at the 5th and a Giga boss at the 10th, huge, in three phases. Beat it as fast as you can: the day's ladder is all about time.",
+      },
+      {
+        fr: "Chaque jour de la semaine, un Pokémon à jouer qu'on ne voit pas ailleurs, avec son attaque et son talent : Évoli, Caninos, Lokhlass, Magicarpe (si si), Machoc, Ronflex et Abra. Et des ennemis à thème, avec des titans deux fois plus gros.",
+        en: "Each day of the week, a Pokémon to play you won't find elsewhere, with its own attack and talent: Eevee, Growlithe, Lapras, Magikarp (yes, really), Machop, Snorlax and Abra. And themed foes, with titans twice the size.",
+      },
+      {
+        fr: "Une partie normale s'arrête désormais à la vague 100 : bats son boss pour la gagner.",
+        en: "A normal run now ends at wave 100: beat its boss to win it.",
+      },
+    ],
+  },
+  {
     version: "0.11",
     date: "2026-10-13",
     title: { fr: "Nook Survivors à deux", en: "Nook Survivors for two" },

@@ -232,7 +232,7 @@ doesn't show.
   Computers only: on a phone the Game Boy is out of frame (its tip says so).
 - In the room it's a CSS loop (`public/game/attract.png`, 8 frames, no script). The game (`components/game/NookBoy`,
   `lib/game/*`: engine, gfx, audio, data, scores) is a lazy chunk, loaded on click with its sprite atlas
-  (`public/game/sprites.png`, ~380 KB). Fixed 60 Hz step on a 320×288 canvas, scaled by a whole number in a CSS
+  (`public/game/sprites.png`, ~900 KB since the daily challenge's Pokémon). Fixed 60 Hz step on a 320×288 canvas, scaled by a whole number in a CSS
   Game Boy. Select (Tab) swaps palettes (colours, DMG green, Pocket, lofi violet: the atlas re-shaded once).
   `?game` opens it, `window.nookboy` is the engine in dev.
 - Sprites: PMD SpriteCollab (CC BY-NC 4.0: credits in the game's Crédits screen, non-commercial use only), downloaded,
@@ -240,14 +240,13 @@ doesn't show.
   `src/data/game-sprites.json` and the room's loop. A new Pokémon: add its dex number to the script's ROSTER, run it.
 - Ladder: Supabase `game_scores` behind `game_top2` / `game_submit2` (docs/supabase.sql: plausibility checks, a wave
   lasts 30 s, one run per name every 20 s, best run per name), open to everyone, account or not. A board per mode
-  (classic, daily, coop) and period (the month's season, the daily's UTC day, all time); `game_top` / `game_submit` are
+  (classic, daily then defi, coop) and period (the month's season, the daily's UTC day, all time); `game_top` / `game_submit` are
   the v1 the client falls back on.
 - Economy (Johan, 2026-10-13): gold (Nuggets, ~10 % of foes, more from elites, bosses, Chansey) goes in a **purse** kept
   from run to run (`lib/pensionStore` `gold`, in the save and the cloud, the latest wins): a classic or coop run starts
   with it and gives back what it ends with (game over, or the console put away mid-run). It buys the **Pension**
-  (permanent boosts, capped, dearer each level, merged by the higher level) from the menu or the game over. The **daily
-  challenge** (`dailyOf`: the UTC day's starter and rule, seeded cards) starts with no purse nor Pension; its gold and a
-  bonus (once a day) go to the purse. A moment after each boss falls, a **break**: the field is cleared, then the
+  (permanent boosts, capped, dearer each level, merged by the higher level) from the menu or the game over. The old
+  daily (`dailyOf`, a wave to reach) ran until 2026-10-14; the **daily challenge** below replaced it. A moment after each boss falls, a **break**: the field is cleared, then the
   Pokémon Center's heal (no screen: forgetting moves was dropped, Johan 2026-10-13), the levels won, Kecleon's stall (cards, heal, reroll: prices up 8 % a wave),
   a 3-2-1. Statuses and combos: `COMBOS` in lib/game/data.
 - Rewards: Supabase `game_rewards` (docs/supabase.sql, given by hand with an insert, read by the player only), e.g.
@@ -258,6 +257,13 @@ doesn't show.
   out and puts the survivors to sleep for the Ghost nightmare combo), Curse (each foe it knocks out sends a wisp at the
   next), Mega Gengar at 16 (dex 10094) and its Shadow Tag slow. Both in `REWARD_STARTERS`. Never in the daily. The
   ladder takes starters 150 and 94 (`game_submit2` in docs/supabase.sql).
+- **Daily challenge** (mode `defi`, from `DEFI_FROM` = 2026-10-15, Johan 2026-10-14; all of it in `docs/defi.md`):
+  10 waves, each over at its last KO (`stepDefi`, `DEFI_QUOTA`), a boss of its own at wave 5 and a giga boss at 10 (a
+  Mega form drawn twice as big, three phases with a roar and its guards: `gigaAct`); beating it wins, the ladder is the
+  time (a win is sent as wave 11; `game_top2` / `game_submit2` v3 at the end of docs/supabase.sql). One Pokémon per UTC
+  weekday, never a starter, each with its basic attack and talent (`DEFI_DAYS` in `lib/game/defi.ts`), themed foes
+  (`DEFI_WILD`), titans from wave 3; x1.5 damage, x1.8 XP, seeded cards, no purse nor Pension. Gold: 12 a wave cleared,
+  250 on the day's first win. Classic and coop runs end at wave 100 (`MAX_WAVE`), won when its boss falls.
 - Local coop (two Game Boys side by side, WASD + mouse for P1, the arrows for P2, auto-aim): the engine's player state is
   a `Player` (`players`, `cur`); the Game's accessors reach the current one, switched to whoever acts (their move, a
   foe's nearest target, who picks up, the screen drawn: `draw(ctx, viewer)`). A downed player is got up by standing by
