@@ -9,14 +9,8 @@
         "y": 634,
         "w": 118,
         "h": 112,
-        "glow": true
-      },
-      {
-        "src": "/skins/halloween/pumpkin.webp",
-        "x": 1063,
-        "y": 681,
-        "w": 74,
-        "h": 71
+        "glow": true,
+        "shadow": true
       },
       {
         "src": "/skins/halloween/candles.webp",
@@ -24,14 +18,38 @@
         "y": 1147,
         "w": 102,
         "h": 109,
-        "glow": true
+        "glow": true,
+        "shadow": true,
+        "flames": [
+          {
+            "x": 753,
+            "y": 1168,
+            "h": 20
+          },
+          {
+            "x": 731,
+            "y": 1188,
+            "h": 19
+          },
+          {
+            "x": 773,
+            "y": 1194,
+            "h": 16
+          },
+          {
+            "x": 753,
+            "y": 1214,
+            "h": 12
+          }
+        ]
       },
       {
         "src": "/skins/halloween/candy.webp",
         "x": 1698,
         "y": 1151,
         "w": 86,
-        "h": 61
+        "h": 61,
+        "shadow": true
       },
       {
         "src": "/skins/halloween/garland.webp",

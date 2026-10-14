@@ -5,6 +5,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import art from "@/data/skin-art.json";
 import { useCloud } from "./cloud";
+import type { AmbientMood } from "./sound";
 import { STUDIO_EMAIL_HASHES } from "./site";
 
 /*
@@ -28,6 +29,10 @@ export interface Placed extends Box {
   rot?: number;
   /** a candle's flame or a lantern: a warm glow flickers around it at night */
   glow?: boolean;
+  /** it stands on something: a soft shadow under it */
+  shadow?: boolean;
+  /** flames that dance over the painted ones: the bottom of each, and its height (scene px) */
+  flames?: { x: number; y: number; h: number }[];
 }
 
 /** What a skin paints over the room: pictures cut by scripts/build-skins, placed in src/data/skin-art.json */
@@ -60,6 +65,10 @@ export interface Skin {
   price: number;
   /** the lava lamp's colour while it's worn (first in the lamp's cycle) */
   lava?: LavaTheme;
+  /** a light laid over the whole room (CSS colour, soft-light) */
+  tint?: string;
+  /** the radio's tune while it's worn (lib/sound) */
+  music?: AmbientMood;
   art: SkinArt;
 }
 
@@ -75,8 +84,11 @@ export const SKINS: Skin[] = [
       { fr: "Citrouilles, bougies et toiles d'araignée", en: "Pumpkins, candles and cobwebs" },
       { fr: "Warwick en sorcier", en: "Warwick as a witch" },
       { fr: "La lampe à lave citrouille", en: "The pumpkin lava lamp" },
+      { fr: "Une radio lofi d'Halloween", en: "A Halloween lofi radio" },
     ],
     price: 2.99,
+    tint: "rgba(255, 128, 40, 0.22)",
+    music: "spooky",
     lava: { name: "citrouille", nameEn: "pumpkin", fill: "#ff8a1f", light: "#ffd08a", line: "#5a2a08", glow: "rgba(255,140,40,0.34)" },
     art: ART.halloween ?? {},
   },

@@ -7,7 +7,7 @@ import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, OS_NAME } from "@/lib/site";
-import { sfx, startAmbient, stopAmbient } from "@/lib/sound";
+import { setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { useActiveSkin, type LavaTheme } from "@/lib/shop";
 import { useStore } from "@/lib/store";
 import { TROPHIES } from "@/lib/trophies";
@@ -154,6 +154,9 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
     themesRef.current = lavaThemes;
     lavaTheme.current = 0;
   }, [lavaThemes]);
+  // the radio plays the skin's tune
+  const skinMusic = skin?.music ?? "lofi";
+  useEffect(() => setAmbientMood(skinMusic), [skinMusic]);
   const won = useTrophyStore((s) => s.got);
   const fresh = useTrophyStore((s) => Object.values(s.got).filter((at) => at > s.seenAt).length);
   const [ballHover, setBallHover] = useState(false);
@@ -329,7 +332,22 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
           {skin?.art.decor?.map((d, i) => (
             <span key={i}>
               {d.glow && !daytime && <span className={styles.skinGlow} style={glow(d, 60)} aria-hidden />}
-              <img className={styles.sprite} src={d.src} style={{ ...place(d), transform: d.rot ? `rotate(${d.rot}deg)` : undefined }} alt="" draggable={false} />
+              {d.shadow && <span className={styles.skinShadow} style={{ left: d.x + d.w * 0.08, top: d.y + d.h - 12, width: d.w * 0.84, height: 22 }} aria-hidden />}
+              <img
+                className={`${styles.sprite} ${styles.skinThing}`}
+                src={d.src}
+                style={{ ...place(d), transform: d.rot ? `rotate(${d.rot}deg)` : undefined }}
+                alt=""
+                draggable={false}
+              />
+              {d.flames?.map((f, k) => (
+                <span
+                  key={k}
+                  className={styles.skinFlame}
+                  style={{ left: f.x - f.h * 0.28, top: f.y - f.h * 1.05, width: f.h * 0.56, height: f.h * 1.1, animationDelay: `${-k * 0.37}s` }}
+                  aria-hidden
+                />
+              ))}
             </span>
           ))}
 
@@ -506,16 +524,25 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             draggable={false}
           />
           {/* a skin's hat on Warwick's head, asleep or awake */}
+          {/* inside a box that breathes (or pops up) like Warwick's picture, so the hat moves with his head */}
           {skin?.art.hat &&
-            [skin.art.hat.sleep, skin.art.hat.awake].map((h, i) => (
-              <img
+            ([
+              [skin.art.hat.sleep, SCENE.catSleep, styles.catSleep],
+              [skin.art.hat.awake, SCENE.catAwake, styles.catAwake],
+            ] as const).map(([h, cat, cls], i) => (
+              <span
                 key={i}
-                className={`${styles.sprite} ${(i === 1) === !!petting ? "" : styles.hidden}`}
-                src={h.src}
-                style={{ ...place(h), transform: h.rot ? `rotate(${h.rot}deg)` : undefined }}
-                alt=""
-                draggable={false}
-              />
+                className={`${styles.sprite} ${cls} ${(i === 1) === !!petting ? "" : styles.hidden}`}
+                style={place(cat)}
+              >
+                <img
+                  className={styles.sprite}
+                  src={h.src}
+                  style={{ left: h.x - cat.x, top: h.y - cat.y, width: h.w, height: h.h, transform: h.rot ? `rotate(${h.rot}deg)` : undefined }}
+                  alt=""
+                  draggable={false}
+                />
+              </span>
             ))}
           {!petting && (
             // with a hat on, the z rises off its back instead
@@ -549,6 +576,9 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             className={`${styles.night} ${lampOn || daytime ? styles.off : ""}`}
             style={{ backgroundImage: `url(${sceneImg("night-light.webp")})` }}
           />
+
+          {/* a skin's light over the whole room (Halloween: a pumpkin glow) */}
+          {skin?.tint && <div className={styles.skinTint} style={{ background: skin.tint }} aria-hidden />}
 
           {/* light (softer in daylight) */}
           <div className={`${styles.lights} ${daytime ? styles.daylight : ""}`}>

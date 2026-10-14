@@ -23,15 +23,15 @@ const SHEETS = [
 
 /**
  * Where each thing stands: its width, and either its bottom centre (cx, bottom: it stands on something) or its top left
- * corner (x, y). `rot` in degrees, `glow` for a lit one. The hat is worn by Warwick: `hat` (asleep) and `hat-awake`.
+ * corner (x, y). `rot` in degrees, `glow` for a lit one, `shadow` for one standing on something, `flames` drawn by the code. The hat is worn by Warwick: `hat` (asleep) and `hat-awake`.
  */
 const PLACES = {
   halloween: {
     decor: [
-      { name: "lantern", cx: 523, bottom: 746, w: 118, glow: true }, // on the window sill, between the cactus and the jar
-      { name: "pumpkin", cx: 1100, bottom: 752, w: 74 }, // on the CRT's top left corner
-      { name: "candles", cx: 752, bottom: 1256, w: 102, glow: true }, // on the desk, in front of the boombox
-      { name: "candy", cx: 1741, bottom: 1212, w: 86 }, // on the desk, by the mouse pad
+      { name: "lantern", cx: 523, bottom: 746, w: 118, glow: true, shadow: true }, // on the window sill, between the cactus and the jar
+      // on the desk, in front of the boombox; its four flames (bottom centre and height, as parts of the picture)
+      { name: "candles", cx: 752, bottom: 1256, w: 102, glow: true, shadow: true, flames: [[0.511, 0.19, 0.183], [0.298, 0.373, 0.173], [0.702, 0.433, 0.15], [0.514, 0.617, 0.11]] },
+      { name: "candy", cx: 1741, bottom: 1212, w: 86, shadow: true }, // on the desk, by the mouse pad
       { name: "garland", x: 1140, y: 6, w: 600 }, // across the wall, from the corner's cobweb to the top shelf
       { name: "bat", cx: 1036, y: 300, w: 78, rot: 16 }, // on the wall, between the curtain and the poster
       { name: "web-tl", x: 1035, y: 0, w: 230 }, // the room's corner, by the poster
@@ -125,7 +125,8 @@ for (const sheet of SHEETS) {
     const w = p.w, h = Math.round((p.w * s.h) / s.w);
     const x = p.x ?? Math.round(p.cx - w / 2);
     const y = p.y ?? Math.round(p.bottom - h);
-    return { src: `/skins/${sheet.skin}/${p.name}.webp`, x, y, w, h, ...(p.rot ? { rot: p.rot } : {}), ...(p.glow ? { glow: true } : {}) };
+    const flames = p.flames?.map(([fx, fy, fh]) => ({ x: Math.round(x + fx * w), y: Math.round(y + fy * h), h: Math.round(fh * h) }));
+    return { src: `/skins/${sheet.skin}/${p.name}.webp`, x, y, w, h, ...(p.rot ? { rot: p.rot } : {}), ...(p.glow ? { glow: true } : {}), ...(p.shadow ? { shadow: true } : {}), ...(flames ? { flames } : {}) };
   };
   const pl = PLACES[sheet.skin];
   art[sheet.skin] = {

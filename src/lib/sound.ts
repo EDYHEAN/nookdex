@@ -288,10 +288,25 @@ const CHORDS = [
   [48, 52, 55, 59],
 ];
 const PENTA = [72, 74, 76, 79, 81, 84];
+// A skin's radio (lib/shop): "spooky" for Halloween, Am9 - Fmaj7 - Dm6 - E7b9 (A harmonic minor), a music box on top
+const SPOOKY = [
+  [57, 60, 64, 71],
+  [53, 57, 60, 64],
+  [50, 53, 57, 59],
+  [52, 56, 59, 65],
+];
+const HARMONIC = [69, 71, 72, 76, 77, 80, 81, 84];
+export type AmbientMood = "lofi" | "spooky";
+let mood: AmbientMood = "lofi";
+/** The radio's tune: taken up from the next beat */
+export const setAmbientMood = (m: AmbientMood) => {
+  mood = m;
+};
 const midi = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
 
 function schedule() {
   if (!ctx || !ambientGain) return;
+  if (mood === "spooky") return scheduleSpooky();
   const spb = 60 / 72;
   while (nextBeat < ctx.currentTime + 0.4) {
     const t = nextBeat - ctx.currentTime;
@@ -314,6 +329,44 @@ function schedule() {
     if (Math.random() < 0.35) {
       const n = PENTA[Math.floor(Math.random() * PENTA.length)];
       tone({ freq: midi(n), type: "sine", dur: 0.6, vol: 0.035, delay: t + (Math.random() < 0.5 ? 0 : spb / 2), attack: 0.01, dest: ambientGain! });
+    }
+    nextBeat += spb;
+    beat++;
+  }
+}
+
+/** Halloween's radio: slower, minor, a music box and now and then a theremin sliding up */
+function scheduleSpooky() {
+  if (!ctx || !ambientGain) return;
+  const spb = 60 / 64;
+  const g = ambientGain;
+  while (nextBeat < ctx.currentTime + 0.4) {
+    const t = nextBeat - ctx.currentTime;
+    const bar = Math.floor(beat / 4) % SPOOKY.length;
+    const inBar = beat % 4;
+    const chord = SPOOKY[bar];
+    if (inBar === 0) {
+      chord.forEach((n, i) => {
+        tone({ freq: midi(n), type: "sine", dur: spb * 4, vol: 0.045, delay: t + i * 0.05, attack: 0.08, dest: g });
+        tone({ freq: midi(n) * 1.004, type: "triangle", dur: spb * 2, vol: 0.01, delay: t + i * 0.05, dest: g });
+      });
+      tone({ freq: midi(chord[0] - 12), type: "sine", dur: spb * 3, vol: 0.09, delay: t, dest: g });
+    }
+    // drums: a heartbeat kick, a soft brushed snare
+    if (inBar === 0) tone({ freq: 95, to: 38, type: "sine", dur: 0.3, vol: 0.22, delay: t, dest: g });
+    if (inBar === 0) tone({ freq: 95, to: 38, type: "sine", dur: 0.25, vol: 0.14, delay: t + spb * 0.32, dest: g });
+    if (inBar === 2) noise({ dur: 0.22, vol: 0.05, freq: 1400, q: 0.6, delay: t, dest: g });
+    noise({ dur: 0.03, vol: 0.018, type: "highpass", freq: 7000, delay: t + spb * 0.5, dest: g });
+    // the music box: a note of the chord's scale, an octave echo after it
+    if (Math.random() < 0.5) {
+      const n = HARMONIC[Math.floor(Math.random() * HARMONIC.length)];
+      const at = t + (Math.random() < 0.5 ? 0 : spb / 2);
+      tone({ freq: midi(n), type: "triangle", dur: 0.9, vol: 0.03, delay: at, attack: 0.005, dest: g });
+      tone({ freq: midi(n + 12), type: "sine", dur: 0.6, vol: 0.012, delay: at + 0.01, attack: 0.005, dest: g });
+    }
+    // the theremin, once in a while: a long slide up over the chord
+    if (inBar === 0 && bar === 3 && Math.random() < 0.5) {
+      tone({ freq: midi(chord[1] + 12), to: midi(chord[3] + 12), type: "sine", dur: spb * 3, vol: 0.018, delay: t + spb * 0.5, attack: 0.4, dest: g });
     }
     nextBeat += spb;
     beat++;
