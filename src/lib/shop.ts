@@ -72,6 +72,9 @@ export const useSkins = create<SkinState>()(
   }),
 );
 
+/** Where the shop was left (its tab, the card open): it opens there again after a try-on */
+export const shopView: { tab: "shop" | "locker"; open: string | null } = { tab: "shop", open: null };
+
 /** Puts an item on (taking off the one in its slot), or takes it off */
 export function wear(id: string, on: boolean) {
   const slot = ITEM.get(id)?.slot;

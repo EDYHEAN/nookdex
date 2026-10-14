@@ -629,41 +629,110 @@
   font-size: 17px;
 }
 
-/* ---------- the locker, by collection ---------- */
+/* ---------- the locker, by slot ---------- */
 
-.empty {
-  margin: 40px 20px;
-  text-align: center;
-  font-size: 18px;
-  color: #cdbff0;
-}
-
-.locker section + section {
-  margin-top: 26px;
-}
-
-.locker .section:first-child {
-  margin-top: 4px;
-}
-
-.count {
-  margin-left: 10px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffe14a;
-  font-size: 12px;
-}
-
-.lockGrid {
+.locker {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+/* the slots, each showing what it wears */
+.slots {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slot {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.06);
+  transition:
+    background 0.15s,
+    transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.slot:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(3px);
+}
+
+.slotOn {
+  background: rgba(255, 225, 74, 0.12);
+  box-shadow: inset 0 0 0 2px #ffe14a;
+}
+
+.slotArt {
+  --c1: #c9a77c;
+  --c2: #5a4330;
+  position: relative;
+  display: block;
+  width: 64px;
+  height: 52px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 45%, var(--c1), var(--c2) 85%);
+}
+
+.slotArt .cutout {
+  top: 50%;
+  width: 88%;
+  max-height: 80%;
+}
+
+.slotArt .framed {
+  top: 50%;
+  width: 84%;
+  height: 76%;
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+.slotText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.slotText small {
+  font-size: 13px;
+  color: #a99bd6;
+  text-transform: none;
+}
+
+.slotText b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+/* a slot's options */
+.options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 14px;
 }
 
 .lockCard {
   --c1: #a68a6a;
   --c2: #4a3a2c;
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -675,12 +744,19 @@
   text-align: left;
   cursor: pointer;
   overflow: hidden;
-  box-shadow:
-    0 0 0 2px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 2px rgba(255, 255, 255, 0.08);
-  transition:
-    transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1),
-    box-shadow 0.15s;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+/* the frame drawn over the whole card, art included */
+.lockCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
 }
 
 .lockCard:hover {
@@ -712,11 +788,24 @@
   height: 72%;
 }
 
+.lockIcon {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 2;
+  font-size: 18px;
+}
+
 .lockText {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   padding: 12px 12px 14px;
+}
+
+.lockText small {
+  font-size: 13px;
+  color: #a99bd6;
 }
 
 .lockText b {
@@ -728,17 +817,16 @@
 
 .chip {
   align-self: flex-start;
-  padding: 3px 8px;
+  margin-top: 2px;
+  padding: 3px 9px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
-  color: #cdbff0;
+  color: #e6dcff;
   font-size: 14px;
 }
 
-.lock_on {
-  box-shadow:
-    0 0 0 2px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 3px #9dff7a;
+.lock_on::after {
+  box-shadow: inset 0 0 0 3px #9dff7a;
 }
 
 .lock_on .chip {
@@ -746,8 +834,8 @@
   color: #c9ffb0;
 }
 
-/* not owned: greyed, a tap shows it in the shop */
-.lock_locked .lockArt {
+/* not owned: greyed, its price; a tap shows its card */
+.lock_locked .lockArt img {
   filter: grayscale(0.85) brightness(0.55);
 }
 
@@ -841,6 +929,37 @@
 
   .card {
     grid-template-columns: 1fr;
+  }
+
+  /* the slots in a row on top */
+  .locker {
+    grid-template-columns: 1fr;
+  }
+
+  .slots {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .slot {
+    flex: none;
+    grid-template-columns: 52px;
+    justify-items: center;
+    width: 84px;
+  }
+
+  .slot:hover {
+    transform: none;
+  }
+
+  .slotText b {
+    display: none;
+  }
+
+  .options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .cardArt {

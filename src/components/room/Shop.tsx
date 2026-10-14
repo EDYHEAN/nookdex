@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useLang, useT } from "@/lib/lang";
-import { BASE, BUNDLE, BUNDLES, COLLECTIONS, ITEM, ITEMS, buySkin, formatEuros, itemsOf, onSale, useSkins, wear, worthOf, type Bundle, type Item, type Rarity } from "@/lib/shop";
+import { BASE, BUNDLE, BUNDLES, COLLECTIONS, ITEM, ITEMS, buySkin, formatEuros, shopView, itemsOf, onSale, useSkins, wear, worthOf, type Bundle, type Item, type Rarity, type Slot } from "@/lib/shop";
 import { sfx } from "@/lib/sound";
 import styles from "./Shop.module.css";
 
@@ -51,8 +51,13 @@ function Countdown({ until, big }: { until: string; big?: boolean }) {
  */
 export function Shop({ onClose }: { onClose: () => void }) {
   const t = useT();
-  const [tab, setTab] = useState<"shop" | "locker">("shop");
-  const [open, setOpen] = useState<string | null>(null);
+  // where it was left (lib/shop shopView): after a try-on, the shop opens there again
+  const [tab, setTab] = useState(() => shopView.tab);
+  const [open, setOpen] = useState(() => shopView.open);
+  useEffect(() => {
+    shopView.tab = tab;
+    shopView.open = open;
+  }, [tab, open]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
@@ -294,91 +299,118 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
   );
 }
 
+const SLOTS: { slot: Slot; fr: string; en: string }[] = [
+  { slot: "sky", fr: "Fenêtre", en: "Window" },
+  { slot: "decor", fr: "Déco", en: "Decor" },
+  { slot: "cat", fr: "Warwick", en: "Warwick" },
+  { slot: "lamp", fr: "Lumière", en: "Light" },
+  { slot: "radio", fr: "Radio", en: "Radio" },
+];
+
 /**
- * The locker, by collection: the room as it comes (each slot back to its own), then each set, its items owned to put on
- * or off, the others locked (a tap shows them in the shop).
+ * The locker, by slot like a game's: the slots on the side, each showing what it wears; a slot's options next to it,
+ * the room's own first, then every collection's (owned to wear, the others greyed, a tap shows their card).
  */
 function Locker({ onShop }: { onShop: (id: string) => void }) {
   const t = useT();
+  const lang = useLang();
   const { owned, equipped } = useSkins();
-  const slotTaken = (slot: string) => equipped.some((id) => ITEM.get(id)?.slot === slot);
+  const [slot, setSlot] = useState<Slot>("sky");
+  const wornIn = (s: Slot) => equipped.map((id) => ITEM.get(id)).find((it) => it?.slot === s && owned.includes(it.id));
+  const base = BASE.find((b) => b.slot === slot)!;
+  const worn = wornIn(slot);
+  // owned first, then the rest, each in the catalogue's order
+  const options = ITEMS.filter((it) => it.slot === slot).sort((x, y) => Number(owned.includes(y.id)) - Number(owned.includes(x.id)));
+  const setName = (it: Item) => COLLECTIONS.find((c) => c.id === it.set)?.name;
+
   return (
     <div className={styles.locker}>
-      <section>
-        <h3 className={styles.section}>{t("Collection de base", "Base collection")}</h3>
-        <div className={styles.lockGrid}>
-          {BASE.map((b) => {
-            const on = !slotTaken(b.slot);
-            return (
-              <LockCard
-                key={b.slot}
-                icon={b.icon}
-                cutout={b.cutout}
-                name={t(b.name.fr, b.name.en)}
-                state={on ? "on" : "off"}
-                onClick={() => {
-                  sfx.stamp();
-                  useSkins.setState((s) => ({ equipped: s.equipped.filter((id) => ITEM.get(id)?.slot !== b.slot), trying: null }));
-                }}
-              />
-            );
-          })}
-        </div>
-      </section>
-      {COLLECTIONS.map((c) => (
-        <section key={c.id}>
-          <h3 className={styles.section}>
-            {t(c.name.fr, c.name.en)}
-            <span className={styles.count}>
-              {c.items.filter((id) => owned.includes(id)).length}/{c.items.length}
-            </span>
-          </h3>
-          <div className={styles.lockGrid}>
-            {c.items.map((id) => {
-              const it = ITEM.get(id)!;
-              const mine = owned.includes(id);
-              const on = equipped.includes(id);
-              return (
-                <LockCard
-                  key={id}
-                  icon={it.icon}
-                  cutout={it.cutout}
-                  rarity={it.rarity}
-                  name={t(it.name.fr, it.name.en)}
-                  state={!mine ? "locked" : on ? "on" : "off"}
-                  onClick={() => {
-                    if (!mine) {
-                      sfx.pop();
-                      return onShop(id);
-                    }
-                    sfx.stamp();
-                    wear(id, !on);
-                  }}
-                />
-              );
-            })}
-          </div>
-        </section>
-      ))}
+      <nav className={styles.slots}>
+        {SLOTS.map((s) => {
+          const it = wornIn(s.slot);
+          const b = BASE.find((x) => x.slot === s.slot)!;
+          const pick = it ?? b;
+          return (
+            <button
+              key={s.slot}
+              className={`${styles.slot} ${slot === s.slot ? styles.slotOn : ""}`}
+              onPointerEnter={sfx.hover}
+              onClick={() => {
+                sfx.click();
+                setSlot(s.slot);
+              }}
+            >
+              <span className={`${styles.slotArt} ${it ? styles[it.rarity] : styles.base}`}>
+                <img className={pick.cutout ? styles.cutout : styles.framed} src={pick.icon} alt="" draggable={false} />
+              </span>
+              <span className={styles.slotText}>
+                <small>{t(s.fr, s.en)}</small>
+                <b>{t(pick.name.fr, pick.name.en)}</b>
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+      <div className={styles.options}>
+        <LockCard
+          icon={base.icon}
+          cutout={base.cutout}
+          name={t(base.name.fr, base.name.en)}
+          set={t("De base", "Base")}
+          state={worn ? "off" : "on"}
+          onClick={() => {
+            sfx.stamp();
+            useSkins.setState((s) => ({ equipped: s.equipped.filter((id) => ITEM.get(id)?.slot !== slot), trying: null }));
+          }}
+        />
+        {options.map((it) => {
+          const mine = owned.includes(it.id);
+          const name = setName(it);
+          return (
+            <LockCard
+              key={it.id}
+              icon={it.icon}
+              cutout={it.cutout}
+              rarity={it.rarity}
+              name={t(it.name.fr, it.name.en)}
+              set={name ? t(name.fr, name.en) : ""}
+              state={!mine ? "locked" : worn?.id === it.id ? "on" : "off"}
+              price={!mine && onSale(it) ? formatEuros(it.price, lang) : undefined}
+              onClick={() => {
+                if (!mine) {
+                  sfx.pop();
+                  return onShop(it.id);
+                }
+                sfx.stamp();
+                wear(it.id, true);
+              }}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-function LockCard({ icon, cutout, rarity, name, state, onClick }: { icon: string; cutout?: boolean; rarity?: Rarity; name: string; state: "on" | "off" | "locked"; onClick: () => void }) {
+function LockCard(p: { icon: string; cutout?: boolean; rarity?: Rarity; name: string; set: string; state: "on" | "off" | "locked"; price?: string; onClick: () => void }) {
   const t = useT();
   return (
     <button
-      className={`${styles.lockCard} ${rarity ? styles[rarity] : styles.base} ${styles["lock_" + state]}`}
+      className={`${styles.lockCard} ${p.rarity ? styles[p.rarity] : styles.base} ${styles["lock_" + p.state]}`}
       onPointerEnter={sfx.hover}
-      onClick={onClick}
-      aria-pressed={state === "on"}
+      onClick={p.onClick}
+      aria-pressed={p.state === "on"}
     >
       <span className={styles.lockArt}>
-        <img className={cutout ? styles.cutout : styles.framed} src={icon} alt="" draggable={false} />
+        <img className={p.cutout ? styles.cutout : styles.framed} src={p.icon} alt="" draggable={false} />
+        {p.state === "locked" && <span className={styles.lockIcon}>🔒</span>}
       </span>
       <span className={styles.lockText}>
-        <b>{name}</b>
-        <span className={styles.chip}>{state === "on" ? t("✓ Sur mon bureau", "✓ On my desk") : state === "off" ? t("Rangé", "Put away") : t("🔒 En boutique", "🔒 In the shop")}</span>
+        <small>{p.set}</small>
+        <b>{p.name}</b>
+        <span className={styles.chip}>
+          {p.state === "on" ? t("✓ Actif", "✓ Active") : p.state === "off" ? t("Équiper", "Wear") : (p.price ?? t("Plus en vente", "Off sale"))}
+        </span>
       </span>
     </button>
   );
@@ -447,6 +479,8 @@ export function TryOnBar({ onOpenShop }: { onOpenShop: () => void }) {
             onClick={() => {
               sfx.click();
               useSkins.setState({ trying: null });
+              // back where the shop was left
+              onOpenShop();
             }}
           >
             {t("Rendre", "Give back")}
