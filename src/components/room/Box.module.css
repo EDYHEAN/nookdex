@@ -209,6 +209,72 @@
   transform: translateY(-4px) rotate(-2deg) scale(1.06);
 }
 
+/* a card and its bin button (top right corner, shown on hover; always on a touch screen) */
+.cardWrap {
+  position: relative;
+  display: block;
+}
+
+.cardWrap .card {
+  width: 100%;
+}
+
+.qty {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: #ffd35a;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.bin {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  z-index: 1;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-size: 13px;
+  line-height: 24px;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s,
+    transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.cardWrap:hover .bin,
+.bin:focus-visible,
+.binArmed {
+  opacity: 1;
+}
+
+.bin:hover {
+  transform: scale(1.12);
+}
+
+.binArmed {
+  background: var(--ink-red);
+  color: #fff3e6;
+  font-size: 14px;
+}
+
+@media (hover: none) {
+  .bin {
+    opacity: 0.85;
+  }
+}
+
 .card img {
   display: block;
   width: 100%;
