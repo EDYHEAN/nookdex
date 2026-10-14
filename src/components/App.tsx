@@ -26,6 +26,7 @@ import { SavePrompt } from "./room/SavePrompt";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
 import { TrophyCase } from "./room/TrophyCase";
+import { useSkins } from "@/lib/shop";
 import { Box } from "./room/Box";
 import { TrophyToasts } from "./room/TrophyToast";
 import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
@@ -117,10 +118,11 @@ export function App() {
     void loadSets(neededSets(binders, collection));
   }, []);
 
-  // Dev-only shortcuts for screenshots: ?skip  ?open=swsh12  ?demo  ?os  ?game
+  // Dev-only shortcuts for screenshots: ?skip  ?open=swsh12  ?demo  ?os  ?game  ?skin=halloween (worn; ?skin alone takes it off)
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const q = new URLSearchParams(window.location.search);
+    if (q.has("skin")) useSkins.setState({ equipped: q.get("skin") || null });
     const demo = async () => {
       // the demo binder in the site's language
       const demoSet = keyOf(currentLang(), "swsh12");

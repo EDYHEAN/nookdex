@@ -517,7 +517,12 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
                 draggable={false}
               />
             ))}
-          {!petting && <span className={styles.zzz} style={{ left: SCENE.catSleep.x + 70, top: SCENE.catSleep.y - 20 }} aria-hidden>z</span>}
+          {!petting && (
+            // with a hat on, the z rises off its back instead
+            <span className={styles.zzz} style={skin?.art.hat ? { left: SCENE.catSleep.x + 190, top: SCENE.catSleep.y - 30 } : { left: SCENE.catSleep.x + 70, top: SCENE.catSleep.y - 20 }} aria-hidden>
+              z
+            </span>
+          )}
           {petting > 0 && (
             <span key={petting} className={styles.hearts} style={{ left: SCENE.catAwake.x + 120, top: SCENE.catAwake.y }} aria-hidden>
               <i>♥</i>

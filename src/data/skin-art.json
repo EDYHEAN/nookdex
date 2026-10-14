@@ -1,1 +1,85 @@
-{}
+{
+  "halloween": {
+    "sky": "/skins/halloween/sky.webp",
+    "skyDay": "/skins/halloween/sky-day.webp",
+    "decor": [
+      {
+        "src": "/skins/halloween/lantern.webp",
+        "x": 464,
+        "y": 634,
+        "w": 118,
+        "h": 112,
+        "glow": true
+      },
+      {
+        "src": "/skins/halloween/pumpkin.webp",
+        "x": 1063,
+        "y": 681,
+        "w": 74,
+        "h": 71
+      },
+      {
+        "src": "/skins/halloween/candles.webp",
+        "x": 701,
+        "y": 1147,
+        "w": 102,
+        "h": 109,
+        "glow": true
+      },
+      {
+        "src": "/skins/halloween/candy.webp",
+        "x": 1698,
+        "y": 1151,
+        "w": 86,
+        "h": 61
+      },
+      {
+        "src": "/skins/halloween/garland.webp",
+        "x": 1140,
+        "y": 6,
+        "w": 600,
+        "h": 236
+      },
+      {
+        "src": "/skins/halloween/bat.webp",
+        "x": 997,
+        "y": 300,
+        "w": 78,
+        "h": 40,
+        "rot": 16
+      },
+      {
+        "src": "/skins/halloween/web-tl.webp",
+        "x": 1035,
+        "y": 0,
+        "w": 230,
+        "h": 241
+      },
+      {
+        "src": "/skins/halloween/web-tr.webp",
+        "x": 2542,
+        "y": 0,
+        "w": 210,
+        "h": 220
+      }
+    ],
+    "hat": {
+      "sleep": {
+        "src": "/skins/halloween/hat.webp",
+        "x": 1954,
+        "y": 989,
+        "w": 136,
+        "h": 115,
+        "rot": -24
+      },
+      "awake": {
+        "src": "/skins/halloween/hat.webp",
+        "x": 1993,
+        "y": 807,
+        "w": 150,
+        "h": 127,
+        "rot": -6
+      }
+    }
+  }
+}
