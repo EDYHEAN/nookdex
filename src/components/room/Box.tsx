@@ -8,8 +8,9 @@ import { useSets } from "@/lib/catalog";
 import { currentLang, useT } from "@/lib/lang";
 import { copiesTotals, formatMoney } from "@/lib/price";
 import { sfx } from "@/lib/sound";
-import { useStore } from "@/lib/store";
+import { looseCopies, useStore } from "@/lib/store";
 import { CardBack } from "../binder/CardBack";
+import type { CardData } from "@/lib/types";
 import styles from "./Box.module.css";
 
 /**
@@ -206,25 +207,55 @@ function Group({
         </span>
       </div>
       <div className={styles.cards}>
-        {shown.map((id) => {
-          const card = cards[id];
-          return (
-            <button
-              key={id}
-              className={styles.card}
-              onPointerEnter={sfx.hover}
-              onClick={() => {
-                sfx.pop();
-                onOpenCards(keys, keys.indexOf(id));
-              }}
-              aria-label={card?.name ?? id}
-              title={card ? `${card.name} · ${card.num}` : id}
-            >
-              {card?.img ? <img src={`${card.img}/low.webp`} alt="" loading="lazy" /> : <CardBack label={false} />}
-            </button>
-          );
-        })}
+        {shown.map((id) => (
+          <BoxCard key={id} id={id} card={cards[id]} onOpen={() => onOpenCards(keys, keys.indexOf(id))} />
+        ))}
       </div>
     </motion.section>
+  );
+}
+
+/** A card in the box: opens its sheet; its ✕ throws it away (its copies in the box), the second tap being the sure one. */
+function BoxCard({ id, card, onOpen }: { id: string; card: CardData | undefined; onOpen: () => void }) {
+  const t = useT();
+  const qty = useStore((s) => looseCopies(s.collection[id]).reduce((n, c) => n + c.qty, 0));
+  const [arming, setArming] = useState(false);
+  useEffect(() => {
+    if (!arming) return;
+    const timer = setTimeout(() => setArming(false), 2500);
+    return () => clearTimeout(timer);
+  }, [arming]);
+  return (
+    <span className={styles.cardWrap}>
+      <button
+        className={styles.card}
+        onPointerEnter={sfx.hover}
+        onClick={() => {
+          sfx.pop();
+          onOpen();
+        }}
+        aria-label={card?.name ?? id}
+        title={card ? `${card.name} · ${card.num}` : id}
+      >
+        {card?.img ? <img src={`${card.img}/low.webp`} alt="" loading="lazy" /> : <CardBack label={false} />}
+        {qty > 1 && <span className={styles.qty}>×{qty}</span>}
+      </button>
+      <button
+        className={`${styles.bin} ${arming ? styles.binArmed : ""}`}
+        aria-label={arming ? t("Sûr ? jeter cette carte", "Sure? bin this card") : t("Jeter cette carte", "Bin this card")}
+        title={arming ? t("Sûr ?", "Sure?") : t("Jeter", "Bin")}
+        onClick={() => {
+          if (!arming) {
+            sfx.click();
+            setArming(true);
+            return;
+          }
+          sfx.remove();
+          useStore.getState().removeLooseCopies([id]);
+        }}
+      >
+        {arming ? t("Jeter ?", "Bin?") : "✕"}
+      </button>
+    </span>
   );
 }
