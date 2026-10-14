@@ -17,7 +17,7 @@ import { CardSlot, EmptyPocket, LoadingPocket, type AddResult } from "./CardSlot
 import { Celebration } from "./Celebration";
 import { Inspector } from "./Inspector";
 import { ShareSheet } from "./ShareSheet";
-import { HoldToRemove, StatsPage, type BinderSummary } from "./StatsPage";
+import { HoldToRemove, RemoveChoice, StatsPage, type BinderSummary } from "./StatsPage";
 import styles from "./Binder.module.css";
 import { useT } from "@/lib/lang";
 
@@ -32,8 +32,8 @@ interface Props {
   /** Card to show once the binder is open (from the PC search / wishlist). */
   focusCardId?: string | null;
   onClosed: () => void;
-  /** Called instead of onClosed once the binder was taken off the shelf. */
-  onRemoved: () => void;
+  /** Called instead of onClosed once the binder was taken off the shelf: its cards to the box (keep) or deleted. */
+  onRemoved: (keep: boolean) => void;
   /** The binder rises over the room (true), or starts leaving (false). */
   onCover?: (covering: boolean) => void;
 }
@@ -146,6 +146,8 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   const [party, setParty] = useState<{ id: number; card: CardData } | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [removing, setRemoving] = useState(false);
+  /** the cards of a binder taken off the shelf: to the box, or deleted */
+  const keepCards = useRef(true);
   const [focused, setFocused] = useState<number | null>(null);
   const riffleTimer = useRef<number | null>(null);
   /** Phone: the summary and the pages scroll in a column (no leaves turning: their 3D layers ran Safari out of memory) */
@@ -237,7 +239,8 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
     setLeaving(true);
   }, [phase, onCover]);
 
-  const remove = useCallback(() => {
+  const remove = useCallback((keep: boolean) => {
+    keepCards.current = keep;
     setRemoving(true);
     close();
   }, [close]);
@@ -571,25 +574,15 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
               <span className={styles.shareLabel}>{t("Partager", "Share")}</span> ↗
             </button>
           )}
-          <HoldToRemove
-            label={free ? t("Jeter", "Bin it") : t("Retirer", "Remove")}
-            hint={
-              free
-                ? summary.owned
-                  ? t(
-                      `Maintiens : le classeur part à la poubelle avec ses ${summary.owned} carte${summary.owned > 1 ? "s" : ""}`,
-                      `Hold: the binder goes in the bin with its ${summary.owned} card${summary.owned > 1 ? "s" : ""}`,
-                    )
-                  : t("Maintiens pour jeter ce classeur vide", "Hold to bin this empty binder")
-                : summary.owned
-                  ? t(
-                      `Maintiens pour retirer le classeur de l'étagère : ses ${summary.owned} carte${summary.owned > 1 ? "s" : ""} restent dans ta collec (NookDex OS, « hors étagère »), à remettre ou supprimer`,
-                      `Hold to take the binder off the shelf: its ${summary.owned} card${summary.owned > 1 ? "s" : ""} stay in your collection (NookDex OS, "off the shelf"), to put back or delete`,
-                    )
-                  : t("Maintiens pour retirer ce classeur vide de l'étagère", "Hold to take this empty binder off the shelf")
-            }
-            onConfirm={remove}
-          />
+          {summary.owned ? (
+            <RemoveChoice label={free ? t("Jeter", "Bin it") : t("Retirer", "Remove")} cards={summary.owned} onConfirm={remove} />
+          ) : (
+            <HoldToRemove
+              label={free ? t("Jeter", "Bin it") : t("Retirer", "Remove")}
+              hint={free ? t("Maintiens pour jeter ce classeur vide", "Hold to bin this empty binder") : t("Maintiens pour retirer ce classeur vide de l'étagère", "Hold to take this empty binder off the shelf")}
+              onConfirm={() => remove(true)}
+            />
+          )}
           <button className={styles.pixelBtn} onClick={close} onPointerEnter={sfx.hover} data-tour="close-binder">
             {t("Ranger", "Put away")} <kbd>{t("Échap", "Esc")}</kbd>
           </button>
@@ -619,7 +612,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
         }
         onAnimationComplete={() => {
           if (!leaving) return;
-          if (removing) onRemoved();
+          if (removing) onRemoved(keepCards.current);
           else onClosed();
         }}
         onPointerDown={single ? undefined : onPointerDown}

@@ -122,6 +122,16 @@ doesn't show.
   skipped, waits for the player on the key gestures. Replayable from the shelf notebook. Renaming or removing a
   `data-tour` attribute breaks a step.
 
+## The box
+
+- The purple box on the top shelf, by the Poké Ball (`BOX` in PaintedRoom, `room/Box.tsx`), holds the cards no binder
+  holds: copies kept by their set (no `at`) whose set binder isn't on the shelf, extra sets' included (`boxOf` in
+  lib/binders; nothing stored for it, a set binder put back takes its cards again). Its label shows how many. On narrow
+  screens (phones, 1440×900) it's half out of frame: NookDex OS → Accueil has a « La boîte » row that opens it.
+- Removing a binder that holds cards asks (`RemoveChoice`): into the box (a free binder's copies leave their pockets),
+  or deleted. "Je l'ai !" offers the box when the card's set has no binder on the shelf. Planned use: the Pokécardex
+  import's small sets.
+
 ## Wishlists
 
 - A wishlist is a free binder with `wish: true` (shelf label "★ name", the picker's "★ Wishlist" tab, not offered for the

@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { langOfKey } from "@/lib/cardLang";
+import { setIdOfCard } from "@/lib/catalog";
 import {
   noPriceText, variantLabel, cardCurrency, copiesPaid, currencySign, copiesValue, formatMoney, formatPrice, hasPrice, marketPrice, priceMove, unitPrice,
 } from "@/lib/price";
@@ -51,7 +52,8 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd, onOpenBi
   const placeOf = (copy: Copy) => {
     const here = !browsing && (copy.at?.binder ?? null) === binderId;
     if (here) return undefined;
-    if (!copy.at) return t("dans son classeur", "in its binder");
+    // kept by its set: in its binder when that one is on the shelf, else in the box (lib/binders boxOf)
+    if (!copy.at) return binders.some((b) => b.kind === "set" && b.setId === setIdOfCard(card.id)) ? t("dans son classeur", "in its binder") : t("dans la boîte", "in the box");
     const b = binders.find((x) => x.id === copy.at!.binder);
     return b?.kind === "free" ? `${t("dans", "in")} ${b.name}` : undefined;
   };

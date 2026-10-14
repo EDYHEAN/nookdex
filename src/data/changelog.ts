@@ -21,6 +21,7 @@ export const CHANGELOG: Release[] = [
       { fr: "Chaque jour son Pokémon et son talent : Évoli, Caninos, Lokhlass, Magicarpe…", en: "A Pokémon and a talent each day: Eevee, Growlithe, Lapras, Magikarp…" },
       { fr: "Les parties normales s'arrêtent à la vague 100.", en: "Classic runs end at wave 100." },
       { fr: "8 nouveaux trophées.", en: "8 new trophies." },
+      { fr: "Une boîte sur l'étagère pour les cartes sans classeur.", en: "A box on the shelf for cards with no binder." },
     ],
   },
   {

@@ -349,6 +349,64 @@ function Rename({ id, name }: { id: string; name: string }) {
 }
 
 /** Keep pressed to confirm: no binder thrown away by accident. */
+/**
+ * Taking a binder that holds cards off the shelf: a little card asks where they go, the box on the shelf (lib/binders
+ * boxOf) or the bin (twice, the second time is the sure one).
+ */
+export function RemoveChoice({ label, cards, onConfirm }: { label: string; cards: number; onConfirm: (keep: boolean) => void }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const [arming, setArming] = useState(false);
+  const many = cards > 1 ? "s" : "";
+  return (
+    <span className={styles.removeWrap}>
+      <button
+        className={styles.removeBtn}
+        aria-expanded={open}
+        onClick={(e) => {
+          e.stopPropagation();
+          sfx.pop();
+          setOpen(!open);
+          setArming(false);
+        }}
+        onPointerEnter={sfx.hover}
+      >
+        <span className={styles.removeText}>{label}</span>
+      </button>
+      {open && (
+        <span className={styles.removeAsk} role="dialog" onClick={(e) => e.stopPropagation()}>
+          <span className={styles.removeQ}>{t(`Et ses ${cards} carte${many} ?`, `And its ${cards} card${many}?`)}</span>
+          <button
+            className={styles.removeKeep}
+            onPointerEnter={sfx.hover}
+            onClick={() => {
+              sfx.drop();
+              onConfirm(true);
+            }}
+          >
+            {t("📦 Dans la boîte", "📦 Into the box")}
+          </button>
+          <button
+            className={`${styles.removeBin} ${arming ? styles.removeArmed : ""}`}
+            onPointerEnter={sfx.hover}
+            onClick={() => {
+              if (!arming) {
+                sfx.click();
+                setArming(true);
+                return;
+              }
+              sfx.remove();
+              onConfirm(false);
+            }}
+          >
+            {arming ? t("Sûr ? Supprimer", "Sure? Delete") : t("🗑 Les supprimer", "🗑 Delete them")}
+          </button>
+        </span>
+      )}
+    </span>
+  );
+}
+
 export function HoldToRemove({ label, hint, onConfirm }: { label: string; hint: string; onConfirm: () => void }) {
   const [holding, setHolding] = useState(false);
   const timer = useRef<number | null>(null);

@@ -26,6 +26,7 @@ import { SavePrompt } from "./room/SavePrompt";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
 import { TrophyCase } from "./room/TrophyCase";
+import { Box } from "./room/Box";
 import { TrophyToasts } from "./room/TrophyToast";
 import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
 import { Tour } from "./shelf/Tour";
@@ -59,6 +60,8 @@ export function App() {
   const [roadLog, setRoadLog] = useState(false);
   /** the trophy case, out of the Poké Ball (where it is on screen) */
   const [trophies, setTrophies] = useState<{ x: number; y: number } | null>(null);
+  /** the box on the shelf, open (from where it is on screen) */
+  const [box, setBox] = useState<{ x: number; y: number } | null>(null);
   /** the Game Boy, zoomed in (where it is on screen) */
   const [game, setGame] = useState<{ x: number; y: number } | null>(null);
   /**
@@ -201,7 +204,7 @@ export function App() {
   };
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
-  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!game;
+  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || !!game;
   // A nickname, then a first binder; the account is offered later (SavePrompt).
   const showWelcome =
     entered &&
@@ -240,6 +243,7 @@ export function App() {
           setAbout(true);
         }}
         onOpenTrophies={setTrophies}
+        onOpenBox={setBox}
         onOpenGame={setGame}
         veiled={!entered && !revealed}
         behind={compact && !!openBinder && covered}
@@ -252,9 +256,9 @@ export function App() {
           focusCardId={open?.focusCardId}
           onCover={setCovered}
           onClosed={() => setOpen(null)}
-          onRemoved={() => {
+          onRemoved={(keep) => {
             setOpen(null);
-            useStore.getState().removeBinder(openBinder.id);
+            useStore.getState().removeBinder(openBinder.id, keep);
           }}
         />
       )}
@@ -272,6 +276,11 @@ export function App() {
             }}
             onGoToCard={goToCard}
             onOpenCards={(keys, index) => void openCards(keys, index)}
+            onOpenBox={() => {
+              setSheet(null);
+              setComputer(null);
+              setTimeout(() => setBox({ x: window.innerWidth / 2, y: window.innerHeight / 2 }), 300);
+            }}
             onOpenBinder={(binderId, cardId) => {
               sfx.shelfOut();
               setSheet(null);
@@ -282,7 +291,7 @@ export function App() {
         )}
       </AnimatePresence>
 
-      {computer && sheet && sheetCard && (
+      {(computer || box) && sheet && sheetCard && (
         <Inspector
           key={sheetCard.id}
           card={sheetCard}
@@ -315,6 +324,21 @@ export function App() {
       <AnimatePresence>{roadLog && <RoadLog key="roadlog" onClose={() => setRoadLog(false)} />}</AnimatePresence>
 
       <AnimatePresence>{trophies && <TrophyCase key="trophies" origin={trophies} onClose={() => setTrophies(null)} />}</AnimatePresence>
+
+      <AnimatePresence>
+        {box && (
+          <Box
+            key="box"
+            origin={box}
+            paused={!!sheet}
+            onClose={() => {
+              setSheet(null);
+              setBox(null);
+            }}
+            onOpenCards={(keys, index) => void openCards(keys, index)}
+          />
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>{game && <NookBoy key="nookboy" origin={game} onClose={() => setGame(null)} />}</AnimatePresence>
 

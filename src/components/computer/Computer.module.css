@@ -322,19 +322,6 @@
   opacity: 0.55;
 }
 
-/* under the name of a set taken off the shelf: put it back, delete its cards */
-.offActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.offActions .btn {
-  padding: 1px 8px 3px;
-  font-size: 0.8em;
-}
-
 .bar {
   height: 14px;
   background: rgba(141, 255, 192, 0.12);
@@ -1127,4 +1114,23 @@
 .wishNew input {
   min-width: 0;
   font-size: max(16px, 1em);
+}
+
+/* the box on the shelf (the cards no binder holds): a row that opens it */
+.boxRow {
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 0;
+  border: 0;
+  border-top: 2px dashed rgba(151, 127, 184, 0.5);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.boxRow:hover {
+  background: rgba(151, 127, 184, 0.14);
 }
