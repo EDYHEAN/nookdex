@@ -24,11 +24,31 @@ export const NAMES: Record<number, Txt> = {
   15: ["Dardargnan", "Beedrill"], 59: ["Arcanin", "Arcanine"], 65: ["Alakazam", "Alakazam"], 68: ["Mackogneur", "Machamp"],
   76: ["Grolem", "Golem"], 89: ["Grotadmorv", "Muk"], 112: ["Rhinoféros", "Rhydon"], 142: ["Ptéra", "Aerodactyl"],
   352: ["Kecleon", "Kecleon"],
+  // the daily challenge's Pokémon and foes (lib/game/defi)
+  17: ["Roucoups", "Pidgeotto"], 18: ["Roucarnage", "Pidgeot"], 28: ["Sablaireau", "Sandslash"], 37: ["Goupix", "Vulpix"], 38: ["Feunard", "Ninetales"],
+  39: ["Rondoudou", "Jigglypuff"], 40: ["Grodoudou", "Wigglytuff"], 53: ["Persian", "Persian"], 60: ["Ptitard", "Poliwag"], 61: ["Têtarte", "Poliwhirl"],
+  62: ["Tartard", "Poliwrath"], 63: ["Abra", "Abra"], 64: ["Kadabra", "Kadabra"], 67: ["Machopeur", "Machoke"], 72: ["Tentacool", "Tentacool"],
+  73: ["Tentacruel", "Tentacruel"], 77: ["Ponyta", "Ponyta"], 78: ["Galopa", "Rapidash"], 79: ["Ramoloss", "Slowpoke"], 80: ["Flagadoss", "Slowbro"],
+  82: ["Magnéton", "Magneton"], 83: ["Canarticho", "Farfetch'd"], 84: ["Doduo", "Doduo"], 85: ["Dodrio", "Dodrio"], 86: ["Otaria", "Seel"],
+  87: ["Lamantine", "Dewgong"], 88: ["Tadmorv", "Grimer"], 90: ["Kokiyas", "Shellder"], 91: ["Crustabri", "Cloyster"], 96: ["Soporifik", "Drowzee"],
+  97: ["Hypnomade", "Hypno"], 98: ["Krabby", "Krabby"], 99: ["Krabboss", "Kingler"], 101: ["Électrode", "Electrode"], 102: ["Noeunoeuf", "Exeggcute"],
+  103: ["Noadkoko", "Exeggutor"], 108: ["Excelangue", "Lickitung"], 110: ["Smogogo", "Weezing"], 116: ["Hypotrempe", "Horsea"], 117: ["Hypocéan", "Seadra"],
+  118: ["Poissirène", "Goldeen"], 119: ["Poissoroy", "Seaking"], 120: ["Stari", "Staryu"], 121: ["Staross", "Starmie"], 122: ["M. Mime", "Mr. Mime"],
+  124: ["Lippoutou", "Jynx"], 125: ["Élektek", "Electabuzz"], 126: ["Magmar", "Magmar"], 131: ["Lokhlass", "Lapras"], 132: ["Métamorph", "Ditto"],
+  133: ["Évoli", "Eevee"], 134: ["Aquali", "Vaporeon"], 135: ["Voltali", "Jolteon"], 136: ["Pyroli", "Flareon"], 137: ["Porygon", "Porygon"],
+  138: ["Amonita", "Omanyte"], 139: ["Amonistar", "Omastar"], 141: ["Kabutops", "Kabutops"], 147: ["Minidraco", "Dratini"], 148: ["Draco", "Dragonair"],
   // forms get a number of their own: 10000 + the dex number
-  10150: ["Méga-Mewtwo Y", "Mega Mewtwo Y"], 10094: ["Méga-Ectoplasma", "Mega Gengar"],
+  10150: ["Méga-Mewtwo Y", "Mega Mewtwo Y"], 10094: ["Méga-Ectoplasma", "Mega Gengar"], 10006: ["Méga-Dracaufeu X", "Mega Charizard X"],
+  10065: ["Méga-Alakazam", "Mega Alakazam"], 10080: ["Méga-Flagadoss", "Mega Slowbro"], 10115: ["Méga-Kangourex", "Mega Kangaskhan"],
+  10142: ["Méga-Ptéra", "Mega Aerodactyl"],
 };
 
-export type BasicKind = "whip" | "ember" | "water" | "bolt" | "psycut" | "shadowball";
+export type BasicKind = "whip" | "ember" | "water" | "bolt" | "psycut" | "shadowball"
+  // the daily challenge's Pokémon (lib/game/defi)
+  | "swift" | "icy" | "splash" | "punch" | "slam" | "psyorb";
+export type Basic = { kind: BasicKind; name: Txt; every: number; dmg: number };
+/** what a Pokémon does on its own, outside the 4 slots: Mewtwo, Gengar, and each Pokémon of the daily challenge */
+export type Sig = "psystrike" | "phantom" | "adapt" | "speed" | "ere" | "rage" | "counter" | "rest" | "teleport";
 
 export interface Starter {
   dex: number;
@@ -36,7 +56,9 @@ export interface Starter {
   evolves: [number, number][];
   hp: number;
   speed: number;
-  basic: { kind: BasicKind; name: Txt; every: number; dmg: number };
+  basic: Basic;
+  /** a basic attack that changes with the evolution (Eevee's three, Gyarados's): by dex */
+  evoBasic?: Record<number, Basic>;
   blurb: Txt;
   type: Elem;
   /** only for the players given this reward (game_rewards) */
@@ -47,7 +69,9 @@ export interface Starter {
   /** max HP won per level (2 by default) */
   hpPerLevel?: number;
   /** a move of its own, always there, outside the 4 slots */
-  sig?: "psystrike" | "phantom";
+  sig?: Sig;
+  /** that move, told on the daily challenge's screen */
+  talent?: { name: Txt; desc: Txt };
 }
 
 export type Elem = "grass" | "fire" | "water" | "elec" | "ice" | "ghost" | "ground" | "psy" | "normal" | "fly" | "dragon" | "poison" | "fight";
@@ -358,7 +382,9 @@ export const WAVE_SECONDS = 30;
 
 /* ---------------- bosses, every 5 waves ---------------- */
 
-export type BossMove = "slam" | "charge" | "radial" | "aimed" | "teleport" | "beam" | "strikes";
+export type BossMove = "slam" | "charge" | "radial" | "aimed" | "teleport" | "beam" | "strikes"
+  // the daily challenge's giga bosses (lib/game/defi): a rain of strikes around the player, a spiral of shots, a star of beams
+  | "rain" | "spiral" | "fan";
 
 export interface BossDef {
   dex: number;
@@ -369,6 +395,8 @@ export interface BossDef {
   moves: BossMove[];
   shot: Elem;
   title: Txt;
+  /** a giga boss (the daily challenge's wave 10): drawn twice as big, three phases, a roar and its guards between them */
+  giga?: boolean;
 }
 
 export const BOSSES: BossDef[] = [

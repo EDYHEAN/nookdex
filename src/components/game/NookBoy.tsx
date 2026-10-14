@@ -7,7 +7,8 @@ import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, RARITY, STARTERS, pensionCost, say, type Lang } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
-import { Game, dailyOf, dailyReward, pickX, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
+import { Game, MAX_WAVE, dailyOf, dailyReward, pickX, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
+import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
 import { lastName, myRewards, submitScore, topScores, type Period, type Score } from "@/lib/game/scores";
 import { buyLevel, setGold, usePension } from "@/lib/pensionStore";
@@ -33,6 +34,10 @@ const BOARDS: { mode: Mode; period: Period; label: [string, string] }[] = [
   { mode: "classic", period: "all", label: ["Tout temps", "All time"] },
   { mode: "coop", period: "season", label: ["Coop", "Coop"] },
 ];
+/** the daily challenge replaced the old daily on DEFI_FROM (UTC day): its board, its screen, its runs */
+const defiNow = () => today() >= DEFI_FROM;
+const boardOf = (i: number) => (BOARDS[i].mode === "daily" && defiNow() ? { ...BOARDS[i], mode: "defi" as Mode } : BOARDS[i]);
+const fmtTime = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
 /** the title menu's entries, by screen: where B comes back to */
 const MENU_INDEX: Partial<Record<Screen, number>> = { daily: 2, ladder: 3, options: 5, credits: 6 };
 type Button = "up" | "down" | "left" | "right" | "a" | "b" | "start" | "select";
@@ -132,7 +137,7 @@ export default function NookBoy({ origin, onClose }: Props) {
         };
         setG(eng);
         // dev: the engine at hand in the console (and for screenshots)
-        if (process.env.NODE_ENV !== "production") (window as unknown as { nookboy: Game }).nookboy = eng;
+        if (process.env.NODE_ENV !== "production") Object.assign(window, { nookboy: eng, nookdefi: defiOf });
       })
       .catch(() => setFailed(true));
     return () => {
@@ -212,7 +217,7 @@ export default function NookBoy({ origin, onClose }: Props) {
   const openLadder = async (i = board) => {
     setBoard(i);
     setLadder("loading");
-    const b = BOARDS[i];
+    const b = boardOf(i);
     setLadder(await topScores(b.mode, b.period, b.period === "day" ? today() : undefined));
   };
   /**
@@ -228,7 +233,8 @@ export default function NookBoy({ origin, onClose }: Props) {
     unlock("game-first");
     settled.current = false;
     const st = usePension.getState();
-    if (mode === "daily") g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()) });
+    if (mode === "daily" && defiNow()) g.start(0, { mode: "defi", perm: {}, defi: defiOf(today()) });
+    else if (mode === "daily") g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()) });
     else if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: st.levels, wallet: st.gold }, g.selected);
     else g.start(g.selected, { mode: "classic", perm: st.levels, wallet: st.gold });
   };
@@ -246,6 +252,15 @@ export default function NookBoy({ origin, onClose }: Props) {
       gold += run.dailyBonus;
       usePension.setState({ dailyPaid: run.day ?? null });
       setBonusTaken(true);
+    }
+    // the daily challenge: a little for each wave cleared, every run; its bonus on the day's first win
+    if (g.phase === "over" && run?.mode === "defi") {
+      gold += defiWaveGold(run.won ? DEFI_WAVES : run.wave - 1);
+      if (run.won && st.dailyPaid !== run.day) {
+        gold += DEFI_WIN_GOLD;
+        usePension.setState({ dailyPaid: run.day ?? null });
+        setBonusTaken(true);
+      }
     }
     setGold(gold);
   };
@@ -448,7 +463,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (rank != null) {
       if (rank <= 3) unlock("game-top3");
       gsfx.ok();
-      void openLadder();
+      void openLadder(run.mode === "coop" ? 3 : run.mode === "classic" ? 0 : 1);
     } else gsfx.back();
   };
 
@@ -603,6 +618,58 @@ export default function NookBoy({ origin, onClose }: Props) {
             </div>
           </div>
         );
+      if (screen === "daily" && defiNow()) {
+        const { d } = defiOf(today());
+        const mon = d.mon;
+        const evo = mon.evolves.map(([dex, l]) => `${nameOf(dex)} (${t("N.", "lv")}${l})`).join(", ");
+        return (
+          <div className={styles.page}>
+            <h2>{t("DÉFI DU JOUR", "DAILY CHALLENGE")}</h2>
+            <div className={`${styles.box} ${styles.daily}`}>
+              <p className={styles.dailyDay}>
+                {new Date(today() + "T12:00:00Z").toLocaleDateString(lang === "fr" ? "fr-FR" : "en-GB", { weekday: "long", day: "numeric", month: "long" })} ·{" "}
+                {say(d.theme, lang)}
+              </p>
+              <p className={styles.dailyStarter}>
+                <Mini dex={mon.dex} label={nameOf(mon.dex)} /> <b>{nameOf(mon.dex)}</b> <span className={styles.type}>{say(mon.basic.name, lang)}</span>
+                {evo && <span className={styles.dim}> → {evo}</span>}
+              </p>
+              {mon.talent && (
+                <p className={styles.dailyMod}>
+                  <b>{say(mon.talent.name, lang)}</b> · {say(mon.talent.desc, lang)}
+                </p>
+              )}
+              <p className={styles.dailyGoal}>
+                <span>{t("OBJECTIF", "GOAL")}</span>
+                {t(
+                  `${DEFI_WAVES} vagues : chacune finit au dernier K.O. ${nameOf(d.boss.dex)} à la 5e, le giga boss ${nameOf(d.giga.dex)} à la 10e. Bats-le, le plus vite possible.`,
+                  `${DEFI_WAVES} waves, each over at its last KO. ${nameOf(d.boss.dex)} at the 5th, the giga boss ${nameOf(d.giga.dex)} at the 10th. Beat it, as fast as you can.`,
+                )}
+              </p>
+              <p className={styles.dailyGoal}>
+                <span>{t("GAIN", "REWARD")}</span>
+                {t(
+                  `${defiWaveGold(1)} or par vague nettoyée, et ${DEFI_WIN_GOLD} or pour ta 1re victoire du jour.`,
+                  `${defiWaveGold(1)} gold per wave cleared, and ${DEFI_WIN_GOLD} gold for your 1st win of the day.`,
+                )}
+              </p>
+              <p className={styles.dim}>
+                {dailyPaid === today()
+                  ? t("Victoire du jour déjà payée : rejoue pour battre ton temps.", "Today's win is paid already: play again to beat your time.")
+                  : t("Plus fort et plus rapide qu'une partie normale. Mêmes ennemis et mêmes cartes pour tous : sans la Pension ni ta bourse.", "Stronger and quicker than a normal run. Same foes and cards for all: no Pension, no purse.")}
+              </p>
+            </div>
+            <ul className={`${styles.box} ${styles.menu}`}>
+              <li className={styles.on} onClick={() => startRun("daily")}>
+                {t("Relever le défi", "Take the challenge")}
+              </li>
+            </ul>
+            <p className={styles.keys} onClick={() => press("b")}>
+              {t("Entrée : jouer · B : retour", "Enter: play · B: back")}
+            </p>
+          </div>
+        );
+      }
       if (screen === "daily") {
         const d = dailyOf(today());
         const st = STARTERS[d.starter];
@@ -655,7 +722,7 @@ export default function NookBoy({ origin, onClose }: Props) {
                 </button>
               ))}
             </div>
-            <Ladder rows={ladder} nameOf={nameOf} t={t} />
+            <Ladder rows={ladder} nameOf={nameOf} t={t} timed={boardOf(board).mode === "defi"} />
             <p className={styles.keys} onClick={() => press("b")}>
               {t("◀ ▶ changer · B : retour", "◀ ▶ switch · B: back")}
             </p>
@@ -875,14 +942,18 @@ export default function NookBoy({ origin, onClose }: Props) {
       return (
         <div className={styles.over}>
           <p className={`${styles.box} ${styles.ko}`}>
-            {run.dex2
-              ? t(`${nameOf(run.dex)} et ${nameOf(run.dex2)} sont K.O. !`, `${nameOf(run.dex)} and ${nameOf(run.dex2)} fainted!`)
-              : t(`${nameOf(run.dex)} est K.O. !`, `${nameOf(run.dex)} fainted!`)}
+            {run.won
+              ? run.mode === "defi"
+                ? t(`VICTOIRE en ${fmtTime(run.seconds)} !`, `VICTORY in ${fmtTime(run.seconds)}!`)
+                : t(`VICTOIRE : les ${MAX_WAVE} vagues !`, `VICTORY: all ${MAX_WAVE} waves!`)
+              : run.dex2
+                ? t(`${nameOf(run.dex)} et ${nameOf(run.dex2)} sont K.O. !`, `${nameOf(run.dex)} and ${nameOf(run.dex2)} fainted!`)
+                : t(`${nameOf(run.dex)} est K.O. !`, `${nameOf(run.dex)} fainted!`)}
           </p>
           <div className={`${styles.box} ${styles.stats}`}>
             <p>
-              <span>{t("Vague atteinte", "Wave reached")}</span>
-              <b>{run.wave}</b>
+              <span>{run.mode === "defi" ? t("Vagues nettoyées", "Waves cleared") : t("Vague atteinte", "Wave reached")}</span>
+              <b>{run.mode === "defi" ? `${run.won ? DEFI_WAVES : run.wave - 1}/${DEFI_WAVES}` : run.wave}</b>
             </p>
             <p>
               <span>{t("Pokémon K.O.", "Pokémon KO'd")}</span>
@@ -902,7 +973,14 @@ export default function NookBoy({ origin, onClose }: Props) {
               <span>{t("Ta bourse", "Your purse")}</span>
               <b className={styles.goldText}>{purse}</b>
             </p>
-            {run.mode === "daily" ? (
+            {run.mode === "defi" ? (
+              <p>
+                <span>{run.won ? t("Défi réussi ✓", "Challenge won ✓") : t("Défi raté", "Challenge lost")}</span>
+                <b className={styles.goldText}>
+                  +{defiWaveGold(run.won ? DEFI_WAVES : run.wave - 1) + (run.won && bonusTaken ? DEFI_WIN_GOLD : 0)}
+                </b>
+              </p>
+            ) : run.mode === "daily" ? (
               <p>
                 <span>{run.dailyWon ? t("Défi réussi ✓", "Challenge met ✓") : t("Défi raté", "Challenge missed")}</span>
                 <b className={styles.goldText}>{bonusTaken || dailyPaid !== run.day ? `+${run.dailyBonus}` : t("déjà touché", "already paid")}</b>
@@ -917,7 +995,7 @@ export default function NookBoy({ origin, onClose }: Props) {
           {typeof sent === "number" ? (
             <>
               <p className={styles.rank}>{sent <= 3 ? t(`★ ${sent}e du classement ! ★`, `★ #${sent} on the ladder! ★`) : t(`${sent}e du classement`, `#${sent} on the ladder`)}</p>
-              <Ladder rows={ladder} nameOf={nameOf} t={t} small highlight={name.trim()} />
+              <Ladder rows={ladder} nameOf={nameOf} t={t} small highlight={name.trim()} timed={run.mode === "defi"} />
             </>
           ) : (
             <form
@@ -948,7 +1026,7 @@ export default function NookBoy({ origin, onClose }: Props) {
               onClick={() => {
                 gsfx.ok();
                 setSent("idle");
-                if (run.mode === "daily") startRun("daily");
+                if (run.mode === "daily" || run.mode === "defi") startRun("daily");
                 else g.toSelect();
               }}
             >
@@ -1179,7 +1257,8 @@ function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string
 
 /* ---------------- the ladder ---------------- */
 
-function Ladder({ rows, nameOf, t, small, highlight }: { rows: Score[] | null | "loading"; nameOf: (d: number) => string; t: (fr: string, en: string) => string; small?: boolean; highlight?: string }) {
+function Ladder(props: { rows: Score[] | null | "loading"; nameOf: (d: number) => string; t: (fr: string, en: string) => string; small?: boolean; highlight?: string; timed?: boolean }) {
+  const { rows, nameOf, t, small, highlight, timed } = props;
   if (rows === "loading") return <p className={`${styles.box} ${styles.blink}`}>{t("Connexion…", "Connecting…")}</p>;
   if (!rows) return <p className={styles.box}>{t("Classement indisponible pour l'instant.", "The ladder is unavailable for now.")}</p>;
   if (!rows.length) return <p className={styles.box}>{t("Personne encore : à toi d'ouvrir le bal !", "Nobody yet: be the first!")}</p>;
@@ -1190,11 +1269,21 @@ function Ladder({ rows, nameOf, t, small, highlight }: { rows: Score[] | null | 
           <span className={styles.lRank}>{i + 1}</span>
           <Mini dex={r.starter} label={nameOf(r.starter)} />
           <span className={styles.lName}>{r.name}</span>
-          <span className={styles.lWave}>
-            {t("V.", "W")}
-            {r.wave}
-          </span>
-          <span className={styles.lKo}>{r.kills} KO</span>
+          {timed ? (
+            // the daily challenge: the time of the win (wave 11), else how far it went
+            <>
+              <span className={styles.lWave}>{r.wave > DEFI_WAVES ? "✓" : `${t("V.", "W")}${r.wave}`}</span>
+              <span className={styles.lKo}>{fmtTime(r.seconds)}</span>
+            </>
+          ) : (
+            <>
+              <span className={styles.lWave}>
+                {t("V.", "W")}
+                {r.wave}
+              </span>
+              <span className={styles.lKo}>{r.kills} KO</span>
+            </>
+          )}
         </li>
       ))}
     </ol>

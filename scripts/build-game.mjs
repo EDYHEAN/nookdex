@@ -16,6 +16,7 @@ const RAW = "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/spr
 const PLAYER = ["Walk", "Idle", "Shoot", "Hurt", "Faint", "Pose"];
 const ENEMY = ["Walk", "Hurt"];
 const BOSS = ["Walk", "Hurt", "Faint"];
+const PLAYER_LITE = ["Walk", "Idle", "Shoot", "Hurt"];
 
 // dex number -> the animations the game uses
 const ROSTER = {
@@ -35,6 +36,20 @@ const ROSTER = {
   10094: PLAYER,
   // Kecleon, the merchant
   352: ["Walk", "Idle"],
+  // the daily challenge (lib/game/defi): its foes, by theme...
+  ...Object.fromEntries(
+    [17, 18, 28, 37, 38, 39, 40, 53, 60, 61, 62, 72, 73, 77, 79, 80, 82, 83, 84, 86, 87, 88, 90, 91, 96, 98, 101, 102, 103, 108, 110, 116, 117, 118, 119, 120, 121,
+      122, 124, 125, 126, 132, 137, 138, 139, 141, 147].map((n) => [n, ENEMY]),
+  ),
+  // ...its wave-5 bosses (Tauros, Muk, Rhydon are there already)...
+  ...Object.fromEntries([78, 85, 97, 99, 148].map((n) => [n, BOSS])),
+  // ...its Pokémon of the day and their evolutions (Faint and Pose fall back on Hurt and Idle)...
+  ...Object.fromEntries([133, 134, 135, 136, 58, 59, 131, 129, 66, 67, 68, 63, 64, 65].map((n) => [n, PLAYER_LITE])),
+  // (Gyarados and Snorlax are bosses too: their faint stays)
+  130: [...PLAYER_LITE, "Faint"],
+  143: [...PLAYER_LITE, "Faint"],
+  // ...and its giga bosses, wave 10: Mega forms drawn twice as big (see FORMS)
+  ...Object.fromEntries([10006, 10065, 10080, 10115, 10142].map((n) => [n, BOSS])),
 };
 
 // PMD rows: Down, DownRight, Right, UpRight, Up, UpLeft, Left, DownLeft. The last three are mirrors: the game flips them.
@@ -43,7 +58,7 @@ const ATLAS_W = 2048;
 
 const pad = (n) => String(n).padStart(4, "0");
 /** forms: their folder on SpriteCollab */
-const FORMS = { 10150: "0150/0002", 10094: "0094/0001" };
+const FORMS = { 10150: "0150/0002", 10094: "0094/0001", 10006: "0006/0001", 10065: "0065/0001", 10080: "0080/0002", 10115: "0115/0001", 10142: "0142/0001" };
 
 async function cached(url, file, binary) {
   const p = path.join(CACHE, file);
