@@ -130,12 +130,7 @@ export function Shop({ onClose }: { onClose: () => void }) {
               </p>
             </>
           ) : (
-            <Locker
-              onShop={(id) => {
-                setTab("shop");
-                setOpen(id);
-              }}
-            />
+            <Locker onShop={setOpen} />
           )}
         </div>
 
@@ -223,7 +218,7 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
         transition={{ type: "spring", stiffness: 320, damping: 24 }}
       >
         <button className={styles.back} onClick={onBack} onPointerEnter={sfx.hover}>
-          ← {t("Vitrine", "Shop")}
+          ← {t("Retour", "Back")}
         </button>
         <div className={styles.cardArt}>
           <span className={styles.rays} aria-hidden />
@@ -242,13 +237,14 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
               })}
             </ul>
           )}
-          {!mine && (
+          {!mine && !onSale(thing) && <p className={styles.note}>{t("Plus en vente pour l'instant.", "Not for sale right now.")}</p>}
+          {!mine && onSale(thing) && (
             <p className={styles.cardPrice}>
               {worth && <s>{formatEuros(worth, lang)}</s>} <b>{formatEuros(thing.price, lang)}</b>
             </p>
           )}
           <div className={styles.actions}>
-            {mine ? (
+            {!mine && !onSale(thing) ? null : mine ? (
               <button
                 className={`${styles.btn} ${worn ? "" : styles.primary}`}
                 onPointerEnter={sfx.hover}
