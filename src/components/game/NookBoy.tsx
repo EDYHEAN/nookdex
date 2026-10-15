@@ -71,8 +71,12 @@ export default function NookBoy({ origin, onClose }: Props) {
   const lang = useLang() as Lang;
   const t = useCallback((fr: string, en: string) => (lang === "fr" ? fr : en), [lang]);
   const vp = useViewport();
-  // the biggest whole-number zoom that fits: pixels stay square
-  const scale = Math.max(1, Math.floor(Math.min((vp.h - 110) / 330, (vp.w - 80) / SHELL_W)));
+  // the whole console fits the window: a zoom of whole device pixels when one comes close (pixels stay square), else the
+  // exact fit (whole numbers only gave a small window a tiny console stuck to the top, or one cut at the waist)
+  const fit = Math.min((vp.h - 32) / SHELL_H, (vp.w - 80) / SHELL_W);
+  const dpr = typeof window === "undefined" ? 1 : window.devicePixelRatio || 1;
+  const snapped = Math.floor(fit * dpr) / dpr;
+  const scale = Math.max(0.5, snapped >= fit * 0.85 ? snapped : fit);
   /** the keys' reminder, left of the console when there's room */
   const hintW = (vp.w - SHELL_W * scale) / 2 - 36;
   const nickname = useStore((s) => s.profile?.name) ?? "";
@@ -1106,7 +1110,7 @@ export default function NookBoy({ origin, onClose }: Props) {
   const uiOn = coopRun && g && !["paused", "over", "dying"].includes(phase) && !pension ? g.cur.id : 0;
   /** one Game Boy: the screen of player pid (in coop, one each, side by side) */
   const shell = (pid: number, sc: number, left: string) => (
-      <div key={pid} className={styles.shell} style={{ width: SHELL_W, height: SHELL_H, left, top: coopRun ? 56 : undefined, transform: `translateX(-50%) scale(${sc})` }}>
+      <div key={pid} className={styles.shell} style={{ width: SHELL_W, height: SHELL_H, left, top: coopRun ? 56 : Math.max(16, (vp.h - SHELL_H * sc) / 2), transform: `translateX(-50%) scale(${sc})` }}>
         <div className={styles.topStrip}>
           <span>◂ OFF · ON ▸</span>
         </div>
