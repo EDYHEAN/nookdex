@@ -77,7 +77,7 @@ No text, no letters, no logos.
 
 Warwick en sorcier : le chapeau de la planche D1, posé sur sa tête par le code (endormi et réveillé).
 
-## Où on en est (fin du 2026-10-14) : point de reprise
+## Où on en est (2026-10-15) : point de reprise
 
 Tout est sur la branche `shop` (pas de PR, pas mergée). La boutique reste cachée : en prod, seuls les comptes de Johan
 (`STUDIO_EMAIL_HASHES`) la voient, jusqu'à `NEXT_PUBLIC_SHOP=on` dans Vercel.
@@ -109,14 +109,46 @@ Tout est sur la branche `shop` (pas de PR, pas mergée). La boutique reste cach�
 Sans clés (session web), la route de paiement répond 503 et la boutique affiche « Le paiement ouvre très bientôt » :
 tout le reste se travaille quand même.
 
+### Compte Stripe en production (fait le 2026-10-15)
+
+Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, pour s'y retrouver :
+- Type : France, « Particulier / Entrepreneur individuel / Micro-entrepreneur » (la micro-entreprise de Johan, son SIRET).
+- Catégorie : Produits numériques → **Applications** (pas « Jeux » : plus surveillé, et le jeu ne vend rien).
+  Description : application web gratuite de suivi de collection, objets décoratifs numériques optionnels à l'unité
+  ou en pack (0,99-2,99 €), achat unique, livré tout de suite, l'appli reste gratuite. Pokémon pas mis en avant (les
+  skins payants n'en contiennent rien).
+- Support : téléphone de Johan donné à Stripe mais **pas affiché** sur les reçus ; le support client, c'est
+  `contact@nookdex.com`.
+- Libellé de relevé : `NOOKDEX.COM`, abrégé `NOOKDEX`.
+- Virements : sur le compte de Johan, automatiques une fois par mois (colle à la déclaration URSSAF).
+- Double authentification : application d'authentification + clé d'accès, codes de secours gardés hors du PC.
+- Radar : **Lite** (inclus ; Standard coûterait 0,05 € par vente, 5 % d'un objet à 0,99 €). Passer à Standard si des
+  contestations arrivent.
+- Stripe Climate : non (facultatif, réactivable).
+- « Copier des éléments de l'environnement de test » : **rien copié**. Les produits de prod viennent de
+  `scripts/stripe-skins.mjs` (code fiscal Managed Payments, prix TTC, lookup keys `skin_<id>`).
+- **PayPal** activé via Stripe, revenus reçus **sur Stripe** (mêmes virements, à part des pourboires du PayPal.me perso).
+  Un compte **PayPal Professionnel** neuf a été créé pour ça, au nom de la micro-entreprise : e-mail `contact@nookdex.com`,
+  dénomination = nom de Johan (comme l'avis SIRENE), nom commercial NookDex, euro, « Applications de biens numériques
+  (hors jeux) », site nookdex.com, identifiant fiscal personnel (numéro fiscal, pas de TVA intracom en franchise),
+  résident fiscal France seulement. Pub PayPal décochée. Pas confirmé que Managed Payments propose PayPal : Stripe
+  choisit les moyens affichés (la route de paiement n'en force aucun), à vérifier sur la vraie page de paiement.
+
 **Reste à faire**
-- L'achat test de Johan lui-même (Supabase : redirect URL `http://localhost:3210/**` à ajouter).
+- **Ce soir, sur le PC** : créer les produits en prod avec `node scripts/stripe-skins.mjs` et la clé `sk_live_…`
+  (Dashboard en mode production → Développeurs → Clés API). Garder les clés **test** dans `.env.local` (sinon un achat
+  en dev est un vrai paiement, et le secret de `stripe listen` n'existe qu'en test) : passer la clé live pour cette
+  seule commande, `$env:STRIPE_SECRET_KEY="sk_live_…"; node scripts/stripe-skins.mjs` (PowerShell). Chaque ligne doit
+  commencer par `LIVE`.
+- Vérifier que **Managed Payments** est activé en mode production (Paramètres → Paiements), pas seulement en test.
+- L'achat test de Johan lui-même (Supabase : redirect URL `http://localhost:3210/**` à ajouter ; supprimer d'abord
+  l'achat test du pack déjà enregistré sur son compte).
 - Pages légales : mentions légales (éditeur : nom, SIRET, adresse ou domiciliation) et CGV des contenus numériques
   (FR/EN, notebook pages comme /conditions), liées depuis la boutique.
-- Compte Stripe live (Johan) : Managed Payments activé, libellé `NOOKDEX`, support `contact@nookdex.com`.
 - Lancement : clés live + `SUPABASE_SERVICE_ROLE_KEY` dans Vercel, webhook de prod (`https://nookdex.com/api/shop/webhook`,
-  événements checkout.session.completed et async_payment_succeeded) et son secret, `node scripts/stripe-skins.mjs` avec
-  la clé live, une ligne au carnet de route (courte), merger `main` dans `shop` puis la PR, enfin `NEXT_PUBLIC_SHOP=on`.
+  événements checkout.session.completed et async_payment_succeeded) et son secret, une ligne au carnet de route
+  (courte), merger `main` dans `shop` puis la PR, enfin `NEXT_PUBLIC_SHOP=on`. Au premier vrai achat : voir si PayPal
+  s'affiche.
 - Ménage : supprimer `Documents/NookDex/halloween-apercu/` (captures temporaires) une fois fini.
 
 ## Paiement : Stripe ou un « merchant of record »
