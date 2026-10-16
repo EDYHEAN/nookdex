@@ -444,6 +444,10 @@
   color: #9d90c4;
 }
 
+.small a {
+  color: #cdbff0;
+}
+
 /* ---------- one thing up close ---------- */
 
 .cardWrap {

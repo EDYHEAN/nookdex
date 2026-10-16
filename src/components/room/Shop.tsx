@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useLang, useT } from "@/lib/lang";
@@ -131,7 +132,9 @@ export function Shop({ onClose }: { onClose: () => void }) {
                 {t(
                   "Contenus numériques NookDex, achat unique, gardés avec ton compte. Paiement et reçus par Stripe. Tout ce qui touche à Pokémon reste gratuit.",
                   "NookDex digital items, one-off purchase, kept with your account. Payment and receipts by Stripe. Everything Pokémon stays free.",
-                )}
+                )}{" "}
+                <Link href="/conditions-de-vente">{t("Conditions de vente", "Terms of sale")}</Link> ·{" "}
+                <Link href="/mentions-legales">{t("Mentions légales", "Legal notice")}</Link>
               </p>
             </>
           ) : (

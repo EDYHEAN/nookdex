@@ -44,5 +44,13 @@ export const STUDIO_EMAIL_HASHES = [
   "584db0979a6e714ea48d6913c71af4c9641ddc5dd05edc43a538c66feb710280",
 ];
 
+/** Who publishes the site and sells the skins (the legal notice, the terms of sale): Johan's sole-trader business. */
+export const LEGAL = {
+  name: "Johan Trigeard",
+  siret: "878 661 941 00046",
+  address: "10 allée des Mimosas, 33370 Tresses, France",
+  email: "contact@nookdex.com",
+};
+
 /** Tips for the project (the cat's bowl, the about pages). */
 export const SUPPORT_URL = "https://paypal.me/JohanTrigeard";
