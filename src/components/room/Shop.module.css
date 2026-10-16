@@ -1,0 +1,1109 @@
+/* The shop, an item shop like a game's: a night-blue showcase, tiles coloured by rarity (rays, a shine sweeping over),
+   a card for one thing, the locker, and the try-on strip at the bottom of the room. */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 74;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  /* no blur: blurring the whole animated room behind made the opening stutter */
+  background: rgba(14, 9, 28, 0.78);
+}
+
+.shop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(980px, 100%);
+  max-height: min(860px, calc(100dvh - 32px));
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(120, 80, 220, 0.35), transparent 60%),
+    linear-gradient(180deg, #1d1638, #120d24);
+  color: #f3ecff;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    inset 0 0 0 2px rgba(200, 170, 255, 0.18),
+    9px 11px 0 3px rgba(10, 6, 20, 0.5),
+    0 30px 90px rgba(0, 0, 0, 0.6);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  padding: 16px 64px 14px 20px;
+  border-bottom: 2px solid rgba(200, 170, 255, 0.15);
+}
+
+.head h2 {
+  margin: 0;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 22px;
+  color: #ffd35a;
+  text-shadow: 3px 3px 0 #000;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.tab {
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cdbff0;
+  font: inherit;
+  font-size: 17px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.tabOn {
+  background: #ffd35a;
+  color: var(--ink);
+}
+
+/* the time left: loud, like a game shop's */
+.timer {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ff5a3c, #c41d3a);
+  color: #fff;
+  box-shadow:
+    0 0 0 2px #000,
+    0 0 22px rgba(255, 80, 60, 0.55),
+    3px 4px 0 1px rgba(0, 0, 0, 0.45);
+  animation: timerPulse 2s ease-in-out infinite;
+}
+
+.timer b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 16px;
+  color: #ffe14a;
+  text-shadow: 2px 2px 0 #000;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes timerPulse {
+  50% {
+    box-shadow:
+      0 0 0 2px #000,
+      0 0 34px rgba(255, 90, 60, 0.85),
+      3px 4px 0 1px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* the featured pack's "limited edition" label, top right */
+.ribbon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #ff5a3c, #c41d3a);
+  color: #fff;
+  font-family: var(--font-press), monospace;
+  font-size: 12px;
+  /* not upper-cased: the pixel font draws accented capitals (É) smaller than the others */
+  transform: rotate(2deg);
+  box-shadow:
+    0 0 0 2px #000,
+    2px 3px 0 1px rgba(0, 0, 0, 0.4);
+}
+
+.close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.close:hover {
+  transform: rotate(90deg) scale(1.08);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px 20px;
+}
+
+.section {
+  margin: 22px 0 10px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 14px;
+  color: #cdbff0;
+  letter-spacing: 0.05em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+/* ---------- a tile ---------- */
+
+.tile {
+  --c1: #69bb1e;
+  --c2: #1d5d10;
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: radial-gradient(circle at 50% 38%, var(--c1), var(--c2) 75%);
+  color: #fff;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.18),
+    0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.big {
+  aspect-ratio: auto;
+  height: 300px;
+}
+
+.uncommon {
+  --c1: #7fd43a;
+  --c2: #1f6612;
+}
+
+.rare {
+  --c1: #4fc8ff;
+  --c2: #154a9c;
+}
+
+.epic {
+  --c1: #c77dff;
+  --c2: #4a1a8c;
+}
+
+.legendary {
+  --c1: #ffb44a;
+  --c2: #8a3a0a;
+}
+
+/* light rays behind the art: still on the small tiles (cheap), turning on the featured one and a card */
+.rays {
+  position: absolute;
+  inset: -40%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.12) 0deg 8deg, transparent 8deg 22deg);
+  pointer-events: none;
+}
+
+.big .rays,
+.cardArt .rays {
+  will-change: transform;
+  animation: raysTurn 40s linear infinite;
+}
+
+@keyframes raysTurn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cutout,
+.framed {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.34, 1.6, 0.5, 1);
+}
+
+.cutout {
+  width: 78%;
+  max-height: 64%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.45));
+}
+
+.framed {
+  width: 74%;
+  height: 56%;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.85),
+    0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.big .framed {
+  width: 54%;
+  height: 74%;
+  top: 50%;
+  left: 32%;
+}
+
+.tile:hover .cutout,
+.tile:hover .framed {
+  transform: translate(-50%, -52%) scale(1.06);
+}
+
+.badges {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.badgeNew,
+.badgeDeal {
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-family: var(--font-press), monospace;
+  font-size: 10px;
+  line-height: 1.2;
+  transform: rotate(-3deg);
+}
+
+.badgeNew {
+  background: #ffe14a;
+  color: #2b2230;
+}
+
+.badgeDeal {
+  background: #ff4d6d;
+  color: #fff;
+  font-size: 12px;
+}
+
+/* the name strip at the bottom */
+.strip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 8px;
+  padding: 26px 12px 10px;
+  background: linear-gradient(180deg, transparent, rgba(8, 5, 18, 0.85) 40%);
+}
+
+.big .strip {
+  left: auto;
+  right: 0;
+  top: 0;
+  width: 36%;
+  align-content: center;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 20px;
+  background: linear-gradient(90deg, transparent, rgba(8, 5, 18, 0.8) 25%);
+}
+
+.name {
+  grid-column: 1 / -1;
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  line-height: 1.3;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.big .name {
+  font-size: 22px;
+}
+
+.rarity {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  justify-self: end;
+}
+
+.big .price {
+  justify-self: start;
+}
+
+.price b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 13px;
+  color: #ffe14a;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.big .price b {
+  font-size: 20px;
+}
+
+.price s,
+.cardPrice s {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* owned: a green frame, and one stamp across the art, the same on every tile and card */
+.mine {
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 3px #9dff7a,
+    0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.ownedStamp {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 2;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: rgba(20, 60, 12, 0.88);
+  color: #c9ffb0;
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  white-space: nowrap;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  box-shadow:
+    0 0 0 3px #9dff7a,
+    0 6px 14px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.big .ownedStamp {
+  left: 32%;
+  top: 50%;
+  font-size: 18px;
+  padding: 10px 18px;
+}
+
+.cardArt .ownedStamp {
+  top: 50%;
+  font-size: 16px;
+}
+
+/* a shine sweeping over when hovered */
+.shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.35) 50%, transparent 65%);
+  background-size: 250% 100%;
+  background-position: 130% 0;
+  pointer-events: none;
+}
+
+.tile:hover .shine {
+  animation: sweep 0.8s ease-out;
+}
+
+@keyframes sweep {
+  to {
+    background-position: -130% 0;
+  }
+}
+
+.small {
+  margin: 22px 0 0;
+  font-size: 15px;
+  color: #9d90c4;
+}
+
+.small a {
+  color: #cdbff0;
+}
+
+/* ---------- one thing up close ---------- */
+
+.cardWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10, 6, 22, 0.72);
+}
+
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  width: min(820px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  border-radius: 12px;
+  background: #1a1430;
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.12),
+    0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.back {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.cardArt {
+  position: relative;
+  min-height: 360px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 42%, var(--c1), var(--c2) 75%);
+}
+
+.cardArt .cutout {
+  width: 80%;
+  max-height: 70%;
+  top: 50%;
+}
+
+.cardArt .framed {
+  width: 84%;
+  height: 62%;
+  top: 50%;
+}
+
+.cardText {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 22px;
+}
+
+.cardText h3 {
+  margin: 0;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 20px;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.cardText p {
+  margin: 0;
+  font-size: 18px;
+  color: #ddd2fb;
+}
+
+.cardText ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 17px;
+  color: #ddd2fb;
+}
+
+.cardText li::before {
+  content: "✦ ";
+  color: var(--c1);
+}
+
+.card .rarity {
+  color: var(--c1);
+}
+
+.cardPrice b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 20px;
+  color: #ffe14a;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.btn {
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #f3ecff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  cursor: pointer;
+  box-shadow:
+    0 0 0 2px #000,
+    3px 4px 0 1px rgba(0, 0, 0, 0.45);
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px) rotate(-1deg);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.primary {
+  background: #ffe14a;
+}
+
+.checkout {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px;
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.checkout p {
+  margin: 0;
+  font-size: 17px;
+}
+
+.note {
+  color: #ffb199 !important;
+}
+
+.mailForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 16 px at least: no zoom on a phone when typing */
+.mailForm input {
+  min-width: 200px;
+  padding: 8px 10px;
+  border: 2px solid #000;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+}
+
+/* ---------- the locker, by slot ---------- */
+
+.locker {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+/* the slots, each showing what it wears */
+.slots {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slot {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.06);
+  transition:
+    background 0.15s,
+    transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.slot:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(3px);
+}
+
+.slotOn {
+  background: rgba(255, 225, 74, 0.12);
+  box-shadow: inset 0 0 0 2px #ffe14a;
+}
+
+.slotArt {
+  --c1: #c9a77c;
+  --c2: #5a4330;
+  position: relative;
+  display: block;
+  width: 64px;
+  height: 52px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 45%, var(--c1), var(--c2) 85%);
+}
+
+.slotArt .cutout {
+  top: 50%;
+  width: 88%;
+  max-height: 80%;
+}
+
+.slotArt .framed {
+  top: 50%;
+  width: 84%;
+  height: 76%;
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+.slotText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.slotText small {
+  font-size: 13px;
+  color: #a99bd6;
+  text-transform: none;
+}
+
+.slotText b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+/* a slot's options */
+.options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.lockCard {
+  --c1: #a68a6a;
+  --c2: #4a3a2c;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: #1a1430;
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+/* the frame drawn over the whole card, art included */
+.lockCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+.lockCard:hover {
+  transform: translateY(-3px);
+}
+
+/* the room as it comes: warm wood */
+.base {
+  --c1: #c9a77c;
+  --c2: #5a4330;
+}
+
+.lockArt {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  background: radial-gradient(circle at 50% 45%, var(--c1), var(--c2) 80%);
+}
+
+.lockArt .cutout {
+  top: 50%;
+  width: 80%;
+  max-height: 72%;
+}
+
+.lockArt .framed {
+  top: 50%;
+  width: 78%;
+  height: 72%;
+}
+
+.lockIcon {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 2;
+  font-size: 18px;
+}
+
+.lockText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 12px 14px;
+}
+
+.lockText small {
+  font-size: 13px;
+  color: #a99bd6;
+}
+
+.lockText b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.chip {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e6dcff;
+  font-size: 14px;
+}
+
+.lock_on::after {
+  box-shadow: inset 0 0 0 3px #9dff7a;
+}
+
+.lock_on .chip {
+  background: #2f6b1c;
+  color: #c9ffb0;
+}
+
+/* not owned: greyed, its price; a tap shows its card */
+.lock_locked .lockArt img {
+  filter: grayscale(0.85) brightness(0.55);
+}
+
+.lock_locked .chip {
+  background: rgba(255, 225, 74, 0.14);
+  color: #ffe14a;
+}
+
+/* ---------- trying on: a strip at the bottom of the room ---------- */
+
+.tryBar {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  z-index: 73;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: calc(min(580px, 100vw - 32px) / -2);
+  width: min(580px, calc(100vw - 32px));
+  padding: 10px 12px 10px 16px;
+  border-radius: 10px;
+  background: #1d1638;
+  color: #f3ecff;
+  font-size: 18px;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    inset 0 0 0 2px rgba(200, 170, 255, 0.2),
+    5px 6px 0 2px rgba(10, 6, 20, 0.5);
+}
+
+.tryBar span {
+  flex: 1;
+}
+
+.tryBar b {
+  font-weight: normal;
+  color: #ffe14a;
+}
+
+/* ---------- back from the payment: thank you ---------- */
+
+.thanks {
+  position: relative;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  width: min(640px, 100%);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #1d1638, #120d24);
+  color: #f3ecff;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    inset 0 0 0 2px rgba(200, 170, 255, 0.18),
+    9px 11px 0 3px rgba(10, 6, 20, 0.5),
+    0 30px 90px rgba(0, 0, 0, 0.6);
+}
+
+.thanksArt {
+  position: relative;
+  min-height: 260px;
+  border-radius: 14px 0 0 14px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 45%, var(--c1), var(--c2) 75%);
+}
+
+.thanksArt .rays {
+  animation: raysTurn 30s linear infinite;
+}
+
+.thanksFloat {
+  position: absolute;
+  inset: 0;
+}
+
+.thanksArt .cutout,
+.thanksArt .framed {
+  top: 50%;
+}
+
+.thanksArt .ownedStamp {
+  top: 82%;
+}
+
+.thanksText {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding: 26px 24px;
+}
+
+.thanksText h3 {
+  margin: 0;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 24px;
+  color: #ffd35a;
+  text-shadow: 3px 3px 0 #000;
+}
+
+.thanksText p {
+  margin: 0;
+  font-size: 18px;
+  color: #ddd2fb;
+}
+
+.thanksText p b {
+  font-weight: normal;
+  color: #ffe14a;
+}
+
+/* "…" typing itself while the purchase is on its way */
+.dots::after {
+  content: "";
+  animation: dots 1.2s steps(4) infinite;
+}
+
+@keyframes dots {
+  0% {
+    content: "";
+  }
+  25% {
+    content: ".";
+  }
+  50% {
+    content: "..";
+  }
+  75% {
+    content: "...";
+  }
+}
+
+.bit {
+  position: absolute;
+  left: 120px;
+  top: 45%;
+  z-index: 3;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 700px) {
+  .thanks {
+    grid-template-columns: 1fr;
+  }
+
+  .thanksArt {
+    min-height: 190px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .bit {
+    left: 50%;
+    top: 95px;
+  }
+
+  .thanksText {
+    padding: 18px 16px 20px;
+  }
+}
+
+@media (max-width: 700px) {
+  .head {
+    padding: 12px 56px 12px 14px;
+  }
+
+  .timer {
+    margin-left: 0;
+  }
+
+  .timer b {
+    font-size: 13px;
+  }
+
+  .body {
+    padding: 14px 12px 16px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .big {
+    height: 230px;
+  }
+
+  .big .framed {
+    left: 50%;
+    width: 84%;
+    height: 56%;
+    top: 36%;
+  }
+
+  .big .strip {
+    top: auto;
+    width: auto;
+    left: 0;
+    grid-template-columns: 1fr auto;
+    padding: 26px 12px 10px;
+    background: linear-gradient(180deg, transparent, rgba(8, 5, 18, 0.85) 40%);
+  }
+
+  .big .name {
+    font-size: 15px;
+  }
+
+  .big .ownedStamp {
+    left: 50%;
+    top: 36%;
+  }
+
+  .card {
+    grid-template-columns: 1fr;
+  }
+
+  /* the slots in a row on top */
+  .locker {
+    grid-template-columns: 1fr;
+  }
+
+  .slots {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .slot {
+    flex: none;
+    grid-template-columns: 52px;
+    justify-items: center;
+    width: 84px;
+  }
+
+  .slot:hover {
+    transform: none;
+  }
+
+  .slotText b {
+    display: none;
+  }
+
+  .options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cardArt {
+    min-height: 220px;
+  }
+
+  .tryBar {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timer,
+  .rays,
+  .thanksArt .rays,
+  .dots::after,
+  .tile:hover .shine {
+    animation: none;
+  }
+}

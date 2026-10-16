@@ -1,0 +1,169 @@
+{
+  "sets": {
+    "halloween": {
+      "fr": "Halloween",
+      "en": "Halloween"
+    }
+  },
+  "base": [
+    {
+      "slot": "sky",
+      "icon": "/skins/base/sky.webp",
+      "name": {
+        "fr": "Nuit de pluie",
+        "en": "Rainy night"
+      }
+    },
+    {
+      "slot": "decor",
+      "icon": "/skins/base/decor.webp",
+      "name": {
+        "fr": "Bureau d'origine",
+        "en": "The usual desk"
+      }
+    },
+    {
+      "slot": "cat",
+      "icon": "/skins/base/cat.webp",
+      "cutout": true,
+      "name": {
+        "fr": "Warwick",
+        "en": "Warwick"
+      }
+    },
+    {
+      "slot": "lamp",
+      "icon": "/skins/base/lamp.webp",
+      "name": {
+        "fr": "Lampe à lave",
+        "en": "Lava lamp"
+      }
+    },
+    {
+      "slot": "radio",
+      "icon": "/skins/base/radio.webp",
+      "name": {
+        "fr": "Radio lofi",
+        "en": "Lofi radio"
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "halloween-sky",
+      "set": "halloween",
+      "slot": "sky",
+      "rarity": "epic",
+      "price": 1.49,
+      "icon": "/skins/halloween/icon-sky.webp",
+      "name": {
+        "fr": "Lune de sang",
+        "en": "Blood moon"
+      },
+      "blurb": {
+        "fr": "Une énorme lune orange derrière la fenêtre, des chauves-souris, et un ciel d'automne doré le jour.",
+        "en": "A huge orange moon through the window, bats, and a golden autumn sky by day."
+      }
+    },
+    {
+      "id": "halloween-decor",
+      "set": "halloween",
+      "slot": "decor",
+      "rarity": "rare",
+      "price": 1.49,
+      "icon": "/skins/halloween/lantern.webp",
+      "cutout": true,
+      "name": {
+        "fr": "Bureau hanté",
+        "en": "Haunted desk"
+      },
+      "blurb": {
+        "fr": "Guirlande de fantômes, citrouille, bougies qui dansent, toiles et une araignée qui descend de sa toile.",
+        "en": "A ghost garland, a pumpkin, dancing candles, cobwebs and a spider that drops from its web."
+      }
+    },
+    {
+      "id": "halloween-cat",
+      "set": "halloween",
+      "slot": "cat",
+      "rarity": "epic",
+      "price": 1.99,
+      "icon": "/skins/halloween/cat-sleep.webp",
+      "cutout": true,
+      "name": {
+        "fr": "Warwick sorcier",
+        "en": "Witch Warwick"
+      },
+      "blurb": {
+        "fr": "Warwick et son chapeau de sorcière, qu'il dorme ou qu'on le caresse.",
+        "en": "Warwick in his witch hat, asleep or purring."
+      }
+    },
+    {
+      "id": "halloween-lamp",
+      "set": "halloween",
+      "slot": "lamp",
+      "rarity": "uncommon",
+      "price": 1.49,
+      "icon": "/skins/halloween/icon-lamp.webp",
+      "name": {
+        "fr": "Lueur citrouille",
+        "en": "Pumpkin glow"
+      },
+      "blurb": {
+        "fr": "La lampe à lave orange citrouille et une lumière chaude sur toute la pièce.",
+        "en": "The pumpkin orange lava lamp and a warm light over the whole room."
+      },
+      "tint": "rgba(255, 128, 40, 0.22)",
+      "lava": {
+        "name": "citrouille",
+        "nameEn": "pumpkin",
+        "fill": "#ff8a1f",
+        "light": "#ffd08a",
+        "line": "#5a2a08",
+        "glow": "rgba(255,140,40,0.34)"
+      }
+    },
+    {
+      "id": "halloween-radio",
+      "set": "halloween",
+      "slot": "radio",
+      "rarity": "uncommon",
+      "price": 1.49,
+      "icon": "/skins/halloween/icon-radio.webp",
+      "name": {
+        "fr": "Radio hantée",
+        "en": "Haunted radio"
+      },
+      "blurb": {
+        "fr": "Une lofi d'Halloween : accords mineurs, boîte à musique et thérémine.",
+        "en": "A Halloween lofi: minor chords, a music box and a theremin."
+      },
+      "music": "spooky"
+    }
+  ],
+  "bundles": [
+    {
+      "id": "halloween",
+      "rarity": "legendary",
+      "price": 5.99,
+      "icon": "/skins/halloween/preview.webp",
+      "until": "2026-11-03",
+      "items": [
+        "halloween-sky",
+        "halloween-decor",
+        "halloween-cat",
+        "halloween-lamp",
+        "halloween-radio"
+      ],
+      "name": {
+        "fr": "Pack Halloween",
+        "en": "Halloween pack"
+      },
+      "blurb": {
+        "fr": "Tout Halloween d'un coup : le bureau se déguise de la fenêtre à la radio.",
+        "en": "All of Halloween at once: the desk dresses up from the window to the radio."
+      }
+    }
+  ]
+}

@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Fr() {
   return (
-    <LegalPage path="/conditions" title="Conditions d'utilisation" updated="30 septembre 2026">
+    <LegalPage path="/conditions" title="Conditions d'utilisation" updated="16 octobre 2026">
       <p>{SITE_NAME} est gratuit. En l&apos;utilisant, tu acceptes ces quelques règles.</p>
 
       <h2>Le service</h2>
@@ -33,6 +33,12 @@ function Fr() {
         être supprimé.
       </p>
 
+      <h2>La boutique</h2>
+      <p>
+        Les objets de décoration en option ont leurs propres <Link href="/conditions-de-vente">conditions de vente</Link>. L&apos;éditeur du site :
+        voir les <Link href="/mentions-legales">mentions légales</Link>.
+      </p>
+
       <h2>Pokémon</h2>
       <p>
         {SITE_NAME} est un projet de fan, non officiel, sans lien avec Nintendo, Creatures, GAME FREAK ou The Pokémon Company. Pokémon et les noms et
@@ -49,7 +55,7 @@ function Fr() {
 
 function En() {
   return (
-    <LegalPage path="/conditions" title="Terms of use" updated="1 October 2026" en>
+    <LegalPage path="/conditions" title="Terms of use" updated="16 October 2026" en>
       <p>{SITE_NAME} is free. By using it, you accept these few rules.</p>
 
       <h2>The service</h2>
@@ -67,6 +73,12 @@ function En() {
 
       <h2>Your account</h2>
       <p>One account per person, for your own collection. No abuse (bots, overloading the service). An account that abuses the service may be deleted.</p>
+
+      <h2>The shop</h2>
+      <p>
+        The optional decorations have their own <Link href="/conditions-de-vente">terms of sale</Link>. Who publishes the site: see the{" "}
+        <Link href="/mentions-legales">legal notice</Link>.
+      </p>
 
       <h2>Pokémon</h2>
       <p>

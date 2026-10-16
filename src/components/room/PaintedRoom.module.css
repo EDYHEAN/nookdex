@@ -858,3 +858,186 @@
     animation: none;
   }
 }
+
+/* a skin's candle or lantern at night: a warm glow that flickers */
+.skinGlow {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 170, 70, 0.45), rgba(255, 130, 40, 0.12) 60%, transparent);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  animation: skinFlicker 2.6s steps(6) infinite;
+}
+
+@keyframes skinFlicker {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  30% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.7;
+  }
+  80% {
+    opacity: 0.95;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skinGlow {
+    animation: none;
+  }
+}
+
+/* a skin's things: the same hand-drawn wobble as the cat, a soft shadow under those standing on something */
+.skinThing {
+  filter: url(#boil);
+}
+
+.skinShadow {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(40, 20, 30, 0.42), transparent);
+  pointer-events: none;
+}
+
+/* a candle's flame, dancing over the painted one */
+.skinFlame {
+  position: absolute;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: radial-gradient(ellipse 50% 60% at 50% 70%, rgba(255, 252, 225, 0.95), rgba(255, 205, 90, 0.75) 45%, rgba(255, 120, 30, 0.25) 75%, transparent);
+  mix-blend-mode: screen;
+  transform-origin: 50% 100%;
+  pointer-events: none;
+  animation: flameDance 0.9s steps(5) infinite alternate;
+}
+
+@keyframes flameDance {
+  0% {
+    transform: scale(1, 1) skewX(0deg);
+    opacity: 0.85;
+  }
+  25% {
+    transform: scale(0.92, 1.12) skewX(-5deg);
+  }
+  50% {
+    transform: scale(1.05, 0.94) skewX(3deg);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(0.96, 1.08) skewX(-2deg);
+  }
+  100% {
+    transform: scale(1.02, 0.98) skewX(5deg);
+    opacity: 0.9;
+  }
+}
+
+/* a skin's light laid over the whole room */
+.skinTint {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skinFlame {
+    animation: none;
+  }
+}
+
+/* a skin's spider: at rest in the cobweb, then down its thread (--fall), a little sway, and back up */
+.spider {
+  position: absolute;
+  pointer-events: none;
+}
+
+.spiderThread {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 6px;
+  margin-left: -1px;
+  background: rgba(235, 228, 245, 0.75);
+}
+
+.spiderBody {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  filter: url(#boil);
+  transform-origin: 50% 0;
+}
+
+.spiderBody img {
+  display: block;
+}
+
+.spiderDrop .spiderThread {
+  animation: spiderThread 7s cubic-bezier(0.3, 0.9, 0.4, 1) both;
+}
+
+.spiderDrop .spiderBody {
+  animation: spiderFall 7s cubic-bezier(0.3, 0.9, 0.4, 1) both;
+}
+
+/* down fast with a little bounce, hang and sway, then climb back at a spider's pace */
+@keyframes spiderFall {
+  0% {
+    transform: translateY(0);
+  }
+  14% {
+    transform: translateY(calc(var(--fall) + 14px));
+  }
+  19% {
+    transform: translateY(calc(var(--fall) - 8px));
+  }
+  24% {
+    transform: translateY(var(--fall)) rotate(0deg);
+  }
+  34% {
+    transform: translateY(var(--fall)) rotate(7deg);
+  }
+  44% {
+    transform: translateY(var(--fall)) rotate(-6deg);
+  }
+  54% {
+    transform: translateY(var(--fall)) rotate(3deg);
+  }
+  60% {
+    transform: translateY(var(--fall)) rotate(0deg);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes spiderThread {
+  0% {
+    height: 6px;
+  }
+  14% {
+    height: calc(var(--fall) + 18px);
+  }
+  19% {
+    height: calc(var(--fall) - 4px);
+  }
+  24%,
+  60% {
+    height: calc(var(--fall) + 4px);
+  }
+  100% {
+    height: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spiderDrop .spiderThread,
+  .spiderDrop .spiderBody {
+    animation: none;
+  }
+}

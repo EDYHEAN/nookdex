@@ -62,6 +62,11 @@ export function LegalPage({
           <p className={styles.back}>
             <Link href={t("/", "/en")}>{t(`← retour au bureau ${SITE_NAME}`, `← back to the ${SITE_NAME} desk`)}</Link>
           </p>
+          {/* the legal notice within reach of every page, without a bookmark of its own */}
+          <p className={styles.updated}>
+            <Link href="/mentions-legales">{t("Mentions légales", "Legal notice")}</Link> ·{" "}
+            <Link href="/conditions-de-vente">{t("Conditions de vente", "Terms of sale")}</Link>
+          </p>
         </article>
       </main>
     </NotebookBackdrop>

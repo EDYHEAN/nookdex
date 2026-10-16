@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { MAX_BINDERS, boxOf, pocketsOf, shelfBinders, wantsOf } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, OS_NAME } from "@/lib/site";
-import { sfx, startAmbient, stopAmbient } from "@/lib/sound";
+import { setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
+import { useLook, type LavaTheme } from "@/lib/shop";
 import { useStore } from "@/lib/store";
 import { TROPHIES } from "@/lib/trophies";
 import { bump, unlock, useTrophyStore } from "@/lib/trophyStore";
@@ -16,6 +17,7 @@ import { useTotals } from "@/lib/useTotals";
 import { useViewport } from "@/lib/useViewport";
 import { LAVA_THEMES, drawDust, drawLava, drawRain, drawSunDust } from "./sceneAnim";
 import { Monitor } from "./Monitor";
+import { SkinSpider } from "./SkinSpider";
 import { ShelfBinder, binderLabel, binderSize } from "./ShelfBinder";
 import styles from "./PaintedRoom.module.css";
 import { langLabel } from "@/lib/cardLang";
@@ -98,7 +100,16 @@ function useCamera(compact: boolean) {
   }, [vp.w, vp.h, compact]);
 }
 
-export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, onOpenTrophies, onOpenBox, onOpenGame, veiled, behind }: Props) {
+/**
+ * Drawn again only when what it shows changes: its callbacks only set App's state (stable setters), so a panel opening
+ * over the room (the shop, the trophy case…) doesn't redraw it before the panel shows.
+ */
+export const PaintedRoom = memo(
+  PaintedRoomView,
+  (a, b) => a.openId === b.openId && a.compact === b.compact && a.paused === b.paused && a.veiled === b.veiled && a.behind === b.behind,
+);
+
+function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, onOpenTrophies, onOpenBox, onOpenGame, veiled, behind }: Props) {
   const uiLang = useLang();
   const router = useRouter();
   /** "EN" on an English binder of the French site (and the other way round): the language it isn't in */
@@ -125,6 +136,11 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   const sunDust = useRef<HTMLCanvasElement>(null);
   const sky = useRef<HTMLDivElement>(null);
   const lavaTheme = useRef(0);
+  /** the shop's items worn (lib/shop): their pictures over the room, a lava colour first in the lamp's cycle */
+  const skin = useLook();
+  const skinLava = skin?.lava;
+  const lavaThemes = useMemo<LavaTheme[]>(() => (skinLava ? [skinLava, ...LAVA_THEMES] : LAVA_THEMES), [skinLava]);
+  const themesRef = useRef(lavaThemes);
   const lampRef = useRef(lampOn);
   const dayRef = useRef(daytime);
   useEffect(() => {
@@ -138,6 +154,19 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   const [returning, setReturning] = useState<string | null>(null);
   const [petting, setPetting] = useState(0);
   const [lavaIdx, setLavaIdx] = useState(0);
+  // a skin put on or taken off: the lamp starts again on the first colour of its cycle
+  const [themesSeen, setThemesSeen] = useState(lavaThemes);
+  if (themesSeen !== lavaThemes) {
+    setThemesSeen(lavaThemes);
+    setLavaIdx(0);
+  }
+  useEffect(() => {
+    themesRef.current = lavaThemes;
+    lavaTheme.current = 0;
+  }, [lavaThemes]);
+  // the radio plays the skin's tune
+  const skinMusic = skin?.music ?? "lofi";
+  useEffect(() => setAmbientMood(skinMusic), [skinMusic]);
   const won = useTrophyStore((s) => s.got);
   const fresh = useTrophyStore((s) => Object.values(s.got).filter((at) => at > s.seenAt).length);
   const [ballHover, setBallHover] = useState(false);
@@ -200,7 +229,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
         if (!reduced) weave = { x: (Math.random() - 0.5) * 0.9, y: (Math.random() - 0.5) * 0.9 };
         // rain only at night, dust in the sunbeams only by day
         if (rc && !dayRef.current) drawRain(rc, t);
-        if (lc) drawLava(lc, t, LAVA_THEMES[lavaTheme.current], SCENE.lavaRows);
+        if (lc) drawLava(lc, t, themesRef.current[lavaTheme.current] ?? LAVA_THEMES[0], SCENE.lavaRows);
         if (dc) drawDust(dc, t, lampRef.current);
         if (sc && dayRef.current) drawSunDust(sc, t);
       }
@@ -278,7 +307,7 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
   const lavaMask = `url(${sceneImg("lava-mask.png")})`;
   const windowMask = `url(${sceneImg("window-mask.png")})`;
   const glow = (r: { x: number; y: number; w: number; h: number }, pad: number) => ({ left: r.x - pad, top: r.y - pad, width: r.w + pad * 2, height: r.h + pad * 2 });
-  const theme = LAVA_THEMES[lavaIdx];
+  const theme = lavaThemes[lavaIdx] ?? LAVA_THEMES[0];
 
   let binderIndex = 0;
 
@@ -300,14 +329,39 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
           {/* the sky behind the glass: night city in the rain, or sunny afternoon */}
           <div className={styles.sky} style={{ ...place(SCENE.window), maskImage: windowMask, WebkitMaskImage: windowMask }}>
             <div ref={sky} className={styles.skyMove}>
-              <div className={styles.skyLayer} style={{ backgroundImage: `url(${sceneImg("sky.webp")})` }} />
+              <div className={styles.skyLayer} style={{ backgroundImage: `url(${skin?.art.sky ?? sceneImg("sky.webp")})` }} />
               <div
                 className={`${styles.skyLayer} ${styles.skyDay} ${daytime ? "" : styles.off}`}
-                style={{ backgroundImage: `url(${sceneImg("sky-day.webp")})` }}
+                style={{ backgroundImage: `url(${skin?.art.skyDay ?? sceneImg("sky-day.webp")})` }}
               />
             </div>
             <div className={`${styles.skyGlass} ${daytime ? styles.skyGlassDay : ""}`} />
           </div>
+
+          {/* a skin's decorations standing in the room (lib/shop), a warm glow flickering round the lit ones at night */}
+          {skin?.art.decor?.map((d, i) => (
+            <span key={i}>
+              {d.glow && !daytime && <span className={styles.skinGlow} style={glow(d, 60)} aria-hidden />}
+              {d.shadow && <span className={styles.skinShadow} style={{ left: d.x + d.w * 0.08, top: d.y + d.h - 12, width: d.w * 0.84, height: 22 }} aria-hidden />}
+              <img
+                className={`${styles.sprite} ${styles.skinThing}`}
+                src={d.src}
+                style={{ ...place(d), transform: d.rot ? `rotate(${d.rot}deg)` : undefined }}
+                alt=""
+                draggable={false}
+              />
+              {d.flames?.map((f, k) => (
+                <span
+                  key={k}
+                  className={styles.skinFlame}
+                  style={{ left: f.x - f.h * 0.28, top: f.y - f.h * 1.05, width: f.h * 0.56, height: f.h * 1.1, animationDelay: `${-k * 0.37}s` }}
+                  aria-hidden
+                />
+              ))}
+            </span>
+          ))}
+
+          {skin?.art.spider && <SkinSpider spider={skin.art.spider} paused={paused} />}
 
           {/* rain running down the window */}
           <canvas
@@ -469,19 +523,24 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
           {/* cat */}
           <img
             className={`${styles.sprite} ${styles.catSleep} ${petting ? styles.hidden : ""}`}
-            src={sceneImg("cat-sleep.webp")}
-            style={place(SCENE.catSleep)}
+            src={skin?.art.cat?.sleep.src ?? sceneImg("cat-sleep.webp")}
+            style={place(skin?.art.cat?.sleep ?? SCENE.catSleep)}
             alt=""
             draggable={false}
           />
           <img
             className={`${styles.sprite} ${styles.catAwake} ${petting ? "" : styles.hidden}`}
-            src={sceneImg("cat-awake.webp")}
-            style={place(SCENE.catAwake)}
+            src={skin?.art.cat?.awake.src ?? sceneImg("cat-awake.webp")}
+            style={place(skin?.art.cat?.awake ?? SCENE.catAwake)}
             alt=""
             draggable={false}
           />
-          {!petting && <span className={styles.zzz} style={{ left: SCENE.catSleep.x + 70, top: SCENE.catSleep.y - 20 }} aria-hidden>z</span>}
+          {!petting && (
+            // with a witch hat on, the z rises off its back instead
+            <span className={styles.zzz} style={skin?.art.cat ? { left: SCENE.catSleep.x + 190, top: SCENE.catSleep.y - 30 } : { left: SCENE.catSleep.x + 70, top: SCENE.catSleep.y - 20 }} aria-hidden>
+              z
+            </span>
+          )}
           {petting > 0 && (
             <span key={petting} className={styles.hearts} style={{ left: SCENE.catAwake.x + 120, top: SCENE.catAwake.y }} aria-hidden>
               <i>♥</i>
@@ -508,6 +567,9 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             className={`${styles.night} ${lampOn || daytime ? styles.off : ""}`}
             style={{ backgroundImage: `url(${sceneImg("night-light.webp")})` }}
           />
+
+          {/* a skin's light over the whole room (Halloween: a pumpkin glow) */}
+          {skin?.tint && <div className={styles.skinTint} style={{ background: skin.tint }} aria-hidden />}
 
           {/* light (softer in daylight) */}
           <div className={`${styles.lights} ${daytime ? styles.daylight : ""}`}>
@@ -575,12 +637,12 @@ export function PaintedRoom({ openId, compact, paused, onOpen, onOpenComputer, o
             onPointerLeave={() => setTip(null)}
             onClick={() => {
               sfx.bloop();
-              const n = (lavaTheme.current + 1) % LAVA_THEMES.length;
+              const n = (lavaTheme.current + 1) % lavaThemes.length;
               lavaTheme.current = n;
               setLavaIdx(n);
               // back to the first colour: they were all seen
               if (n === 0) unlock("rainbow");
-              showTip(SCENE.lava.x + SCENE.lava.w / 2, SCENE.lava.y, tr("Lampe à lave", "Lava lamp"), tr(LAVA_THEMES[n].name, LAVA_THEMES[n].nameEn));
+              showTip(SCENE.lava.x + SCENE.lava.w / 2, SCENE.lava.y, tr("Lampe à lave", "Lava lamp"), tr(lavaThemes[n].name, lavaThemes[n].nameEn));
             }}
           />
           {/* before the lamp: where the lamp's arm crosses the board, the lamp wins */}

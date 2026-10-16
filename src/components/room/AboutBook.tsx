@@ -98,6 +98,10 @@ export function AboutBook({ onClose, onTour, onRoadLog }: { onClose: () => void;
             Contact
           </Link>{" "}
           ·{" "}
+          <Link href="/mentions-legales" onClick={onClose}>
+            {t("Mentions légales", "Legal notice")}
+          </Link>{" "}
+          ·{" "}
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener" onClick={() => sfx.click()}>
             Instagram
           </a>{" "}

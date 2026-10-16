@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { serverLang } from "@/lib/serverLang";
 import { LegalPage } from "@/components/LegalPage";
-import { SITE_DOMAIN, SITE_NAME } from "@/lib/site";
+import { LEGAL, SITE_DOMAIN, SITE_NAME } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const en = (await serverLang()) === "en";
@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Fr() {
   return (
-    <LegalPage path="/confidentialite" title="Règles de confidentialité" updated="30 septembre 2026">
+    <LegalPage path="/confidentialite" title="Règles de confidentialité" updated="16 octobre 2026">
       <p>
         {SITE_NAME} ({SITE_DOMAIN}) est un site gratuit pour ranger et suivre sa collection de cartes Pokémon dans des classeurs virtuels. Cette page
         explique quelles données le site collecte, pourquoi, avec qui elles sont partagées, combien de temps elles sont gardées et comment les
@@ -20,8 +20,9 @@ function Fr() {
 
       <h2>1. Qui est responsable</h2>
       <p>
-        {SITE_NAME} est un projet personnel édité par un particulier, Johan (responsable du traitement). Pour toute question sur tes données, utilise
-        le <Link href="/contact">formulaire de contact</Link>.
+        {SITE_NAME} est édité par {LEGAL.name}, entrepreneur individuel (responsable du traitement, voir les{" "}
+        <Link href="/mentions-legales">mentions légales</Link>). Pour toute question sur tes données, utilise le{" "}
+        <Link href="/contact">formulaire de contact</Link>.
       </p>
 
       <h2>2. Les données collectées</h2>
@@ -47,8 +48,11 @@ function Fr() {
         d&apos;une visite à l&apos;autre.
       </p>
       <p>
-        Le site ne collecte aucune donnée de paiement, de localisation précise, ni aucun contact de ton carnet d&apos;adresses.
+        <b>Achats dans la boutique.</b> Si tu achètes un objet de décoration : l&apos;objet, son prix, la date et la référence du paiement, liés à
+        ton compte. Le paiement lui-même se fait chez Link (Stripe), qui reçoit ton e-mail et tes coordonnées de paiement : {SITE_NAME} ne voit
+        jamais ta carte.
       </p>
+      <p>Le site ne collecte aucune localisation précise, ni aucun contact de ton carnet d&apos;adresses.</p>
 
       <h2>3. Connexion avec Google</h2>
       <p>Si tu choisis « Continuer avec Google », Google nous transmet, avec ton accord, uniquement :</p>
@@ -76,6 +80,7 @@ function Fr() {
       <ul>
         <li>faire fonctionner ton compte et la connexion (exécution du service) ;</li>
         <li>sauvegarder ta collection et la synchroniser entre tes appareils (exécution du service) ;</li>
+        <li>te donner les objets achetés et les garder avec ton compte (exécution de la vente, obligations comptables) ;</li>
         <li>répondre à tes messages (ta demande) ;</li>
         <li>savoir combien de personnes visitent le site, de façon anonyme (intérêt légitime).</li>
       </ul>
@@ -93,6 +98,9 @@ function Fr() {
         <li>
           <a href="https://www.brevo.com/fr/legal/privacypolicy/">Brevo</a> : envoi par e-mail des messages du formulaire de contact ;
         </li>
+        <li>
+          <a href="https://stripe.com/fr/privacy">Stripe</a> et <a href="https://link.com/privacy">Link</a> : paiement des achats de la boutique ;
+        </li>
         <li>Google : uniquement si tu choisis la connexion avec Google.</li>
       </ul>
       <p>
@@ -109,6 +117,7 @@ function Fr() {
       <h2>7. Combien de temps elles sont gardées</h2>
       <ul>
         <li>compte et sauvegarde : tant que ton compte existe, supprimés sous 30 jours après ta demande ;</li>
+        <li>achats : tant que ton compte existe, et la trace comptable de la vente aussi longtemps que la loi l&apos;exige (10 ans) ;</li>
         <li>messages de contact : le temps de te répondre, puis au plus un an ;</li>
         <li>données dans ton navigateur : jusqu&apos;à ce que tu les effaces (données du site dans ton navigateur).</li>
       </ul>
@@ -134,7 +143,7 @@ function Fr() {
 
 function En() {
   return (
-    <LegalPage path="/confidentialite" title="Privacy policy" updated="1 October 2026" en>
+    <LegalPage path="/confidentialite" title="Privacy policy" updated="16 October 2026" en>
       <p>
         {SITE_NAME} ({SITE_DOMAIN}) is a free site to file and track your Pokémon card collection in virtual binders. This page explains which
         data the site collects, why, who it is shared with, how long it is kept and how to delete it. We collect as little as possible, and nothing
@@ -143,8 +152,8 @@ function En() {
 
       <h2>1. Who is responsible</h2>
       <p>
-        {SITE_NAME} is a personal project run by a private individual, Johan (data controller). For any question about your data, use the{" "}
-        <Link href="/contact">contact form</Link>.
+        {SITE_NAME} is published by {LEGAL.name}, sole trader (data controller, see the <Link href="/mentions-legales">legal notice</Link>). For
+        any question about your data, use the <Link href="/contact">contact form</Link>.
       </p>
 
       <h2>2. Data collected</h2>
@@ -167,7 +176,11 @@ function En() {
         <b>Audience measurement.</b> Anonymous visit statistics (pages viewed, country, device type), with no cookie and no tracking from one visit
         to the next.
       </p>
-      <p>The site collects no payment data, no precise location, and none of your contacts.</p>
+      <p>
+        <b>Shop purchases.</b> If you buy a decoration: the item, its price, the date and the payment reference, linked to your account. The
+        payment itself happens at Link (Stripe), which receives your e-mail and payment details: {SITE_NAME} never sees your card.
+      </p>
+      <p>The site collects no precise location, and none of your contacts.</p>
 
       <h2>3. Signing in with Google</h2>
       <p>If you choose &laquo; Continue with Google &raquo;, Google sends us, with your consent, only:</p>
@@ -194,6 +207,7 @@ function En() {
       <ul>
         <li>to run your account and the sign-in (performing the service);</li>
         <li>to save your collection and sync it between your devices (performing the service);</li>
+        <li>to give you the items you bought and keep them with your account (performing the sale, accounting duties);</li>
         <li>to answer your messages (your request);</li>
         <li>to know how many people visit the site, anonymously (legitimate interest).</li>
       </ul>
@@ -211,6 +225,9 @@ function En() {
         <li>
           <a href="https://www.brevo.com/legal/privacypolicy/">Brevo</a>: e-mailing the contact form messages;
         </li>
+        <li>
+          <a href="https://stripe.com/privacy">Stripe</a> and <a href="https://link.com/privacy">Link</a>: payments for shop purchases;
+        </li>
         <li>Google: only if you choose to sign in with Google.</li>
       </ul>
       <p>These providers may process data outside the European Union, with the safeguards set by the GDPR (standard contractual clauses).</p>
@@ -224,6 +241,7 @@ function En() {
       <h2>7. How long it is kept</h2>
       <ul>
         <li>account and save: as long as your account exists, deleted within 30 days of your request;</li>
+        <li>purchases: as long as your account exists, and the sale&apos;s accounting record as long as the law requires (10 years);</li>
         <li>contact messages: the time to answer you, then one year at most;</li>
         <li>data in your browser: until you clear it (site data in your browser).</li>
       </ul>

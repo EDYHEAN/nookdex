@@ -1,0 +1,109 @@
+{
+  "halloween": {
+    "sky": "/skins/halloween/sky.webp",
+    "skyDay": "/skins/halloween/sky-day.webp",
+    "decor": [
+      {
+        "src": "/skins/halloween/lantern.webp",
+        "x": 464,
+        "y": 634,
+        "w": 118,
+        "h": 112,
+        "glow": true,
+        "shadow": true
+      },
+      {
+        "src": "/skins/halloween/candles.webp",
+        "x": 701,
+        "y": 1147,
+        "w": 102,
+        "h": 109,
+        "glow": true,
+        "shadow": true,
+        "flames": [
+          {
+            "x": 753,
+            "y": 1168,
+            "h": 20
+          },
+          {
+            "x": 731,
+            "y": 1188,
+            "h": 19
+          },
+          {
+            "x": 773,
+            "y": 1194,
+            "h": 16
+          },
+          {
+            "x": 753,
+            "y": 1214,
+            "h": 12
+          }
+        ]
+      },
+      {
+        "src": "/skins/halloween/candy.webp",
+        "x": 1698,
+        "y": 1151,
+        "w": 86,
+        "h": 61,
+        "shadow": true
+      },
+      {
+        "src": "/skins/halloween/garland.webp",
+        "x": 1140,
+        "y": 6,
+        "w": 600,
+        "h": 236
+      },
+      {
+        "src": "/skins/halloween/bat.webp",
+        "x": 997,
+        "y": 300,
+        "w": 78,
+        "h": 40,
+        "rot": 16
+      },
+      {
+        "src": "/skins/halloween/web-tl.webp",
+        "x": 1035,
+        "y": 0,
+        "w": 230,
+        "h": 241
+      },
+      {
+        "src": "/skins/halloween/web-tr.webp",
+        "x": 2542,
+        "y": 0,
+        "w": 210,
+        "h": 220
+      }
+    ],
+    "cat": {
+      "sleep": {
+        "src": "/skins/halloween/cat-sleep.webp",
+        "x": 1948,
+        "y": 979,
+        "w": 400,
+        "h": 264
+      },
+      "awake": {
+        "src": "/skins/halloween/cat-awake.webp",
+        "x": 1957,
+        "y": 805,
+        "w": 412,
+        "h": 445
+      }
+    },
+    "spider": {
+      "src": "/skins/halloween/spider.webp",
+      "w": 84,
+      "h": 54,
+      "x": 1150,
+      "top": 30,
+      "drop": 560
+    }
+  }
+}

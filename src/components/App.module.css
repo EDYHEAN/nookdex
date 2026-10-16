@@ -111,3 +111,92 @@
   color: #ffd35a;
   transform: translateY(-2px);
 }
+
+/* the shop's bag: warm, it's the one new button */
+.shopBtn {
+  position: relative;
+  color: #ff9f43;
+}
+
+/* "New" on the left of the shop button, pointing at it, until the shop is opened with what's on sale now
+   (lib/shop useShopNews); a nudge towards the button now and then */
+.shopNew {
+  position: absolute;
+  right: calc(100% + 14px);
+  top: 50%;
+  display: flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 9px;
+  background: #ffe14a;
+  color: #2b2230;
+  font-family: var(--font-press), monospace;
+  font-size: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-50%);
+  box-shadow:
+    0 0 0 2px #150f1f,
+    3px 3px 0 2px rgba(0, 0, 0, 0.4);
+  animation: shopNew 2.4s ease-in-out infinite;
+}
+
+/* the arrow towards the button */
+.shopNew::after {
+  content: "";
+  position: absolute;
+  left: calc(100% + 1px);
+  top: 50%;
+  border: 6px solid transparent;
+  border-left-color: #ffe14a;
+  border-right-width: 0;
+  transform: translateY(-50%);
+  filter: drop-shadow(2px 0 0 #150f1f);
+}
+
+@keyframes shopNew {
+  0%,
+  60%,
+  100% {
+    transform: translateY(-50%);
+  }
+  70% {
+    transform: translate(4px, -50%);
+  }
+  80% {
+    transform: translateY(-50%);
+  }
+  90% {
+    transform: translate(3px, -50%);
+  }
+}
+
+/* phones: no room on the left (the title), a dot on the button's corner */
+.shopNewDot {
+  right: -5px;
+  top: -5px;
+  height: 12px;
+  width: 12px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 0;
+  transform: none;
+  animation: shopDot 1.6s ease-in-out infinite;
+}
+
+.shopNewDot::after {
+  content: none;
+}
+
+@keyframes shopDot {
+  50% {
+    transform: scale(1.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shopNew,
+  .shopNewDot {
+    animation: none;
+  }
+}

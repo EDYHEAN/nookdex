@@ -20,9 +20,8 @@ Décidé par Johan le 2026-10-14. Point de reprise : ce qui est décidé, ce qu'
 
 - La fenêtre : le ciel est une couche à part (`sky.webp`, `sky-day.webp`).
 - La lampe à lave : un thème de plus dans `LAVA_THEMES` (code seulement).
-- Les décos : une couche par-dessus la scène, découpée par différence (comme le chat) : une édition de la scène
-  maître avec les décos ajoutées, moins la scène maître. Une version nuit et une version jour.
-- Warwick : ses deux sprites (endormi, réveillé) redécoupés depuis une édition avec un costume.
+- Les décos : des objets peints seuls sur fond blanc (planche Gemini), découpés et placés dans la scène par le code.
+- Warwick : un accessoire (chapeau, écharpe) posé sur ses deux sprites par le code.
 - Plus tard : couvertures de classeurs, coques de Game Boy, thèmes de l'OS, une station de radio, des scènes entières.
 
 Une déco ne doit jamais recouvrir ce que le code anime ou rend cliquable : classeurs et étagères, Poké Ball, boîte
@@ -36,78 +35,140 @@ Ciel d'Halloween (nuit et jour), décos (nuit et jour), Warwick en sorcier, lamp
 
 ## Prompts Gemini (Nano Banana Pro, plus haute résolution)
 
-Toujours joindre l'image de départ indiquée, et garder le cadrage et la taille. Enregistrer les résultats dans
-`img/halloween/` sous le nom indiqué.
+**Pas d'édition de la scène entière** (essai du 2026-10-14) : Gemini repeint tout (≈1024 px au lieu de 2752, objets
+déplacés), le découpage par différence devient impossible, et le rendu fait clipart. On fait comme pour les trophées :
+les décos peintes **seules, sur fond blanc**, découpées par script puis placées dans la scène par le code (positions,
+échelle, lumière de la pièce, lueur des bougies animée). Le ciel, lui, est une image à part : une édition de
+`img/sky.jpg` suffit (le cadrage n'a pas besoin d'être identique).
 
-### H1. Décos, nuit → `img/halloween/decor.jpg` (joindre `img/scene.jpg`)
+Enregistrer dans `img/halloween/` sous le nom indiqué.
+
+### D1. Planche de décos → `img/halloween/decor-sheet.jpg` (format 4:3, aucune image jointe)
 
 ```text
-Edit the attached image. Keep EVERYTHING else exactly identical: same framing, same size, same painting, same lighting, every object in the same place. Only ADD these Halloween decorations, painted in exactly the same hand-painted style and light as the rest of the room:
-1. A string of small black paper bats and little white paper ghosts hanging in a gentle curve on the bare wall, from the right end of the curtain rod to just left of the top shelf, above the poster and the clock, not touching them.
-2. A small carved jack-o'-lantern glowing warmly from a candle inside, on the window sill, between the cactus and the jar.
-3. A tiny orange pumpkin sitting on top of the beige computer monitor, on its left corner.
-4. Three tiny black paper bats clipped on the photo string, between the polaroids.
-5. A thin dusty cobweb in the top left corner of the window frame, and another one high in the top right corner of the wall, above the purple box.
-6. A small cluster of three orange candles with tiny flames on the desk, in front of the boombox, near the front edge of the desk.
-Do NOT change, move or cover: the ring binders, the shelves and everything on them, the poster, the clock, the computer screen, the Game Boy, the mug and its steam, the lava lamp, the desk lamp, the sleeping cat, the cork board, the books, the chair, the window panes and the view through them.
+A sheet of 8 small Halloween decorations for a cozy bedroom, each one painted separately, arranged in a neat grid of 4 columns and 2 rows on a plain pure white background, evenly spaced, each object centered in its cell, nothing touching, no shadow on the background.
+Painted like the background of a 2000s hand-drawn Japanese animated film: gouache, soft painted edges, visible brushwork, rich textures, warm peach highlights and cool blue-violet shadows. NO black ink outlines, NOT vector clipart, NOT 3D, NOT pixel art.
+Row 1, left to right: a carved jack-o'-lantern with a friendly face glowing warmly from inside; a tiny round orange pumpkin with a curly green stem; a cluster of three short melted orange candles with small flames, on a little saucer; a small purple witch hat with an orange band, seen from the front, slightly bent tip.
+Row 2, left to right: a dusty white cobweb filling a corner, shaped like a right triangle with its corner at the top left; the same cobweb mirrored, corner at the top right; a black paper bat with open wings; a small glass bowl of wrapped orange and purple candies.
 No text, no letters, no logos.
 ```
 
-### H2. Décos, jour → `img/halloween/decor-day.jpg` (joindre `img/day.jpg`, puis le résultat de H1)
+### D2. Guirlande → `img/halloween/garland.jpg` (format 16:9, aucune image jointe)
 
 ```text
-Edit the first attached image. Keep EVERYTHING else exactly identical: same framing, same size, same painting, same daylight, every object in the same place. Only ADD the same Halloween decorations as in the second attached image, at exactly the same spots and the same size, painted in the daylight of the first image (the jack-o'-lantern and the candles are not lit): the paper bats and ghosts garland on the wall, the jack-o'-lantern on the window sill, the tiny pumpkin on the monitor, the paper bats on the photo string, the two cobwebs, the three candles in front of the boombox.
-Use the second image ONLY to know what to add and where. Do NOT change, move or cover anything else.
+A single long Halloween garland painted alone on a plain pure white background: a thin twine string hanging in a gentle loose curve from the top left corner to the top right corner, with small black paper bats and little white paper ghosts hanging from it by tiny clothespins, alternating, slightly irregular and hand-made, some a bit tilted. Nothing else.
+Painted like the background of a 2000s hand-drawn Japanese animated film: gouache, soft painted edges, visible brushwork, warm peach highlights and cool blue-violet shadows. NO black ink outlines, NOT vector clipart, NOT 3D.
 No text, no letters, no logos.
 ```
 
-### H3. Ciel de nuit → `img/halloween/sky.jpg` (joindre `img/sky.jpg`)
+### S1. Ciel de nuit → `img/halloween/sky.jpg` (joindre `img/sky.jpg`)
 
 ```text
-Edit the attached image. Keep the same framing, the same size, the same painting style and the same city. Turn it into a Halloween night: a big low orange full moon, a few small black bat silhouettes crossing in front of it, thin purple clouds, no rain. The city keeps its lights, and a few of its windows glow orange.
+Edit the attached image at the highest resolution. Keep the same painting style and the same city. Turn it into a Halloween night: a big low orange full moon, a few small black bat silhouettes crossing in front of it, thin purple clouds, no rain. The city keeps its lights, and a few of its windows glow orange.
 No text, no letters, no logos.
 ```
 
-### H4. Ciel de jour → `img/halloween/sky-day.jpg` (joindre `img/sky-day.jpg`)
+### S2. Ciel de jour → `img/halloween/sky-day.jpg` (joindre `img/sky-day.jpg`)
 
 ```text
-Edit the attached image. Keep the same framing, the same size, the same painting style and the same city. Turn it into a late October golden hour: a warm orange and pink autumn sky, soft glowing clouds, a few orange autumn leaves drifting in the air.
+Edit the attached image at the highest resolution. Keep the same painting style and the same city. Turn it into a late October golden hour: a warm orange and pink autumn sky, soft glowing clouds, a few orange autumn leaves drifting in the air.
 No text, no letters, no logos.
 ```
 
-### H5. Warwick endormi en sorcier → `img/halloween/cat-sleep.jpg` (joindre `img/scene.jpg`)
+Warwick en sorcier : le chapeau de la planche D1, posé sur sa tête par le code (endormi et réveillé).
 
-```text
-Edit the attached image. Keep EVERYTHING else exactly identical: same framing, same size, same painting, same lighting. Only change the following:
-The sleeping black and white tuxedo cat on the desk wears a small purple witch hat with an orange band, slightly tilted on its head between its ears. The cat keeps exactly the same pose, the same size and the same place, still asleep. Same painting style as the rest of the image.
-```
+## Où on en est (2026-10-15) : point de reprise
 
-### H6. Warwick réveillé en sorcier → `img/halloween/cat-awake.jpg` (joindre `img/cat-awake.jpg`)
+Tout est sur la branche `shop` (pas de PR, pas mergée). La boutique reste cachée : en prod, seuls les comptes de Johan
+(`STUDIO_EMAIL_HASHES`) la voient, jusqu'à `NEXT_PUBLIC_SHOP=on` dans Vercel.
 
-```text
-Edit the attached image. Keep EVERYTHING else exactly identical: same framing, same size, same painting, same lighting. Only change the following:
-The black and white tuxedo cat on the desk wears a small purple witch hat with an orange band, slightly tilted on its head between its ears. The cat keeps exactly the same pose, the same size and the same place. Same painting style as the rest of the image.
-```
+**Fait**
+- L'art Halloween : planches Gemini dans `img/halloween/`, découpées et placées par `scripts/build-skins.mjs` →
+  `public/skins/halloween/` + `src/data/skin-art.json`. Ciel nuit/jour, décos (guirlande, citrouille, bougies aux
+  flammes animées, toiles, bonbons, chauve-souris), araignée qui descend de sa toile (`room/SkinSpider`), Warwick sorcier
+  (sprites remplacés), lampe à lave citrouille + lumière orangée, radio « spooky » (`lib/sound` `setAmbientMood`).
+- Le catalogue : `src/data/skins.json` (collections, collection de base, objets par emplacement avec rareté et prix,
+  pack). `lib/skins.ts` (côté serveur aussi), `lib/shop.ts` (navigateur : verrou, objets portés/achetés/essayés, look).
+  Prix (Johan, 2026-10-16, montés pour les frais : à 0,99 € il restait ~0,52 € une fois TVA et frais Stripe
+  ôtés) : Lune de sang 1,49 (épique), Bureau hanté 1,49 (rare), Warwick sorcier 1,99 (épique), Lueur citrouille 1,49,
+  Radio hantée 1,49 (peu communs), Pack 5,99 (légendaire, jusqu'au 2026-11-03 ; 7,95 € à l'unité, −25 %).
+- La boutique `room/Shop.tsx` : bouton 🛍️ dans le coin, vitrine façon Fortnite (pack en vedette, tuiles par rareté,
+  compte à rebours en direct, tampon « Possédé »), fiche d'un objet (essayer / acheter / porter), casier par emplacement
+  (chaque emplacement montre l'actif ; options : base puis toutes les collections), barre d'essai (« Rendre » rouvre la
+  boutique là où on était). Connecté, « Acheter » part direct sur Stripe.
+- Paiement : Stripe **Managed Payments** (Stripe vendeur officiel : TVA, reçus, remboursements). Produits créés en test
+  par `scripts/stripe-skins.mjs` (un par objet et par pack, lookup key `skin_<id>`). `app/api/shop/checkout` (session
+  Checkout), `app/api/shop/webhook` (signature vérifiée, écrit l'achat), `lib/shopServer.ts`. Table Supabase
+  `purchases` créée (`docs/supabase.sql`). Achat test vérifié de bout en bout le 2026-10-14 (un achat test du pack est
+  enregistré sur le compte de Johan : à supprimer pour qu'il teste lui-même).
+- Perf : la pièce (`PaintedRoom`, memo) ne se redessine plus quand un panneau s'ouvre ; images de la boutique
+  préchargées.
+- En dev : `?skin=halloween` (ou un objet) porte sans acheter, `?skin` retire tout.
 
-Si Gemini recadre ou déplace des objets : redemander, en rappelant « same framing, every object in the same place ».
+**Clés** (`.env.local` sur le PC de Johan, jamais dans le repo ni le chat) : `STRIPE_SECRET_KEY` (test),
+`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_WEBHOOK_SECRET` (celui de `stripe listen`).
+Sans clés (session web), la route de paiement répond 503 et la boutique affiche « Le paiement ouvre très bientôt » :
+tout le reste se travaille quand même.
 
-## À faire
+### Compte Stripe en production (fait le 2026-10-15)
 
-**Johan**
-- Les 6 images ci-dessus.
-- Un compte Stripe activé avec la micro-entreprise (ou Lemon Squeezy, voir plus bas), puis ses clés dans Vercel.
-- Les infos des mentions légales : nom, SIRET, adresse (ou domiciliation), régime de TVA.
-- L'adhésion à un médiateur de la consommation (obligatoire pour vendre aux particuliers).
-- Lancer le SQL de la table des achats (`docs/supabase.sql`, une fois écrit).
+Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, pour s'y retrouver :
+- Type : France, « Particulier / Entrepreneur individuel / Micro-entrepreneur » (la micro-entreprise de Johan, son SIRET).
+- Catégorie : Produits numériques → **Applications** (pas « Jeux » : plus surveillé, et le jeu ne vend rien).
+  Description : application web gratuite de suivi de collection, objets décoratifs numériques optionnels à l'unité
+  ou en pack (0,99-2,99 €), achat unique, livré tout de suite, l'appli reste gratuite. Pokémon pas mis en avant (les
+  skins payants n'en contiennent rien).
+- Support : téléphone de Johan donné à Stripe mais **pas affiché** sur les reçus ; le support client, c'est
+  `contact@nookdex.com`.
+- Libellé de relevé : `NOOKDEX.COM`, abrégé `NOOKDEX`.
+- Virements : sur le compte de Johan, automatiques une fois par mois (colle à la déclaration URSSAF).
+- Double authentification : application d'authentification + clé d'accès, codes de secours gardés hors du PC.
+- Radar : **Lite** (inclus ; Standard coûterait 0,05 € par vente, 5 % d'un objet à 0,99 €). Passer à Standard si des
+  contestations arrivent.
+- Stripe Climate : non (facultatif, réactivable).
+- « Copier des éléments de l'environnement de test » : **rien copié**. Les produits de prod viennent de
+  `scripts/stripe-skins.mjs` (code fiscal Managed Payments, prix TTC, lookup keys `skin_<id>`).
+- **PayPal** activé via Stripe, revenus reçus **sur Stripe** (mêmes virements, à part des pourboires du PayPal.me perso).
+  Un compte **PayPal Professionnel** neuf a été créé pour ça, au nom de la micro-entreprise : e-mail `contact@nookdex.com`,
+  dénomination = nom de Johan (comme l'avis SIRENE), nom commercial NookDex, euro, « Applications de biens numériques
+  (hors jeux) », site nookdex.com, identifiant fiscal personnel (numéro fiscal, pas de TVA intracom en franchise),
+  résident fiscal France seulement. Pub PayPal décochée. Pas confirmé que Managed Payments propose PayPal : Stripe
+  choisit les moyens affichés (la route de paiement n'en force aucun), à vérifier sur la vraie page de paiement.
 
-**Claude**
-- Le moteur de skins : couches par skin (ciel, décos jour/nuit, chat, lampe à lave), le skin choisi gardé dans la
-  sauvegarde et le cloud, l'essai avant achat.
-- La boutique (icône panier, catalogue, essai, achat).
-- Supabase : table des achats (lecture par le joueur seulement, écriture par le serveur).
-- Routes : création du paiement (lié au compte du joueur), webhook signé qui enregistre l'achat.
-- Pages : mentions légales, CGV (FR/EN), case de renonciation au droit de rétractation.
-- Le découpage des images Halloween (script, sur le modèle de `build-scene`).
+**Fait le 2026-10-16**
+- Clé live : une clé restreinte `nookdex-site` (`rk_live_…`, « Accès complet, à l'exception des opérations sensibles »),
+  gardée dans le gestionnaire de mots de passe de Johan : pour Vercel (`STRIPE_SECRET_KEY`) et le script. Les clés
+  **test** restent dans `.env.local` (sinon un achat en dev est un vrai paiement, et le secret de `stripe listen`
+  n'existe qu'en test) : la clé live se passe pour une seule commande,
+  `$env:STRIPE_SECRET_KEY="rk_live_…"; node scripts/stripe-skins.mjs` (PowerShell, chaque ligne commence par `LIVE`).
+- Produits créés en prod par le script, aux prix 1,49 / 1,99 / 5,99.
+- Achat test de Johan en local (pack, clés test) : webhook reçu, achat écrit dans `purchases`.
+- Retours de Johan sur l'achat : pas de loader au retour de Stripe (`backFromShop`, comme au retour d'une connexion),
+  un écran « Merci » (`ThankYou` : en attente du webhook, puis merci + « Équiper mes skins » qui ouvre le casier sur
+  l'emplacement acheté ; « en retard » après 40 s), « Acheter » de la barre d'essai part direct sur Stripe (sans
+  compte : la fiche avec la connexion ouverte), une pastille « Nouveau ! » sous le bouton boutique tant qu'on n'a pas
+  ouvert la boutique avec ce qui est en vente (localStorage `nookdex:shop-seen`, revient avec un nouveau pack).
+- **Managed Payments** configuré en prod (`dashboard.stripe.com/settings/managed-payments`) : « Prêt à l'emploi »,
+  activé par défaut pour Checkout, code fiscal par défaut « Général - services fournis par voie électronique ».
+- Sur le PC de Johan : la CLI Stripe (winget `Stripe.StripeCli`) ; l'écoute en local sans `stripe login` :
+  `stripe listen --api-key <clé test> --forward-to localhost:3210/api/shop/webhook` (même secret que `.env.local`).
+- Pages légales (FR/EN, pages du carnet) : `/mentions-legales` (éditeur, SIRET, adresse, hébergeur) et
+  `/conditions-de-vente` (vendu via Link, livraison, remboursements par nous ou Link, licence perso). Les infos de
+  l'éditeur sont `LEGAL` dans `lib/site.ts`. Liées en bas de chaque page du carnet, depuis les CGU, la boutique, le
+  carnet de l'étagère et le texte de l'accueil ; vie privée mise à jour (achats, Stripe/Link, 10 ans de compta).
+
+**Reste à faire**
+- Pas de téléphone dans les mentions légales pour l'instant (Johan, 2026-10-16), bien que la LCEN le demande à une
+  personne physique : à ajouter dans `LEGAL` s'il prend un numéro à part.
+- Les liens CGV / confidentialité sur la page de paiement Stripe : champs introuvables dans le Dashboard (ni
+  Informations publiques, ni Checkout, 2026-10-16). Pas bloquant : nos CGV sont liées depuis la boutique.
+- Image de marque Stripe (prod) : icône Warwick (`Documents/NookDex/stripe-branding/icone-warwick.png`), pas de logo
+  (celui du site a une Poké Ball), couleurs `#1d1638` et `#ffe14a`.
+- Lancement : clés live + `SUPABASE_SERVICE_ROLE_KEY` dans Vercel, webhook de prod (`https://nookdex.com/api/shop/webhook`,
+  événements checkout.session.completed et async_payment_succeeded) et son secret, une ligne au carnet de route
+  (courte), merger `main` dans `shop` puis la PR, enfin `NEXT_PUBLIC_SHOP=on`. Au premier vrai achat : voir si PayPal
+  s'affiche.
+- Ménage : supprimer `Documents/NookDex/halloween-apercu/` (captures temporaires) une fois fini.
 
 ## Paiement : Stripe ou un « merchant of record »
 
