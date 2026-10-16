@@ -154,6 +154,12 @@ export async function buySkin(id: string, waiver = false): Promise<"ok" | "soon"
 
 /** The skins this account bought (Supabase purchases, read by the player only): kept for the next visit. */
 export async function refreshOwned() {
+  // Johan's accounts own the whole shop (Johan, 2026-10-16)
+  const email = useCloud.getState().email;
+  if (email && STUDIO_EMAIL_HASHES.includes(await sha256(email))) {
+    useSkins.setState({ owned: ITEMS.map((i) => i.id) });
+    return;
+  }
   const { data, error } = await supabase.from("purchases").select("skin");
   if (error) return;
   useSkins.setState({ owned: [...new Set((data ?? []).flatMap((r: { skin: string }) => itemsOf(r.skin)))] });

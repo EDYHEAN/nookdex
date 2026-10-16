@@ -22,12 +22,12 @@ copied on the way). Change the editorial line here, not in the routine's prompt.
 
 Run on Sunday morning. Two lines, prepared for the coming week (Johan, 2026-10-12):
 
-- **Instagram: Monday, Wednesday and Friday** (3 posts), each one a carousel and its Reel
-  (`"platforms": ["instagram", "reels"]`; a story: `["instagram"]`). Johan posts both, the same day or the Reel a few
-  days later. The Reel is drawn from the slides by `scripts/social/motion.mjs` (see "The video" below).
-- **TikTok: Tuesday, Thursday and Sunday** (3 posts), its own content: see "The TikTok line" below
-  (`"platforms": ["tiktok"]`). A game or a themed page may go on both lines (`["instagram", "reels", "tiktok"]`): then
-  it counts for both and the TikTok day is skipped.
+- **Instagram: Monday, Wednesday and Friday** (3 posts), a carousel each (`"platforms": ["instagram"]`, a story too).
+  No Reel made from a carousel any more: the animated carousel was "bof" (Johan, 2026-10-16).
+- **TikTok: Tuesday, Thursday and Sunday** (3 posts), its own content: see "The TikTok line" below. **Each TikTok video
+  is also Instagram's Reel**, the same video (`"platforms": ["tiktok", "reels"]`); a photo carousel
+  (`"tiktok": "photos"`) is TikTok only (`["tiktok"]`). A game or a themed page may go on both lines
+  (`["instagram", "tiktok", "reels"]`): then it counts for both and the TikTok day is skipped.
 
 Skip a day that already has a post. The Instagram mix over the week, in this order of priority:
 
@@ -65,7 +65,8 @@ A TikTok-only post has no Instagram pictures: only its scenes are drawn. Write `
 - Hook in the first second: the cover shows the cards and a short title (Press Start 2P: ~9 letters a line at size 90).
 - 4-9 scenes, 15-30 s. A price scene's pill shows `name` instead of the card's name when the cards share one
   (`"name": "NEO DESTINY · 2002"`, capitals without accents).
-- The caption: one or two lines, a question, 4-6 hashtags. No link (TikTok doesn't click them); the profile has it.
+- The caption: one or two lines, a question, **5 hashtags at most**. No link (TikTok doesn't click them); the profile has
+  it. The Reel takes the same caption.
 
 ## Sources for the news
 
@@ -86,7 +87,7 @@ Rumors and leaks: no.
 {
   "date": "2026-11-02",
   "time": "18:30",
-  "platforms": ["instagram", "reels"],
+  "platforms": ["instagram"],
   "kind": "fact",
   "format": "post",
   "title": "Top 5 Règne Delta",
@@ -98,8 +99,8 @@ Rumors and leaks: no.
 }
 ```
 
-- `platforms`: `instagram` (the carousel), `reels` (the video as a Reel), `tiktok`. `tiktok`: `"photos"` for TikTok's
-  photo mode, else a video.
+- `platforms`: `instagram` (the carousel), `tiktok` (the video), `reels` (the same video as an Instagram Reel: with
+  `tiktok` only, never alone). `tiktok`: `"photos"` for TikTok's photo mode (then no `reels`), else a video.
 - `kind`: `news` | `fact` | `fun` | `feature`. `format`: `post` (1080×1350) or `story` (1080×1920, Instagram only).
 - `prices: true` when a slide shows a price: the Action draws it again with the day's prices the day before and the day.
 - Card ids are the site's keys: `sv08-238` (French), `en:sv08-238` (English), `ja:SV8-033` (Japanese). Check every id
@@ -127,9 +128,10 @@ Rumors and leaks: no.
 
 A carousel: `cover`, 2-6 slides, an ending (`end`, `total` or `duelAnswers`). A fun page: a single `grid`. Keep 3-7 slides.
 
-## The video (Reels, TikTok)
+## The video (TikTok, and the same as a Reel)
 
-Made from the same slides, 1080×1920, 20-35 s, no sound (Johan adds a trending one in the app). Each slide type is a
+Made from the post's slides, 1080×1920, 20-35 s, no sound (Johan adds a trending one in the app). Only TikTok-line posts
+have one (an Instagram carousel gets no video). Each slide type is a
 scene: `cover` (title letter by letter, cards flying in, banner slam), `paper` (the paper card rises, lines pop),
 `price` (rank slam, card flip, price counting up), `total` (the sum counting), `grid` (cards popping one by one),
 `duel` (cards sliding in, VS, a 3-2-1 bar), `duelAnswers` (one scene a round: loser greyed, winner glowing, then the
@@ -163,8 +165,9 @@ post has none. A progress bar on top tells how many scenes are left (people stay
 ## Captions
 
 French, the NookDex voice (warm, a bit playful, tutoiement), 3-8 short lines, one question to the reader, then
-`nookdex.com (lien en bio)`, then 6-9 hashtags (`#pokemontcg #cartespokemon #collectionpokemon #pokemonfr` + the
-subject's). A price is always "prix tendance Cardmarket du <day>". TikTok caption: one or two lines + 4-6 hashtags.
+`nookdex.com (lien en bio)`, then **5 hashtags at most** (Johan, 2026-10-16): `#pokemontcg #cartespokemon` + up to three
+of the subject's. A price is always "prix tendance Cardmarket du <day>". TikTok caption (also the Reel's): one or two
+lines + 5 hashtags at most. The studio keeps the first five of any caption anyway.
 In a `prices: true` post, never type a price or its day in the caption: write `{price:<card key>}`, `{total:<set key>}`
 (one of each) and `{day:<set key>}` (`{price:me05-116}`, `{day:en:sv08}`), filled with the day's at each render like the
 slides (the price posts are drawn again once `prices.yml` has run, the day before and the day they come out).
