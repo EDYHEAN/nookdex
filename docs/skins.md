@@ -158,9 +158,11 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   carnet de l'étagère et le texte de l'accueil ; vie privée mise à jour (achats, Stripe/Link, 10 ans de compta).
 
 **Reste à faire**
-- Téléphone dans les mentions légales (la LCEN le demande à une personne physique) : décision de Johan.
-- Stripe → Paramètres → Checkout : URL des conditions (`https://nookdex.com/conditions-de-vente`) et de la
-  confidentialité (`https://nookdex.com/confidentialite`), affichées en bas de la page de paiement.
+- Pas de téléphone dans les mentions légales pour l'instant (Johan, 2026-10-16), bien que la LCEN le demande à une
+  personne physique : à ajouter dans `LEGAL` s'il prend un numéro à part.
+- Stripe (production) → `dashboard.stripe.com/settings/public` (Informations publiques) : URL des conditions
+  (`https://nookdex.com/conditions-de-vente`) et de la confidentialité (`https://nookdex.com/confidentialite`),
+  affichées en bas de la page de paiement.
 - Lancement : clés live + `SUPABASE_SERVICE_ROLE_KEY` dans Vercel, webhook de prod (`https://nookdex.com/api/shop/webhook`,
   événements checkout.session.completed et async_payment_succeeded) et son secret, une ligne au carnet de route
   (courte), merger `main` dans `shop` puis la PR, enfin `NEXT_PUBLIC_SHOP=on`. Au premier vrai achat : voir si PayPal
