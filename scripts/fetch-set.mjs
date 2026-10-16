@@ -862,6 +862,42 @@ async function fixSharedProducts() {
     }
   }
 
+  /*
+   * Two prints of one card that Cardmarket names exactly alike (no number in its names) and TCGdex links crossed:
+   * Cosmic Eclipse's Pikachu 66 (common) on the 241 secret's product (221 €) and the 241 on the common's (1.60 €), and
+   * all twelve of its secret reprints (2026-10-17), Mimikyu 96 and 245 across two products of one name. A plain print
+   * (common, uncommon, rare, a plain number) on a product 1.5× dearer than its secret print's (and over 2 €) swaps with it:
+   * a secret reprint never sells for less. Prices are the guide's, per product (English cards' own are TCGplayer's).
+   */
+  const res2 = await fetch(GUIDE, { headers: CM_HEADERS });
+  const trendOf = res2.ok ? new Map((await res2.json()).priceGuides.map((g) => [g.idProduct, g.trend ?? 0])) : new Map();
+  const PLAIN = /^(commune|peu commune|rare|common|uncommon)$/i;
+  const SECRET = /magnifique|secret|hyper|ultra/i;
+  let swapped = 0;
+  for (const s of sets) {
+    const byProductName = new Map();
+    for (const card of live(s)) {
+      const id = next.has(card) ? next.get(card) : card.price.cmId;
+      const p = id && byId.get(id);
+      if (p) byProductName.set(cmName(p.name), [...(byProductName.get(cmName(p.name)) ?? []), card]);
+    }
+    for (const prints of byProductName.values()) {
+      if (prints.length < 2) continue;
+      for (const a of prints) {
+        if (!PLAIN.test(a.rarity ?? "") || !/^\d+$/.test(a.num)) continue;
+        const idA = next.has(a) ? next.get(a) : a.price.cmId;
+        const b = prints.find((x) => SECRET.test(x.rarity ?? "") && trendOf.get(idA) > 1.5 * (trendOf.get(next.has(x) ? next.get(x) : x.price.cmId) ?? 0) && trendOf.get(idA) > 2);
+        if (!b) continue;
+        const idB = next.has(b) ? next.get(b) : b.price.cmId;
+        next.set(a, idB);
+        next.set(b, idA);
+        swapped++;
+        console.log(`  ${s.data.id}: ${a.num} ${a.name} <-> ${b.num} (Cardmarket products crossed)`);
+      }
+    }
+  }
+  if (swapped) console.log(`Cardmarket products: ${swapped} crossed pairs swapped`);
+
   // a product still held twice goes to neither
   const productOf = (card) => (next.has(card) ? next.get(card) : card.price.cmId);
   const count = new Map();
