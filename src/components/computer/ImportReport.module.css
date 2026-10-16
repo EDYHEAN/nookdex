@@ -160,9 +160,15 @@
 .rangeHead {
   flex: none;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
   margin-top: 4px;
+}
+
+.legend {
+  font-size: 15px;
+  color: var(--ink-soft);
 }
 
 .room {
@@ -247,6 +253,7 @@
 }
 
 .count {
+  font-family: var(--font-press), monospace;
   font-size: 13px;
   color: var(--ink-soft);
 }

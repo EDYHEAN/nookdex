@@ -226,7 +226,7 @@
   /* entrance, from the very first frame: hidden while the "new binder" leaflet closes, then drops in.
      On the drawing (not the button) so the button's put-back class never replays it;
      translate / rotate / scale compose with the drawing's perspective transform. */
-  animation: dropIn 0.5s steps(6) 0.25s backwards;
+  animation: dropIn 0.5s steps(6) var(--drop-delay, 0.25s) backwards;
 }
 
 @keyframes dropIn {

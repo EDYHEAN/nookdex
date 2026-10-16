@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, memo, useEffect, useMemo, useRef, useState } from "react";
 import { MAX_BINDERS, SHELF_SLOTS, boxOf, pocketsOf, shelfBinders, shelfPageCount, wantsOf } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
@@ -139,7 +139,15 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
   const pages = shelfPageCount(binders.length);
   const [pageWanted, setPageWanted] = useState(readPage);
   const page = Math.min(pageWanted, pages - 1);
+  /** the page was just turned: its binders drop in one after the other, a wave along the shelves */
+  const [wave, setWave] = useState(false);
+  useEffect(() => {
+    if (!wave) return;
+    const id = setTimeout(() => setWave(false), 1600);
+    return () => clearTimeout(id);
+  }, [wave]);
   const turnPage = (p: number) => {
+    if (p !== page) setWave(true);
     setPageWanted(p);
     try {
       localStorage.setItem(PAGE_KEY, String(p));
@@ -207,7 +215,13 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
     prevIds.current = ids;
     if (!before || !ids.some((id) => !before.includes(id))) return;
     const added = binders.find((b) => !before.includes(b.id));
-    if (added) turnPage(added.page);
+    // the shelf turns to its page (kept like a turn by hand)
+    if (added) {
+      setPageWanted(added.page);
+      try {
+        localStorage.setItem(PAGE_KEY, String(added.page));
+      } catch {}
+    }
     const t = setTimeout(() => sfx.shelfIn(), 250);
     return () => clearTimeout(t);
   }, [binders]);
@@ -496,7 +510,7 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
               <button
                 key={b.id}
                 className={cls}
-                style={place(slot)}
+                style={wave ? ({ ...place(slot), "--drop-delay": `${0.05 + b.slot * 0.06}s` } as CSSProperties) : place(slot)}
                 aria-label={langTag(b) ? `${b.name} · ${langTag(b)}` : b.name}
                 onPointerEnter={() => {
                   sfx.spine(i);

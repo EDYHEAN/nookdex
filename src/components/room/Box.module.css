@@ -86,6 +86,76 @@
   color: #5d4592;
 }
 
+/* search and sort, over the cards */
+.tools {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+/* 16 px at least: no zoom on a phone when typing */
+.search {
+  flex: 1;
+  min-width: 200px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.sorts {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(30, 18, 48, 0.45);
+}
+
+.sort {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #e6dbf8;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.sort:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.sortOn,
+.sortOn:hover {
+  background: #ffd35a;
+  color: var(--ink);
+}
+
+/* every card in one grid (sorted by price, name, date) */
+.flat {
+  padding: 12px 10px;
+}
+
+.price {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
 .inside {
   flex: 1;
   min-height: 0;
@@ -283,6 +353,17 @@
 }
 
 @media (max-width: 600px) {
+  .sorts {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sort {
+    flex: 1;
+    padding: 6px 4px;
+    font-size: 14px;
+  }
+
   .box {
     padding: 16px 12px 12px;
   }

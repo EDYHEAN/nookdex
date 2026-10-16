@@ -73,7 +73,7 @@ export function ImportReport({
         <div className={styles.stats}>
           <div className={styles.stat}>
             <b>{copies.toLocaleString()}</b>
-            <span>{t("cartes retrouvées", "cards found")}</span>
+            <span>{t("cartes", "cards")}</span>
           </div>
           <div className={styles.stat}>
             <b>{result.sets.length}</b>
@@ -82,7 +82,7 @@ export function ImportReport({
           {missed > 0 && (
             <button className={`${styles.stat} ${styles.statMiss}`} onClick={() => setOpen(!open)}>
               <b>{missed}</b>
-              <span>{t("pas retrouvées ▾", "not found ▾")}</span>
+              <span>{t("absentes ▾", "missing ▾")}</span>
             </button>
           )}
         </div>
@@ -92,15 +92,13 @@ export function ImportReport({
             <motion.div className={styles.missing} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               {lang.length > 0 && (
                 <div>
-                  <h3>{t(`En coréen ou en japonais (${lang.length})`, `In Korean or Japanese (${lang.length})`)}</h3>
-                  <p>{t("NookDex ne range pas encore ces langues.", "NookDex doesn't file these languages yet.")}</p>
+                  <h3>{t(`🌏 Langue pas encore gérée · ${lang.length}`, `🌏 Language not handled yet · ${lang.length}`)}</h3>
                   <ul>{lang.map((m, i) => <li key={i}>{m.name}</li>)}</ul>
                 </div>
               )}
               {notHere.length > 0 && (
                 <div>
-                  <h3>{t(`Pas encore dans NookDex (${notHere.length})`, `Not in NookDex yet (${notHere.length})`)}</h3>
-                  <p>{t("Des promos et quelques éditions spéciales qu'on n'a pas encore.", "Promos and a few special prints we don't have yet.")}</p>
+                  <h3>{t(`🔍 Pas encore sur NookDex · ${notHere.length}`, `🔍 Not on NookDex yet · ${notHere.length}`)}</h3>
                   <ul>
                     {notHere.map((m, i) => (
                       <li key={i}>
@@ -115,15 +113,11 @@ export function ImportReport({
         </AnimatePresence>
 
         <div className={styles.rangeHead}>
-          <h3>{t("Où ranger tes extensions ?", "Where do your sets go?")}</h3>
-          <p>
-            {t("Touche une extension pour choisir :", "Tap a set to choose:")} <span className={styles.tagShelf}>📚 {t("étagère", "shelf")}</span>{" "}
-            {t("un classeur rien qu'à elle,", "a binder of its own,")} <span className={styles.tagBox}>📦 {t("boîte", "box")}</span>{" "}
-            {t("rangée dans la boîte, sortie quand tu veux.", "kept in the box, out whenever you like.")}
-          </p>
-          <p className={styles.room}>
-            {t(`${shelf.size} classeur${shelf.size > 1 ? "s" : ""} à poser · ${room - shelf.size} place${room - shelf.size > 1 ? "s" : ""} libre${room - shelf.size > 1 ? "s" : ""} sur l'étagère`, `${shelf.size} binder${shelf.size > 1 ? "s" : ""} to put up · ${room - shelf.size} free place${room - shelf.size > 1 ? "s" : ""} on the shelf`)}
-          </p>
+          <h3>{t("Où ranger ?", "Where to?")}</h3>
+          <span className={styles.legend}>
+            <span className={styles.tagShelf}>📚 {t("étagère", "shelf")}</span> <span className={styles.tagBox}>📦 {t("boîte", "box")}</span> ·{" "}
+            {t("touche pour changer", "tap to switch")} · {t(`${room - shelf.size} places libres`, `${room - shelf.size} free places`)}
+          </span>
         </div>
 
         <ul className={styles.tiles}>
@@ -142,10 +136,7 @@ export function ImportReport({
                   aria-pressed={on}
                 >
                   <span className={styles.logo}>{logo ? <img src={`${logo}.png`} alt="" draggable={false} /> : <span>{s.name}</span>}</span>
-                  <span className={styles.name}>{s.name}</span>
-                  <span className={styles.count}>
-                    {s.copies} {t("cartes", "cards")}
-                  </span>
+                  <span className={styles.count}>{s.copies}</span>
                   <span className={on ? styles.tagShelf : styles.tagBox}>
                     {has ? t("📚 déjà là", "📚 already up") : on ? t("📚 étagère", "📚 shelf") : t("📦 boîte", "📦 box")}
                   </span>
@@ -157,13 +148,7 @@ export function ImportReport({
 
         {older.length > 0 && (
           <div className={styles.older}>
-            <h3>{t(`Dans la boîte (${older.length})`, `In the box (${older.length})`)}</h3>
-            <p>
-              {t(
-                "Ces extensions plus anciennes n'ont pas encore de classeur sur NookDex : leurs cartes t'attendent dans la boîte de l'étagère.",
-                "These older sets have no binder on NookDex yet: their cards wait for you in the box on the shelf.",
-              )}
-            </p>
+            <h3>{t(`📦 Directement dans la boîte · ${older.length}`, `📦 Straight into the box · ${older.length}`)}</h3>
             <ul className={styles.chips}>
               {older.map((s) => (
                 <li key={s.setId}>
