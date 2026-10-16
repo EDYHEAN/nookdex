@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence } from "motion/react";
 import { useRef, useState } from "react";
 import { MAX_BINDERS } from "@/lib/binders";
 import { useT } from "@/lib/lang";
@@ -7,6 +8,7 @@ import { type ImportResult, isPokecardex, matchImport, parseCsv } from "@/lib/po
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import styles from "./Computer.module.css";
+import { ImportReport } from "./ImportReport";
 
 /** sets offered for the shelf at first: the big ones (a handful of cards waits in the box) */
 const BIG = 20;
@@ -23,7 +25,6 @@ export function ImportPokecardex({ say }: { say: (m: string) => void }) {
   const [progress, setProgress] = useState<[number, number]>([0, 0]);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [shelf, setShelf] = useState<Set<string>>(new Set());
-  const [showMissing, setShowMissing] = useState(false);
   const binders = useStore((s) => s.binders);
   const onShelf = new Set(binders.flatMap((b) => (b.kind === "set" ? [b.setId] : [])));
   const room = MAX_BINDERS - binders.length;
@@ -47,7 +48,7 @@ export function ImportPokecardex({ say }: { say: (m: string) => void }) {
     }
   };
 
-  const confirm = () => {
+  const confirm = (shelf: Set<string>) => {
     if (!result) return;
     const { importCopies, addBinder } = useStore.getState();
     const added = importCopies(result.found);
@@ -112,81 +113,26 @@ export function ImportPokecardex({ say }: { say: (m: string) => void }) {
       </div>
     );
 
-  const r = result!;
-  const copies = r.found.reduce((n, f) => n + f.qty, 0);
-  const lines = r.missing.length;
-  const offered = r.sets.filter((s) => s.binder && !onShelf.has(s.setId));
-  const why = { set: tr("extension inconnue", "unknown set"), card: tr("carte introuvable", "card not found"), lang: tr("langue pas encore gérée", "language not handled yet") };
-
+  // the report, in its own window over the OS
   return (
     <div className={styles.importBox}>
-      <p>
-        {tr("Trouvé :", "Found:")} <b>{copies}</b> {tr("cartes", "cards")} {tr("dans", "in")} <b>{r.sets.length}</b> {tr("extensions", "sets")}.
-        {lines > 0 && (
-          <>
-            {" "}
-            <button className={styles.linkBtn} onClick={() => setShowMissing(!showMissing)}>
-              {tr(`${lines} ligne${lines > 1 ? "s" : ""} introuvable${lines > 1 ? "s" : ""}`, `${lines} line${lines > 1 ? "s" : ""} not found`)}
-              {showMissing ? " ▲" : " ▼"}
-            </button>
-          </>
+      <p>{tr("Ta collection est lue, choisis où la ranger…", "Your collection is read, choose where it goes…")}</p>
+      <AnimatePresence>
+        {step === "report" && result && (
+          <ImportReport
+            result={result}
+            room={room}
+            onShelf={onShelf}
+            initial={shelf}
+            onConfirm={confirm}
+            onCancel={() => {
+              sfx.click();
+              setStep("idle");
+              setResult(null);
+            }}
+          />
         )}
-      </p>
-      {showMissing && (
-        <ul className={styles.importMissing}>
-          {r.missing.map((m, i) => (
-            <li key={i}>
-              {m.name} · {m.set} {m.number} <span className={styles.muted}>({why[m.why]})</span>
-            </li>
-          ))}
-        </ul>
-      )}
-      {offered.length > 0 && (
-        <>
-          <p>
-            {tr("Sur l'étagère :", "On the shelf:")} <span className={styles.muted}>{tr("les autres attendent dans la boîte.", "the others wait in the box.")}</span>
-          </p>
-          <ul className={styles.importSets}>
-            {offered.map((s) => {
-              const on = shelf.has(s.setId);
-              return (
-                <li key={s.setId}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={on}
-                      disabled={!on && shelf.size >= room}
-                      onChange={() => {
-                        sfx.click();
-                        const next = new Set(shelf);
-                        if (on) next.delete(s.setId);
-                        else next.add(s.setId);
-                        setShelf(next);
-                      }}
-                    />
-                    {s.name} <span className={styles.muted}>· {s.copies}</span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        </>
-      )}
-      <div className={styles.saveActions}>
-        <button className={styles.btnBig} onClick={confirm}>
-          {tr(`✓ Ajouter ${copies} cartes`, `✓ Add ${copies} cards`)}
-        </button>
-        <button
-          className={styles.btnBig}
-          onClick={() => {
-            sfx.click();
-            setStep("idle");
-            setResult(null);
-          }}
-        >
-          {tr("Annuler", "Cancel")}
-        </button>
-      </div>
+      </AnimatePresence>
     </div>
   );
 }
