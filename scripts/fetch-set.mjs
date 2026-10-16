@@ -443,6 +443,9 @@ const TCGCSV_GROUPS = {
   "tk-hs-g": 1540, "tk-hs-r": 1540, "tk-bw-e": 1538, "tk-bw-z": 1538, "tk-xy-sy": 1532, "tk-xy-n": 1532,
   "tk-xy-b": 1533, "tk-xy-w": 1533, "tk-xy-latia": 1536, "tk-xy-latio": 1536, "tk-xy-su": 1796, "tk-xy-p": 1796,
   "tk-sm-l": 2069, "tk-sm-r": 2069,
+  // the McDonald's collections (TCGdex has no scan of them; none for 2013 at TCGplayer)
+  "2011bw": 1401, "2012bw": 1427, "2014xy": 1692, "2015xy": 1694, "2016xy": 3087, "2017sm": 2148, "2018sm-fr": 2364,
+  "2019sm-fr": 2555, "2021swsh": 2782, "2022swsh": 3150, "2023sv": 23306, "2024sv": 24163,
 };
 async function scansFromTcgcsvGroup(mainId, cards) {
   const group = TCGCSV_GROUPS[mainId];
