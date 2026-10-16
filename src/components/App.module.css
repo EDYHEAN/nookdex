@@ -114,5 +114,43 @@
 
 /* the shop's bag: warm, it's the one new button */
 .shopBtn {
+  position: relative;
   color: #ff9f43;
+}
+
+/* "New!" hanging under the shop button until the shop is opened with what's on sale now (lib/shop useShopNews) */
+.shopNew {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 8px);
+  padding: 4px 7px;
+  border-radius: 4px;
+  background: #ffe14a;
+  color: #2b2230;
+  font-family: var(--font-press), monospace;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 2px #150f1f,
+    2px 3px 0 2px rgba(0, 0, 0, 0.4);
+  animation: shopNew 1.6s ease-in-out infinite;
+}
+
+@keyframes shopNew {
+  0%,
+  100% {
+    transform: translateX(-50%) rotate(-6deg);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-3px) rotate(4deg) scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shopNew {
+    animation: none;
+    transform: translateX(-50%) rotate(-6deg);
+  }
 }

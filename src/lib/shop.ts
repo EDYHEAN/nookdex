@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { supabase, useCloud } from "./cloud";
 import { STUDIO_EMAIL_HASHES } from "./site";
-import { BUNDLES, ITEM, ITEMS, itemsOf, lookOf, type Look } from "./skins";
+import { BUNDLES, ITEM, ITEMS, itemsOf, lookOf, onSale, type Look, type Slot } from "./skins";
 
 export * from "./skins";
 
@@ -72,8 +72,42 @@ export const useSkins = create<SkinState>()(
   }),
 );
 
-/** Where the shop was left (its tab, the card open): it opens there again after a try-on */
-export const shopView: { tab: "shop" | "locker"; open: string | null } = { tab: "shop", open: null };
+/**
+ * Where the shop was left (its tab, the card open, the locker's slot): it opens there again after a try-on. `signIn`
+ * opens the card's sign-in box at once (Buy from the try-on strip without an account).
+ */
+export const shopView: { tab: "shop" | "locker"; open: string | null; slot: Slot | null; signIn: boolean } = { tab: "shop", open: null, slot: null, signIn: false };
+/** Where the shop opens next */
+export const setShopView = (v: Partial<typeof shopView>) => void Object.assign(shopView, v);
+
+const back = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+/** Back from Stripe's payment page (?shop=paid|back, read before App cleans the address): no loader again. */
+export const backFromShop = !!back?.has("shop");
+/** What was just paid for (?shop=paid&bought=<id>), if it's in the catalogue */
+export const paidFor = back?.get("shop") === "paid" && itemsOf(back.get("bought") ?? "").length ? back.get("bought") : null;
+
+const SEEN_KEY = "nookdex:shop-seen";
+/** What's on sale, as one string: a new pack brings the shop button's "new" sticker back */
+const saleKey = () => [...BUNDLES, ...ITEMS].filter(onSale).map((x) => x.id).join(",");
+
+/** The shop button's "new" sticker: until the shop is opened once with what's on sale now (per device). */
+export function useShopNews(): [boolean, () => void] {
+  // the room is client-only: storage can be read at once
+  const [news, setNews] = useState(() => {
+    try {
+      return localStorage.getItem(SEEN_KEY) !== saleKey();
+    } catch {
+      return false;
+    }
+  });
+  const seen = useCallback(() => {
+    try {
+      localStorage.setItem(SEEN_KEY, saleKey());
+    } catch {}
+    setNews(false);
+  }, []);
+  return [news, seen];
+}
 
 /** Puts an item on (taking off the one in its slot), or takes it off */
 export function wear(id: string, on: boolean) {

@@ -54,7 +54,7 @@
       "set": "halloween",
       "slot": "sky",
       "rarity": "epic",
-      "price": 1.99,
+      "price": 1.49,
       "icon": "/skins/halloween/icon-sky.webp",
       "name": {
         "fr": "Lune de sang",
@@ -70,7 +70,7 @@
       "set": "halloween",
       "slot": "decor",
       "rarity": "rare",
-      "price": 1.99,
+      "price": 1.49,
       "icon": "/skins/halloween/lantern.webp",
       "cutout": true,
       "name": {
@@ -87,7 +87,7 @@
       "set": "halloween",
       "slot": "cat",
       "rarity": "epic",
-      "price": 2.49,
+      "price": 1.99,
       "icon": "/skins/halloween/cat-sleep.webp",
       "cutout": true,
       "name": {
@@ -104,7 +104,7 @@
       "set": "halloween",
       "slot": "lamp",
       "rarity": "uncommon",
-      "price": 1.99,
+      "price": 1.49,
       "icon": "/skins/halloween/icon-lamp.webp",
       "name": {
         "fr": "Lueur citrouille",
@@ -129,7 +129,7 @@
       "set": "halloween",
       "slot": "radio",
       "rarity": "uncommon",
-      "price": 1.99,
+      "price": 1.49,
       "icon": "/skins/halloween/icon-radio.webp",
       "name": {
         "fr": "Radio hantée",
@@ -146,7 +146,7 @@
     {
       "id": "halloween",
       "rarity": "legendary",
-      "price": 7.99,
+      "price": 5.99,
       "icon": "/skins/halloween/preview.webp",
       "until": "2026-11-03",
       "items": [

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useLang, useT } from "@/lib/lang";
-import { BASE, BUNDLE, BUNDLES, COLLECTIONS, ITEM, ITEMS, buySkin, formatEuros, shopView, itemsOf, onSale, useSkins, wear, worthOf, type Bundle, type Item, type Rarity, type Slot } from "@/lib/shop";
+import { BASE, BUNDLE, BUNDLES, COLLECTIONS, ITEM, ITEMS, buySkin, formatEuros, setShopView, shopView, itemsOf, onSale, useSkins, wear, worthOf, type Bundle, type Item, type Rarity, type Slot } from "@/lib/shop";
 import { sfx } from "@/lib/sound";
 import styles from "./Shop.module.css";
 
@@ -205,8 +205,11 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
   const worn = ids.every((id) => equipped.includes(id));
   const worth = isBundle(thing) ? worthOf(thing) : null;
   const email = useCloud((s) => s.email);
-  // signed in: straight to Stripe's page; else the sign-in box opens under the button
-  const [buying, setBuying] = useState(false);
+  // signed in: straight to Stripe's page; else the sign-in box opens under the button (at once from the try-on strip)
+  const [buying, setBuying] = useState(() => shopView.signIn);
+  useEffect(() => {
+    shopView.signIn = false;
+  }, []);
   const [going, setGoing] = useState<"idle" | "going" | "soon" | "error">("idle");
   const buy = async () => {
     setGoing("going");
@@ -315,7 +318,10 @@ function Locker({ onShop }: { onShop: (id: string) => void }) {
   const t = useT();
   const lang = useLang();
   const { owned, equipped } = useSkins();
-  const [slot, setSlot] = useState<Slot>("sky");
+  const [slot, setSlot] = useState<Slot>(() => shopView.slot ?? "sky");
+  useEffect(() => {
+    shopView.slot = slot;
+  }, [slot]);
   const wornIn = (s: Slot) => equipped.map((id) => ITEM.get(id)).find((it) => it?.slot === s && owned.includes(it.id));
   const base = BASE.find((b) => b.slot === slot)!;
   const worn = wornIn(slot);
@@ -450,12 +456,28 @@ function SignInFirst() {
   );
 }
 
-/** While something is tried on: a strip at the bottom to buy it or give it back. */
+/** While something is tried on: a strip at the bottom to buy it (signed in: straight to Stripe) or give it back. */
 export function TryOnBar({ onOpenShop }: { onOpenShop: () => void }) {
   const t = useT();
   const lang = useLang();
   const trying = useSkins((s) => s.trying);
+  const email = useCloud((s) => s.email);
+  const [going, setGoing] = useState(false);
   const thing = trying ? (BUNDLE.get(trying) ?? ITEM.get(trying)) : undefined;
+  const buy = async (id: string) => {
+    if (!email) {
+      // its card, with the sign-in box already open
+      setShopView({ tab: "shop", open: id, signIn: true });
+      return onOpenShop();
+    }
+    setGoing(true);
+    const r = await buySkin(id);
+    if (r === "ok") return;
+    // the card tells why (payment not open yet, or an error)
+    setGoing(false);
+    setShopView({ tab: "shop", open: id });
+    onOpenShop();
+  };
   return (
     <AnimatePresence>
       {thing && (
@@ -465,13 +487,14 @@ export function TryOnBar({ onOpenShop }: { onOpenShop: () => void }) {
           </span>
           <button
             className={`${styles.btn} ${styles.primary}`}
+            disabled={going}
             onPointerEnter={sfx.hover}
             onClick={() => {
               sfx.click();
-              onOpenShop();
+              void buy(thing.id);
             }}
           >
-            {t(`Acheter · ${formatEuros(thing.price, lang)}`, `Buy · ${formatEuros(thing.price, lang)}`)}
+            {going ? t("Vers le paiement…", "To the payment…") : t(`Acheter · ${formatEuros(thing.price, lang)}`, `Buy · ${formatEuros(thing.price, lang)}`)}
           </button>
           <button
             className={styles.btn}
@@ -488,5 +511,120 @@ export function TryOnBar({ onOpenShop }: { onOpenShop: () => void }) {
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+/** confetti bits flying out of the thank-you card: where each lands, its colour, its delay */
+const BITS = Array.from({ length: 18 }, (_, i) => {
+  const a = (i / 18) * Math.PI * 2;
+  const r = 150 + (i % 3) * 50;
+  return { x: Math.cos(a) * r, y: Math.sin(a) * r * 0.7 - 40, c: ["#ffe14a", "#ff4d6d", "#9dff7a", "#7ad7ff", "#c79bff"][i % 5], d: (i % 4) * 0.04 };
+});
+
+/**
+ * Back from Stripe's page: the purchase arrives with the webhook a moment later ("waiting"), then a thank-you and the
+ * way to the locker to wear it; "late" if it hasn't come after a while (the payment went through all the same).
+ */
+export function ThankYou({ id, state, onLocker, onClose }: { id: string; state: "waiting" | "done" | "late"; onLocker: () => void; onClose: () => void }) {
+  const t = useT();
+  const thing = BUNDLE.get(id) ?? ITEM.get(id);
+  const name = thing ? t(thing.name.fr, thing.name.en) : "";
+  const many = itemsOf(id).length > 1;
+  if (!thing) return null;
+  return (
+    <motion.div
+      className={styles.backdrop}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && state !== "waiting") onClose();
+      }}
+    >
+      <motion.section
+        className={`${styles.thanks} ${styles[thing.rarity]}`}
+        role="dialog"
+        aria-live="polite"
+        aria-label={t("Merci !", "Thank you!")}
+        initial={{ y: 40, scale: 0.9, opacity: 0 }}
+        animate={{ y: 0, scale: 1, opacity: 1 }}
+        exit={{ y: 30, opacity: 0, transition: { duration: 0.2 } }}
+        transition={{ type: "spring", stiffness: 280, damping: 22 }}
+      >
+        <div className={styles.thanksArt}>
+          <span className={styles.rays} aria-hidden />
+          {/* the motion on a wrapper: the picture's own transform centres it */}
+          <motion.span
+            className={styles.thanksFloat}
+            animate={state === "done" ? { scale: [1, 1.12, 1], rotate: [0, -4, 0], y: 0 } : { y: [0, -6, 0] }}
+            transition={state === "done" ? { duration: 0.6 } : { duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <img className={thing.cutout ? styles.cutout : styles.framed} src={thing.icon} alt="" draggable={false} />
+          </motion.span>
+          {state === "done" && <Owned />}
+        </div>
+        {state === "done" &&
+          BITS.map((b, i) => (
+            <motion.span
+              key={i}
+              className={styles.bit}
+              style={{ background: b.c }}
+              initial={{ x: 0, y: 0, opacity: 1, rotate: 0 }}
+              animate={{ x: b.x, y: [0, b.y, b.y + 120], opacity: [1, 1, 0], rotate: 270 }}
+              transition={{ duration: 1.4, delay: b.d, ease: "easeOut" }}
+              aria-hidden
+            />
+          ))}
+        <div className={styles.thanksText}>
+          {state === "waiting" ? (
+            <>
+              <h3>{t("Paiement reçu !", "Payment received!")}</h3>
+              <p>
+                {t(`On range ${name} dans ton casier`, `Putting ${name} in your locker`)}
+                <span className={styles.dots} aria-hidden />
+              </p>
+            </>
+          ) : state === "done" ? (
+            <>
+              <h3>{t("Merci !", "Thank you!")}</h3>
+              <p>
+                <b>{name}</b> {t("est à toi.", "is yours.")}{" "}
+                {t("Merci de soutenir NookDex : ça le garde gratuit pour tout le monde.", "Thanks for supporting NookDex: it keeps it free for everyone.")}
+              </p>
+              <div className={styles.actions}>
+                <button
+                  className={`${styles.btn} ${styles.primary}`}
+                  onPointerEnter={sfx.hover}
+                  onClick={() => {
+                    sfx.pop();
+                    onLocker();
+                  }}
+                >
+                  {many ? t("Équiper mes skins", "Wear my skins") : t("Équiper mon skin", "Wear my skin")}
+                </button>
+                <button className={styles.btn} onPointerEnter={sfx.hover} onClick={onClose}>
+                  {t("Plus tard", "Later")}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h3>{t("Paiement reçu !", "Payment received!")}</h3>
+              <p>
+                {t(
+                  `Ton paiement est bien passé : ${name} arrive dans ton casier d'ici quelques minutes. Merci ! Si rien n'arrive, écris à contact@nookdex.com.`,
+                  `Your payment went through: ${name} reaches your locker within a few minutes. Thank you! If nothing comes, write to contact@nookdex.com.`,
+                )}
+              </p>
+              <div className={styles.actions}>
+                <button className={`${styles.btn} ${styles.primary}`} onPointerEnter={sfx.hover} onClick={onClose}>
+                  OK
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </motion.section>
+    </motion.div>
   );
 }

@@ -876,6 +876,129 @@
   color: #ffe14a;
 }
 
+/* ---------- back from the payment: thank you ---------- */
+
+.thanks {
+  position: relative;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  width: min(640px, 100%);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #1d1638, #120d24);
+  color: #f3ecff;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    inset 0 0 0 2px rgba(200, 170, 255, 0.18),
+    9px 11px 0 3px rgba(10, 6, 20, 0.5),
+    0 30px 90px rgba(0, 0, 0, 0.6);
+}
+
+.thanksArt {
+  position: relative;
+  min-height: 260px;
+  border-radius: 14px 0 0 14px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 45%, var(--c1), var(--c2) 75%);
+}
+
+.thanksArt .rays {
+  animation: raysTurn 30s linear infinite;
+}
+
+.thanksFloat {
+  position: absolute;
+  inset: 0;
+}
+
+.thanksArt .cutout,
+.thanksArt .framed {
+  top: 50%;
+}
+
+.thanksArt .ownedStamp {
+  top: 82%;
+}
+
+.thanksText {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding: 26px 24px;
+}
+
+.thanksText h3 {
+  margin: 0;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 24px;
+  color: #ffd35a;
+  text-shadow: 3px 3px 0 #000;
+}
+
+.thanksText p {
+  margin: 0;
+  font-size: 18px;
+  color: #ddd2fb;
+}
+
+.thanksText p b {
+  font-weight: normal;
+  color: #ffe14a;
+}
+
+/* "…" typing itself while the purchase is on its way */
+.dots::after {
+  content: "";
+  animation: dots 1.2s steps(4) infinite;
+}
+
+@keyframes dots {
+  0% {
+    content: "";
+  }
+  25% {
+    content: ".";
+  }
+  50% {
+    content: "..";
+  }
+  75% {
+    content: "...";
+  }
+}
+
+.bit {
+  position: absolute;
+  left: 120px;
+  top: 45%;
+  z-index: 3;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 700px) {
+  .thanks {
+    grid-template-columns: 1fr;
+  }
+
+  .thanksArt {
+    min-height: 190px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .bit {
+    left: 50%;
+    top: 95px;
+  }
+
+  .thanksText {
+    padding: 18px 16px 20px;
+  }
+}
+
 @media (max-width: 700px) {
   .head {
     padding: 12px 56px 12px 14px;
@@ -974,6 +1097,8 @@
 @media (prefers-reduced-motion: reduce) {
   .timer,
   .rays,
+  .thanksArt .rays,
+  .dots::after,
   .tile:hover .shine {
     animation: none;
   }

@@ -26,8 +26,8 @@ import { SavePrompt } from "./room/SavePrompt";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
 import { TrophyCase } from "./room/TrophyCase";
-import { itemsOf, preloadShop, refreshOwned, useShopOpen, useSkins, wear } from "@/lib/shop";
-import { Shop, TryOnBar } from "./room/Shop";
+import { ITEM, backFromShop, itemsOf, paidFor, preloadShop, refreshOwned, setShopView, useShopNews, useShopOpen, useSkins } from "@/lib/shop";
+import { Shop, ThankYou, TryOnBar } from "./room/Shop";
 import { Box } from "./room/Box";
 import { TrophyToasts } from "./room/TrophyToast";
 import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
@@ -78,8 +78,8 @@ export function App() {
     markSeen(APP_VERSION);
     return false;
   });
-  // Back from Google or the e-mail link: the player already went in, no loader again.
-  const [entered, setEntered] = useState(returningFromSignIn);
+  // Back from Google, the e-mail link or Stripe's payment page: the player already went in, no loader again.
+  const [entered, setEntered] = useState(returningFromSignIn || backFromShop);
   /** the loader started melting away: the room shows through */
   const [revealed, setRevealed] = useState(false);
   const profile = useStore((s) => s.profile);
@@ -91,25 +91,27 @@ export function App() {
   useEffect(() => {
     if (shopOpen) preloadShop();
   }, [shopOpen]);
+  const [shopNews, shopSeen] = useShopNews();
+  /** back from Stripe's payment page: the thank-you, while the purchase arrives and once it's in */
+  const [thanks, setThanks] = useState<{ id: string; state: "waiting" | "done" | "late" } | null>(() => (paidFor ? { id: paidFor, state: "waiting" } : null));
   // back from Stripe's payment page (app/api/shop/checkout): the purchase comes with the webhook, a moment later.
-  // Once it's in, the skin goes on the desk and the catalogue opens on it.
+  // Once it's in, a thank-you and the way to the locker to wear it.
   useEffect(() => {
-    const q = new URLSearchParams(window.location.search);
-    if (!q.has("shop")) return;
-    const bought = q.get("bought");
+    if (!backFromShop) return;
     window.history.replaceState(null, "", window.location.pathname);
-    if (q.get("shop") !== "paid" || !bought) return;
+    const bought = paidFor;
+    if (!bought) return;
     let tries = 0;
-    const timer = window.setInterval(async () => {
+    const check = async () => {
       await refreshOwned();
       const owned = itemsOf(bought).every((id) => useSkins.getState().owned.includes(id));
       if (!owned && ++tries < 20) return;
       clearInterval(timer);
-      if (!owned) return;
-      itemsOf(bought).forEach((id) => wear(id, true));
-      sfx.trophy("gold");
-      setShop(true);
-    }, 2000);
+      setThanks({ id: bought, state: owned ? "done" : "late" });
+      if (owned) sfx.trophy("gold");
+    };
+    const timer = window.setInterval(check, 2000);
+    void check();
     return () => clearInterval(timer);
   }, []);
   /** the account was offered this visit: the cat waits for another one */
@@ -143,9 +145,9 @@ export function App() {
 
   useEffect(startCloud, []);
 
-  // No loader after signing in: the cards of the binders load in the background instead.
+  // No loader after signing in or paying: the cards of the binders load in the background instead.
   useEffect(() => {
-    if (!returningFromSignIn) return;
+    if (!returningFromSignIn && !backFromShop) return;
     const { binders, collection } = useStore.getState();
     void loadSets(neededSets(binders, collection));
   }, []);
@@ -238,7 +240,7 @@ export function App() {
   };
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
-  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || shop || !!game;
+  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || shop || !!thanks || !!game;
   // the room pauses just after a panel opens: the panel is drawn first, the room's redraw doesn't hold it back
   const roomPaused = useDeferredValue(busy);
   // A nickname, then a first binder; the account is offered later (SavePrompt).
@@ -362,6 +364,22 @@ export function App() {
       <AnimatePresence>{trophies && <TrophyCase key="trophies" origin={trophies} onClose={() => setTrophies(null)} />}</AnimatePresence>
 
       <AnimatePresence>{shop && <Shop key="shop" onClose={() => setShop(false)} />}</AnimatePresence>
+      <AnimatePresence>
+        {thanks && (
+          <ThankYou
+            key="thanks"
+            id={thanks.id}
+            state={thanks.state}
+            onClose={() => setThanks(null)}
+            onLocker={() => {
+              // the locker, on the slot of the first thing bought
+              setShopView({ tab: "locker", open: null, slot: ITEM.get(itemsOf(thanks.id)[0])?.slot ?? null });
+              setThanks(null);
+              setShop(true);
+            }}
+          />
+        )}
+      </AnimatePresence>
       {shopOpen && !busy && <TryOnBar onOpenShop={() => setShop(true)} />}
 
       <AnimatePresence>
@@ -423,15 +441,21 @@ export function App() {
             className={`${styles.iconBtn} ${styles.shopBtn}`}
             onClick={() => {
               sfx.pop();
+              shopSeen();
               setShop(true);
             }}
-            aria-label={tr("La boutique", "The shop")}
+            aria-label={shopNews ? tr("La boutique : nouveau", "The shop: new") : tr("La boutique", "The shop")}
             title={tr("La boutique", "The shop")}
           >
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
               <path d="M5 8h14l-1.2 12H6.2z" fill="currentColor" />
               <path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" strokeWidth="2" />
             </svg>
+            {shopNews && (
+              <span className={styles.shopNew} aria-hidden>
+                {tr("Nouveau !", "New!")}
+              </span>
+            )}
           </button>
         )}
         {compact && !busy && (

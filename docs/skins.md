@@ -90,8 +90,8 @@ Tout est sur la branche `shop` (pas de PR, pas mergée). La boutique reste cach�
 - Le catalogue : `src/data/skins.json` (collections, collection de base, objets par emplacement avec rareté et prix,
   pack). `lib/skins.ts` (côté serveur aussi), `lib/shop.ts` (navigateur : verrou, objets portés/achetés/essayés, look).
   Prix (Johan, 2026-10-16, montés pour les frais : à 0,99 € il restait ~0,52 € une fois TVA et frais Stripe
-  ôtés) : Lune de sang 1,99 (épique), Bureau hanté 1,99 (rare), Warwick sorcier 2,49 (épique), Lueur citrouille 1,99,
-  Radio hantée 1,99 (peu communs), Pack 7,99 (légendaire, jusqu'au 2026-11-03 ; 10,45 € à l'unité).
+  ôtés) : Lune de sang 1,49 (épique), Bureau hanté 1,49 (rare), Warwick sorcier 1,99 (épique), Lueur citrouille 1,49,
+  Radio hantée 1,49 (peu communs), Pack 5,99 (légendaire, jusqu'au 2026-11-03 ; 7,95 € à l'unité, −25 %).
 - La boutique `room/Shop.tsx` : bouton 🛍️ dans le coin, vitrine façon Fortnite (pack en vedette, tuiles par rareté,
   compte à rebours en direct, tampon « Possédé »), fiche d'un objet (essayer / acheter / porter), casier par emplacement
   (chaque emplacement montre l'actif ; options : base puis toutes les collections), barre d'essai (« Rendre » rouvre la
@@ -141,13 +141,22 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   **test** restent dans `.env.local` (sinon un achat en dev est un vrai paiement, et le secret de `stripe listen`
   n'existe qu'en test) : la clé live se passe pour une seule commande,
   `$env:STRIPE_SECRET_KEY="rk_live_…"; node scripts/stripe-skins.mjs` (PowerShell, chaque ligne commence par `LIVE`).
-- Produits créés en prod par le script (prix ci-dessus).
+- Produits créés en prod par le script (aux prix d'avant : 1,99 / 2,49 / 7,99 ; à relancer avec la clé live pour
+  1,49 / 1,99 / 5,99).
+- Achat test de Johan en local (pack, clés test) : webhook reçu, achat écrit dans `purchases`.
+- Retours de Johan sur l'achat : pas de loader au retour de Stripe (`backFromShop`, comme au retour d'une connexion),
+  un écran « Merci » (`ThankYou` : en attente du webhook, puis merci + « Équiper mes skins » qui ouvre le casier sur
+  l'emplacement acheté ; « en retard » après 40 s), « Acheter » de la barre d'essai part direct sur Stripe (sans
+  compte : la fiche avec la connexion ouverte), une pastille « Nouveau ! » sous le bouton boutique tant qu'on n'a pas
+  ouvert la boutique avec ce qui est en vente (localStorage `nookdex:shop-seen`, revient avec un nouveau pack).
 - **Managed Payments** configuré en prod (`dashboard.stripe.com/settings/managed-payments`) : « Prêt à l'emploi »,
   activé par défaut pour Checkout, code fiscal par défaut « Général - services fournis par voie électronique ».
 - Table `purchases` vide (plus d'achat test sur le compte de Johan).
 
 **Reste à faire**
-- L'achat test de Johan lui-même en local, clés test (Supabase : redirect URL `http://localhost:3210/**` à ajouter).
+- Relancer `node scripts/stripe-skins.mjs` avec la clé live (nouveaux prix).
+- Sur ce PC : la CLI Stripe (winget `Stripe.StripeCli`) ; l'écoute en local sans `stripe login` :
+  `stripe listen --api-key <clé test> --forward-to localhost:3210/api/shop/webhook` (même secret que `.env.local`).
 - Pages légales : mentions légales (éditeur : nom, SIRET, adresse ou domiciliation) et CGV des contenus numériques
   (FR/EN, notebook pages comme /conditions), liées depuis la boutique.
 - Lancement : clés live + `SUPABASE_SERVICE_ROLE_KEY` dans Vercel, webhook de prod (`https://nookdex.com/api/shop/webhook`,
