@@ -1134,3 +1134,45 @@
 .boxRow:hover {
   background: rgba(151, 127, 184, 0.14);
 }
+
+/* ---------- Save: import from Pokécardex ---------- */
+
+.importBox {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 2px dashed #3d7a5c;
+}
+
+.importMissing,
+.importSets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.importMissing li {
+  padding: 2px 0;
+}
+
+.importSets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 4px 16px;
+}
+
+.importSets label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.importSets input {
+  width: 18px;
+  height: 18px;
+  accent-color: #8dffc0;
+}

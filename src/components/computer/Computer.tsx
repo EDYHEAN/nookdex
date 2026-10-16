@@ -14,6 +14,7 @@ import type { CardData, Copy, SetData } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
 import { AllCards } from "./AllCards";
+import { ImportPokecardex } from "./ImportPokecardex";
 import styles from "./Computer.module.css";
 import { langLabel, langOfKey } from "@/lib/cardLang";
 import { LANG_COOKIE, currentLang, useLang, useT } from "@/lib/lang";
@@ -640,6 +641,7 @@ function Save({ say }: { say: (m: string) => void }) {
           }}
         />
       </div>
+      <ImportPokecardex say={say} />
       <div className={styles.danger}>
         <p>{tr("Zone rouge", "Danger zone")}</p>
         {arming ? (
