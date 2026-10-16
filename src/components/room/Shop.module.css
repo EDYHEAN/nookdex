@@ -446,6 +446,7 @@
 
 .small a {
   color: #cdbff0;
+  white-space: nowrap;
 }
 
 /* ---------- one thing up close ---------- */
