@@ -77,7 +77,7 @@ function Fr() {
           <h2>Médiation</h2>
           <p>
             En cas de litige que nous n&apos;arrivons pas à régler ensemble, tu peux saisir gratuitement le médiateur de la consommation :{" "}
-            <a href={LEGAL.mediator.url}>{LEGAL.mediator.name}</a>.
+            <a href={LEGAL.mediator.url}>{LEGAL.mediator.name}</a> ({LEGAL.mediator.address}), en déposant ta demande sur son site.
           </p>
         </>
       )}
@@ -159,7 +159,7 @@ function En() {
           <h2>Mediation</h2>
           <p>
             For a dispute we can&apos;t settle together, you can turn to the consumer mediator, free of charge:{" "}
-            <a href={LEGAL.mediator.url}>{LEGAL.mediator.name}</a>.
+            <a href={LEGAL.mediator.url}>{LEGAL.mediator.name}</a> ({LEGAL.mediator.address}), by filing your request on its site.
           </p>
         </>
       )}

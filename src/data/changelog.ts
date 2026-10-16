@@ -13,6 +13,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.13",
+    date: "2026-10-16",
+    title: { fr: "La boutique ouvre", en: "The shop opens" },
+    items: [
+      { fr: "Une boutique pour déguiser ton bureau : le pack Halloween, en édition limitée.", en: "A shop to dress up your desk: the Halloween pack, a limited edition." },
+      { fr: "Essaie chaque objet sur ton bureau avant de l'acheter.", en: "Try each item on your desk before you buy it." },
+      { fr: "Tes cartes et le jeu restent gratuits, pour toujours.", en: "Your cards and the game stay free, for good." },
+    ],
+  },
+  {
     version: "0.12",
     date: "2026-10-15",
     title: { fr: "Le défi au chrono", en: "The challenge against the clock" },
