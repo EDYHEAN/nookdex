@@ -263,10 +263,10 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
               {worth && <s>{formatEuros(worth, lang)}</s>} <b>{formatEuros(thing.price, lang)}</b>
             </p>
           )}
-          <div className={styles.actions}>
+          <div className={`${styles.actions} ${styles.cardActions}`}>
             {!mine && !onSale(thing) ? null : mine ? (
               <button
-                className={`${styles.btn} ${worn ? "" : styles.primary}`}
+                className={`${styles.btn} ${styles.cta} ${worn ? "" : styles.primary}`}
                 onPointerEnter={sfx.hover}
                 onClick={() => {
                   sfx.stamp();
@@ -278,7 +278,7 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
             ) : (
               <>
                 <button
-                  className={styles.btn}
+                  className={`${styles.btn} ${styles.cta} ${styles.tryCta}`}
                   onPointerEnter={sfx.hover}
                   onClick={() => {
                     sfx.pop();
@@ -290,7 +290,7 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
                   <span className={styles.narrow}>{t("Essayer", "Try it")}</span>
                 </button>
                 <button
-                  className={`${styles.btn} ${styles.primary}`}
+                  className={`${styles.btn} ${styles.primary} ${styles.cta} ${styles.buyCta}`}
                   disabled={going === "going"}
                   onPointerEnter={sfx.hover}
                   onClick={() => {
