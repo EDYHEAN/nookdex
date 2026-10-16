@@ -452,8 +452,8 @@ export function App() {
               <path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" strokeWidth="2" />
             </svg>
             {shopNews && (
-              <span className={styles.shopNew} aria-hidden>
-                {tr("Nouveau !", "New!")}
+              <span className={`${styles.shopNew} ${compact ? styles.shopNewDot : ""}`} aria-hidden>
+                {tr("Nouveau", "New")}
               </span>
             )}
           </button>
