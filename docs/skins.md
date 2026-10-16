@@ -77,7 +77,12 @@ No text, no letters, no logos.
 
 Warwick en sorcier : le chapeau de la planche D1, posé sur sa tête par le code (endormi et réveillé).
 
-## Où on en est (2026-10-15) : point de reprise
+## Où on en est (2026-10-16) : **la boutique est ouverte**
+
+**Lancée le 2026-10-16** (PR #131) : `NEXT_PUBLIC_SHOP=on` dans Vercel, carnet de route 0.13, vente sans Managed
+Payments (`NEXT_PUBLIC_STRIPE_MANAGED=off`), médiateur SMP (demande #309572, convention et facture de 30 € TTC à
+recevoir). Premier vrai achat passé de bout en bout. Les comptes de Johan possèdent tout. L'historique ci-dessous
+raconte comment on en est arrivé là.
 
 Tout est sur la branche `shop` (pas de PR, pas mergée). La boutique reste cachée : en prod, seuls les comptes de Johan
 (`STUDIO_EMAIL_HASHES`) la voient, jusqu'à `NEXT_PUBLIC_SHOP=on` dans Vercel.
@@ -183,9 +188,10 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   `https://nookdex.com/confidentialite`, conditions d'utilisation du service `https://nookdex.com/conditions-de-vente`.
 - Image de marque Stripe (prod) : icône Warwick (`Documents/NookDex/stripe-branding/icone-warwick.png`), pas de logo
   (celui du site a une Poké Ball), couleurs `#1d1638` et `#ffe14a`.
-- Lancement : clés live + `SUPABASE_SERVICE_ROLE_KEY` dans Vercel, webhook de prod (`https://nookdex.com/api/shop/webhook`,
-  événements checkout.session.completed et async_payment_succeeded) et son secret, une ligne au carnet de route
-  (courte), merger `main` dans `shop` puis la PR, enfin `NEXT_PUBLIC_SHOP=on`.
+- Retirer un skin quand un achat est remboursé (événement Stripe `charge.refunded`) : pas encore fait, à la main dans
+  Supabase en attendant.
+- Si Stripe règle CB avec Managed Payments (dossier remonté le 2026-10-16) : retirer `NEXT_PUBLIC_STRIPE_MANAGED` et
+  redéployer pour y revenir.
 - Ménage : supprimer `Documents/NookDex/halloween-apercu/` (captures temporaires) une fois fini.
 
 ## Paiement : Stripe ou un « merchant of record »
