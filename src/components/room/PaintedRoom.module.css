@@ -941,6 +941,53 @@
   inset: 0;
   mix-blend-mode: soft-light;
   pointer-events: none;
+  /* candlelight: the glow breathes and flickers a little */
+  animation: tintFlicker 3.2s steps(8) infinite;
+}
+
+@keyframes tintFlicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.86;
+  }
+  45% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.92;
+  }
+}
+
+/* a skin's dark corners: the room closes in round the warm middle */
+.skinVignette {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* a skin's particles, drawn at a quarter of the scene and stretched over it (a soft glow, like the painted light) */
+.spooky {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skinTint {
+    animation: none;
+  }
+
+  .spooky {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

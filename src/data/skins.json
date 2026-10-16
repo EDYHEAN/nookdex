@@ -70,6 +70,7 @@
       "set": "halloween",
       "slot": "decor",
       "rarity": "rare",
+      "particles": "spooky",
       "price": 1.49,
       "icon": "/skins/halloween/lantern.webp",
       "cutout": true,
@@ -114,7 +115,8 @@
         "fr": "La lampe à lave orange citrouille et une lumière chaude sur toute la pièce.",
         "en": "The pumpkin orange lava lamp and a warm light over the whole room."
       },
-      "tint": "rgba(255, 128, 40, 0.22)",
+      "tint": "rgba(255, 110, 20, 0.5)",
+      "vignette": "rgba(44, 8, 70, 0.78)",
       "lava": {
         "name": "citrouille",
         "nameEn": "pumpkin",

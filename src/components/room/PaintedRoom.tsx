@@ -15,7 +15,7 @@ import { bump, unlock, useTrophyStore } from "@/lib/trophyStore";
 import type { BinderDef } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { useViewport } from "@/lib/useViewport";
-import { LAVA_THEMES, drawDust, drawLava, drawRain, drawSunDust } from "./sceneAnim";
+import { LAVA_THEMES, drawDust, drawLava, drawRain, drawSpooky, drawSunDust } from "./sceneAnim";
 import { Monitor } from "./Monitor";
 import { SkinSpider } from "./SkinSpider";
 import { ShelfBinder, binderLabel, binderSize } from "./ShelfBinder";
@@ -134,6 +134,8 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
   const lava = useRef<HTMLCanvasElement>(null);
   const dust = useRef<HTMLCanvasElement>(null);
   const sunDust = useRef<HTMLCanvasElement>(null);
+  /** a skin's particles (Halloween: embers and wisps), only there while it's worn */
+  const spooky = useRef<HTMLCanvasElement>(null);
   const sky = useRef<HTMLDivElement>(null);
   const lavaTheme = useRef(0);
   /** the shop's items worn (lib/shop): their pictures over the room, a lava colour first in the lamp's cycle */
@@ -232,6 +234,9 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
         if (lc) drawLava(lc, t, themesRef.current[lavaTheme.current] ?? LAVA_THEMES[0], SCENE.lavaRows);
         if (dc) drawDust(dc, t, lampRef.current);
         if (sc && dayRef.current) drawSunDust(sc, t);
+        // looked up each time: the canvas comes and goes with the skin
+        const pc = reduced ? null : spooky.current?.getContext("2d");
+        if (pc) drawSpooky(pc, t, !dayRef.current);
       }
       const wt = `${(-cur.x * 16 + weave.x).toFixed(1)}px ${(-cur.y * 9 + weave.y).toFixed(1)}px`;
       if (world.current && world.current.style.translate !== wt) world.current.style.translate = wt;
@@ -570,6 +575,9 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
 
           {/* a skin's light over the whole room (Halloween: a pumpkin glow) */}
           {skin?.tint && <div className={styles.skinTint} style={{ background: skin.tint }} aria-hidden />}
+          {skin?.vignette && (
+            <div className={styles.skinVignette} style={{ background: `radial-gradient(ellipse 70% 65% at 50% 58%, transparent 30%, ${skin.vignette})` }} aria-hidden />
+          )}
 
           {/* light (softer in daylight) */}
           <div className={`${styles.lights} ${daytime ? styles.daylight : ""}`}>
@@ -584,6 +592,9 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
           <canvas ref={dust} className={styles.dust} width={500} height={300} />
           {/* dust floating in the sunbeams */}
           <canvas ref={sunDust} className={`${styles.sunDust} ${daytime ? "" : styles.off}`} width={650} height={400} />
+          {skin?.particles && (
+            <canvas ref={spooky} className={styles.spooky} width={Math.round(SCENE.width / 4)} height={Math.round(SCENE.height / 4)} aria-hidden />
+          )}
 
           {/* hotspots */}
           <button
