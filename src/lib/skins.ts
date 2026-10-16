@@ -72,6 +72,10 @@ export interface Item {
   lava?: LavaTheme;
   /** a light laid over the whole room (CSS colour, soft-light) */
   tint?: string;
+  /** the room's corners darkened in this colour (multiply) */
+  vignette?: string;
+  /** things floating in the room (PaintedRoom, sceneAnim drawSpooky) */
+  particles?: "spooky";
   /** the radio's tune (lib/sound) */
   music?: AmbientMood;
   /** last day in the shop (ISO), from its bundle: bought ones stay forever */
@@ -97,6 +101,8 @@ export interface Look {
   art: SkinArt;
   lava?: LavaTheme;
   tint?: string;
+  vignette?: string;
+  particles?: "spooky";
   music?: AmbientMood;
 }
 
@@ -145,6 +151,8 @@ export function lookOf(ids: string[]): Look | null {
     if (it.slot === "cat") look.art.cat = a.cat;
     if (it.lava) look.lava = it.lava;
     if (it.tint) look.tint = it.tint;
+    if (it.vignette) look.vignette = it.vignette;
+    if (it.particles) look.particles = it.particles;
     if (it.music) look.music = it.music;
   }
   return any ? look : null;

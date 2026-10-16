@@ -164,6 +164,69 @@ const sunMotes = Array.from({ length: 70 }, () => ({
   p: Math.random() * Math.PI * 2,
 }));
 
+/* ---------------- a haunted room: embers and wisps (a skin's particles, canvas at a quarter of the scene) ---------------- */
+
+const EMBER = ["#ffd27a", "#ffb347", "#ff8a1f", "#ff6a10"];
+const newEmber = (w: number, h: number, anywhere: boolean) => ({
+  x: Math.random() * w,
+  y: anywhere ? Math.random() * h : h * (0.55 + Math.random() * 0.5),
+  vy: -0.35 - Math.random() * 0.6,
+  r: 1.2 + Math.random() * 1.8,
+  p: Math.random() * Math.PI * 2,
+  c: EMBER[Math.floor(Math.random() * EMBER.length)],
+});
+let embers: ReturnType<typeof newEmber>[] = [];
+const wisps = Array.from({ length: 6 }, (_, i) => ({
+  x: Math.random(),
+  y: 0.2 + Math.random() * 0.5,
+  r: 6 + Math.random() * 5,
+  p: Math.random() * Math.PI * 2,
+  c: i % 2 ? "157, 255, 170" : "190, 140, 255",
+}));
+
+/**
+ * Embers rising from the desk, flickering out as they climb, and a few ghostly wisps (violet, green) drifting through
+ * the room, pulsing. Brighter at night.
+ */
+export function drawSpooky(c: Ctx, t: number, night: boolean) {
+  const { width: w, height: h } = c.canvas;
+  if (!embers.length) embers = Array.from({ length: 70 }, () => newEmber(w, h, true));
+  c.clearRect(0, 0, w, h);
+  const k = night ? 1 : 0.55;
+  for (const e of embers) {
+    e.y += e.vy;
+    e.x += Math.sin(t / 900 + e.p) * 0.35;
+    // the higher, the fainter: out by the top third
+    const life = Math.min(1, Math.max(0, (e.y - h * 0.12) / (h * 0.5)));
+    if (life <= 0) Object.assign(e, newEmber(w, h, false));
+    const fl = 0.55 + 0.45 * Math.sin(t / 140 + e.p * 5);
+    c.fillStyle = e.c;
+    c.globalAlpha = 0.22 * life * fl * k;
+    c.beginPath();
+    c.arc(e.x, e.y, e.r * 3.2, 0, Math.PI * 2);
+    c.fill();
+    c.globalAlpha = 0.95 * life * fl * k;
+    c.beginPath();
+    c.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+    c.fill();
+  }
+  for (const s of wisps) {
+    const x = ((s.x + t / 90000 + Math.sin(t / 7000 + s.p) * 0.04) % 1.1) * w - w * 0.05;
+    const y = (s.y + Math.sin(t / 2300 + s.p) * 0.05) * h;
+    const pulse = (Math.sin(t / 1300 + s.p * 2) + 1) / 2;
+    const g = c.createRadialGradient(x, y, 0, x, y, s.r * 4);
+    g.addColorStop(0, `rgba(${s.c}, ${(0.55 + pulse * 0.35) * k})`);
+    g.addColorStop(0.3, `rgba(${s.c}, ${0.22 * k})`);
+    g.addColorStop(1, `rgba(${s.c}, 0)`);
+    c.globalAlpha = 1;
+    c.fillStyle = g;
+    c.beginPath();
+    c.arc(x, y, s.r * 4, 0, Math.PI * 2);
+    c.fill();
+  }
+  c.globalAlpha = 1;
+}
+
 /** Specks of dust drifting up and to the right, catching the light as they turn. */
 export function drawSunDust(c: Ctx, t: number) {
   const { width: w, height: h } = c.canvas;
