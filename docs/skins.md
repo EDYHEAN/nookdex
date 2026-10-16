@@ -141,8 +141,7 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   **test** restent dans `.env.local` (sinon un achat en dev est un vrai paiement, et le secret de `stripe listen`
   n'existe qu'en test) : la clé live se passe pour une seule commande,
   `$env:STRIPE_SECRET_KEY="rk_live_…"; node scripts/stripe-skins.mjs` (PowerShell, chaque ligne commence par `LIVE`).
-- Produits créés en prod par le script (aux prix d'avant : 1,99 / 2,49 / 7,99 ; à relancer avec la clé live pour
-  1,49 / 1,99 / 5,99).
+- Produits créés en prod par le script, aux prix 1,49 / 1,99 / 5,99.
 - Achat test de Johan en local (pack, clés test) : webhook reçu, achat écrit dans `purchases`.
 - Retours de Johan sur l'achat : pas de loader au retour de Stripe (`backFromShop`, comme au retour d'une connexion),
   un écran « Merci » (`ThankYou` : en attente du webhook, puis merci + « Équiper mes skins » qui ouvre le casier sur
@@ -154,7 +153,6 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
 - Table `purchases` vide (plus d'achat test sur le compte de Johan).
 
 **Reste à faire**
-- Relancer `node scripts/stripe-skins.mjs` avec la clé live (nouveaux prix).
 - Sur ce PC : la CLI Stripe (winget `Stripe.StripeCli`) ; l'écoute en local sans `stripe login` :
   `stripe listen --api-key <clé test> --forward-to localhost:3210/api/shop/webhook` (même secret que `.env.local`).
 - Pages légales : mentions légales (éditeur : nom, SIRET, adresse ou domiciliation) et CGV des contenus numériques
