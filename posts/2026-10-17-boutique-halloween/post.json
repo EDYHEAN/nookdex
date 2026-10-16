@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-17",
+  "time": "18:30",
+  "platforms": ["instagram", "tiktok", "reels"],
+  "kind": "feature",
+  "format": "post",
+  "title": "La boutique ouvre : le pack Halloween",
+  "note": "La vidéo (Reel + TikTok) est filmée dans le vrai site, sans son : le bureau se déguise objet par objet, mets un son Halloween / lofi tendance et cale les coupes sur le rythme.",
+  "prices": false,
+  "caption": "La boutique NookDex est ouverte 🎃\n\nTon bureau peut se déguiser pour Halloween : une lune de sang à la fenêtre, une guirlande de fantômes, Warwick en sorcier, une lampe citrouille et une radio hantée.\n\nTu essaies chaque objet sur ton bureau avant d'acheter. Tes cartes et le jeu restent gratuits, pour toujours.\n\nÉdition limitée, jusqu'au 3 novembre. Tu prends quoi en premier ? 👇\n\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #halloween #cozydesk #pixelart",
+  "captionTiktok": "Mon bureau se déguise pour Halloween 🎃 Tu prends quoi en premier ?\n#halloween #cozydesk #pokemontcg #pixelart #lofi",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "NOUVEAU SUR NOOKDEX",
+      "title": "La boutique<br>ouvre",
+      "size": 100,
+      "asset": "halloween-room.jpg",
+      "banner": "LE PACK HALLOWEEN"
+    },
+    {
+      "type": "paper",
+      "kicker": "AVANT",
+      "title": "Ton bureau,",
+      "em": "un soir d'octobre",
+      "lead": "Le bureau NookDex comme tu le connais.",
+      "asset": "room-night.jpg"
+    },
+    {
+      "type": "paper",
+      "kicker": "APRES",
+      "title": "Il se déguise",
+      "em": "pour Halloween",
+      "list": ["une lune de sang à la fenêtre", "fantômes, citrouille, bougies, araignée", "Warwick en sorcier, la lampe citrouille, la radio hantée"],
+      "asset": "halloween-room.jpg"
+    },
+    {
+      "type": "paper",
+      "kicker": "LA BOUTIQUE",
+      "title": "Essaie-le",
+      "em": "avant d'acheter",
+      "lead": "Chaque objet s'essaie sur ton bureau. 1,49 € l'objet, 5,99 € le pack.",
+      "asset": "shop.jpg"
+    },
+    {
+      "type": "end",
+      "kicker": "EDITION LIMITEE",
+      "title": "Jusqu'au<br>3 novembre",
+      "lead": "Tes cartes et le jeu restent gratuits. Tu prends quoi en premier ?"
+    }
+  ]
+}

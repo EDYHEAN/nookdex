@@ -1,14 +1,14 @@
 {
-  "date": "2026-10-17",
+  "date": "2026-10-22",
   "time": "18:30",
   "platforms": ["instagram", "reels", "tiktok"],
   "kind": "fun",
   "format": "post",
   "title": "Nook Survivors : le jeu caché dans la Game Boy",
-  "note": "La vidéo (Reel + TikTok) est du vrai gameplay, sans son : ajoute un son chiptune / lofi tendance. Le record « vague 11 » est le tien au 12/10 : change-le s'il a été battu d'ici là.",
+  "note": "La vidéo (Reel + TikTok) est du vrai gameplay, sans son : ajoute un son chiptune / lofi tendance. Le record « vague 56 » est celui de Calvimax au 16/10 : change-le s'il a été battu d'ici là.",
   "prices": false,
-  "caption": "Il y a un jeu caché dans NookDex 👾\n\nSur le bureau, la Game Boy à côté du café s'allume : Nook Survivors.\n✦ Bulbizarre, Salamèche, Carapuce ou Pikachu\n✦ des vagues de Pokémon sauvages, un boss toutes les 5\n✦ des capacités à apprendre, des objets… et ton Pokémon évolue en pleine partie\n\nÀ la fin, ton pseudo entre au classement de tous les joueurs. Le record : vague 11. Tu fais mieux ? 👇\n\nnookdex.com (lien en bio) · sur ordinateur\n\n#pokemontcg #cartespokemon #collectionpokemon #pokemonfr #gameboy #retrogaming #pixelart #indiegame #easteregg",
-  "captionTiktok": "Un jeu Pokémon caché dans un site de cartes 👾 Le record : vague 11. Tu fais mieux ?\n#pokemon #gameboy #retrogaming #pixelart #pokemonfr",
+  "caption": "Il y a un jeu caché dans NookDex 👾\n\nSur le bureau, la Game Boy à côté du café s'allume : Nook Survivors.\n✦ Bulbizarre, Salamèche, Carapuce ou Pikachu\n✦ des vagues de Pokémon sauvages, un boss toutes les 5\n✦ des capacités à apprendre, des objets… et ton Pokémon évolue en pleine partie\n\nÀ la fin, ton pseudo entre au classement de tous les joueurs. Le record : vague 56. Tu fais mieux ? 👇\n\nnookdex.com (lien en bio) · sur ordinateur\n\n#pokemontcg #cartespokemon #collectionpokemon #pokemonfr #gameboy #retrogaming #pixelart #indiegame #easteregg",
+  "captionTiktok": "Un jeu Pokémon caché dans un site de cartes 👾 Le record : vague 56. Tu fais mieux ?\n#pokemon #gameboy #retrogaming #pixelart #pokemonfr",
   "slides": [
     {
       "type": "cover",
@@ -45,7 +45,7 @@
     {
       "type": "end",
       "kicker": "LE CLASSEMENT",
-      "title": "Record :<br>vague 11",
+      "title": "Record :<br>vague 56",
       "lead": "Tu fais mieux ? Ton pseudo entre au classement de tous les joueurs (sur ordinateur)."
     }
   ]
