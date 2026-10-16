@@ -72,5 +72,12 @@ jobs:
             exit 0
           fi
           git commit -m "Prix Cardmarket du $(date -u +%d/%m/%Y)"
-          git push
-          echo "Prix enregistrés : Vercel remet le site en ligne."
+          for try in 1 2 3; do
+            if git push; then
+              echo "Prix enregistrés : Vercel remet le site en ligne."
+              exit 0
+            fi
+            # main moved during the download (a PR merged meanwhile): the prices commit goes on top, then again
+            git pull --rebase origin main
+          done
+          exit 1
