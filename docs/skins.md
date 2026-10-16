@@ -165,8 +165,8 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
 **Reste à faire**
 - Pas de téléphone dans les mentions légales pour l'instant (Johan, 2026-10-16), bien que la LCEN le demande à une
   personne physique : à ajouter dans `LEGAL` s'il prend un numéro à part.
-- Les liens CGV / confidentialité sur la page de paiement Stripe : champs introuvables dans le Dashboard (ni
-  Informations publiques, ni Checkout, 2026-10-16). Pas bloquant : nos CGV sont liées depuis la boutique.
+- Les liens sur la page de paiement Stripe (2026-10-16, en complétant le compte) : politique de confidentialité
+  `https://nookdex.com/confidentialite`, conditions d'utilisation du service `https://nookdex.com/conditions-de-vente`.
 - Image de marque Stripe (prod) : icône Warwick (`Documents/NookDex/stripe-branding/icone-warwick.png`), pas de logo
   (celui du site a une Poké Ball), couleurs `#1d1638` et `#ffe14a`.
 - Lancement : clés live + `SUPABASE_SERVICE_ROLE_KEY` dans Vercel, webhook de prod (`https://nookdex.com/api/shop/webhook`,
