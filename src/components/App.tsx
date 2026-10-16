@@ -240,7 +240,7 @@ export function App() {
   };
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
-  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || shop || !!thanks || !!game;
+  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || shop || (shopOpen && !!thanks) || !!game;
   // the room pauses just after a panel opens: the panel is drawn first, the room's redraw doesn't hold it back
   const roomPaused = useDeferredValue(busy);
   // A nickname, then a first binder; the account is offered later (SavePrompt).
@@ -365,7 +365,7 @@ export function App() {
 
       <AnimatePresence>{shop && <Shop key="shop" onClose={() => setShop(false)} />}</AnimatePresence>
       <AnimatePresence>
-        {thanks && (
+        {shopOpen && thanks && (
           <ThankYou
             key="thanks"
             id={thanks.id}
