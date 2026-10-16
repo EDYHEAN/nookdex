@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-16T16:52:17.251Z",
+ "updated": "2026-10-16T19:58:32.585Z",
  "posts": [
   {
    "id": "2026-10-08-bienvenue",
@@ -228,8 +228,36 @@
    "tiktok": "2026-10-16-trophees/tiktok.mp4"
   },
   {
-   "id": "2026-10-17-nook-survivors",
+   "id": "2026-10-17-boutique-halloween",
    "date": "2026-10-17",
+   "time": "18:30",
+   "platforms": [
+    "instagram",
+    "tiktok",
+    "reels"
+   ],
+   "kind": "feature",
+   "format": "post",
+   "title": "La boutique ouvre : le pack Halloween",
+   "note": "La vidéo (Reel + TikTok) est filmée dans le vrai site, sans son : le bureau se déguise objet par objet, mets un son Halloween / lofi tendance et cale les coupes sur le rythme.",
+   "caption": "La boutique NookDex est ouverte 🎃\n\nTon bureau peut se déguiser pour Halloween : une lune de sang à la fenêtre, une guirlande de fantômes, Warwick en sorcier, une lampe citrouille et une radio hantée.\n\nTu essaies chaque objet sur ton bureau avant d'acheter. Tes cartes et le jeu restent gratuits, pour toujours.\n\nÉdition limitée, jusqu'au 3 novembre. Tu prends quoi en premier ? 👇\n\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #halloween #cozydesk #pixelart",
+   "captionTiktok": "Mon bureau se déguise pour Halloween 🎃 Tu prends quoi en premier ?\n#halloween #cozydesk #pokemontcg #pixelart #lofi",
+   "prices": false,
+   "slides": [
+    "2026-10-17-boutique-halloween/slide-01.jpg",
+    "2026-10-17-boutique-halloween/slide-02.jpg",
+    "2026-10-17-boutique-halloween/slide-03.jpg",
+    "2026-10-17-boutique-halloween/slide-04.jpg",
+    "2026-10-17-boutique-halloween/slide-05.jpg"
+   ],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": "2026-10-17-boutique-halloween/reel.mp4",
+   "tiktok": "2026-10-17-boutique-halloween/reel.mp4"
+  },
+  {
+   "id": "2026-10-17-nook-survivors",
+   "date": "2026-10-22",
    "time": "18:30",
    "platforms": [
     "instagram",
@@ -239,9 +267,9 @@
    "kind": "fun",
    "format": "post",
    "title": "Nook Survivors : le jeu caché dans la Game Boy",
-   "note": "La vidéo (Reel + TikTok) est du vrai gameplay, sans son : ajoute un son chiptune / lofi tendance. Le record « vague 11 » est le tien au 12/10 : change-le s'il a été battu d'ici là.",
-   "caption": "Il y a un jeu caché dans NookDex 👾\n\nSur le bureau, la Game Boy à côté du café s'allume : Nook Survivors.\n✦ Bulbizarre, Salamèche, Carapuce ou Pikachu\n✦ des vagues de Pokémon sauvages, un boss toutes les 5\n✦ des capacités à apprendre, des objets… et ton Pokémon évolue en pleine partie\n\nÀ la fin, ton pseudo entre au classement de tous les joueurs. Le record : vague 11. Tu fais mieux ? 👇\n\nnookdex.com (lien en bio) · sur ordinateur\n\n#pokemontcg #cartespokemon #collectionpokemon #pokemonfr #gameboy #retrogaming #pixelart #indiegame #easteregg",
-   "captionTiktok": "Un jeu Pokémon caché dans un site de cartes 👾 Le record : vague 11. Tu fais mieux ?\n#pokemon #gameboy #retrogaming #pixelart #pokemonfr",
+   "note": "La vidéo (Reel + TikTok) est du vrai gameplay, sans son : ajoute un son chiptune / lofi tendance. Le record « vague 56 » est celui de Calvimax au 16/10 : change-le s'il a été battu d'ici là.",
+   "caption": "Il y a un jeu caché dans NookDex 👾\n\nSur le bureau, la Game Boy à côté du café s'allume : Nook Survivors.\n✦ Bulbizarre, Salamèche, Carapuce ou Pikachu\n✦ des vagues de Pokémon sauvages, un boss toutes les 5\n✦ des capacités à apprendre, des objets… et ton Pokémon évolue en pleine partie\n\nÀ la fin, ton pseudo entre au classement de tous les joueurs. Le record : vague 56. Tu fais mieux ? 👇\n\nnookdex.com (lien en bio) · sur ordinateur\n\n#pokemontcg #cartespokemon #collectionpokemon #pokemonfr #gameboy #retrogaming #pixelart #indiegame #easteregg",
+   "captionTiktok": "Un jeu Pokémon caché dans un site de cartes 👾 Le record : vague 56. Tu fais mieux ?\n#pokemon #gameboy #retrogaming #pixelart #pokemonfr",
    "prices": false,
    "slides": [
     "2026-10-17-nook-survivors/slide-01.jpg",
