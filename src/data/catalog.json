@@ -79,17 +79,6 @@
   "subs": []
  },
  {
-  "id": "sv10.5w",
-  "serie": "sv",
-  "serieName": "Écarlate et Violet",
-  "name": "Flamme Blanche",
-  "code": "WHT",
-  "logo": "/logos/sv10.5w",
-  "releaseDate": "2025-07-17",
-  "total": 173,
-  "subs": []
- },
- {
   "id": "sv10.5b",
   "serie": "sv",
   "serieName": "Écarlate et Violet",
@@ -98,6 +87,17 @@
   "logo": "/logos/sv10.5b",
   "releaseDate": "2025-07-17",
   "total": 172,
+  "subs": []
+ },
+ {
+  "id": "sv10.5w",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Flamme Blanche",
+  "code": "WHT",
+  "logo": "/logos/sv10.5w",
+  "releaseDate": "2025-07-17",
+  "total": 173,
   "subs": []
  },
  {
@@ -578,6 +578,30 @@
   "extra": true
  },
  {
+  "id": "2024sv",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2024",
+  "code": "MCD24",
+  "logo": null,
+  "releaseDate": "2024-12-04",
+  "total": 15,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2023sv",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2023",
+  "code": "MCD23",
+  "logo": null,
+  "releaseDate": "2023-08-01",
+  "total": 15,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "svp",
   "serie": "sv",
   "serieName": "Écarlate et Violet",
@@ -586,6 +610,30 @@
   "logo": null,
   "releaseDate": "2023-03-31",
   "total": 192,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2022swsh",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2022",
+  "code": "MCD22",
+  "logo": null,
+  "releaseDate": "2022-08-03",
+  "total": 15,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2021swsh",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2021",
+  "code": "MCD21",
+  "logo": null,
+  "releaseDate": "2021-02-09",
+  "total": 25,
   "subs": [],
   "extra": true
  },
@@ -614,14 +662,14 @@
   "extra": true
  },
  {
-  "id": "sm115",
-  "serie": "sm",
-  "serieName": "Soleil et Lune",
-  "name": "Destinées Occultes",
-  "code": "HIF",
-  "logo": "https://assets.tcgdex.net/fr/sm/sm115/logo",
-  "releaseDate": "2019-08-23",
-  "total": 69,
+  "id": "2019sm-fr",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2019",
+  "code": "2019SM-FR",
+  "logo": null,
+  "releaseDate": "2019-10-30",
+  "total": 12,
   "subs": [],
   "extra": true
  },
@@ -634,6 +682,18 @@
   "logo": null,
   "releaseDate": "2019-08-23",
   "total": 94,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sm115",
+  "serie": "sm",
+  "serieName": "Soleil et Lune",
+  "name": "Destinées Occultes",
+  "code": "HIF",
+  "logo": "https://assets.tcgdex.net/fr/sm/sm115/logo",
+  "releaseDate": "2019-08-23",
+  "total": 69,
   "subs": [],
   "extra": true
  },
@@ -722,6 +782,18 @@
   "extra": true
  },
  {
+  "id": "2018sm-fr",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2018",
+  "code": "2018SM-FR",
+  "logo": null,
+  "releaseDate": "2018-06-13",
+  "total": 8,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "sm6",
   "serie": "sm",
   "serieName": "Soleil et Lune",
@@ -782,6 +854,18 @@
   "extra": true
  },
  {
+  "id": "2017sm",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2017",
+  "code": "MCD17",
+  "logo": null,
+  "releaseDate": "2017-08-03",
+  "total": 12,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "sm2",
   "serie": "sm",
   "serieName": "Soleil et Lune",
@@ -790,18 +874,6 @@
   "logo": "https://assets.tcgdex.net/fr/sm/sm2/logo",
   "releaseDate": "2017-05-05",
   "total": 169,
-  "subs": [],
-  "extra": true
- },
- {
-  "id": "tk-sm-l",
-  "serie": "tk",
-  "serieName": "Kits du dresseur",
-  "name": "SM Kit du dresseur (Lougarox)",
-  "code": "TK10L",
-  "logo": null,
-  "releaseDate": "2017-04-21",
-  "total": 18,
   "subs": [],
   "extra": true
  },
@@ -818,14 +890,14 @@
   "extra": true
  },
  {
-  "id": "smp",
-  "serie": "sm",
-  "serieName": "Soleil et Lune",
-  "name": "Promo SM",
-  "code": "SMP",
+  "id": "tk-sm-l",
+  "serie": "tk",
+  "serieName": "Kits du dresseur",
+  "name": "SM Kit du dresseur (Lougarox)",
+  "code": "TK10L",
   "logo": null,
-  "releaseDate": "2017-02-03",
-  "total": 181,
+  "releaseDate": "2017-04-21",
+  "total": 18,
   "subs": [],
   "extra": true
  },
@@ -842,6 +914,18 @@
   "extra": true
  },
  {
+  "id": "smp",
+  "serie": "sm",
+  "serieName": "Soleil et Lune",
+  "name": "Promo SM",
+  "code": "SMP",
+  "logo": null,
+  "releaseDate": "2017-02-03",
+  "total": 181,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "xy12",
   "serie": "xy",
   "serieName": "XY",
@@ -850,6 +934,18 @@
   "logo": "https://assets.tcgdex.net/fr/xy/xy12/logo",
   "releaseDate": "2016-11-02",
   "total": 113,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2016xy",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2016",
+  "code": "MCD16",
+  "logo": null,
+  "releaseDate": "2016-08-20",
+  "total": 12,
   "subs": [],
   "extra": true
  },
@@ -878,11 +974,11 @@
   "extra": true
  },
  {
-  "id": "tk-xy-su",
+  "id": "tk-xy-p",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "XY Kit du dresseur (Suicune)",
-  "code": "TK9S",
+  "name": "XY Kit du dresseur (Pikachu Libre)",
+  "code": "TK9P",
   "logo": null,
   "releaseDate": "2016-04-27",
   "total": 30,
@@ -890,11 +986,11 @@
   "extra": true
  },
  {
-  "id": "tk-xy-p",
+  "id": "tk-xy-su",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "XY Kit du dresseur (Pikachu Libre)",
-  "code": "TK9P",
+  "name": "XY Kit du dresseur (Suicune)",
+  "code": "TK9S",
   "logo": null,
   "releaseDate": "2016-04-27",
   "total": 30,
@@ -922,6 +1018,18 @@
   "logo": "https://assets.tcgdex.net/fr/xy/xy9/logo",
   "releaseDate": "2016-02-03",
   "total": 126,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2015xy",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2015",
+  "code": "MCD15",
+  "logo": null,
+  "releaseDate": "2015-11-27",
+  "total": 12,
   "subs": [],
   "extra": true
  },
@@ -962,11 +1070,11 @@
   "extra": true
  },
  {
-  "id": "tk-xy-latia",
+  "id": "tk-xy-latio",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "XY Kit du dresseur (Latias)",
-  "code": "TK8A",
+  "name": "XY Kit du dresseur (Latios)",
+  "code": "TK8O",
   "logo": null,
   "releaseDate": "2015-04-29",
   "total": 30,
@@ -974,11 +1082,11 @@
   "extra": true
  },
  {
-  "id": "tk-xy-latio",
+  "id": "tk-xy-latia",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "XY Kit du dresseur (Latios)",
-  "code": "TK8O",
+  "name": "XY Kit du dresseur (Latias)",
+  "code": "TK8A",
   "logo": null,
   "releaseDate": "2015-04-29",
   "total": 30,
@@ -1058,6 +1166,18 @@
   "extra": true
  },
  {
+  "id": "2014xy",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2014",
+  "code": "MCD14",
+  "logo": null,
+  "releaseDate": "2014-05-23",
+  "total": 12,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "xy2",
   "serie": "xy",
   "serieName": "XY",
@@ -1070,18 +1190,6 @@
   "extra": true
  },
  {
-  "id": "tk-xy-sy",
-  "serie": "tk",
-  "serieName": "Kits du dresseur",
-  "name": "XY Kit du dresseur (Nymphali)",
-  "code": "TK6S",
-  "logo": null,
-  "releaseDate": "2014-03-12",
-  "total": 30,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "tk-xy-n",
   "serie": "tk",
   "serieName": "Kits du dresseur",
@@ -1090,6 +1198,18 @@
   "logo": null,
   "releaseDate": "2014-03-12",
   "total": 29,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-xy-sy",
+  "serie": "tk",
+  "serieName": "Kits du dresseur",
+  "name": "XY Kit du dresseur (Nymphali)",
+  "code": "TK6S",
+  "logo": null,
+  "releaseDate": "2014-03-12",
+  "total": 30,
   "subs": [],
   "extra": true
  },
@@ -1202,6 +1322,18 @@
   "extra": true
  },
  {
+  "id": "2012bw",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2012",
+  "code": "MCD12",
+  "logo": null,
+  "releaseDate": "2012-06-15",
+  "total": 12,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "bw5",
   "serie": "bw",
   "serieName": "Noir & Blanc",
@@ -1270,6 +1402,18 @@
   "logo": "https://assets.tcgdex.net/fr/bw/bw2/logo",
   "releaseDate": "2011-08-31",
   "total": 98,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2011bw",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2011",
+  "code": "MCD11",
+  "logo": null,
+  "releaseDate": "2011-06-17",
+  "total": 12,
   "subs": [],
   "extra": true
  },
@@ -1646,11 +1790,11 @@
   "extra": true
  },
  {
-  "id": "tk-ex-p",
+  "id": "tk-ex-m",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "EX Kit dresseur (Positi)",
-  "code": "TK2P",
+  "name": "EX Kit dresseur (Négapi)",
+  "code": "TK2M",
   "logo": null,
   "releaseDate": "2006-03-01",
   "total": 12,
@@ -1658,11 +1802,11 @@
   "extra": true
  },
  {
-  "id": "tk-ex-m",
+  "id": "tk-ex-p",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "EX Kit dresseur (Négapi)",
-  "code": "TK2M",
+  "name": "EX Kit dresseur (Positi)",
+  "code": "TK2P",
   "logo": null,
   "releaseDate": "2006-03-01",
   "total": 12,
