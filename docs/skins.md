@@ -139,6 +139,17 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   transactions on the network cartes_bancaires » (req_ovHKyNCJB7DzAy). Le compte accepte CB (Paramètres → Moyens de
   paiement → Cartes), mais pas les sessions Managed Payments, qui ne se règlent que par le support Stripe : demande
   envoyée par Johan. En attendant : carte saisie à la main, ou réseau Visa/Mastercard choisi dans le Wallet.
+  Le chat du support (2026-10-16) : CB n'est pas dans les moyens de Managed Payments ; dossier remonté par e-mail pour
+  activer CB sur le compte et demander qu'il marche avec Managed Payments. Réponse attendue par e-mail.
+- **Plan B, vendre sans Managed Payments** (décidé par Johan si Stripe ne règle pas CB) : `NEXT_PUBLIC_STRIPE_MANAGED=off`
+  dans Vercel (Production) puis un redéploiement. Le code est prêt (`MANAGED_PAYMENTS` dans `lib/site.ts`) : Checkout
+  sans Managed Payments (CB et PayPal s'affichent, 3,5 % de frais en moins), une case « je veux mon objet tout de suite
+  et je renonce à mon droit de rétractation » avant « Acheter » (vérifiée par la route, sa date gardée dans les
+  métadonnées du paiement, rappelée à côté du bouton de paiement de Stripe ; « Acheter » de la barre d'essai ouvre la
+  fiche), les CGV et les mentions légales disent que Johan vend (TVA non applicable, art. 293 B du CGI). Avant de
+  basculer, Johan : choisir un **médiateur de la consommation** (le mettre dans `LEGAL.mediator`, les CGV le citent),
+  activer les **reçus** de Stripe (e-mails aux clients : paiements réussis) avec en pied « TVA non applicable, art. 293 B
+  du CGI ». À 10 000 € de ventes par an vers d'autres pays de l'UE, la TVA de chaque pays (guichet OSS) devient due.
 
 **Fait le 2026-10-16**
 - Clé live : une clé restreinte `nookdex-site` (`rk_live_…`, « Accès complet, à l'exception des opérations sensibles »),

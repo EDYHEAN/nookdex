@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { serverLang } from "@/lib/serverLang";
 import { LegalPage } from "@/components/LegalPage";
-import { LEGAL, SITE_DOMAIN, SITE_NAME } from "@/lib/site";
+import { LEGAL, MANAGED_PAYMENTS, SITE_DOMAIN, SITE_NAME } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const en = (await serverLang()) === "en";
@@ -33,8 +33,10 @@ function Fr() {
 
       <h2>Boutique</h2>
       <p>
-        Les objets de décoration de la boutique sont vendus via Link, le service de paiement de Stripe, qui encaisse le paiement et envoie les
-        reçus. Voir les <Link href="/conditions-de-vente">conditions de vente</Link>.
+        {MANAGED_PAYMENTS
+          ? "Les objets de décoration de la boutique sont vendus via Link, le service de paiement de Stripe, qui encaisse le paiement et envoie les reçus."
+          : `Les objets de décoration de la boutique sont vendus par ${LEGAL.name} (TVA non applicable, article 293 B du CGI), paiement par Stripe.`}{" "}
+        Voir les <Link href="/conditions-de-vente">conditions de vente</Link>.
       </p>
 
       <h2>Propriété</h2>
@@ -74,8 +76,10 @@ function En() {
 
       <h2>Shop</h2>
       <p>
-        The shop&apos;s decorations are sold through Link, Stripe&apos;s payment service, which takes the payment and sends the receipts. See the{" "}
-        <Link href="/conditions-de-vente">terms of sale</Link>.
+        {MANAGED_PAYMENTS
+          ? "The shop's decorations are sold through Link, Stripe's payment service, which takes the payment and sends the receipts."
+          : `The shop's decorations are sold by ${LEGAL.name} (VAT not applicable, article 293 B of the French tax code), payment by Stripe.`}{" "}
+        See the <Link href="/conditions-de-vente">terms of sale</Link>.
       </p>
 
       <h2>Ownership</h2>
