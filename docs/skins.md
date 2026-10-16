@@ -135,16 +135,19 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   résident fiscal France seulement. Pub PayPal décochée. Pas confirmé que Managed Payments propose PayPal : Stripe
   choisit les moyens affichés (la route de paiement n'en force aucun), à vérifier sur la vraie page de paiement.
 
+**Fait le 2026-10-16**
+- Clé live : une clé restreinte `nookdex-site` (`rk_live_…`, « Accès complet, à l'exception des opérations sensibles »),
+  gardée dans le gestionnaire de mots de passe de Johan : pour Vercel (`STRIPE_SECRET_KEY`) et le script. Les clés
+  **test** restent dans `.env.local` (sinon un achat en dev est un vrai paiement, et le secret de `stripe listen`
+  n'existe qu'en test) : la clé live se passe pour une seule commande,
+  `$env:STRIPE_SECRET_KEY="rk_live_…"; node scripts/stripe-skins.mjs` (PowerShell, chaque ligne commence par `LIVE`).
+- Produits créés en prod par le script (prix ci-dessus).
+- **Managed Payments** configuré en prod (`dashboard.stripe.com/settings/managed-payments`) : « Prêt à l'emploi »,
+  activé par défaut pour Checkout, code fiscal par défaut « Général - services fournis par voie électronique ».
+- Table `purchases` vide (plus d'achat test sur le compte de Johan).
+
 **Reste à faire**
-- **Ce soir, sur le PC** : créer les produits en prod avec `node scripts/stripe-skins.mjs` et la clé `sk_live_…`
-  (Dashboard en mode production → Développeurs → Clés API). Garder les clés **test** dans `.env.local` (sinon un achat
-  en dev est un vrai paiement, et le secret de `stripe listen` n'existe qu'en test) : passer la clé live pour cette
-  seule commande, `$env:STRIPE_SECRET_KEY="sk_live_…"; node scripts/stripe-skins.mjs` (PowerShell). Chaque ligne doit
-  commencer par `LIVE`.
-- Vérifier que **Managed Payments** est activé en mode production (`dashboard.stripe.com/settings/managed-payments`,
-  conditions acceptées), pas seulement en test.
-- L'achat test de Johan lui-même (Supabase : redirect URL `http://localhost:3210/**` à ajouter ; supprimer d'abord
-  l'achat test du pack déjà enregistré sur son compte).
+- L'achat test de Johan lui-même en local, clés test (Supabase : redirect URL `http://localhost:3210/**` à ajouter).
 - Pages légales : mentions légales (éditeur : nom, SIRET, adresse ou domiciliation) et CGV des contenus numériques
   (FR/EN, notebook pages comme /conditions), liées depuis la boutique.
 - Lancement : clés live + `SUPABASE_SERVICE_ROLE_KEY` dans Vercel, webhook de prod (`https://nookdex.com/api/shop/webhook`,
