@@ -36,6 +36,8 @@ export async function POST(req: Request) {
         : {
             // said outright: the account turns Managed Payments on by default for every Checkout session
             "managed_payments[enabled]": false,
+            // printed on Stripe's receipt: what was bought, and the VAT-exempt mention Johan's sales carry
+            "payment_intent_data[description]": `NookDex · ${en ? skin.name.en : skin.name.fr} · ${en ? "VAT not applicable, art. 293 B CGI" : "TVA non applicable, art. 293 B du CGI"}`,
             // when the waiver was given, kept with the payment, and said again next to the pay button
             "metadata[waiver]": new Date().toISOString(),
             "custom_text[submit][message]": en
