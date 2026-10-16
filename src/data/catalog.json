@@ -662,6 +662,18 @@
   "extra": true
  },
  {
+  "id": "2019sm-fr",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2019",
+  "code": "2019SM-FR",
+  "logo": null,
+  "releaseDate": "2019-10-30",
+  "total": 12,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "sma",
   "serie": "sm",
   "serieName": "Soleil et Lune",
@@ -766,6 +778,18 @@
   "logo": "https://assets.tcgdex.net/fr/sm/sm7/logo",
   "releaseDate": "2018-08-03",
   "total": 183,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2018sm-fr",
+  "serie": "mc",
+  "serieName": "Collection McDonald's",
+  "name": "Collection McDonald's 2018",
+  "code": "2018SM-FR",
+  "logo": null,
+  "releaseDate": "2018-06-13",
+  "total": 8,
   "subs": [],
   "extra": true
  },

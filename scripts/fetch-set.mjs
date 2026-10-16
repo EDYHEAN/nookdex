@@ -447,6 +447,21 @@ const TCGCSV_GROUPS = {
   "2011bw": 1401, "2012bw": 1427, "2014xy": 1692, "2015xy": 1694, "2016xy": 3087, "2017sm": 2148, "2018sm-fr": 2364,
   "2019sm-fr": 2555, "2021swsh": 2782, "2022swsh": 3150, "2023sv": 23306, "2024sv": 24163,
 };
+/**
+ * A French-only set with an English counterpart numbered apart (the 2018 and 2019 McDonald's: 40 cards in France, 12 in
+ * the US): the English card of the same Pokémon, by Pokédex number and regional form. Null for the cards France alone
+ * had (no picture of them anywhere: they stay out).
+ */
+const TWINS = { "2018sm-fr": "2018sm", "2019sm-fr": "2019sm" };
+const twinSets = {};
+async function twinOf(setId, card) {
+  const twin = TWINS[setId];
+  if (!twin || !card?.dexId?.length) return null;
+  twinSets[twin] ??= Promise.all(((await get(`${API}/en/sets/${twin}`))?.cards ?? []).map((c) => get(`${API}/en/cards/${c.id}`)));
+  const alola = /alola/i.test(card.name);
+  return (await twinSets[twin]).find((e) => e?.dexId?.[0] === card.dexId[0] && /alola/i.test(e.name) === alola) ?? null;
+}
+
 async function scansFromTcgcsvGroup(mainId, cards) {
   const group = TCGCSV_GROUPS[mainId];
   // a kit's half, from the English set name: "EX trainer Kit (Latios)" -> "latios" (none for the promos)
@@ -459,7 +474,10 @@ async function scansFromTcgcsvGroup(mainId, cards) {
   }
   let found = 0;
   for (const card of cards.filter((c) => !c.img && c.enName)) {
-    const hits = list.filter((p) => numKey(p.number) === numKey(card.num) && alike(p.name, card.enName) >= 0.5);
+    // a French-only set numbered apart from its English twin (TWINS): by name alone, the twin has each Pokémon once
+    const hits = TWINS[mainId]
+      ? list.filter((p) => alike(p.name.replace(/ - \d+\/\d+$/, ""), card.enName) >= 0.8)
+      : list.filter((p) => numKey(p.number) === numKey(card.num) && alike(p.name, card.enName) >= 0.5);
     const hit = hits.find((p) => half && plain(p.name).includes(half)) ?? hits[0];
     if (!hit) continue;
     card.img = `${SITE}/scans/tp/${hit.productId}`;
@@ -517,7 +535,7 @@ async function fetchCards(setId, main) {
     if (!image && !JA) {
       // Still nothing -> the English card. Its French scan is sometimes on the asset server all the same (the API
       // just doesn't list it): same path, "fr" instead of "en". Else the English scan.
-      const en = await get(`${API}/en/cards/${c.id}`);
+      const en = (await get(`${API}/en/cards/${c.id}`)) ?? (await twinOf(setId, d));
       enName = en?.name ?? enName;
       image = await up(en?.image ?? null);
       const fr = image?.replace("/en/", `/${LANG}/`);
