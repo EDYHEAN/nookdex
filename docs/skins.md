@@ -132,8 +132,9 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   Un compte **PayPal Professionnel** neuf a été créé pour ça, au nom de la micro-entreprise : e-mail `contact@nookdex.com`,
   dénomination = nom de Johan (comme l'avis SIRENE), nom commercial NookDex, euro, « Applications de biens numériques
   (hors jeux) », site nookdex.com, identifiant fiscal personnel (numéro fiscal, pas de TVA intracom en franchise),
-  résident fiscal France seulement. Pub PayPal décochée. Pas confirmé que Managed Payments propose PayPal : Stripe
-  choisit les moyens affichés (la route de paiement n'en force aucun), à vérifier sur la vraie page de paiement.
+  résident fiscal France seulement. Pub PayPal décochée. **Managed Payments ne propose pas PayPal** (vu sur la vraie
+  page le 2026-10-16 ; sa liste : cartes, Apple Pay, Google Pay, Link, Bancontact en Belgique, quelques moyens locaux
+  hors Europe). PayPal ne s'afficherait qu'en quittant Managed Payments (TVA, reçus, litiges à notre charge) : non.
 
 **Fait le 2026-10-16**
 - Clé live : une clé restreinte `nookdex-site` (`rk_live_…`, « Accès complet, à l'exception des opérations sensibles »),
@@ -166,8 +167,7 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   (celui du site a une Poké Ball), couleurs `#1d1638` et `#ffe14a`.
 - Lancement : clés live + `SUPABASE_SERVICE_ROLE_KEY` dans Vercel, webhook de prod (`https://nookdex.com/api/shop/webhook`,
   événements checkout.session.completed et async_payment_succeeded) et son secret, une ligne au carnet de route
-  (courte), merger `main` dans `shop` puis la PR, enfin `NEXT_PUBLIC_SHOP=on`. Au premier vrai achat : voir si PayPal
-  s'affiche.
+  (courte), merger `main` dans `shop` puis la PR, enfin `NEXT_PUBLIC_SHOP=on`.
 - Ménage : supprimer `Documents/NookDex/halloween-apercu/` (captures temporaires) une fois fini.
 
 ## Paiement : Stripe ou un « merchant of record »
