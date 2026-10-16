@@ -140,7 +140,8 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   en dev est un vrai paiement, et le secret de `stripe listen` n'existe qu'en test) : passer la clé live pour cette
   seule commande, `$env:STRIPE_SECRET_KEY="sk_live_…"; node scripts/stripe-skins.mjs` (PowerShell). Chaque ligne doit
   commencer par `LIVE`.
-- Vérifier que **Managed Payments** est activé en mode production (Paramètres → Paiements), pas seulement en test.
+- Vérifier que **Managed Payments** est activé en mode production (`dashboard.stripe.com/settings/managed-payments`,
+  conditions acceptées), pas seulement en test.
 - L'achat test de Johan lui-même (Supabase : redirect URL `http://localhost:3210/**` à ajouter ; supprimer d'abord
   l'achat test du pack déjà enregistré sur son compte).
 - Pages légales : mentions légales (éditeur : nom, SIRET, adresse ou domiciliation) et CGV des contenus numériques
