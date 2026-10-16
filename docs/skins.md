@@ -89,8 +89,9 @@ Tout est sur la branche `shop` (pas de PR, pas mergée). La boutique reste cach�
   (sprites remplacés), lampe à lave citrouille + lumière orangée, radio « spooky » (`lib/sound` `setAmbientMood`).
 - Le catalogue : `src/data/skins.json` (collections, collection de base, objets par emplacement avec rareté et prix,
   pack). `lib/skins.ts` (côté serveur aussi), `lib/shop.ts` (navigateur : verrou, objets portés/achetés/essayés, look).
-  Prix : Lune de sang 0,99 (épique), Bureau hanté 0,99 (rare), Warwick sorcier 1,49 (épique), Lueur citrouille 0,99,
-  Radio hantée 0,99 (peu communs), Pack 2,99 (légendaire, jusqu'au 2026-11-03).
+  Prix (Johan, 2026-10-16, montés pour les frais : à 0,99 € il restait ~0,52 € une fois TVA et frais Stripe
+  ôtés) : Lune de sang 1,99 (épique), Bureau hanté 1,99 (rare), Warwick sorcier 2,49 (épique), Lueur citrouille 1,99,
+  Radio hantée 1,99 (peu communs), Pack 7,99 (légendaire, jusqu'au 2026-11-03 ; 10,45 € à l'unité).
 - La boutique `room/Shop.tsx` : bouton 🛍️ dans le coin, vitrine façon Fortnite (pack en vedette, tuiles par rareté,
   compte à rebours en direct, tampon « Possédé »), fiche d'un objet (essayer / acheter / porter), casier par emplacement
   (chaque emplacement montre l'actif ; options : base puis toutes les collections), barre d'essai (« Rendre » rouvre la
