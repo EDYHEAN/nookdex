@@ -221,12 +221,11 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
     shopView.signIn = false;
   }, []);
   const [going, setGoing] = useState<"idle" | "going" | "soon" | "error">("idle");
-  // Johan sells (no Managed Payments): the buyer asks for the item at once and waives withdrawal before paying
-  const needWaiver = !MANAGED_PAYMENTS && !mine && onSale(thing);
-  const [waiver, setWaiver] = useState(false);
   const buy = async () => {
     setGoing("going");
-    const r = await buySkin(thing.id, waiver);
+    // Johan sells (no Managed Payments): buying waives withdrawal, as Stripe's page says next to its pay button (nothing
+    // more in the shop: Johan, 2026-10-16)
+    const r = await buySkin(thing.id, !MANAGED_PAYMENTS);
     if (r !== "ok") setGoing(r);
   };
   return (
@@ -264,17 +263,6 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
               {worth && <s>{formatEuros(worth, lang)}</s>} <b>{formatEuros(thing.price, lang)}</b>
             </p>
           )}
-          {needWaiver && (
-            <label className={styles.waiver}>
-              <input type="checkbox" checked={waiver} onChange={(e) => setWaiver(e.target.checked)} />
-              <span>
-                {t(
-                  "Je veux mon objet tout de suite et je renonce à mon droit de rétractation de 14 jours.",
-                  "I want my item right away and waive my 14-day right of withdrawal.",
-                )}
-              </span>
-            </label>
-          )}
           <div className={styles.actions}>
             {!mine && !onSale(thing) ? null : mine ? (
               <button
@@ -303,7 +291,7 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
                 </button>
                 <button
                   className={`${styles.btn} ${styles.primary}`}
-                  disabled={going === "going" || (needWaiver && !waiver)}
+                  disabled={going === "going"}
                   onPointerEnter={sfx.hover}
                   onClick={() => {
                     sfx.click();
@@ -495,13 +483,9 @@ export function TryOnBar({ onOpenShop }: { onOpenShop: () => void }) {
       setShopView({ tab: "shop", open: id, signIn: true });
       return onOpenShop();
     }
-    // Johan sells: the withdrawal waiver is ticked on the item's card first
-    if (!MANAGED_PAYMENTS) {
-      setShopView({ tab: "shop", open: id });
-      return onOpenShop();
-    }
     setGoing(true);
-    const r = await buySkin(id);
+    // Johan sells: Buy waives withdrawal, as Stripe's page says next to its pay button
+    const r = await buySkin(id, !MANAGED_PAYMENTS);
     if (r === "ok") return;
     // the card tells why (payment not open yet, or an error)
     setGoing(false);

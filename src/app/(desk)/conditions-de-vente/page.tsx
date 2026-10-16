@@ -63,8 +63,9 @@ function Fr() {
           </>
         ) : (
           <>
-            L&apos;objet est un contenu numérique livré dès le paiement : avant de payer, tu demandes sa livraison immédiate et tu renonces
-            expressément à ton droit de rétractation de 14 jours (article L221-28 du Code de la consommation), ce que rappelle ton reçu. Un objet qui
+            L&apos;objet est un contenu numérique livré dès le paiement : en cliquant sur « Acheter », tu demandes sa livraison immédiate et tu
+            renonces à ton droit de rétractation de 14 jours (article L221-28 du Code de la consommation), comme l&apos;indique la page de
+            paiement. Un objet qui
             ne marche pas est remboursé.
           </>
         )}{" "}
@@ -146,8 +147,8 @@ function En() {
           </>
         ) : (
           <>
-            The item is digital content delivered as soon as you pay: before paying, you ask for it at once and expressly waive your 14-day right
-            of withdrawal (article L221-28 of the French consumer code), as your receipt reminds you. An item that doesn&apos;t work is refunded.
+            The item is digital content delivered as soon as you pay: by clicking &laquo; Buy &raquo;, you ask for it at once and waive your 14-day
+            right of withdrawal (article L221-28 of the French consumer code), as the payment page says. An item that doesn&apos;t work is refunded.
           </>
         )}{" "}
         A refunded item leaves your locker.
