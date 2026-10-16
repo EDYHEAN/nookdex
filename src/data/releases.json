@@ -1,6 +1,6 @@
 {
   "_": "Upcoming Pokémon TCG releases for the calendar page (lib/releases.ts). Only what an official source confirmed, with that source. Released sets come from the catalogs by themselves: an entry can go once its set is in the catalog. Kept up to date by the blog routine (docs/blog.md).",
-  "updated": "2026-10-04",
+  "updated": "2026-10-16",
   "items": [
     {
       "date": "2026-10-16",
@@ -32,7 +32,8 @@
       "noteFr": "Plus de 135 cartes, dont plus de 35 illustrations spéciales, avec Méga-Rayquaza-ex en tête. En France et dans le monde le même jour.",
       "noteEn": "Over 135 cards, including over 35 special illustrations, led by Mega Rayquaza ex. Worldwide on the same day.",
       "source": "https://www.pokemon.com/us/news/the-pokemon-tcg-mega-evolution-delta-reign-expansion-arrives-november-6-2026",
-      "setId": "me06"
+      "setId": "me06",
+      "post": { "fr": "regne-delta-guide-avant-sortie-me06", "en": "delta-reign-set-guide-before-release-me06" }
     }
   ]
 }

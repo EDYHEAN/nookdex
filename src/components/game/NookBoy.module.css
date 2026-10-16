@@ -326,7 +326,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  /* the pill is tilted: its low end hangs ~6px under its box, keep the label clear of it */
+  gap: 10px;
   background: none;
   font: 5px var(--font-press), monospace;
   color: #2f3a8f;

@@ -28,6 +28,12 @@
   pointer-events: auto;
 }
 
+/* the remove choice hangs below the header, over the binder: its leaves are stacked up to one z-index a page (and the
+   corners at 300), lift the header above them all while it's open */
+.title:has([aria-expanded="true"]) {
+  z-index: 1000;
+}
+
 .titleText h1 {
   margin: 0;
   font-family: var(--font-press), monospace;
