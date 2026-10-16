@@ -135,6 +135,10 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   résident fiscal France seulement. Pub PayPal décochée. **Managed Payments ne propose pas PayPal** (vu sur la vraie
   page le 2026-10-16 ; sa liste : cartes, Apple Pay, Google Pay, Link, Bancontact en Belgique, quelques moyens locaux
   hors Europe). PayPal ne s'afficherait qu'en quittant Managed Payments (TVA, reçus, litiges à notre charge) : non.
+- **Apple Pay échoue avec une carte française co-badgée CB** (2026-10-16) : `POST /v1/tokens` → « Account does not support
+  transactions on the network cartes_bancaires » (req_ovHKyNCJB7DzAy). Le compte accepte CB (Paramètres → Moyens de
+  paiement → Cartes), mais pas les sessions Managed Payments, qui ne se règlent que par le support Stripe : demande
+  envoyée par Johan. En attendant : carte saisie à la main, ou réseau Visa/Mastercard choisi dans le Wallet.
 
 **Fait le 2026-10-16**
 - Clé live : une clé restreinte `nookdex-site` (`rk_live_…`, « Accès complet, à l'exception des opérations sensibles »),
