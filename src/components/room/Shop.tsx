@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useLang, useT } from "@/lib/lang";
 import { BASE, BUNDLE, BUNDLES, COLLECTIONS, ITEM, ITEMS, buySkin, formatEuros, setShopView, shopView, itemsOf, onSale, useSkins, wear, worthOf, type Bundle, type Item, type Rarity, type Slot } from "@/lib/shop";
+import { MANAGED_PAYMENTS } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import styles from "./Shop.module.css";
 
@@ -220,9 +221,12 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
     shopView.signIn = false;
   }, []);
   const [going, setGoing] = useState<"idle" | "going" | "soon" | "error">("idle");
+  // Johan sells (no Managed Payments): the buyer asks for the item at once and waives withdrawal before paying
+  const needWaiver = !MANAGED_PAYMENTS && !mine && onSale(thing);
+  const [waiver, setWaiver] = useState(false);
   const buy = async () => {
     setGoing("going");
-    const r = await buySkin(thing.id);
+    const r = await buySkin(thing.id, waiver);
     if (r !== "ok") setGoing(r);
   };
   return (
@@ -260,6 +264,17 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
               {worth && <s>{formatEuros(worth, lang)}</s>} <b>{formatEuros(thing.price, lang)}</b>
             </p>
           )}
+          {needWaiver && (
+            <label className={styles.waiver}>
+              <input type="checkbox" checked={waiver} onChange={(e) => setWaiver(e.target.checked)} />
+              <span>
+                {t(
+                  "Je veux mon objet tout de suite et je renonce à mon droit de rétractation de 14 jours.",
+                  "I want my item right away and waive my 14-day right of withdrawal.",
+                )}
+              </span>
+            </label>
+          )}
           <div className={styles.actions}>
             {!mine && !onSale(thing) ? null : mine ? (
               <button
@@ -288,7 +303,7 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
                 </button>
                 <button
                   className={`${styles.btn} ${styles.primary}`}
-                  disabled={going === "going"}
+                  disabled={going === "going" || (needWaiver && !waiver)}
                   onPointerEnter={sfx.hover}
                   onClick={() => {
                     sfx.click();
@@ -478,6 +493,11 @@ export function TryOnBar({ onOpenShop }: { onOpenShop: () => void }) {
     if (!email) {
       // its card, with the sign-in box already open
       setShopView({ tab: "shop", open: id, signIn: true });
+      return onOpenShop();
+    }
+    // Johan sells: the withdrawal waiver is ticked on the item's card first
+    if (!MANAGED_PAYMENTS) {
+      setShopView({ tab: "shop", open: id });
       return onOpenShop();
     }
     setGoing(true);

@@ -129,9 +129,10 @@ export function useLook(): Look | null {
 
 /**
  * Off to Stripe's payment page for a skin (app/api/shop/checkout): the player's session tells the server who buys.
- * "soon" while the payment isn't set up yet.
+ * "soon" while the payment isn't set up yet. `waiver`: the player ticked the withdrawal waiver (needed when Johan sells,
+ * lib/site MANAGED_PAYMENTS off).
  */
-export async function buySkin(id: string): Promise<"ok" | "soon" | "error"> {
+export async function buySkin(id: string, waiver = false): Promise<"ok" | "soon" | "error"> {
   try {
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
@@ -139,7 +140,7 @@ export async function buySkin(id: string): Promise<"ok" | "soon" | "error"> {
     const r = await fetch("/api/shop/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ skin: id, lang: document.documentElement.lang === "en" ? "en" : "fr" }),
+      body: JSON.stringify({ skin: id, lang: document.documentElement.lang === "en" ? "en" : "fr", waiver }),
     });
     if (r.status === 503) return "soon";
     const { url } = (await r.json()) as { url?: string };

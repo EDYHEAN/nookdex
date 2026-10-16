@@ -574,6 +574,27 @@
   margin-top: 6px;
 }
 
+/* the withdrawal waiver, ticked before Buy (only when Johan sells, lib/site MANAGED_PAYMENTS off) */
+.waiver {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.35;
+  color: #cdbff0;
+  cursor: pointer;
+}
+
+.waiver input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: #ffe14a;
+  cursor: pointer;
+}
+
 .btn {
   padding: 9px 16px;
   border: 0;
