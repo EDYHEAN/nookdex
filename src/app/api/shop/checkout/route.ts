@@ -34,6 +34,8 @@ export async function POST(req: Request) {
       ...(MANAGED_PAYMENTS
         ? { "managed_payments[enabled]": true }
         : {
+            // said outright: the account turns Managed Payments on by default for every Checkout session
+            "managed_payments[enabled]": false,
             // when the waiver was given, kept with the payment, and said again next to the pay button
             "metadata[waiver]": new Date().toISOString(),
             "custom_text[submit][message]": en
