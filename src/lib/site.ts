@@ -50,8 +50,12 @@ export const LEGAL = {
   siret: "878 661 941 00046",
   address: "10 allée des Mimosas, 33370 Tresses, France",
   email: "contact@nookdex.com",
-  /** the consumer mediator Johan joins, named in the terms of sale once he sells himself (no Managed Payments) */
-  mediator: null as { name: string; url: string } | null,
+  /** the consumer mediator Johan joined (2026-10-16, request #309572), named in the terms of sale when he sells himself */
+  mediator: { name: "Société Médiation Professionnelle", url: "https://www.mediateur-consommation-smp.fr", address: "24 rue Albert de Mun, 33000 Bordeaux" } as {
+    name: string;
+    url: string;
+    address: string;
+  } | null,
 };
 
 /**
