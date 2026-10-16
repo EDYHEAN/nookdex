@@ -38,6 +38,15 @@ const monday = (d: string) => {
   x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
   return x.toLocaleDateString("sv");
 };
+/** 5 hashtags at most (Johan, 2026-10-16): the first five are kept, the others dropped, also in posts written before ("#1" is a rank) */
+const MAX_TAGS = 5;
+const fewerTags = (caption: string) => {
+  let n = 0;
+  return caption
+    .replace(/(^|\s)#[\p{L}_][\p{L}\p{N}_]*/gu, (tag) => (++n <= MAX_TAGS ? tag : ""))
+    .replace(/[ \t]+$/gm, "")
+    .trimEnd();
+};
 const sha256 = async (s: string) =>
   [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s.trim().toLowerCase())))]
     .map((b) => b.toString(16).padStart(2, "0"))
@@ -144,7 +153,7 @@ export function Studio() {
     fetch(`${SOCIAL_RENDERS}index.json?t=${Date.now()}`)
       .then((r) => r.json())
       .then((j) => {
-        setPosts(j.posts);
+        setPosts((j.posts as Post[]).map((p) => ({ ...p, caption: fewerTags(p.caption), captionTiktok: p.captionTiktok && fewerTags(p.captionTiktok) })));
         // today's post (or the next one) opens by itself
         const next = (j.posts as Post[]).find((p) => p.date >= today());
         if (next) setOpen(next.id);
