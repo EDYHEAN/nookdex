@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
-import { MAX_BINDERS, boxOf, pocketsOf, shelfBinders, wantsOf } from "@/lib/binders";
+import { MAX_BINDERS, SHELF_SLOTS, boxOf, pocketsOf, shelfBinders, shelfPageCount, wantsOf } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
@@ -78,6 +78,16 @@ const BALL = { x: 2372, y: 204, w: 128, h: 156, cx: 2435, cy: 267 };
 /** the purple box beside it: the cards no binder holds; its tan label (LABEL) shows how many */
 const BOX = { x: 2522, y: 202, w: 216, h: 138, cx: 2630, cy: 270 };
 const BOX_LABEL = { cx: 2607, cy: 273 };
+/** the shelf's page tag, hanging under the bottom shelf (more than 12 binders: the shelf turns its pages) */
+const PAGER = { cx: 1912, y: 790 };
+const PAGE_KEY = "nookdex:shelf-page";
+const readPage = () => {
+  try {
+    return Number(localStorage.getItem(PAGE_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+};
 /** the Game Boy by the mug, and its little screen: the NookBoy game */
 const GAMEBOY = { x: 1427, y: 932, w: 120, h: 178 };
 const GB_SCREEN = { x: 1461, y: 958, w: 58, h: 52 };
@@ -125,6 +135,16 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
   const collection = useStore((s) => s.collection);
   const userBinders = useStore((s) => s.binders);
   const binders = useMemo(() => shelfBinders(userBinders), [userBinders]);
+  // the shelf's page (12 binders a page), kept per device
+  const pages = shelfPageCount(binders.length);
+  const [pageWanted, setPageWanted] = useState(readPage);
+  const page = Math.min(pageWanted, pages - 1);
+  const turnPage = (p: number) => {
+    setPageWanted(p);
+    try {
+      localStorage.setItem(PAGE_KEY, String(p));
+    } catch {}
+  };
   const sets = useSets((s) => s.sets);
   const cards = useSets((s) => s.cards);
 
@@ -186,9 +206,15 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
     const before = prevIds.current;
     prevIds.current = ids;
     if (!before || !ids.some((id) => !before.includes(id))) return;
+    const added = binders.find((b) => !before.includes(b.id));
+    if (added) turnPage(added.page);
     const t = setTimeout(() => sfx.shelfIn(), 250);
     return () => clearTimeout(t);
   }, [binders]);
+
+  // A binder opened from elsewhere (the OS, the tour) stands on another page: the shelf turns to it
+  const openPage = binders.find((b) => b.id === openId)?.page;
+  if (openPage != null && openPage !== page) turnPage(openPage);
 
   // The binder that was just put back slides into the shelf.
   useEffect(() => {
@@ -302,9 +328,12 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
     }
     return { sub: t.cards ? `${t.cards} ${tr("carte", "card")}${t.cards > 1 ? "s" : ""} · ${formatMoney(t.trend)}` : tr("classeur libre · vide", "free binder · empty"), pct: null };
   };
-  const plusSlot = binders.length < MAX_BINDERS ? SCENE.slots[binders.length] : null;
+  /** the binders of the page shown, and the free place for a new one if it's on this page */
+  const onPage = binders.filter((b) => b.page === page);
+  const free = binders.length % SHELF_SLOTS;
+  const plusSlot = binders.length < MAX_BINDERS && Math.floor(binders.length / SHELF_SLOTS) === page ? SCENE.slots[free] : null;
   /** the binder on its left shows its side cover over part of the sketch */
-  const besideBinder = binders.length > 0 && !rowEnd(binders.length - 1);
+  const besideBinder = free > 0 && !rowEnd(free - 1);
 
   const sceneStyle = { width: W, height: H, transform: `translate(${cam.x}px, ${cam.y}px) scale(${cam.k})` };
   const place = (r: { x: number; y: number; w: number; h: number }) => ({ left: r.x, top: r.y, width: r.w, height: r.h });
@@ -421,7 +450,7 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
           {/* a free place on the shelf: a pencil sketch of a binder, to add one (behind the side of its neighbour) */}
           {plusSlot && (
             <button
-              key={`plus-${binders.length}`}
+              key={`plus-${binders.length}-${page}`}
               className={`${styles.binder} ${styles.addSlot}`}
               style={place(plusSlot)}
               aria-label={tr("Ajouter un classeur", "Add a binder")}
@@ -449,7 +478,7 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
           )}
 
           {/* binders standing on the shelves, with the set logo on their label */}
-          {binders.map((b) => {
+          {onPage.map((b) => {
             const slot = SCENE.slots[b.slot];
             const i = binderIndex++;
             const sum = summary(b);
@@ -482,7 +511,7 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
                 onPointerLeave={() => setTip(null)}
                 onClick={() => clickBinder(b)}
               >
-                <ShelfBinder slot={slot} color={b.color} last={rowEnd(b.slot) || b.slot === binders.length - 1}>
+                <ShelfBinder slot={slot} color={b.color} last={rowEnd(b.slot) || b.slot === onPage.length - 1}>
                   <span
                     className={styles.label}
                     style={{ left: label.x, top: label.y, width: label.w, height: label.h }}
@@ -506,9 +535,42 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
             );
           })}
 
+          {/* more than one page: a tag under the bottom shelf turns them */}
+          {pages > 1 && (
+            <div className={styles.pager} style={{ left: PAGER.cx, top: PAGER.y }}>
+              <button
+                aria-label={tr("Page précédente de l'étagère", "Previous shelf page")}
+                disabled={page === 0}
+                onPointerEnter={sfx.hover}
+                onClick={() => {
+                  sfx.riffle();
+                  setTip(null);
+                  turnPage(page - 1);
+                }}
+              >
+                ◀
+              </button>
+              <span>
+                {page + 1}/{pages}
+              </span>
+              <button
+                aria-label={tr("Page suivante de l'étagère", "Next shelf page")}
+                disabled={page === pages - 1}
+                onPointerEnter={sfx.hover}
+                onClick={() => {
+                  sfx.riffle();
+                  setTip(null);
+                  turnPage(page + 1);
+                }}
+              >
+                ▶
+              </button>
+            </div>
+          )}
+
           {/* the "+" over the sketch, drawn after the binders: the side cover of the one on its left can't hide it */}
           {plusSlot && (
-            <span key={`plus-mark-${binders.length}`} className={styles.addMark} style={place(plusSlot)} aria-hidden>
+            <span key={`plus-mark-${binders.length}-${page}`} className={styles.addMark} style={place(plusSlot)} aria-hidden>
               <span className={styles.addPlus} style={besideBinder ? { left: "75%" } : undefined}>
                 +
               </span>

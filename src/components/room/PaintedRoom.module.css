@@ -834,6 +834,66 @@
   width: 300px;
 }
 
+/* the shelf's page tag: a paper label hanging under the bottom shelf, "◀ 2/3 ▶" (scene px) */
+.pager {
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  transform: translateX(-50%) rotate(-1.5deg);
+  border-radius: 6px;
+  background: #e9d8b4;
+  box-shadow:
+    0 0 0 3px #4a3a5e,
+    5px 6px 0 2px rgba(20, 12, 30, 0.35);
+  font-family: var(--font-press), monospace;
+  font-size: 22px;
+  color: #4a3a5e;
+  /* the scene layer lets clicks through: this one takes them */
+  pointer-events: auto;
+}
+
+.pager::before {
+  /* its string, up to the shelf */
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 3px;
+  height: 18px;
+  background: #4a3a5e;
+}
+
+.pager span {
+  min-width: 64px;
+  text-align: center;
+}
+
+.pager button {
+  width: 44px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.pager button:hover:not(:disabled) {
+  background: rgba(74, 58, 94, 0.15);
+  transform: scale(1.15);
+}
+
+.pager button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
 .boxCount {
   position: absolute;
   transform: translate(-50%, -50%) rotate(-3deg);
