@@ -138,6 +138,11 @@ interface State {
   updateCopy: (cardId: string, copyId: string, patch: Partial<Omit<Copy, "id">>) => void;
   removeCopy: (cardId: string, copyId: string) => void;
   importBackup: (backup: Backup) => void;
+  /**
+   * Copies from another site's export (lib/pokecardex), kept by their set (no pocket): a card and variant already owned
+   * as many times or more is left as it is, so importing the same file twice adds nothing. Returns the copies added.
+   */
+  importCopies: (items: { key: string; variant: Variant; condition: Condition; qty: number; addedAt: number }[]) => number;
   resetCollection: () => void;
   toggleSound: () => void;
   setAmbient: (on: boolean) => void;
@@ -265,6 +270,30 @@ export const useStore = create<State>()(
         })),
       removeCopy: (cardId, copyId) =>
         set((s) => ({ collection: filterCopies(s.collection, (c, id) => id !== cardId || c.id !== copyId) })),
+      importCopies: (items) => {
+        // the file's copies, by card and variant (one line per condition)
+        const want = new Map<string, typeof items>();
+        for (const it of items) want.set(`${it.key}|${it.variant}`, [...(want.get(`${it.key}|${it.variant}`) ?? []), it]);
+        let added = 0;
+        set((s) => {
+          const collection = { ...s.collection };
+          for (const [k, lines] of want) {
+            const [key, variant] = k.split("|") as [string, Variant];
+            let have = (collection[key] ?? []).filter((c) => c.variant === variant).reduce((n, c) => n + c.qty, 0);
+            const extra: Copy[] = [];
+            for (const it of lines) {
+              const qty = Math.max(0, it.qty - have);
+              have = Math.max(0, have - it.qty);
+              if (!qty) continue;
+              extra.push({ id: uid(), variant, condition: it.condition, qty, paid: null, addedAt: it.addedAt });
+              added += qty;
+            }
+            if (extra.length) collection[key] = [...(collection[key] ?? []), ...extra];
+          }
+          return { collection };
+        });
+        return added;
+      },
       importBackup: (raw) =>
         set((s) => {
           const backup = (raw.version ?? 0) < 4 ? withCardLangs(raw, resolveLang(s.lang, s.frenchOk) === "en") : raw;

@@ -116,8 +116,9 @@ export interface BinderDef {
   ink: string;
   /** Set logo (TCGdex, without extension); null for a free binder */
   logo: string | null;
-  /** Place on the shelves (index in SCENE.slots) */
+  /** Place on the shelves (index in SCENE.slots), on its page of the shelf (12 binders a page) */
   slot: number;
+  page: number;
   /** Set binders only (a set key, see lib/cardLang) */
   setId: string | null;
   /** Card language of a set binder; null for a free binder (its cards can be of any language) */

@@ -6,12 +6,21 @@ import { MAX_BINDERS, boxOf } from "@/lib/binders";
 import { langLabel, langOfKey } from "@/lib/cardLang";
 import { useSets } from "@/lib/catalog";
 import { currentLang, useT } from "@/lib/lang";
-import { copiesTotals, formatMoney } from "@/lib/price";
+import { copiesTotals, copiesValue, formatMoney } from "@/lib/price";
+import { norm } from "@/lib/search";
 import { sfx } from "@/lib/sound";
 import { looseCopies, useStore } from "@/lib/store";
 import { CardBack } from "../binder/CardBack";
 import type { CardData } from "@/lib/types";
 import styles from "./Box.module.css";
+
+type Sort = "set" | "price" | "name" | "recent";
+const SORTS: { k: Sort; fr: string; en: string }[] = [
+  { k: "set", fr: "Extension", en: "Set" },
+  { k: "price", fr: "Prix", en: "Price" },
+  { k: "name", fr: "Nom", en: "Name" },
+  { k: "recent", fr: "Récentes", en: "Recent" },
+];
 
 /**
  * The purple box on the top shelf: the cards no binder holds (lib/binders boxOf), by set. A set can go back on the shelf
@@ -41,6 +50,32 @@ export function Box({
   const total = groups.reduce((n, g) => n + g.count, 0);
   const value = copiesTotals(groups.flatMap((g) => g.items.flatMap((x) => (cards[x.cardId] ? [{ card: cards[x.cardId], copies: x.copies }] : [])))).trend;
   const full = binders.length >= MAX_BINDERS;
+  // a search (name, number, set) and a sort: by set (the groups), or every card in one grid by price, name, date added
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<Sort>("set");
+  const q = norm(query.trim());
+  const matches = (id: string, setName: string) => {
+    if (!q) return true;
+    const c = cards[id];
+    return norm(`${c?.name ?? ""} ${c?.aka ?? ""} ${c?.num ?? ""} ${setName}`).includes(q);
+  };
+  const flat = useMemo(() => {
+    if (sort === "set") return [];
+    const rows = groups.flatMap((g) =>
+      g.items
+        .filter((x) => matches(x.cardId, g.set?.name ?? ""))
+        .map((x) => {
+          const card = cards[x.cardId];
+          return { id: x.cardId, card, value: card ? copiesValue(card, x.copies, "trend") : 0, added: Math.max(...x.copies.map((c) => c.addedAt)) };
+        }),
+    );
+    if (sort === "price") rows.sort((a, b) => b.value - a.value);
+    if (sort === "name") rows.sort((a, b) => (a.card?.name ?? a.id).localeCompare(b.card?.name ?? b.id, "fr"));
+    if (sort === "recent") rows.sort((a, b) => b.added - a.added);
+    return rows;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groups, cards, sort, q]);
+  const flatKeys = flat.map((r) => r.id);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -91,7 +126,45 @@ export function Box({
           </p>
         </header>
 
+        {total > 0 && (
+          <div className={styles.tools}>
+            <input
+              className={styles.search}
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t("🔍 Pokémon, numéro, extension…", "🔍 Pokémon, number, set…")}
+              aria-label={t("Chercher dans la boîte", "Search the box")}
+            />
+            <div className={styles.sorts} role="radiogroup" aria-label={t("Trier", "Sort")}>
+              {SORTS.map((o) => (
+                <button
+                  key={o.k}
+                  role="radio"
+                  aria-checked={sort === o.k}
+                  className={`${styles.sort} ${sort === o.k ? styles.sortOn : ""}`}
+                  onPointerEnter={sfx.hover}
+                  onClick={() => {
+                    sfx.click();
+                    setSort(o.k);
+                  }}
+                >
+                  {t(o.fr, o.en)}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className={styles.inside}>
+          {sort !== "set" && (
+            <div className={`${styles.cards} ${styles.flat}`}>
+              {flat.map((r) => (
+                <BoxCard key={r.id} id={r.id} card={r.card} price={sort === "price" ? r.value : undefined} onOpen={() => onOpenCards(flatKeys, flatKeys.indexOf(r.id))} />
+              ))}
+              {!flat.length && <p className={styles.empty}>{t("Rien ne correspond.", "Nothing matches.")}</p>}
+            </div>
+          )}
           {!groups.length && (
             <p className={styles.empty}>
               {t(
@@ -100,7 +173,12 @@ export function Box({
               )}
             </p>
           )}
-          {groups.map((g, gi) => (
+          {sort === "set" &&
+            groups.map((g, gi) => {
+              const name = g.set?.name ?? g.setId;
+              const ids = g.items.map((x) => x.cardId).filter((id) => norm(name).includes(q) || matches(id, name));
+              if (!ids.length) return null;
+              return (
             <Group
               key={g.setId}
               index={gi}
@@ -108,14 +186,15 @@ export function Box({
               name={g.set?.name ?? g.setId}
               logo={g.set?.logo ?? null}
               extra={!!g.set?.extra}
-              ids={g.items.map((x) => x.cardId)}
+              ids={ids}
               count={g.count}
               value={copiesTotals(g.items.flatMap((x) => (cards[x.cardId] ? [{ card: cards[x.cardId], copies: x.copies }] : []))).trend}
               full={full}
               keys={keys}
               onOpenCards={onOpenCards}
             />
-          ))}
+              );
+            })}
         </div>
       </motion.section>
     </motion.div>
@@ -216,7 +295,7 @@ function Group({
 }
 
 /** A card in the box: opens its sheet; its ✕ throws it away (its copies in the box), the second tap being the sure one. */
-function BoxCard({ id, card, onOpen }: { id: string; card: CardData | undefined; onOpen: () => void }) {
+function BoxCard({ id, card, price, onOpen }: { id: string; card: CardData | undefined; price?: number; onOpen: () => void }) {
   const t = useT();
   const qty = useStore((s) => looseCopies(s.collection[id]).reduce((n, c) => n + c.qty, 0));
   const [arming, setArming] = useState(false);
@@ -239,6 +318,7 @@ function BoxCard({ id, card, onOpen }: { id: string; card: CardData | undefined;
       >
         {card?.img ? <img src={`${card.img}/low.webp`} alt="" loading="lazy" /> : <CardBack label={false} />}
         {qty > 1 && <span className={styles.qty}>×{qty}</span>}
+        {price != null && price > 0 && <span className={styles.price}>{formatMoney(price)}</span>}
       </button>
       <button
         className={`${styles.bin} ${arming ? styles.binArmed : ""}`}

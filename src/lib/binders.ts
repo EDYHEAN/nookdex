@@ -19,8 +19,13 @@ export const BINDER_COLORS = [
   "#5f5a5e", // charcoal
 ];
 
-/** Places on the shelves, in filling order (top shelf, then bottom shelf). */
-export const MAX_BINDERS = SCENE.slots.length;
+/** Places on the shelves, in filling order (top shelf, then bottom shelf): one page of the shelf. */
+export const SHELF_SLOTS = SCENE.slots.length;
+/** The shelf turns its pages (Johan, 2026-10-16: big collections, the Pokécardex import): 5 pages of 12. */
+export const SHELF_PAGES = 5;
+export const MAX_BINDERS = SHELF_SLOTS * SHELF_PAGES;
+/** Pages the shelf shows: the ones with binders, and the one with the free place for a new binder. */
+export const shelfPageCount = (n: number) => Math.min(SHELF_PAGES, Math.floor(Math.min(n, MAX_BINDERS - 1) / SHELF_SLOTS) + 1);
 
 /** The first color no binder wears yet. */
 export function freeColor(binders: UserBinder[]) {
@@ -41,7 +46,7 @@ const light = (hex: string) => {
 export function shelfBinders(binders: UserBinder[]): BinderDef[] {
   return binders.slice(0, MAX_BINDERS).map((b, i) => {
     const color = b.color ?? BINDER_COLORS[i % BINDER_COLORS.length];
-    const paint = { slot: i, color, dark: shade(color, -0.48), ink: light(color) ? "#241c26" : "#fff3e6", sort: b.sort ?? "num" };
+    const paint = { slot: i % SHELF_SLOTS, page: Math.floor(i / SHELF_SLOTS), color, dark: shade(color, -0.48), ink: light(color) ? "#241c26" : "#fff3e6", sort: b.sort ?? "num" };
     if (b.kind === "free") {
       const wish = !!b.wish;
       return { ...paint, id: b.id, kind: "free", wish, wants: b.wants ?? {}, code: wish ? "WISH" : "LIBRE", name: b.name, logo: null, setId: null, lang: null };
