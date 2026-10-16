@@ -38,9 +38,14 @@ function Countdown({ until, big }: { until: string; big?: boolean }) {
   return (
     <span className={`${styles.timer} ${big ? styles.timerBig : ""}`} role="timer" aria-label={t("Quitte la boutique dans", "Leaves the shop in")}>
       <span aria-hidden>⏳</span>
-      <b>
+      <b className={styles.timerLong}>
         {d > 0 && `${d} ${t("j", "d")} `}
         {pad(h)} h {pad(m)} min {pad(sec)} s
+      </b>
+      {/* phones: the same on one line */}
+      <b className={styles.timerShort}>
+        {d > 0 && `${d} ${t("j", "d")} `}
+        {pad(h)}:{pad(m)}:{pad(sec)}
       </b>
     </span>
   );
@@ -229,8 +234,8 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", stiffness: 320, damping: 24 }}
       >
-        <button className={styles.back} onClick={onBack} onPointerEnter={sfx.hover}>
-          ← {t("Retour", "Back")}
+        <button className={styles.back} onClick={onBack} onPointerEnter={sfx.hover} aria-label={t("Retour à la boutique", "Back to the shop")}>
+          ✕
         </button>
         <div className={styles.cardArt}>
           <span className={styles.rays} aria-hidden />
@@ -278,7 +283,8 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
                     onClose();
                   }}
                 >
-                  {t("Essayer sur mon bureau", "Try it on my desk")}
+                  <span className={styles.wide}>{t("Essayer sur mon bureau", "Try it on my desk")}</span>
+                  <span className={styles.narrow}>{t("Essayer", "Try it")}</span>
                 </button>
                 <button
                   className={`${styles.btn} ${styles.primary}`}
