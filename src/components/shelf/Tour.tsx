@@ -27,6 +27,8 @@ interface Step {
   skip?: () => boolean;
   /** Before leaving the step with "next". */
   leave?: () => void;
+  /** Steps that come and go together: the card ones, all skipped when the binder has no card to click */
+  group?: "cards";
 }
 
 const $ = (sel: string) => document.querySelector<HTMLElement>(sel);
@@ -103,6 +105,7 @@ function buildSteps(email: string | null, en: boolean): Step[] {
       detour: { target: "next-page", text: t(<>Tourne la page ▶</>, <>Turn the page ▶</>) },
       done: () => !!$('[data-tour="owned"]'),
       skip: () => !$('[data-tour="missing"]') && !$('[data-tour="owned"]'),
+      group: "cards",
     },
     {
       target: ["owned"],
@@ -116,6 +119,7 @@ function buildSteps(email: string | null, en: boolean): Step[] {
       ),
       done: () => !!$('[data-tour="inspector"]'),
       skip: () => !$('[data-tour="owned"]'),
+      group: "cards",
     },
     {
       target: ["remove-card"],
@@ -131,6 +135,7 @@ function buildSteps(email: string | null, en: boolean): Step[] {
       done: () => !$('[data-tour="remove-card"]'),
       skip: () => !$('[data-tour="inspector"]'),
       leave: () => setTimeout(() => click('[data-tour="inspector-close"]'), 400),
+      group: "cards",
     },
     {
       target: ["close-binder"],
@@ -240,19 +245,30 @@ export function Tour({ onDone }: { onDone: () => void }) {
   const [detour, setDetour] = useState(false);
   const [lost, setLost] = useState(false);
   const [pos, setPos] = useState({ left: -9999, top: -9999 });
+  // Steps left out (not relevant here) are out of the count too: 1/8, 2/8… rather than 1/11, 5/11. The card steps are
+  // known from the start (the binder is open: no card to click, none of them comes); the others as they're skipped.
+  const [skipped, setSkipped] = useState<number[]>(() => {
+    const all = buildSteps(null, false);
+    const first = all.find((s) => s.group === "cards");
+    return first?.skip?.() ? all.flatMap((s, k) => (s.group === "cards" ? [k] : [])) : [];
+  });
 
   const en = useLang() === "en";
   const steps = buildSteps(email, en);
   const step = steps[i];
   const last = i === steps.length - 1;
   const interactive = !!step.done && !lost;
+  const shown = steps.filter((_, k) => k <= i && !skipped.includes(k)).length;
 
   // Follows the target every frame (binders flip, the OS zooms in…), and moves on when the player did the thing.
   useEffect(() => {
     const all = buildSteps(null, false);
     const s = all[i];
     if (s.skip?.()) {
-      const t = setTimeout(() => setI((n) => Math.min(n + 1, all.length - 1)), 0);
+      const t = setTimeout(() => {
+        setSkipped((k) => (k.includes(i) ? k : [...k, i]));
+        setI((n) => Math.min(n + 1, all.length - 1));
+      }, 0);
       return () => clearTimeout(t);
     }
     let raf = 0;
@@ -357,7 +373,7 @@ export function Tour({ onDone }: { onDone: () => void }) {
         <p className={styles.text}>{detour && step.detour ? step.detour.text : step.text}</p>
         <div className={styles.foot}>
           <span className={styles.count}>
-            {i + 1}/{steps.length}
+            {shown}/{steps.length - skipped.length}
           </span>
           {interactive ? (
             <span className={styles.todo}>{en ? "your turn!" : "à toi !"}</span>
