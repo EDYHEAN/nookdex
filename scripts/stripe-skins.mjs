@@ -8,7 +8,8 @@ import fs from "node:fs";
 const env = fs.existsSync(".env.local") ? Object.fromEntries(fs.readFileSync(".env.local", "utf8").split(/\r?\n/).filter((l) => /^\w+=/.test(l)).map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1).trim()])) : {};
 const KEY = process.env.STRIPE_SECRET_KEY || env.STRIPE_SECRET_KEY;
 if (!KEY) throw new Error("STRIPE_SECRET_KEY missing (env or .env.local)");
-const MODE = KEY.startsWith("sk_live") ? "LIVE" : "test";
+// sk_live_… or a restricted rk_live_…
+const MODE = /^[sr]k_live_/.test(KEY) ? "LIVE" : "test";
 /** "General - Electronically Supplied Services": eligible for Managed Payments (docs.stripe.com/payments/managed-payments/eligibility) */
 const TAX_CODE = "txcd_10000000";
 
