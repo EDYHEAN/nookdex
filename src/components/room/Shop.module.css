@@ -101,6 +101,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+.timerShort,
+.narrow {
+  display: none;
+}
+
 @keyframes timerPulse {
   50% {
     box-shadow:
@@ -476,19 +481,25 @@
     0 20px 60px rgba(0, 0, 0, 0.6);
 }
 
+/* back to the shop: a round cross in the card's top right, like the shop's own */
 .back {
   position: absolute;
   top: 10px;
-  left: 10px;
-  z-index: 2;
-  padding: 5px 10px;
+  right: 10px;
+  z-index: 3;
+  width: 36px;
+  height: 36px;
   border: 0;
-  border-radius: 999px;
+  border-radius: 50%;
   background: rgba(0, 0, 0, 0.45);
   color: #fff;
-  font: inherit;
   font-size: 15px;
   cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.back:hover {
+  transform: rotate(90deg) scale(1.08);
 }
 
 .cardArt {
@@ -1011,10 +1022,23 @@
 
   .timer {
     margin-left: 0;
+    padding: 7px 12px;
   }
 
+  /* one line: "18 j 06:49:04" */
   .timer b {
     font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .timerLong,
+  .wide {
+    display: none;
+  }
+
+  .timerShort,
+  .narrow {
+    display: inline;
   }
 
   .body {
@@ -1055,8 +1079,55 @@
     top: 36%;
   }
 
+  /* one thing up close, the whole card on the screen without scrolling: a shorter picture, smaller words, the
+     buttons side by side across the card */
+  .cardWrap {
+    padding: 12px;
+  }
+
   .card {
     grid-template-columns: 1fr;
+  }
+
+  .cardText {
+    gap: 6px;
+    padding: 14px 16px 18px;
+  }
+
+  .cardText h3 {
+    font-size: 16px;
+  }
+
+  .cardText p {
+    font-size: 15px;
+    line-height: 1.35;
+  }
+
+  .cardText ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 10px;
+    font-size: 14px;
+  }
+
+  .card .rarity {
+    font-size: 13px;
+  }
+
+  .cardPrice b {
+    font-size: 17px;
+  }
+
+  .actions {
+    flex-wrap: nowrap;
+    margin-top: 8px;
+  }
+
+  .actions .btn {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 8px;
+    font-size: 15px;
   }
 
   /* the slots in a row on top */
@@ -1091,7 +1162,16 @@
   }
 
   .cardArt {
-    min-height: 220px;
+    min-height: 0;
+    height: 170px;
+  }
+
+  .cardArt .framed {
+    height: 76%;
+  }
+
+  .cardArt .cutout {
+    max-height: 80%;
   }
 
   .tryBar {
