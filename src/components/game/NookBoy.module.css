@@ -912,6 +912,27 @@
   gap: 8px;
 }
 
+/* the Pension's pages: ◀ 1/2 ▶ (left and right past a page's ends turn it too) */
+.pPages {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.pPages button {
+  padding: 1px 3px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-shadow: inherit;
+  cursor: pointer;
+}
+
+.pPages button:hover {
+  color: #ffc93d;
+}
+
 .goldPill {
   padding: 2px 5px 1px;
   border-radius: 3px;

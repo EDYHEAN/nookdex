@@ -824,11 +824,24 @@
 }
 
 /* the Game Boy talks now and then (GbBubble): the ladder's number one, in a pixel speech bubble above it (scene px) */
+/* the anchor: a point above the Game Boy, it pops and bobs (its own translate, so the box's placement never moves) */
 .gbBubble {
   position: absolute;
   z-index: 3;
-  translate: -50% calc(-100% - 34px);
+  width: 0;
+  height: 0;
   pointer-events: none;
+  animation:
+    gbBubbleIn 0.4s cubic-bezier(0.34, 1.8, 0.5, 1) both,
+    gbBubbleOut 0.25s 6.75s steps(3) forwards,
+    ballBob 1.8s 0.4s ease-in-out infinite;
+}
+
+.gbBox {
+  position: absolute;
+  left: 0;
+  bottom: 34px;
+  translate: -50% 0;
   padding: 10px 22px 14px;
   background: #fff6e6;
   color: #3a2a2e;
@@ -843,30 +856,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  transform-origin: 50% calc(100% + 30px);
-  animation:
-    gbBubbleIn 0.4s cubic-bezier(0.34, 1.8, 0.5, 1) both,
-    gbBubbleOut 0.25s 6.75s steps(3) forwards,
-    ballBob 1.8s 0.4s ease-in-out infinite;
 }
 
-.gbBubble strong {
+.gbBox strong {
   font-weight: normal;
   color: #b8452f;
 }
 
-.gbBubble i {
+.gbBox i {
   font-style: normal;
   color: #d9a227;
 }
 
-.gbBubble span {
+.gbBox span {
   font-size: 34px;
   color: #6b5560;
 }
 
 /* its tail, pointing down at the Game Boy */
-.gbBubble::after {
+.gbBox::after {
   content: "";
   position: absolute;
   left: 50%;

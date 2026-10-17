@@ -417,7 +417,9 @@ export const xpFor = (level: number) => Math.round(4 + level * 3 + Math.pow(leve
 
 /* ---------------- the Pension: permanent boosts, bought with what's left of a run's gold ---------------- */
 
-export type PensionId = "power" | "hp" | "speed" | "haste" | "magnet" | "xp" | "gold" | "reroll" | "revive";
+export type PensionId =
+  | "power" | "hp" | "speed" | "haste" | "magnet" | "xp" | "gold" | "reroll" | "revive"
+  | "armor" | "crit" | "luck" | "regen" | "discount" | "pack";
 export interface PensionDef {
   id: PensionId;
   name: Txt;
@@ -431,7 +433,11 @@ export interface PensionDef {
   stat: Txt;
   /** a share (%), else a count */
   pct: boolean;
+  /** it takes off (damage taken, prices): shown "−4 %" */
+  less?: boolean;
 }
+/** the Pension's screen shows its upgrades 9 at a time (a 3x3 page) */
+export const PENSION_PAGE = 9;
 export const PENSION: PensionDef[] = [
   { id: "power", name: ["Entraînement", "Training"], desc: ["+2 % de dégâts", "+2% damage"], max: 10, cost: 30, per: 2, stat: ["dégâts", "damage"], pct: true },
   { id: "hp", name: ["Vitamines", "Vitamins"], desc: ["+4 % de PV max", "+4% max HP"], max: 10, cost: 30, per: 4, stat: ["PV max", "max HP"], pct: true },
@@ -442,6 +448,13 @@ export const PENSION: PensionDef[] = [
   { id: "gold", name: ["Flair", "Flair"], desc: ["+6 % d'or ramassé", "+6% gold picked up"], max: 8, cost: 25, per: 6, stat: ["or", "gold"], pct: true },
   { id: "reroll", name: ["Dé pipé", "Lucky die"], desc: ["+1 relance des cartes par partie", "+1 card reroll per run"], max: 3, cost: 120, per: 1, stat: ["relance", "reroll"], pct: false },
   { id: "revive", name: ["Rappel", "Revive"], desc: ["te relève une fois par partie", "gets you up once per run"], max: 1, cost: 400, per: 1, stat: ["rappel", "revive"], pct: false },
+  // the second page (Johan, 2026-10-17: somewhere for the purse to go, now that a run starts with no gold)
+  { id: "armor", name: ["Carapace", "Hard shell"], desc: ["−2,5 % de dégâts subis", "−2.5% damage taken"], max: 8, cost: 45, per: 2.5, stat: ["dégâts subis", "damage taken"], pct: true, less: true },
+  { id: "crit", name: ["Concentration", "Focus"], desc: ["+1,5 % de chances de critique", "+1.5% crit chance"], max: 8, cost: 50, per: 1.5, stat: ["critiques", "crits"], pct: true },
+  { id: "luck", name: ["Trèfle", "Clover"], desc: ["cartes rares 10 % plus fréquentes", "rare cards 10% more often"], max: 6, cost: 60, per: 10, stat: ["cartes rares", "rare cards"], pct: true },
+  { id: "regen", name: ["Siestes", "Naps"], desc: ["+0,25 PV par seconde", "+0.25 HP a second"], max: 6, cost: 40, per: 0.25, stat: ["PV/s", "HP/s"], pct: false },
+  { id: "discount", name: ["Carte fidélité", "Loyalty card"], desc: ["−4 % chez Kecleon", "−4% at Kecleon's"], max: 6, cost: 50, per: 4, stat: ["prix", "prices"], pct: true, less: true },
+  { id: "pack", name: ["Sac à dos", "Backpack"], desc: ["+1 carte à choisir au départ", "+1 card to pick at the start"], max: 3, cost: 300, per: 1, stat: ["carte au départ", "starting card"], pct: false },
 ];
 /** the purse is kept from run to run: dearer, and climbing faster (Johan, 2026-10-13) */
 export const pensionCost = (d: PensionDef, level: number) => Math.round(d.cost * 2 * Math.pow(1.6, level));

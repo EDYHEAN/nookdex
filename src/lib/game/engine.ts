@@ -696,7 +696,7 @@ export class Game {
     return (1 + 0.1 * this.itemLevel("root")) * (1 + this.stage * 0.08);
   }
   get crit() {
-    return 0.05 + 0.07 * this.itemLevel("lens");
+    return 0.05 + 0.07 * this.itemLevel("lens") + 0.015 * this.perm("crit");
   }
   get critMul() {
     return 1.8 + 0.25 * this.itemLevel("belt");
@@ -755,6 +755,8 @@ export class Game {
       this.cur = p;
       p.rerolls = this.perm("reroll");
       p.revives = this.perm("revive");
+      // the Pension's backpack: cards to pick before the first foe
+      p.pendingLevels = this.perm("pack");
       p.maxHp = this.computeMaxHp();
       p.hp = p.maxHp;
       return p;
@@ -765,6 +767,7 @@ export class Game {
     gsfx.waveStart();
     music.boss(false);
     this.set("play");
+    if (this.cur.pendingLevels > 0) this.offerChoices();
   }
 
   pause(on: boolean) {
@@ -841,9 +844,9 @@ export class Game {
     const base: Record<Rarity, number> = { common: 30, rare: 55, epic: 90, legendary: 150 };
     return this.drawChoices(3).map((c) => ({ choice: c, price: Math.round(base[c.rarity ?? "common"] * w), sold: false }));
   }
-  /** prices climb 12 % a wave after the first shop (wave 6) */
+  /** prices climb 12 % a wave after the first shop (wave 6); the Pension's loyalty card takes some off */
   private get priceUp() {
-    return Math.pow(1.12, Math.max(0, this.wave - 6));
+    return Math.pow(1.12, Math.max(0, this.wave - 6)) * (1 - 0.04 * this.perm("discount"));
   }
   get rerollPrice() {
     return Math.round((15 + 15 * this.shopRerolls) * this.priceUp);
@@ -961,19 +964,21 @@ export class Game {
       (d) => d.evo && this.moves.some((m) => m.id === d.evo!.from && m.level >= MAX_LEVEL) && this.itemLevel(d.evo.item) > 0,
     ).map((d) => ({ kind: "evolve", id: d.id, level: MAX_LEVEL }));
     const weights: number[] = [];
+    // the Pension's clover: whatever isn't common comes up more often
+    const luck = (r: Rarity) => (r === "common" ? 1 : 1 + 0.1 * this.perm("luck"));
     for (const m of MOVES) {
       if (m.evo) continue;
       const has = this.moves.find((x) => x.id === m.id);
       if (!(has ? has.level < MAX_LEVEL : this.moves.length < MAX_MOVES)) continue;
       pool.push({ kind: "move", id: m.id, level: (has?.level ?? 0) + 1, rarity: m.rarity });
       // what you have comes back more; new moves too while the four slots aren't full
-      weights.push(RARITY[m.rarity].weight * (has ? 1.6 : this.moves.length < 2 ? 2.5 : 1));
+      weights.push(RARITY[m.rarity].weight * luck(m.rarity) * (has ? 1.6 : this.moves.length < 2 ? 2.5 : 1));
     }
     for (const it of ITEMS) {
       const has = this.items.find((x) => x.id === it.id);
       if (!(has ? has.level < MAX_LEVEL : this.items.length < MAX_ITEMS)) continue;
       pool.push({ kind: "item", id: it.id, level: (has?.level ?? 0) + 1, rarity: it.rarity });
-      weights.push(RARITY[it.rarity].weight * (has ? 1.6 : 1));
+      weights.push(RARITY[it.rarity].weight * luck(it.rarity) * (has ? 1.6 : 1));
     }
     const out: Choice[] = evolutions.slice(0, Math.min(2, n)).map((c) => ({ ...c, rarity: "legendary" as const }));
     while (out.length < n && pool.length) {
@@ -1088,7 +1093,7 @@ export class Game {
     const keep = this.cur;
     for (const p of this.players) {
       this.cur = p;
-      const regen = 0.3 * this.itemLevel("leftovers");
+      const regen = 0.3 * this.itemLevel("leftovers") + 0.25 * this.perm("regen");
       if (regen && !p.down) p.hp = Math.min(p.maxHp, p.hp + regen * dt);
       p.hurtFlash = Math.max(0, p.hurtFlash - dt * 4);
       // the camera trails the player a little
@@ -2296,7 +2301,7 @@ export class Game {
       gsfx.shield();
       return;
     }
-    dmg *= 1 - 0.07 * this.itemLevel("eviolite");
+    dmg *= (1 - 0.07 * this.itemLevel("eviolite")) * (1 - 0.025 * this.perm("armor"));
     // Focus Sash: a fatal blow leaves 1 HP, then it needs a while
     const sash = this.itemLevel("sash");
     if (sash && this.hp - dmg <= 0 && this.hp > 1 && this.cur.sashCd <= 0) {

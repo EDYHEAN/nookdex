@@ -66,10 +66,12 @@ export function GbBubble({ x, y, active }: { x: number; y: number; active: boole
   const [head, sub] = lines[say % lines.length];
   return (
     <span key={say} className={styles.gbBubble} style={{ left: x, top: y }} aria-hidden>
-      <strong>
-        <i>♛</i> {head}
-      </strong>
-      <span>{sub}</span>
+      <span className={styles.gbBox}>
+        <strong>
+          <i>♛</i> {head}
+        </strong>
+        <span>{sub}</span>
+      </span>
     </span>
   );
 }
