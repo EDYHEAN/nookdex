@@ -158,6 +158,15 @@ export const TROPHIES: Trophy[] = [
   { id: "defi-titan", tier: "bronze", cat: "game", name: { fr: "Tueur de titans", en: "Titan slayer" }, desc: { fr: "Mets un titan K.O.", en: "Knock out a titan." } },
   { id: "defi-karp", tier: "silver", cat: "game", name: { fr: "Si si, Magicarpe", en: "Yes, Magikarp" }, desc: { fr: "Gagne le défi de Magicarpe.", en: "Win Magikarp's challenge." } },
   { id: "defi-top1", tier: "gold", cat: "game", name: { fr: "Champion du jour", en: "Champion of the day" }, desc: { fr: "Finis 1er du classement du défi.", en: "Top the challenge's board." } },
+  // beyond wave 100 (2026-10-17)
+  { id: "game-wave150", tier: "silver", cat: "game", name: { fr: "Au-delà", en: "Beyond" }, desc: { fr: "Atteins la vague 150.", en: "Reach wave 150." } },
+  { id: "game-wave200", tier: "gold", cat: "game", name: { fr: "Bicentenaire", en: "Bicentennial" }, desc: { fr: "Bats Méga-Mewtwo Y à la vague 200.", en: "Beat Mega Mewtwo Y at wave 200." } },
+  { id: "game-giga", tier: "silver", cat: "game", name: { fr: "Chasseur de géants", en: "Giant hunter" }, desc: { fr: "Bats un giga-boss en partie classique.", en: "Beat a giga boss in a classic run." } },
+  { id: "game-tier", tier: "bronze", cat: "game", name: { fr: "Raccourci", en: "Shortcut" }, desc: { fr: "Commence une partie à une vague déjà atteinte.", en: "Start a run from a wave you reached." } },
+  { id: "game-tier175", tier: "gold", cat: "game", name: { fr: "Long voyage", en: "Long journey" }, desc: { fr: "Commence une partie à la vague 175.", en: "Start a run from wave 175." } },
+  { id: "game-charm", tier: "bronze", cat: "game", name: { fr: "Charmeur", en: "Charmer" }, desc: { fr: "Charme 100 ennemis dans une même partie.", en: "Charm 100 foes in one run." } },
+  { id: "game-types", tier: "silver", cat: "game", name: { fr: "Touche-à-tout", en: "Jack of all types" }, desc: { fr: "Fée, Acier, Ténèbres et Insecte dans une même partie.", en: "Fairy, Steel, Dark and Bug in one run." } },
+  { id: "game-rank2", tier: "gold", cat: "game", name: { fr: "Pension 5 étoiles", en: "Five-star Pension" }, desc: { fr: "Achète un niveau du 2ᵉ rang de la Pension.", en: "Buy a 2nd-rank level at the Pension." } },
 
   // Secrets: no hint but "???" until found
   { id: "night-owl", tier: "silver", cat: "secret", secret: true, name: { fr: "Oiseau de nuit", en: "Night owl" }, desc: { fr: "Au bureau entre minuit et 5 h.", en: "At the desk between midnight and 5 am." } },

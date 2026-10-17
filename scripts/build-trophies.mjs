@@ -1,5 +1,5 @@
 // Cuts the trophies' painted trinkets out of Gemini's sheets (on white, in a grid, in the order of their ORDER below:
-// img/trophies.jpg 10x6, img/trophies-game.jpg 4x4 and img/trophies-defi.jpg 4x2 for Nook Survivors) into one transparent sprite, public/trophies.webp
+// img/trophies.jpg 10x6, img/trophies-game.jpg 4x4, img/trophies-defi.jpg and img/trophies-beyond.jpg 4x2 for Nook Survivors) into one transparent sprite, public/trophies.webp
 // (one CELL px square per trinket, 10 a row), and src/data/trophy-art.json (trophy id -> its place in the sprite).
 // Run: node scripts/build-trophies.mjs
 import fs from "node:fs";
@@ -31,14 +31,21 @@ const ORDER_GAME2 = [
   "defi-first", "defi-fast", "defi-blitz", "defi-week",
   "defi-titan", "defi-karp", "defi-top1", "game-wave100",
 ];
+/** past wave 100 (2026-10-17), painted in the top 1200 px */
+const ORDER_GAME3 = [
+  "game-wave150", "game-wave200", "game-giga", "game-tier",
+  "game-tier175", "game-charm", "game-types", "game-rank2",
+];
 const SHEETS = [
   { src: "img/trophies.jpg", cols: 10, rows: 6, order: ORDER },
   { src: "img/trophies-game.jpg", cols: 4, rows: 4, order: ORDER_GAME },
   { src: "img/trophies-defi.jpg", cols: 4, rows: 2, order: ORDER_GAME2, height: 1300 },
+  // the locket's chain is a thin pale gold: the paper inside its loops isn't ringed by dark ink
+  { src: "img/trophies-beyond.jpg", cols: 4, rows: 2, order: ORDER_GAME3, height: 1200, anyHole: 400 },
 ];
 
 /** one sheet's trinkets, placed in the sprite from cell offset on */
-async function cutSheet({ src: SRC, cols: COLS, rows: ROWS, order: ORDER, height }, offset) {
+async function cutSheet({ src: SRC, cols: COLS, rows: ROWS, order: ORDER, height, anyHole = 0 }, offset) {
   // white paper left under the grid: only the painted part
   const img = sharp(SRC);
   if (height) img.extract({ left: 0, top: 0, width: (await sharp(SRC).metadata()).width, height });
@@ -92,7 +99,8 @@ async function cutSheet({ src: SRC, cols: COLS, rows: ROWS, order: ORDER, height
       }
     }
     // flat paper white, bigger than a highlight, mostly ringed by ink: a hole
-    if (region.length > 60 && edge > region.length ** 0.5 * 2) region.forEach((i) => (bg[i] = 1));
+    // (a sheet may say any closed white pocket that big is a hole: nothing of its own is that white)
+    if ((region.length > 60 && edge > region.length ** 0.5 * 2) || (anyHole && region.length > anyHole)) region.forEach((i) => (bg[i] = 1));
   }
 
   // A pale glow touching the background (the night light's halo) fades out too: from the background into what's
