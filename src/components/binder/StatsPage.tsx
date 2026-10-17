@@ -33,7 +33,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
   const t = useT();
   const mapRef = useRef<HTMLDivElement>(null);
   const g = GRIDS[binder.grid];
-  const mapCols = useMapCols(mapRef, pages.length, g.cols, g.rows, g.cols === 3 ? 0.074 : 0.05);
+  const mapTile = useMapTile(mapRef, pages.length, g.cols, g.rows, g.cols === 3 ? 0.074 : 0.05);
   const free = binder.kind === "free";
   const pct = stats.total ? stats.owned / stats.total : 0;
   const segments = 20;
@@ -152,7 +152,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
         <p className={styles.mapTitle}>{t("Carte du classeur", "Binder map")}</p>
         <Colors id={binder.id} current={binder.color} />
       </div>
-      <div ref={mapRef} className={styles.map} style={{ gridTemplateColumns: `repeat(${mapCols}, 1fr)` }}>
+      <div ref={mapRef} className={styles.map} style={mapTile ? { ["--mapw" as string]: `${mapTile}px` } : undefined}>
         {pages.map((pockets, i) => {
           const owned = pockets.filter(filled).length;
           return (
@@ -185,34 +185,35 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
 }
 
 /**
- * The binder map's mini pages a row: as many as it takes for all of them to fit in the room the summary leaves it (no
- * scroll: the wheel turns the binder's pages; Johan, 2026-10-17), no wider than `widest` of the map (their size on a
- * short set). A mini page: `cols` x `rows` pockets, 1 px apart, 2 px of padding.
+ * The binder map's mini page width: as on a 9-pocket binder (a set width, `widest` of the map), smaller only if every page
+ * wouldn't fit in the room the summary leaves it otherwise: never a scroll (the wheel turns the binder's pages; Johan,
+ * 2026-10-17), never a stretched column (a full binder's pages went over each other). A mini page: `cols` x `rows`
+ * pockets, 1 px apart, 2 px of padding.
  */
-function useMapCols(ref: RefObject<HTMLDivElement | null>, count: number, cols: number, rows: number, widest: number) {
-  const [n, setN] = useState(12);
+function useMapTile(ref: RefObject<HTMLDivElement | null>, count: number, cols: number, rows: number, widest: number) {
+  const [w, setW] = useState(0);
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
     const fit = () => {
       const { clientWidth: W, clientHeight: H } = el;
       const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
-      const height = (k: number) => {
-        const lines = Math.ceil(count / k);
-        const pocket = ((W - (k - 1) * gap) / k - 4 - (cols - 1)) / cols;
+      const height = (tile: number) => {
+        const lines = Math.ceil(count / Math.max(1, Math.floor((W + gap) / (tile + gap))));
+        const pocket = (tile - 4 - (cols - 1)) / cols;
         // (+3: its border and the pixels lost rounding each pocket)
         return lines * (rows * pocket * (88 / 63) + (rows - 1) + 4 + 3) + (lines - 1) * gap;
       };
-      let k = Math.max(1, Math.floor((W + gap) / (W * widest + gap)));
-      while (k < count && height(k) > H) k++;
-      setN(k);
+      let tile = W * widest;
+      while (tile > 8 && height(tile) > H) tile -= 0.5;
+      setW(Math.floor(tile));
     };
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el);
     return () => ro.disconnect();
   }, [ref, count, cols, rows, widest]);
-  return n;
+  return w;
 }
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
