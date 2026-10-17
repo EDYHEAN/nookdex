@@ -49,7 +49,9 @@ export function publicJson<T>(...parts: string[]): Promise<T | null> {
 async function load<T = SetData>(file: string, url: string): Promise<T | null> {
   if (fs.existsSync(file)) return JSON.parse(await fs.promises.readFile(file, "utf8")) as T;
   try {
-    const r = await fetch(`${SITE_URL}/${url}`, { cache: "no-store", signal: AbortSignal.timeout(8000) });
+    // kept a day like the pages that read it (no-store would make the card pages, drawn on their first visit, dynamic:
+    // DYNAMIC_SERVER_USAGE); the files change once a day, with the prices commit that redeploys anyway
+    const r = await fetch(`${SITE_URL}/${url}`, { next: { revalidate: 86400 }, signal: AbortSignal.timeout(8000) });
     return r.ok ? ((await r.json()) as T) : null;
   } catch {
     return null;
