@@ -16,6 +16,7 @@ import { CardPicker } from "./CardPicker";
 import { CardSlot, EmptyPocket, LoadingPocket, type AddResult } from "./CardSlot";
 import { Celebration } from "./Celebration";
 import { Inspector } from "./Inspector";
+import { FillSet } from "./FillSet";
 import { ShareSheet } from "./ShareSheet";
 import { HoldToRemove, RemoveChoice, StatsPage, type BinderSummary } from "./StatsPage";
 import styles from "./Binder.module.css";
@@ -560,6 +561,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
           </p>
         </div>
         <div className={styles.titleActions}>
+          {set && binder.setId && <FillSet set={set} />}
           {set && binder.setId && summary.owned > 0 && (
             <button
               className={`${styles.pixelBtn} ${styles.shareBtn}`}
