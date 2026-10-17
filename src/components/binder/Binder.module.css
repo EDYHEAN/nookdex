@@ -530,6 +530,24 @@
   line-height: 1.1;
 }
 
+/* a 6-pocket binder: its narrow summary page keeps the type of a normal one, laid out to fit (2 columns of figures) */
+.stats[data-narrow] {
+  --pw: calc(var(--ph) * 0.66);
+  padding: 7% 7%;
+}
+
+.stats[data-narrow] .kv {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.stats[data-narrow] .statsHead img {
+  width: 30%;
+}
+
+.stats[data-narrow] .mapHead {
+  flex-wrap: wrap;
+}
+
 .statsHead {
   display: flex;
   align-items: center;
@@ -657,8 +675,15 @@
 
 .map {
   display: grid;
-  grid-template-columns: repeat(auto-fill, calc(var(--pw) * 0.062));
+  grid-template-columns: repeat(auto-fill, var(--mapw, calc(var(--pw) * 0.062)));
   gap: calc(var(--pw) * 0.016);
+  /* never past the page: what doesn't fit scrolls (a long set in small pages) */
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  align-content: start;
+  padding: 3px;
+  scrollbar-width: thin;
 }
 
 .mapPage {

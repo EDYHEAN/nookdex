@@ -85,7 +85,8 @@ export const PER_PAGE = 9;
 export const GRIDS: Record<BinderGrid, { cols: number; rows: number; aspect: number; colW: number }> = {
   9: { cols: 3, rows: 3, aspect: 0.74, colW: 28.5 },
   6: { cols: 2, rows: 3, aspect: 0.52, colW: 41 },
-  4: { cols: 2, rows: 2, aspect: 0.74, colW: 43 },
+  // a little smaller than the page allows: their variant marks fit under them, and the page breathes
+  4: { cols: 2, rows: 2, aspect: 0.74, colW: 37 },
 };
 
 /** A wishlist's wanted cards, by pocket (none for another binder). */

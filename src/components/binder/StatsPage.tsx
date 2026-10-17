@@ -41,7 +41,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
   const filled = (p: Pocket) => (free ? !!p.cardId && !p.wanted : !!(p.cardId && collection[p.cardId]?.length));
 
   return (
-    <div className={styles.stats} style={{ ["--accent" as string]: binder.color }} data-tour="summary">
+    <div className={styles.stats} style={{ ["--accent" as string]: binder.color }} data-tour="summary" data-narrow={binder.grid === 6 || undefined}>
       <div className={styles.statsHead}>
         {binder.logo && <img src={`${binder.logo}.png`} alt="" draggable={false} />}
         <div>
@@ -149,7 +149,9 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
         <p className={styles.mapTitle}>{t("Carte du classeur", "Binder map")}</p>
         <Colors id={binder.id} current={binder.color} />
       </div>
-      <div className={styles.map}>
+      {/* a mini page as wide as its columns: the pockets keep their size whatever the grid, the map its room (smaller on
+          a 6-pocket binder's narrow summary, whose figures take two rows more) */}
+      <div className={styles.map} style={{ ["--mapw" as string]: `calc(var(--pw) * ${(binder.grid === 6 ? 0.0155 : 0.0207) * GRIDS[binder.grid].cols})` }}>
         {pages.map((pockets, i) => {
           const owned = pockets.filter(filled).length;
           return (
