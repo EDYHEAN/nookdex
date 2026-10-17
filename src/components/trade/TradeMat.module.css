@@ -23,7 +23,7 @@
   --get: #9de07a;
   --gold: #ffd35a;
   /* the mat's shape, and the room the title and the button take */
-  --ar: 0.584;
+  --ar: 0.6;
   --chrome: 128px;
   display: flex;
   flex-direction: column;
@@ -65,29 +65,29 @@
   border-color: rgba(244, 236, 220, 0.5);
 }
 
+/* the mat, cut out of its desk (scripts/build-trade-mat.mjs): its shadow follows its painted edge */
 .mat {
   position: relative;
   width: 100%;
   aspect-ratio: var(--ar);
-  border-radius: 3%;
-  background: url(/trade/mat-phone.webp) center / 100% 100%, #2a6460;
-  box-shadow: 10px 14px 0 rgba(10, 6, 16, 0.55);
+  background: url(/trade/mat-phone.webp) center / 100% 100% no-repeat;
+  filter: drop-shadow(10px 14px 0 rgba(10, 6, 16, 0.55));
 }
 
 /* a zone, on its painted frame */
 .zone {
   position: absolute;
-  left: 10.2%;
-  width: 79.6%;
-  height: 36.2%;
+  left: 10.6%;
+  width: 78.9%;
+  height: 37.2%;
 }
 
 .give {
-  top: 5.8%;
+  top: 6%;
 }
 
 .get {
-  top: 55%;
+  top: 56.4%;
 }
 
 .zone header {
@@ -211,8 +211,8 @@
   position: absolute;
   left: 12%;
   right: 12%;
-  /* the verdict under the top zone, the bar on the painted band (48.5 %) */
-  top: 42.6%;
+  /* the verdict under the top zone, the bar on the painted band (49.7 %) */
+  top: 43.8%;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -324,7 +324,7 @@
 /* a wide screen: the mat flat, the zones side by side, the verdict on the band between them */
 @media (min-aspect-ratio: 1/1) and (min-width: 700px) {
   .shell {
-    --ar: 1.782;
+    --ar: 1.778;
     --chrome: 150px;
   }
 
@@ -339,15 +339,15 @@
   .zone {
     top: 8.9%;
     width: 36.6%;
-    height: 82.1%;
+    height: 82.2%;
   }
 
   .give {
-    left: 5%;
+    left: 5.1%;
   }
 
   .get {
-    left: 58.1%;
+    left: 58.3%;
   }
 
   .lay {
@@ -368,8 +368,8 @@
   }
 
   .weigh {
-    left: 41.6%;
-    right: 41.9%;
+    left: 41.7%;
+    right: 41.6%;
     top: 57%;
     height: auto;
   }

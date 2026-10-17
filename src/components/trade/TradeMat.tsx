@@ -57,7 +57,8 @@ export default function TradeMat({ onClose, seed }: { onClose: () => void; seed?
   }, [items, cards]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape" || (e.target as HTMLElement)?.tagName === "INPUT") return;
+      // (even from the search field: Esc closes what is on top)
+      if (e.key !== "Escape") return;
       e.stopPropagation();
       if (editing) setEditing(null);
       else if (adding) setAdding(null);
@@ -226,6 +227,9 @@ function AddSheet({ side, money, onPick, onClose }: { side: Side; money: "EUR" |
   const site = useLang();
   const collection = useStore((s) => s.collection);
   const indexes = useSets((s) => s.index);
+  // the index keeps the scans' addresses short: their common start is apart
+  const assets = useSets((s) => s.assets);
+  const scan = (img: string) => `${img.startsWith("http") ? "" : assets}${img}/low.webp`;
   const [tab, setTab] = useState<"mine" | "all">(side === "give" ? "mine" : "all");
   const [langs, setLangs] = useState<CardLang[]>([site]);
   const [q, setQ] = useState("");
@@ -297,7 +301,7 @@ function AddSheet({ side, money, onPick, onClose }: { side: Side; money: "EUR" |
             const copy = copies?.find((c) => !c.at) ?? copies?.[0];
             return (
               <button key={r.key} className={styles.res} onClick={() => onPick(r, tab === "mine" ? copy : undefined)} onPointerEnter={sfx.hover}>
-                {r.img ? <img src={`${r.img}/low.webp`} alt="" loading="lazy" /> : <span className={styles.noimg} />}
+                {r.img ? <img src={scan(r.img)} alt="" loading="lazy" /> : <span className={styles.noimg} />}
                 <span className={styles.resTxt}>
                   {r.name}
                   <small>
