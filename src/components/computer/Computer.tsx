@@ -15,17 +15,19 @@ import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
 import { AllCards } from "./AllCards";
 import { ImportPokecardex } from "./ImportPokecardex";
+import { openTrade } from "@/lib/trade";
 import styles from "./Computer.module.css";
 import { langLabel, langOfKey } from "@/lib/cardLang";
 import { LANG_COOKIE, currentLang, useLang, useT } from "@/lib/lang";
 
-export type Tab = "home" | "cards" | "wish" | "dupes" | "save";
+export type Tab = "home" | "cards" | "wish" | "dupes" | "trade" | "save";
 
 const TABS: { id: Tab; label: [string, string]; hint: [string, string] }[] = [
   { id: "home", label: ["Accueil", "Home"], hint: ["ta collec en un coup d'œil", "your collection at a glance"] },
   { id: "cards", label: ["Toutes les cartes", "All cards"], hint: ["prix, raretés, extensions…", "prices, rarities, sets…"] },
   { id: "wish", label: ["Wishlist", "Wishlist"], hint: ["les cartes que tu cherches", "the cards you're after"] },
   { id: "dupes", label: ["Doublons", "Duplicates"], hint: ["ce que tu peux échanger", "what you can trade"] },
+  { id: "trade", label: ["Échange", "Trade"], hint: ["en salon : c'est équitable ?", "at a fair: is it fair?"] },
   { id: "save", label: ["Sauvegarde", "Save"], hint: ["compte / exporter", "account / export"] },
 ];
 
@@ -176,6 +178,7 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
                 {tab === "cards" && <AllCards onOpen={onOpenCards} />}
                 {tab === "wish" && <Wishlist entries={entries} onOpen={onOpenBinder} onCopy={copy} say={say} />}
                 {tab === "dupes" && <Dupes entries={entries} onGo={onGoToCard} onCopy={copy} />}
+                {tab === "trade" && <TradeTab />}
                 {tab === "save" && <Save say={say} />}
               </main>
             </div>
@@ -185,6 +188,25 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
         </div>
       </div>
     </motion.div>
+  );
+}
+
+/** « Échange »: what the mat does, and the mat itself (it opens at once: there is nothing else to do in this tab) */
+function TradeTab() {
+  const tr = useT();
+  useEffect(() => openTrade(), []);
+  return (
+    <div className={styles.listTab} style={{ alignItems: "center", justifyContent: "center", textAlign: "center", gap: 16 }}>
+      <p style={{ fontSize: "1.2em", maxWidth: 520 }}>
+        {tr(
+          "En salon ou en brocante : pose ce que tu donnes et ce que tu reçois, le tapis te dit tout de suite si l'échange est équitable.",
+          "At a fair or a meetup: lay what you give and what you get, the mat tells you at once whether the trade is fair.",
+        )}
+      </p>
+      <button className={styles.quit} onClick={() => (sfx.pop(), openTrade())} onPointerEnter={sfx.hover}>
+        ⇄ {tr("Sortir le tapis", "Bring out the mat")}
+      </button>
+    </div>
   );
 }
 
