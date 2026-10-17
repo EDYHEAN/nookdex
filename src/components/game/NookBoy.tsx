@@ -5,7 +5,7 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, PENSION_PAGE, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, type Lang } from "@/lib/game/data";
+import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, type Lang } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
 import { Game, MAX_WAVE, dailyOf, dailyReward, pickX, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
@@ -61,7 +61,6 @@ function readOptions(): Options {
 /** the shell, in game pixels; the screen inside is 320x288 */
 const SHELL_W = 380;
 const SHELL_H = 450;
-const PENSION_PAGES = Math.ceil(PENSION.length / PENSION_PAGE);
 
 const KEYS: Record<string, Button> = {
   ArrowUp: "up", KeyW: "up", ArrowDown: "down", KeyS: "down", ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right",
@@ -102,7 +101,9 @@ export default function NookBoy({ origin, onClose }: Props) {
   const [board, setBoard] = useState(0);
   /** the Pension's screen, open over the menu or the game over: it spends the purse */
   const [pension, setPension] = useState(false);
-  const [pPage, setPPage] = useState(0);
+  /** the Pension's grid scrolls: how many tiles are still out of sight below (its "▼ 6 more" chip) */
+  const pGrid = useRef<HTMLDivElement>(null);
+  const [pMore, setPMore] = useState(0);
   const purse = usePension((s) => s.gold);
   /** the run's gold went back to the purse */
   const settled = useRef(true);
@@ -275,15 +276,21 @@ export default function NookBoy({ origin, onClose }: Props) {
   const openPension = () => {
     gsfx.ok();
     setCursor(0);
-    setPPage(0);
     setPension(true);
   };
-  const turnPension = (page: number) => {
-    gsfx.move();
-    setPPage(page);
-    setCursor(0);
+  const onPensionScroll = () => {
+    const el = pGrid.current;
+    if (!el) return;
+    const bottom = el.scrollTop + el.clientHeight;
+    setPMore([...el.children].filter((c) => (c as HTMLElement).offsetTop + 20 > bottom).length);
   };
-  const pensionTiles = PENSION.slice(pPage * PENSION_PAGE, (pPage + 1) * PENSION_PAGE);
+  // with the keys, the grid follows the cursor; opened, it counts what's below
+  useEffect(() => {
+    if (pension) pGrid.current?.children[cursor]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [pension, cursor]);
+  useEffect(() => {
+    if (pension) onPensionScroll();
+  }, [pension]);
   /** wave 100 reached once: every upgrade gets its 2nd rank */
   const rank2 = bestWave(levels) >= RANK2_WAVE;
   const capOf = (d: (typeof PENSION)[number]) => (rank2 ? pensionMax2(d) : d.max);
@@ -338,22 +345,15 @@ export default function NookBoy({ origin, onClose }: Props) {
     const p = eng.phase;
     if (b === "select") return cyclePalette();
     if (pension) {
-      // the cursor is on the page shown (Back is n); left and right past its ends turn the page
-      const n = pensionTiles.length;
+      const n = PENSION.length;
       if (b === "left" || b === "right") {
-        if (cursor >= n) return;
         gsfx.move();
-        const d = b === "left" ? -1 : 1;
-        if (cursor + d < 0 || cursor + d >= n) {
-          const next = (pPage + d + PENSION_PAGES) % PENSION_PAGES;
-          setPPage(next);
-          setCursor(d < 0 ? Math.min(PENSION_PAGE, PENSION.length - next * PENSION_PAGE) - 1 : 0);
-        } else setCursor(cursor + d);
+        setCursor((c) => (c >= n ? c : (c + (b === "left" ? -1 : 1) + n) % n));
       } else if (b === "up" || b === "down") {
         gsfx.move();
         // a 3-wide grid; below its last row, Done
         setCursor((c) => (b === "down" ? (c >= n ? 1 : c + 3 >= n ? n : c + 3) : c >= n ? Math.max(0, n - 2) : c - 3 < 0 ? n : c - 3));
-      } else if (b === "a" && cursor < n) buyPension(pPage * PENSION_PAGE + cursor);
+      } else if (b === "a" && cursor < n) buyPension(cursor);
       else if (b === "b" || b === "start" || b === "a") {
         gsfx.back();
         setPension(false);
@@ -1074,21 +1074,14 @@ export default function NookBoy({ origin, onClose }: Props) {
     <div className={styles.page}>
       <h2 className={styles.pHead}>
         {t("PENSION", "PENSION")}
-        <span className={styles.pPages}>
-          <button onClick={() => turnPension((pPage + PENSION_PAGES - 1) % PENSION_PAGES)} aria-label={t("Page précédente", "Previous page")}>
-            ◀
-          </button>
-          {pPage + 1}/{PENSION_PAGES}
-          <button onClick={() => turnPension((pPage + 1) % PENSION_PAGES)} aria-label={t("Page suivante", "Next page")}>
-            ▶
-          </button>
-        </span>
         <span className={styles.goldPill}>
           {purse} {t("or", "gold")}
         </span>
       </h2>
-      <div className={styles.pensionGrid}>
-        {pensionTiles.map((d, i) => {
+      {/* one grid that scrolls (Johan, 2026-10-17: pages were easy to miss): faded at the bottom while there's more */}
+      <div className={`${styles.pScroll} ${pMore > 0 ? styles.pScrollMore : ""}`}>
+      <div ref={pGrid} className={styles.pensionGrid} onScroll={onPensionScroll}>
+        {PENSION.map((d, i) => {
           const lv = levels[d.id] ?? 0;
           const cost = pensionCost(d, lv);
           const cap = capOf(d);
@@ -1101,7 +1094,7 @@ export default function NookBoy({ origin, onClose }: Props) {
               key={d.id}
               className={`${styles.pTile} ${i === cursor ? styles.on : ""} ${can || max ? "" : styles.pDim}`}
               onPointerEnter={() => setCursor(i)}
-              onClick={() => buyPension(pPage * PENSION_PAGE + i)}
+              onClick={() => buyPension(i)}
             >
               <span className={styles.pName}>{say(d.name, lang)}</span>
               <span className={styles.pPips}>
@@ -1128,13 +1121,22 @@ export default function NookBoy({ origin, onClose }: Props) {
           );
         })}
       </div>
+      {pMore > 0 && (
+        <button
+          className={styles.pMore}
+          onClick={() => (gsfx.move(), pGrid.current?.scrollBy({ top: pGrid.current.clientHeight * 0.8, behavior: "smooth" }))}
+        >
+          {t(`${pMore} de plus`, `${pMore} more`)}
+        </button>
+      )}
+      </div>
       <div className={styles.pFoot}>
         <p>
           {t("Pour toutes tes parties (sauf le défi du jour). L'or de chaque partie remplit ta bourse.", "For all your runs (but the daily). Each run's gold fills your purse.")}
         </p>
         <button
-          className={cursor >= pensionTiles.length ? styles.on : ""}
-          onPointerEnter={() => setCursor(pensionTiles.length)}
+          className={cursor >= PENSION.length ? styles.on : ""}
+          onPointerEnter={() => setCursor(PENSION.length)}
           onClick={() => (gsfx.back(), setPension(false))}
         >
           {t("Retour", "Back")}

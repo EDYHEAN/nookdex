@@ -436,8 +436,6 @@ export interface PensionDef {
   /** it takes off (damage taken, prices): shown "−4 %" */
   less?: boolean;
 }
-/** the Pension's screen shows its upgrades 9 at a time (a 3x3 page) */
-export const PENSION_PAGE = 9;
 export const PENSION: PensionDef[] = [
   { id: "power", name: ["Entraînement", "Training"], desc: ["+2 % de dégâts", "+2% damage"], max: 10, cost: 30, per: 2, stat: ["dégâts", "damage"], pct: true },
   { id: "hp", name: ["Vitamines", "Vitamins"], desc: ["+4 % de PV max", "+4% max HP"], max: 10, cost: 30, per: 4, stat: ["PV max", "max HP"], pct: true },

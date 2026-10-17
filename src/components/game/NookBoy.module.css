@@ -912,27 +912,6 @@
   gap: 8px;
 }
 
-/* the Pension's pages: ◀ 1/2 ▶ (left and right past a page's ends turn it too) */
-.pPages {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.pPages button {
-  padding: 1px 3px;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-shadow: inherit;
-  cursor: pointer;
-}
-
-.pPages button:hover {
-  color: #ffc93d;
-}
-
 .goldPill {
   padding: 2px 5px 1px;
   border-radius: 3px;
@@ -946,11 +925,87 @@
   background: var(--c3);
 }
 
+/* the Pension's grid scrolls: a fade and a bobbing "▼ 6 more" while there's more below */
+.pScroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .pensionGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   margin-top: 4px;
+  /* room for the tiles' lift and outline when picked */
+  padding: 4px 6px 10px 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #ffc93d color-mix(in srgb, var(--c0) 50%, transparent);
+}
+
+.pensionGrid::-webkit-scrollbar {
+  width: 5px;
+}
+
+.pensionGrid::-webkit-scrollbar-thumb {
+  background: #ffc93d;
+  border-radius: 2px;
+}
+
+.pScrollMore::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 6px;
+  bottom: 0;
+  height: 34px;
+  pointer-events: none;
+  background: linear-gradient(transparent, color-mix(in srgb, var(--c0) 80%, transparent));
+}
+
+.pMore {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: 4px;
+  translate: -50% 0;
+  padding: 3px 7px 2px;
+  border: 0;
+  border-radius: 3px;
+  background: #ffc93d;
+  color: var(--c0);
+  font-size: 7px;
+  white-space: nowrap;
+  box-shadow: 0 0 0 1px var(--c0), 0 2px 0 var(--c0);
+  cursor: pointer;
+  animation: pMoreBob 1s ease-in-out infinite;
+}
+
+/* two little arrows, drawn (the pixel font has no ▼) */
+.pMore::before,
+.pMore::after {
+  content: "";
+  display: inline-block;
+  margin: 0 4px 1px;
+  border: 3px solid transparent;
+  border-top: 4px solid var(--c0);
+  border-bottom: 0;
+}
+
+@keyframes pMoreBob {
+  50% {
+    transform: translateY(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pMore {
+    animation: none;
+  }
 }
 
 .pTile {
