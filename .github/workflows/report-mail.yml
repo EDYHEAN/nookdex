@@ -1,0 +1,27 @@
+# Le mail du rapport de la semaine : quand la routine du lundi pose docs/reports/<date>.html sur main, il part vers
+# contact@nookdex.com via Brevo (expéditeur contact@nookdex.com). Secret : BREVO_API_KEY (la même clé que le site).
+# Lancement à la main (renvoyer le dernier) : onglet « Actions » > « Mail du rapport » > « Run workflow ».
+name: Mail du rapport
+
+on:
+  push:
+    branches: [main]
+    paths: ["docs/reports/20*.html"]
+  workflow_dispatch:
+
+jobs:
+  mail:
+    name: Envoyer le rapport
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Envoyer
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+        run: node scripts/report-mail.mjs

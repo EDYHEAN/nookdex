@@ -461,3 +461,38 @@ revoke all on function public.funnel_stats(date) from public;
 grant execute on function public.funnel_ping(text, text, text, text, text) to anon, authenticated;
 grant execute on function public.funnel_stats(date) to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- The weekly report's accounts (scripts/analytics.mjs, 2026-10-17): counts only, open like player_count.
+-- By day of sign-up: accounts, with a cloud save, back 2 days or more after signing up.
+create or replace function public.growth_stats(p_days integer default 60)
+returns table (day date, accounts bigint, saves bigint, returned bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select u.created_at::date, count(*), count(s.user_id), count(*) filter (where s.updated_at > u.created_at + interval '2 days')
+  from auth.users u left join public.saves s on s.user_id = u.id
+  where u.created_at > now() - make_interval(days => p_days)
+  group by 1
+  order by 1
+$$;
+
+-- Accounts and saves in all, the saves touched in the last 7 and 30 days
+create or replace function public.activity_stats()
+returns table (accounts bigint, saves bigint, active_7d bigint, active_30d bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select (select count(*) from auth.users), count(*),
+    count(*) filter (where s.updated_at > now() - interval '7 days'), count(*) filter (where s.updated_at > now() - interval '30 days')
+  from public.saves s
+$$;
+
+revoke all on function public.growth_stats(integer) from public;
+revoke all on function public.activity_stats() from public;
+grant execute on function public.growth_stats(integer) to anon, authenticated;
+grant execute on function public.activity_stats() to anon, authenticated;
+notify pgrst, 'reload schema';

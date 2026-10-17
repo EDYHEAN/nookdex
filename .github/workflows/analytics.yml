@@ -1,0 +1,39 @@
+# Chaque lundi : les chiffres de la semaine (entonnoir par source, comptes, retours, Search Console) dans
+# docs/reports/data/<date>.json. La routine Claude du lundi les lit et écrit le rapport docs/reports/<date>.md.
+# Secret : GSC_SERVICE_ACCOUNT (la clé JSON du compte de service Search Console, en lecture seule).
+# Lancement à la main : onglet « Actions » > « Chiffres de la semaine » > « Run workflow ».
+name: Chiffres de la semaine
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # le lundi à 6 h UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  chiffres:
+    name: Relever les chiffres
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Relever
+        env:
+          GSC_SERVICE_ACCOUNT: ${{ secrets.GSC_SERVICE_ACCOUNT }}
+        run: node scripts/analytics.mjs
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/reports/data
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Chiffres de la semaine"
+          git push || (git pull --rebase origin main && git push)
