@@ -399,3 +399,65 @@ revoke all on function public.game_submit2(text, integer, integer, integer, inte
 grant execute on function public.game_top2(text, text, date, integer) to anon, authenticated;
 grant execute on function public.game_submit2(text, integer, integer, integer, integer, integer, text, date, integer) to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- The funnel (2026-10-17, lib/funnel.ts): a random id per device (nothing personal), where it first came from, the page
+-- it landed on, the days it came back, the steps it reached. Written by funnel_ping only, read as counts by funnel_stats.
+-- Rows older than 13 months are dropped as new ones come (an audience measure's rule).
+create table if not exists public.funnel (
+  device   text primary key check (length(device) between 8 and 40),
+  source   text,
+  landing  text,
+  lang     text,
+  first_at timestamptz not null default now(),
+  last_at  timestamptz not null default now(),
+  days     integer not null default 1,
+  steps    jsonb not null default '{}'::jsonb
+);
+create index if not exists funnel_first on public.funnel (first_at);
+alter table public.funnel enable row level security;
+revoke all on public.funnel from anon, authenticated;
+
+create or replace function public.funnel_ping(p_device text, p_source text, p_landing text, p_lang text, p_step text default null)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+begin
+  if p_device is null or length(p_device) not between 8 and 40 then return; end if;
+  insert into public.funnel (device, source, landing, lang)
+  values (p_device, left(p_source, 60), left(p_landing, 120), left(p_lang, 5))
+  on conflict (device) do update set
+    days = public.funnel.days + case when public.funnel.last_at::date < now()::date then 1 else 0 end,
+    last_at = now();
+  if p_step in ('profile', 'binder', 'cards10', 'account', 'game') then
+    update public.funnel set steps = steps || jsonb_build_object(p_step, now()) where device = p_device and not steps ? p_step;
+  end if;
+  -- now and then, the rows older than 13 months go
+  if random() < 0.01 then delete from public.funnel where last_at < now() - interval '13 months'; end if;
+end $$;
+
+-- By first source: devices first seen since p_since, and how many reached each step (returned: seen on 2 days or more)
+create or replace function public.funnel_stats(p_since date default null)
+returns table (source text, devices bigint, profile bigint, binder bigint, cards10 bigint, account bigint, game bigint, returned bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(f.source, '?'), count(*),
+    count(*) filter (where f.steps ? 'profile'), count(*) filter (where f.steps ? 'binder'),
+    count(*) filter (where f.steps ? 'cards10'), count(*) filter (where f.steps ? 'account'),
+    count(*) filter (where f.steps ? 'game'), count(*) filter (where f.days >= 2)
+  from public.funnel f
+  where p_since is null or f.first_at >= p_since
+  group by 1
+  order by 2 desc
+$$;
+
+revoke all on function public.funnel_ping(text, text, text, text, text) from public;
+revoke all on function public.funnel_stats(date) from public;
+grant execute on function public.funnel_ping(text, text, text, text, text) to anon, authenticated;
+grant execute on function public.funnel_stats(date) to anon, authenticated;
+notify pgrst, 'reload schema';

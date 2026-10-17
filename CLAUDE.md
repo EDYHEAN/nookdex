@@ -103,6 +103,13 @@ doesn't show.
 - Players count: SQL function `player_count()` (docs/supabase.sql, security definer, returns the number only), read by
   `lib/players` for the loader's tagline (rounded down to tens, cached 1 h, hidden under 50) and by the welcome
   (`usePlayers`, exact). If the function is missing, nothing shows.
+- Funnel (`lib/funnel.ts`, 2026-10-17: since the welcome asks no account, the players without one were invisible): a
+  random id per device (localStorage `nookdex:device`, redrawn after 13 months), its first source (utm_source, else the
+  referrer's site by one name: instagram, linkedin, google…, else "direct"; a player from before it: "existing"), its
+  landing page, the days it came back and its steps (profile, binder, cards10, account, game). Supabase `funnel` behind
+  `funnel_ping` (writes) and `funnel_stats(since)` (counts by source), docs/supabase.sql; production on nookdex.com only.
+  Nothing personal, nothing tied to the account (/confidentialite says so). Vercel Analytics' referrers (Johan's dashboard,
+  no API) give the visits; this gives what they do.
 - Auth e-mails go through Brevo SMTP as `contact@nookdex.com`; their templates are `docs/emails/*.html` (pasted in
   Supabase → Authentication → Emails → Templates).
 

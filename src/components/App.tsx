@@ -12,6 +12,7 @@ import { setMuted, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
 import { useTrophyWatch } from "@/lib/useTrophyWatch";
+import { funnelStep, funnelVisit } from "@/lib/funnel";
 import { isCompact, useViewport } from "@/lib/useViewport";
 import { BinderView } from "./binder/BinderView";
 import { Inspector } from "./binder/Inspector";
@@ -84,6 +85,15 @@ export function App() {
   const [revealed, setRevealed] = useState(false);
   const profile = useStore((s) => s.profile);
   const cloud = useCloud();
+  // the funnel (lib/funnel): a visit a day, and each step the first time it's reached
+  const binderCount = useStore((s) => s.binders.length);
+  const copyCount = useStore((s) => Object.values(s.collection).reduce((n, c) => n + c.length, 0));
+  useEffect(funnelVisit, []);
+  useEffect(() => void (profile && funnelStep("profile")), [profile]);
+  useEffect(() => void (binderCount && funnelStep("binder")), [binderCount]);
+  useEffect(() => void (copyCount >= 10 && funnelStep("cards10")), [copyCount]);
+  useEffect(() => void (cloud.email && funnelStep("account")), [cloud.email]);
+  useEffect(() => void (game && funnelStep("game")), [game]);
   // the skins this account bought, read again on each sign-in
   useEffect(() => {
     if (shopOpen && cloud.email) void refreshOwned();
