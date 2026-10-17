@@ -143,6 +143,16 @@ doesn't show.
   or deleted. "Je l'ai !" offers the box when the card's set has no binder on the shelf. Planned use: the Pokécardex
   import's small sets.
 
+## The trade mat
+
+- NookDex OS → « Échange », or « ⇄ Échanger » on the sheet of a card owned (that card on the player's side): a playmat over
+  nearly the whole screen (`trade/TradeMat`, `lib/trade`, opened through `openTrade`), Gemini's painting cut out by
+  `scripts/build-trade-mat.mjs` (the zones are placed in % of it: measure again if the picture changes). « Je donne » /
+  « Je reçois », one bar telling which way the trade leans (±5 %: fair). A card's value: its trend less an estimate for its
+  condition (EX −15 % … PO −70 %: Cardmarket gives one price), or the price typed for a graded card (no source gives
+  PSA prices). « Échange accepté » takes the given copies out and puts the received ones in (kept by their set). The mat
+  is kept in localStorage `nookdex:trade` (a phone killing the tab at a fair).
+
 ## Wishlists
 
 - A wishlist is a free binder with `wish: true` (shelf label "★ name", the picker's "★ Wishlist" tab, not offered for the
