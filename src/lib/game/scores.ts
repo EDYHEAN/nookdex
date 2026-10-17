@@ -13,6 +13,8 @@ export interface Score {
   starter: number;
   seconds: number;
   created_at: string;
+  /** the start tier's wave (game_top2 v4), 1 from the start */
+  start?: number;
 }
 
 export type Period = "season" | "day" | "all";
@@ -53,7 +55,7 @@ export async function submitScore(name: string, run: RunStats): Promise<number |
     localStorage.setItem(NAME_KEY, name);
   } catch {}
   const args = { p_name: name, p_wave: run.wave, p_kills: run.kills, p_level: run.level, p_starter: run.starter, p_seconds: run.seconds };
-  const { data, error } = await supabase.rpc("game_submit2", { ...args, p_mode: run.mode, p_day: run.day ?? null });
+  const { data, error } = await supabase.rpc("game_submit2", { ...args, p_mode: run.mode, p_day: run.day ?? null, p_start: run.start });
   if (!error) return data as number;
   if (run.mode !== "classic") return null;
   const old = await supabase.rpc("game_submit", args);

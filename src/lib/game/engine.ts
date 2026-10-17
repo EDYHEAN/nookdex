@@ -22,6 +22,15 @@ export const BEYOND = 100;
 const GIGA_HP = 9000;
 /** a wild Pokémon's damage past wave 100: this much more of its base a wave */
 const BEYOND_DMG = 0.3;
+/**
+ * The start tiers (Johan, 2026-10-17: not the first 50 waves all over again): a classic or coop run may start at a tier
+ * reached before (its wave, its boss), the Pokémon at about the level a run has there, evolved, and a draft of cards to
+ * pick first. A draft of tier ÷ 5 left it far behind a played run (40-odd cards by wave 50); tuned with a bot (2026-10-17)
+ * so a start lands a bit behind a run played that far, the 48 cards a full build and its evolutions take.
+ */
+export const TIERS = [25, 50, 75, 100, 125, 150, 175];
+export const tierLevel = (tier: number) => Math.round(1.6 * tier);
+export const tierPicks = (tier: number) => Math.min(48, Math.round(0.45 * tier));
 /** the daily challenge's Pokémon won with (dex of their first form), for "defi-week": per device */
 const DEFI_WINS_KEY = "nookdex:defi-wins";
 
@@ -31,6 +40,8 @@ export interface RunSetup {
   perm: Partial<Record<PensionId, number>>;
   daily?: { day: string; mod: DailyMod; starter: number; target: number };
   defi?: Defi;
+  /** a start tier's wave (classic and coop), else from wave 1 */
+  start?: number;
 }
 
 /** the day's challenge: the same starter and rule for everyone (UTC day) */
@@ -100,7 +111,10 @@ export interface RunStats {
   wave: number;
   kills: number;
   level: number;
+  /** on the run's clock, which starts at a start tier's wave: the skipped waves count (the ladder's time check) */
   seconds: number;
+  /** the start tier's wave, else 1 */
+  start: number;
   starter: number;
   dex: number;
   /** the second player's Pokémon, in coop */
@@ -596,6 +610,8 @@ export class Game {
   private treasureAt = -1;
   /** past wave 100: the next titan's wait, and the wave its banner was shown */
   private titanT = 0;
+  /** the run's clock at its start: 0, or a start tier's (the draft's cards are picked then) */
+  startAt = 0;
   private titanWave = 0;
   /** the daily challenge: the wave's foes still to come, the next group's wait, the pause between two waves */
   private defiLeft = 0;
@@ -750,6 +766,10 @@ export class Game {
       time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1, titanT: 4, titanWave: 0,
       bossAlive: null, breakAt: 0, shake: 0, flash: 0, dyingT: 0, defiLeft: setup.defi ? DEFI_QUOTA[0] : 0, defiGroupT: 1, defiGap: 0, defiTitans: 0, endAt: 0,
     });
+    // a start tier: the run's clock starts at its wave (whose boss waits, frozen, while the draft is picked)
+    const from = setup.daily || setup.defi ? 1 : (setup.start ?? 1);
+    this.startAt = (from - 1) * WAVE_SECONDS;
+    if (from > 1) this.time = this.startAt;
     // the daily is the same for all: its own starter, never a reward one
     const picks = setup.daily
       ? [STARTERS[setup.daily.starter]]
@@ -766,15 +786,23 @@ export class Game {
       p.revives = this.perm("revive");
       // the Pension's backpack: cards to pick before the first foe
       p.pendingLevels = this.perm("pack");
+      if (from > 1) {
+        // a start tier: its level, evolved as far as that level goes, and its draft
+        p.level = tierLevel(from);
+        while (s.evolves[p.stage] && p.level >= s.evolves[p.stage][1]) p.dex = s.evolves[p.stage++][0];
+        p.pendingLevels += tierPicks(from);
+      }
       p.maxHp = this.computeMaxHp();
       p.hp = p.maxHp;
       return p;
     });
     this.cur = this.players[0];
+    music.boss(false);
     if (setup.defi) this.showBanner(this.tr(`VAGUE 1/${DEFI_WAVES}`, `WAVE 1/${DEFI_WAVES}`), this.tr(setup.defi.d.theme[0], setup.defi.d.theme[1]));
+    // its boss and its music come with it
+    else if (from > 1) this.newWave(from);
     else this.showBanner(this.tr("VAGUE 1", "WAVE 1"), this.tr("des Pokémon sauvages approchent", "wild Pokémon are coming"));
     gsfx.waveStart();
-    music.boss(false);
     this.set("play");
     if (this.cur.pendingLevels > 0) this.offerChoices();
   }
@@ -1147,7 +1175,7 @@ export class Game {
     const met = !!daily && this.wave >= daily.target;
     this.lastStats = {
       mode: this.setup.mode, day: daily?.day ?? this.setup.defi?.day, gold: this.gold, dailyBonus: daily ? dailyReward(this.wave, met) : 0, dailyWon: met, won,
-      wave: this.setup.defi && won ? DEFI_WAVES + 1 : this.wave, kills: this.kills, level: Math.max(...this.players.map((p) => p.level)), seconds: Math.floor(this.time),
+      wave: this.setup.defi && won ? DEFI_WAVES + 1 : this.wave, kills: this.kills, level: Math.max(...this.players.map((p) => p.level)), seconds: Math.floor(this.time), start: (this.setup.start ?? 1) > 1 && !this.setup.daily && !this.setup.defi ? this.setup.start! : 1,
       starter: this.players[0].starter.dex, dex: this.players[0].dex, dex2: this.players[1]?.dex,
     };
     music.stop();

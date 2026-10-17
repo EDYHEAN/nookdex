@@ -7,7 +7,7 @@ import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, type Lang } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
-import { Game, MAX_WAVE, dailyOf, dailyReward, pickX, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
+import { Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickX, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
 import { lastName, myRewards, submitScore, topScores, type Period, type Score } from "@/lib/game/scores";
@@ -111,6 +111,8 @@ export default function NookBoy({ origin, onClose }: Props) {
   /** picking the starters: solo, or coop (P1's pick kept while P2 chooses) */
   const [selectMode, setSelectMode] = useState<"classic" | "coop">("classic");
   const [coopFirst, setCoopFirst] = useState<number | null>(null);
+  /** the start tier picked on the starter screen (1: from the start), kept from run to run */
+  const [tier, setTier] = useState(1);
   const levels = usePension((s) => s.levels);
   const dailyPaid = usePension((s) => s.dailyPaid);
   /** this run's daily bonus went to the Pension */
@@ -240,10 +242,11 @@ export default function NookBoy({ origin, onClose }: Props) {
     unlock("game-first");
     settled.current = false;
     const st = usePension.getState();
-    if (mode === "daily" && defiNow()) g.start(0, { mode: "defi", perm: {}, defi: defiOf(today()) });
-    else if (mode === "daily") g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()) });
-    else if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: st.levels }, g.selected);
-    else g.start(g.selected, { mode: "classic", perm: st.levels });
+    if (mode === "daily" && defiNow()) return g.start(0, { mode: "defi", perm: {}, defi: defiOf(today()) });
+    if (mode === "daily") return g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()) });
+    const start = tiers.includes(tier) ? tier : 1;
+    if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: st.levels, start }, g.selected);
+    else g.start(g.selected, { mode: "classic", perm: st.levels, start });
   };
   /**
    * The run's gold goes to the purse (the Pension's money: a run starts with none), once: at the game over, or when the
@@ -293,6 +296,9 @@ export default function NookBoy({ origin, onClose }: Props) {
   }, [pension]);
   /** wave 100 reached once: every upgrade gets its 2nd rank */
   const rank2 = bestWave(levels) >= RANK2_WAVE;
+  /** the start tiers reached (1 = from the start), and the next one: shown locked, something to aim at */
+  const tiers = [1, ...TIERS.filter((w) => bestWave(levels) >= w)];
+  const nextTier = TIERS.find((w) => bestWave(levels) < w);
   const capOf = (d: (typeof PENSION)[number]) => (rank2 ? pensionMax2(d) : d.max);
   const buyPension = (i: number) => {
     const d = PENSION[i];
@@ -423,7 +429,11 @@ export default function NookBoy({ origin, onClose }: Props) {
       return;
     }
     if (p === "select") {
-      if (b === "left" || b === "right") {
+      if ((b === "up" || b === "down") && tiers.length > 1) {
+        gsfx.move();
+        const k = Math.max(0, tiers.indexOf(tier));
+        setTier(tiers[(k + (b === "up" ? -1 : 1) + tiers.length) % tiers.length]);
+      } else if (b === "left" || b === "right") {
         gsfx.move();
         eng.select(eng.selected + (b === "left" ? -1 : 1));
       } else if ((b === "a" || b === "start") && selectMode === "coop" && coopFirst == null) {
@@ -812,10 +822,31 @@ export default function NookBoy({ origin, onClose }: Props) {
               {s.evolves.map(([d, l]) => `${nameOf(d)} (${t("N.", "lv")}${l})`).join(", ")}
             </p>
           </div>
+          {/* where the run starts: the tiers reached, the next one locked (shown once the player is getting there) */}
+          {(tiers.length > 1 || bestWave(levels) >= 15) && (
+            <div className={styles.tiers}>
+              <span className={styles.tierLabel}>{t("DÉPART", "START")}</span>
+              {tiers.map((w) => (
+                <button key={w} className={w === tier ? styles.on : ""} onClick={() => w !== tier && (gsfx.move(), setTier(w))}>
+                  {t("V", "W")}
+                  {w}
+                </button>
+              ))}
+              {nextTier && <span className={styles.tierLock}>🔒 {t("V", "W")}{nextTier}</span>}
+              {tier > 1 && (
+                <span className={styles.tierInfo}>
+                  {t("N.", "lv")}
+                  {tierLevel(tier)} · {tierPicks(tier)} {t("cartes", "cards")}
+                </span>
+              )}
+            </div>
+          )}
           <p className={styles.keys}>
             {selectMode === "coop"
               ? t("J1 : ZQSD + souris · J2 : flèches · Entrée : valider", "P1: WASD + mouse · P2: arrows · Enter: confirm")
-              : t("◂ ▸ choisir · Entrée : c'est parti !", "◂ ▸ choose · Enter: let's go!")}
+              : tiers.length > 1
+                ? t("◂ ▸ Pokémon · ▴ ▾ départ · Entrée : go !", "◂ ▸ Pokémon · ▴ ▾ start · Enter: go!")
+                : t("◂ ▸ choisir · Entrée : c'est parti !", "◂ ▸ choose · Enter: let's go!")}
           </p>
         </div>
       );
@@ -825,7 +856,11 @@ export default function NookBoy({ origin, onClose }: Props) {
         <div className={styles.level}>
           <h2>
             {/* before the first second: the Pension's backpack */}
-            {g.time === 0 ? t("SAC À DOS !", "BACKPACK!") : `${t("NIVEAU", "LEVEL")} ${g.level - g.pendingLevels + 1} !`}
+            {g.time !== g.startAt
+              ? `${t("NIVEAU", "LEVEL")} ${g.level - g.pendingLevels + 1} !`
+              : g.startAt > 0
+                ? t(`DÉPART · ENCORE ${g.pendingLevels}`, `HEAD START · ${g.pendingLevels} LEFT`)
+                : t("SAC À DOS !", "BACKPACK!")}
           </h2>
           <div className={styles.cards}>
             {g.choices.map((c, i) => {
@@ -994,7 +1029,8 @@ export default function NookBoy({ origin, onClose }: Props) {
             <p>
               <span>{t("Temps", "Time")}</span>
               <b>
-                {Math.floor(run.seconds / 60)}:{String(run.seconds % 60).padStart(2, "0")}
+                {/* the time played: a start tier's skipped waves are on the run's clock, not on the player's */}
+                {fmtTime(run.seconds - (run.start - 1) * 30)}
               </b>
             </p>
             <p>
@@ -1329,6 +1365,7 @@ function Ladder(props: { rows: Score[] | null | "loading"; nameOf: (d: number) =
           ) : (
             <>
               <span className={styles.lWave}>
+                {(r.start ?? 1) > 1 && <i className={styles.lStart}>↱{r.start}</i>}
                 {t("V.", "W")}
                 {r.wave}
               </span>

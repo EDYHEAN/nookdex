@@ -662,8 +662,15 @@
 
 .lWave {
   flex: none;
-  width: 44px;
+  min-width: 44px;
   text-align: right;
+}
+
+/* a run from a start tier: its wave, small, before the one reached */
+.lStart {
+  margin-right: 3px;
+  font-style: normal;
+  opacity: 0.6;
 }
 
 /* up to "99999 KO" on one line */
@@ -726,6 +733,52 @@
   to {
     transform: translateY(3px);
   }
+}
+
+/* the start tiers, between the starters and their card: V1 V25 V50 🔒V75 (a tier reached, the next one to aim at) */
+.tiers {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 142px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font: 7px/1 var(--font-press), monospace;
+  color: var(--c3);
+  text-shadow: 1px 1px var(--c0);
+}
+
+.tiers button {
+  padding: 3px 4px 2px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--c2);
+  color: var(--c0);
+  font: inherit;
+  text-shadow: none;
+  box-shadow: 0 0 0 1px var(--c0);
+  cursor: pointer;
+}
+
+.tiers button.on {
+  background: #ffc93d;
+  box-shadow: 0 0 0 1px var(--c0), 0 2px 0 var(--c0);
+  translate: 0 -1px;
+}
+
+.tierLabel {
+  margin-right: 2px;
+}
+
+.tierLock {
+  opacity: 0.6;
+}
+
+.tierInfo {
+  margin-left: 3px;
+  font: 11px/1 var(--font-vt), monospace;
 }
 
 .starter {
