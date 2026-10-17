@@ -7,6 +7,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     // /studio stays crawlable on purpose: its noindex is only seen if Google may read the page
     rules: { userAgent: "*", allow: "/" },
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    // the site, then the card pages (app/cartes/sitemap.ts)
+    sitemap: [`${SITE_URL}/sitemap.xml`, `${SITE_URL}/cartes/sitemap/fr.xml`, `${SITE_URL}/cartes/sitemap/en.xml`],
   };
 }

@@ -28,11 +28,29 @@ export function setFile(lang: CardLang, id: string): Promise<SetData | null> {
   return files.get(file)!;
 }
 
-async function load(file: string, url: string): Promise<SetData | null> {
-  if (fs.existsSync(file)) return JSON.parse(await fs.promises.readFile(file, "utf8")) as SetData;
+const others = new Map<string, Promise<unknown>>();
+
+/**
+ * Another file of public/ the same way (a set's price history, the search index): from disk, else from the site. Parts
+ * of its path, e.g. ["history", "fr", "sv08.json"].
+ */
+export function publicJson<T>(...parts: string[]): Promise<T | null> {
+  const file = path.join(process.cwd(), "public", ...parts);
+  if (!others.has(file) || process.env.NODE_ENV !== "production") {
+    const read = load(file, parts.join("/"));
+    others.set(file, read);
+    void read.then((d) => {
+      if (!d && others.get(file) === read) others.delete(file);
+    });
+  }
+  return others.get(file) as Promise<T | null>;
+}
+
+async function load<T = SetData>(file: string, url: string): Promise<T | null> {
+  if (fs.existsSync(file)) return JSON.parse(await fs.promises.readFile(file, "utf8")) as T;
   try {
     const r = await fetch(`${SITE_URL}/${url}`, { cache: "no-store", signal: AbortSignal.timeout(8000) });
-    return r.ok ? ((await r.json()) as SetData) : null;
+    return r.ok ? ((await r.json()) as T) : null;
   } catch {
     return null;
   }
