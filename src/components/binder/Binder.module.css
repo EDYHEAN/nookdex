@@ -29,8 +29,8 @@
 }
 
 /* the remove choice hangs below the header, over the binder: its leaves are stacked up to one z-index a page (and the
-   corners at 300), lift the header above them all while it's open */
-.title:has([aria-expanded="true"]) {
+   corners at 300), lift the header above them all while it's open (« J'ai tout »'s undo strip too, while it shows) */
+.title:has([aria-expanded="true"], [data-lift]) {
   z-index: 1000;
 }
 
@@ -766,6 +766,140 @@
   from {
     transform: scale(0.6) rotate(3deg);
     opacity: 0;
+  }
+}
+
+/* « J'ai tout ✓ » (FillSet): two big tiles, the full set and the master set, then a strip to undo it */
+.fillWrap {
+  position: relative;
+}
+
+.fillBtn {
+  background: #9de07a;
+}
+
+.fillAsk {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 3px var(--ink),
+    5px 6px 0 2px rgba(20, 12, 28, 0.4);
+  animation: askIn 0.22s cubic-bezier(0.34, 1.6, 0.5, 1);
+  transform-origin: top right;
+}
+
+.fillTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 170px;
+  padding: 12px 10px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: #e7f6dc;
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  line-height: 1.1;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px var(--ink), 0 4px 0 2px var(--ink);
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.fillMaster {
+  background: #f3e6ff;
+}
+
+.fillTile:hover:not(:disabled) {
+  transform: translateY(-3px) rotate(-1deg);
+}
+
+.fillTile:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.fillName {
+  font-size: 18px;
+}
+
+.fillNum {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.fillWhat {
+  opacity: 0.75;
+}
+
+.fillWorth {
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #ffd35a;
+  font-size: 16px;
+}
+
+.fillDone {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  padding: 6px 8px 6px 12px;
+  border-radius: 8px;
+  background: #9de07a;
+  color: var(--ink);
+  font-size: 18px;
+  box-shadow: 0 0 0 3px var(--ink), 4px 5px 0 1px rgba(20, 12, 28, 0.4);
+  animation: askIn 0.22s cubic-bezier(0.34, 1.6, 0.5, 1);
+  transform-origin: top right;
+}
+
+.fillDone button {
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+/* a phone: the button sits at the header's left, so the tiles come centred under it, side by side */
+@media (max-width: 700px) {
+  .fillAsk,
+  .fillDone {
+    position: fixed;
+    top: 64px;
+    right: auto;
+    left: 50%;
+    translate: -50% 0;
+    transform-origin: top center;
+  }
+
+  .fillTile {
+    width: 150px;
+    font-size: 15px;
+  }
+
+  .fillNum {
+    font-size: 36px;
   }
 }
 

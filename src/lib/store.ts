@@ -137,6 +137,13 @@ interface State {
   addCopy: (cardId: string, variant: Variant) => void;
   updateCopy: (cardId: string, copyId: string, patch: Partial<Omit<Copy, "id">>) => void;
   removeCopy: (cardId: string, copyId: string) => void;
+  /**
+   * « J'ai tout » in a set binder: a copy for each card (or version) missing, kept by its set. Returns the copies added,
+   * for its undo.
+   */
+  fillSet: (items: { cardId: string; variant: Variant }[]) => { cardId: string; copyId: string }[];
+  /** Takes back the copies a fillSet added. */
+  removeCopies: (items: { cardId: string; copyId: string }[]) => void;
   importBackup: (backup: Backup) => void;
   /**
    * Copies from another site's export (lib/pokecardex), kept by their set (no pocket): a card and variant already owned
@@ -270,6 +277,20 @@ export const useStore = create<State>()(
         })),
       removeCopy: (cardId, copyId) =>
         set((s) => ({ collection: filterCopies(s.collection, (c, id) => id !== cardId || c.id !== copyId) })),
+      fillSet: (items) => {
+        const added = items.map(({ cardId, variant }) => ({ cardId, copy: newCopy(variant) }));
+        set((s) => {
+          const collection = { ...s.collection };
+          for (const { cardId, copy } of added) collection[cardId] = [...(collection[cardId] ?? []), copy];
+          return { collection };
+        });
+        return added.map(({ cardId, copy }) => ({ cardId, copyId: copy.id }));
+      },
+      removeCopies: (items) =>
+        set((s) => {
+          const gone = new Set(items.map((i) => `${i.cardId}|${i.copyId}`));
+          return { collection: filterCopies(s.collection, (c, id) => !gone.has(`${id}|${c.id}`)) };
+        }),
       importCopies: (items) => {
         // the file's copies, by card and variant (one line per condition)
         const want = new Map<string, typeof items>();
