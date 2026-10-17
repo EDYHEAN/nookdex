@@ -2,7 +2,7 @@
 
 import { AnimatePresence, animate, motion, useMotionValue, useTransform } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { PER_PAGE, freeHomes, freePageCount, pocketsOf, wantsOf, type Pocket } from "@/lib/binders";
+import { GRIDS, freeHomes, freePageCount, pocketsOf, wantsOf, type Pocket } from "@/lib/binders";
 import { loadSet, setIdOfCard, useSets } from "@/lib/catalog";
 import { cardTier, copiesTotals, formatMoney, setStats, unitPrice, type Tier } from "@/lib/price";
 import { sortCards } from "@/lib/rarity";
@@ -39,7 +39,6 @@ interface Props {
   onCover?: (covering: boolean) => void;
 }
 
-const ASPECT = 0.74; // page width / height for a 3x3 pocket page
 const SCROLL_GAP = 14; // phone: space between two pages of the column
 
 export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }: Props) {
@@ -54,18 +53,32 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   const single = isCompact(vp);
   const titleH = single ? 64 : 58;
   const navH = single ? 70 : 64;
+  /** pockets a page, and its shape */
+  const grid = GRIDS[binder.grid];
+  const PER_PAGE = binder.grid;
 
   const { pageW, pageH, gap } = useMemo(() => {
     const maxH = vp.h - titleH - navH - 16;
     const maxW = single ? vp.w - 24 : (vp.w - 120) / 2.08;
-    const ph = Math.max(200, Math.min(maxH, maxW / ASPECT));
-    const pw = ph * ASPECT;
-    return { pageW: Math.round(pw), pageH: Math.round(ph), gap: single ? 0 : Math.round(pw * 0.08) };
-  }, [vp.w, vp.h, single, titleH, navH]);
+    const ph = Math.max(200, Math.min(maxH, maxW / grid.aspect));
+    const pw = ph * grid.aspect;
+    // the rings' gap as for a 9-pocket page: a narrower page keeps the same binder
+    return { pageW: Math.round(pw), pageH: Math.round(ph), gap: single ? 0 : Math.round(ph * 0.74 * 0.08) };
+  }, [vp.w, vp.h, single, titleH, navH, grid.aspect]);
 
   const collection = useStore((s) => s.collection);
   /** the "show my binder" sheet (set binders) */
   const [sharing, setSharing] = useState(false);
+  /** the grid just changed: the cards are dealt again (not at each page turn) */
+  const [dealing, setDealing] = useState(false);
+  const lastGrid = useRef(binder.grid);
+  useEffect(() => {
+    if (lastGrid.current === binder.grid) return;
+    lastGrid.current = binder.grid;
+    setDealing(true);
+    const t = setTimeout(() => setDealing(false), 900);
+    return () => clearTimeout(t);
+  }, [binder.grid]);
   const userBinders = useStore((s) => s.binders);
   const addCard = useStore((s) => s.addCard);
   const placeCard = useStore((s) => s.placeCard);
@@ -77,7 +90,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   const pages = useMemo(() => {
     const out: Pocket[][] = [];
     if (pockets) {
-      const n = freePageCount(new Map<number, unknown>([...wants, ...pockets]));
+      const n = freePageCount(new Map<number, unknown>([...wants, ...pockets]), PER_PAGE);
       for (let pg = 0; pg < n; pg++) {
         out.push(
           Array.from({ length: PER_PAGE }, (_, k) => {
@@ -94,7 +107,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
     for (let i = 0; i < cards.length; i += PER_PAGE)
       out.push(cards.slice(i, i + PER_PAGE).map((card, k) => ({ index: i + k, cardId: card.id, card })));
     return out;
-  }, [pockets, wants, set, cardData, binder.sort]);
+  }, [pockets, wants, set, cardData, binder.sort, PER_PAGE]);
 
   // Cards slipped in a free binder from a set that isn't downloaded yet.
   useEffect(() => {
@@ -305,7 +318,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [phase, focusCardId, pages, jumpToPage]);
+  }, [phase, focusCardId, pages, jumpToPage, PER_PAGE]);
 
   // Search from the summary page: same riffle and pulse.
   const focusTimer = useRef<number | null>(null);
@@ -316,7 +329,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
       if (focusTimer.current) clearTimeout(focusTimer.current);
       focusTimer.current = window.setTimeout(() => setFocused((f) => (f === pocket ? null : f)), 3500);
     },
-    [jumpToPage],
+    [jumpToPage, PER_PAGE],
   );
 
   // keyboard + wheel
@@ -466,7 +479,8 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
     if (face.type === "blank") return <div className={styles.sheet} />;
     return (
       <div className={styles.sheet} data-side={side}>
-        <div className={styles.grid}>
+        {/* a new grid deals the cards again (keyed by it) */}
+        <div key={binder.grid} className={`${styles.grid} ${dealing ? styles.dealing : ""}`} style={{ gridTemplateColumns: `repeat(${grid.cols}, ${grid.colW}%)` }}>
           {near &&
             pages[face.index].map((p) =>
               p.card && p.wanted ? (

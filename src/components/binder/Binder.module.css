@@ -325,6 +325,53 @@
   align-content: space-evenly;
 }
 
+/* another grid picked: the cards are dealt into their new pockets, one after the other */
+.dealing > * {
+  animation: deal 0.45s cubic-bezier(0.34, 1.5, 0.5, 1) both;
+}
+
+.dealing > :nth-child(2) { animation-delay: 0.04s; }
+.dealing > :nth-child(3) { animation-delay: 0.08s; }
+.dealing > :nth-child(4) { animation-delay: 0.12s; }
+.dealing > :nth-child(5) { animation-delay: 0.16s; }
+.dealing > :nth-child(6) { animation-delay: 0.2s; }
+.dealing > :nth-child(7) { animation-delay: 0.24s; }
+.dealing > :nth-child(8) { animation-delay: 0.28s; }
+.dealing > :nth-child(9) { animation-delay: 0.32s; }
+
+@keyframes deal {
+  from {
+    opacity: 0;
+    transform: translate(-30%, -40%) rotate(-8deg) scale(0.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dealing > * {
+    animation: none;
+  }
+}
+
+/* "Par page": each chip a little drawing of its page */
+.gridChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.gridIcon {
+  display: inline-grid;
+  gap: 1px;
+  width: 0.75em;
+}
+
+.gridIcon b {
+  aspect-ratio: 0.72;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
 .pageNum {
   position: absolute;
   bottom: 0.8%;
@@ -469,7 +516,8 @@
 .stats {
   position: absolute;
   inset: 0;
-  padding: 7% 8%;
+  /* less paper under the prices' date: room for the binder map */
+  padding: 7% 8% 3.5%;
   display: flex;
   flex-direction: column;
   gap: calc(var(--ph) * 0.018);
@@ -481,6 +529,24 @@
   color: var(--ink);
   font-size: calc(var(--pw) * 0.045);
   line-height: 1.1;
+}
+
+/* a 6-pocket binder: its narrow summary page keeps the type of a normal one, laid out to fit (2 columns of figures) */
+.stats[data-narrow] {
+  --pw: calc(var(--ph) * 0.66);
+  padding: 7% 7%;
+}
+
+.stats[data-narrow] .kv {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.stats[data-narrow] .statsHead img {
+  width: 30%;
+}
+
+.stats[data-narrow] .mapHead {
+  flex-wrap: wrap;
 }
 
 .statsHead {
@@ -610,8 +676,15 @@
 
 .map {
   display: grid;
-  grid-template-columns: repeat(auto-fill, calc(var(--pw) * 0.062));
+  grid-template-columns: repeat(auto-fill, var(--mapw, calc(var(--pw) * 0.062)));
+  align-items: start;
   gap: calc(var(--pw) * 0.016);
+  /* the room left on the page: its mini pages as wide as fits every one of them (useMapTile), never a scroll */
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  align-content: start;
+  padding: 3px;
 }
 
 .mapPage {

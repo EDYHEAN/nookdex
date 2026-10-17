@@ -1,7 +1,7 @@
 import { bareId, langOfKey } from "./cardLang";
 import { catalogSet, setIdOfCard } from "./catalog";
 import { SCENE } from "./scene";
-import type { BinderDef, CardData, Copy, UserBinder } from "./types";
+import type { BinderDef, BinderGrid, CardData, Copy, UserBinder } from "./types";
 
 /** Binder colors, picked on the binders painted in the first version of the room. */
 export const BINDER_COLORS = [
@@ -46,7 +46,7 @@ const light = (hex: string) => {
 export function shelfBinders(binders: UserBinder[]): BinderDef[] {
   return binders.slice(0, MAX_BINDERS).map((b, i) => {
     const color = b.color ?? BINDER_COLORS[i % BINDER_COLORS.length];
-    const paint = { slot: i % SHELF_SLOTS, page: Math.floor(i / SHELF_SLOTS), color, dark: shade(color, -0.48), ink: light(color) ? "#241c26" : "#fff3e6", sort: b.sort ?? "num" };
+    const paint = { slot: i % SHELF_SLOTS, page: Math.floor(i / SHELF_SLOTS), color, dark: shade(color, -0.48), ink: light(color) ? "#241c26" : "#fff3e6", sort: b.sort ?? "num", grid: b.grid ?? 9 };
     if (b.kind === "free") {
       const wish = !!b.wish;
       return { ...paint, id: b.id, kind: "free", wish, wants: b.wants ?? {}, code: wish ? "WISH" : "LIBRE", name: b.name, logo: null, setId: null, lang: null };
@@ -77,6 +77,17 @@ export function pocketsOf(binderId: string, collection: Record<string, Copy[]>) 
 }
 
 export const PER_PAGE = 9;
+
+/**
+ * A page's pockets: columns, rows, the page's width / height and a pocket's share of its width. The cards keep their
+ * size from 9 to 6 (a narrower page, like a real 6-pocket binder); 4 makes them bigger on the same page.
+ */
+export const GRIDS: Record<BinderGrid, { cols: number; rows: number; aspect: number; colW: number }> = {
+  9: { cols: 3, rows: 3, aspect: 0.74, colW: 28.5 },
+  6: { cols: 2, rows: 3, aspect: 0.52, colW: 41 },
+  // a little smaller than the page allows: their variant marks fit under them, and the page breathes
+  4: { cols: 2, rows: 2, aspect: 0.74, colW: 37 },
+};
 
 /** A wishlist's wanted cards, by pocket (none for another binder). */
 export function wantsOf(b: UserBinder | BinderDef | undefined) {
@@ -116,12 +127,12 @@ export const wishBinders = (binders: UserBinder[]) =>
   binders.filter((b): b is Extract<UserBinder, { kind: "free" }> => b.kind === "free" && !!b.wish);
 
 /** Pages of a free binder: up to the last one used, plus a fresh one once that one is full. */
-export function freePageCount(pockets: Map<number, unknown>) {
+export function freePageCount(pockets: Map<number, unknown>, per: number = PER_PAGE) {
   if (!pockets.size) return 1;
   const last = Math.max(...pockets.keys());
-  const pages = Math.floor(last / PER_PAGE) + 1;
+  const pages = Math.floor(last / per) + 1;
   let full = true;
-  for (let i = (pages - 1) * PER_PAGE; i < pages * PER_PAGE; i++) if (!pockets.has(i)) full = false;
+  for (let i = (pages - 1) * per; i < pages * per; i++) if (!pockets.has(i)) full = false;
   return full ? pages + 1 : pages;
 }
 

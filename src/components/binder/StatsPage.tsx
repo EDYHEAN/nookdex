@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { BINDER_COLORS, type Pocket } from "@/lib/binders";
+import { useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { BINDER_COLORS, GRIDS, type Pocket } from "@/lib/binders";
 import { formatMoney, marketName, type SetStats } from "@/lib/price";
 import { SORT_LABEL, SORT_LABEL_EN } from "@/lib/rarity";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
-import type { BinderDef, BinderSort, Copy } from "@/lib/types";
+import type { BinderDef, BinderGrid, BinderSort, Copy } from "@/lib/types";
 import styles from "./Binder.module.css";
 import { useT } from "@/lib/lang";
 
@@ -31,6 +31,9 @@ interface Props {
 
 export function StatsPage({ binder, title, stats, pages, collection, onJump, onFind }: Props) {
   const t = useT();
+  const mapRef = useRef<HTMLDivElement>(null);
+  const g = GRIDS[binder.grid];
+  const mapTile = useMapTile(mapRef, pages.length, g.cols, g.rows, g.cols === 3 ? 0.074 : 0.05);
   const free = binder.kind === "free";
   const pct = stats.total ? stats.owned / stats.total : 0;
   const segments = 20;
@@ -41,7 +44,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
   const filled = (p: Pocket) => (free ? !!p.cardId && !p.wanted : !!(p.cardId && collection[p.cardId]?.length));
 
   return (
-    <div className={styles.stats} style={{ ["--accent" as string]: binder.color }} data-tour="summary">
+    <div className={styles.stats} style={{ ["--accent" as string]: binder.color }} data-tour="summary" data-narrow={binder.grid === 6 || undefined}>
       <div className={styles.statsHead}>
         {binder.logo && <img src={`${binder.logo}.png`} alt="" draggable={false} />}
         <div>
@@ -54,6 +57,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
 
       <Finder pages={pages} collection={collection} onFind={onFind} />
       {!free && <SortChips id={binder.id} current={binder.sort} />}
+      <GridChips id={binder.id} current={binder.grid} />
 
       {wish ? (
         <>
@@ -148,13 +152,14 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
         <p className={styles.mapTitle}>{t("Carte du classeur", "Binder map")}</p>
         <Colors id={binder.id} current={binder.color} />
       </div>
-      <div className={styles.map}>
+      <div ref={mapRef} className={styles.map} style={mapTile ? { ["--mapw" as string]: `${mapTile}px` } : undefined}>
         {pages.map((pockets, i) => {
           const owned = pockets.filter(filled).length;
           return (
             <button
               key={i}
               className={`${styles.mapPage} ${owned === pockets.length ? styles.mapDone : ""}`}
+              style={{ gridTemplateColumns: `repeat(${g.cols}, 1fr)` }}
               onClick={(e) => {
                 e.stopPropagation();
                 sfx.click();
@@ -177,6 +182,38 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
       )}
     </div>
   );
+}
+
+/**
+ * The binder map's mini page width: as on a 9-pocket binder (a set width, `widest` of the map), smaller only if every page
+ * wouldn't fit in the room the summary leaves it otherwise: never a scroll (the wheel turns the binder's pages; Johan,
+ * 2026-10-17), never a stretched column (a full binder's pages went over each other). A mini page: `cols` x `rows`
+ * pockets, 1 px apart, 2 px of padding.
+ */
+function useMapTile(ref: RefObject<HTMLDivElement | null>, count: number, cols: number, rows: number, widest: number) {
+  const [w, setW] = useState(0);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fit = () => {
+      const { clientWidth: W, clientHeight: H } = el;
+      const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+      const height = (tile: number) => {
+        const lines = Math.ceil(count / Math.max(1, Math.floor((W + gap) / (tile + gap))));
+        const pocket = (tile - 4 - (cols - 1)) / cols;
+        // (+3: its border and the pixels lost rounding each pocket)
+        return lines * (rows * pocket * (88 / 63) + (rows - 1) + 4 + 3) + (lines - 1) * gap;
+      };
+      let tile = W * widest;
+      while (tile > 8 && height(tile) > H) tile -= 0.5;
+      setW(Math.floor(tile));
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, count, cols, rows, widest]);
+  return w;
 }
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -267,6 +304,39 @@ function SortChips({ id, current }: { id: string; current: BinderSort }) {
           onPointerEnter={sfx.hover}
         >
           {t(SORT_LABEL[k], SORT_LABEL_EN[k])}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Pockets a page: 4, 6 or 9, each chip a little drawing of its page */
+function GridChips({ id, current }: { id: string; current: BinderGrid }) {
+  const t = useT();
+  const setGrid = useStore((s) => s.setBinderGrid);
+  return (
+    <div className={styles.sortChips} role="radiogroup" aria-label={t("Cartes par page", "Cards a page")}>
+      <span>{t("Par page", "A page")}</span>
+      {([4, 6, 9] as BinderGrid[]).map((g) => (
+        <button
+          key={g}
+          role="radio"
+          aria-checked={g === current}
+          className={`${styles.gridChip} ${g === current ? styles.chipOn : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (g === current) return;
+            sfx.riffle();
+            setGrid(id, g);
+          }}
+          onPointerEnter={sfx.hover}
+        >
+          <i className={styles.gridIcon} style={{ gridTemplateColumns: `repeat(${GRIDS[g].cols}, 1fr)` }} aria-hidden>
+            {Array.from({ length: g }, (_, k) => (
+              <b key={k} />
+            ))}
+          </i>
+          {g}
         </button>
       ))}
     </div>
