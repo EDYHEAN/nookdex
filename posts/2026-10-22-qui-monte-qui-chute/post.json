@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-22",
+  "time": "18:30",
+  "platforms": [
+    "instagram",
+    "tiktok",
+    "reels"
+  ],
+  "kind": "fact",
+  "format": "post",
+  "title": "Qui monte, qui chute : les cotes depuis début octobre",
+  "note": "Premier post « courbes » (slide curve, format inspiré de PriceCharting). Les courbes et les prix sont redessinés avec les cotes du jour la veille et le jour même : vérifie que les 4 cartes montent/chutent toujours comme annoncé dans la légende.",
+  "prices": true,
+  "caption": "Les cotes Cardmarket, jour après jour, depuis début octobre 📈📉\nDracaufeu-ex s'envole, Méga-Lucario-ex dégringole… Laquelle tu aurais achetée ?\nSuis la cote de ta collec sur nookdex.com (lien en bio)\n#pokemon #pokemontcg #cartespokemon #dracaufeu #collection",
+  "captionTiktok": "Qui monte, qui chute ? Les cotes depuis début octobre 📈📉 #pokemon #pokemontcg #cartespokemon #dracaufeu #collection",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "LES COTES DU MOIS",
+      "title": "Qui monte ?<br>Qui chute ?",
+      "size": 100,
+      "cards": [
+        "me01-179",
+        "sv04.5-234",
+        "sv10.5b-105"
+      ]
+    },
+    {
+      "type": "curve",
+      "card": "sv04.5-234"
+    },
+    {
+      "type": "curve",
+      "card": "me01-180"
+    },
+    {
+      "type": "curve",
+      "card": "me01-179"
+    },
+    {
+      "type": "curve",
+      "card": "sv10.5b-105"
+    },
+    {
+      "type": "end",
+      "kicker": "TA COLLEC AUSSI",
+      "title": "Suis la cote de tes cartes",
+      "lead": "Chaque jour, gratuit, sans pub."
+    }
+  ]
+}
