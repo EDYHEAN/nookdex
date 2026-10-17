@@ -239,18 +239,19 @@ export default function NookBoy({ origin, onClose }: Props) {
     const st = usePension.getState();
     if (mode === "daily" && defiNow()) g.start(0, { mode: "defi", perm: {}, defi: defiOf(today()) });
     else if (mode === "daily") g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()) });
-    else if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: st.levels, wallet: st.gold }, g.selected);
-    else g.start(g.selected, { mode: "classic", perm: st.levels, wallet: st.gold });
+    else if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: st.levels }, g.selected);
+    else g.start(g.selected, { mode: "classic", perm: st.levels });
   };
   /**
-   * The run's gold goes back to the purse, once: at the game over, or when the console is put away mid-run (Johan,
-   * 2026-10-13: nothing is lost). The daily's adds to it, with its bonus on the first run of the day.
+   * The run's gold goes to the purse (the Pension's money: a run starts with none), once: at the game over, or when the
+   * console is put away mid-run (Johan, 2026-10-13: nothing is lost). The daily's adds to it, with its bonus on the first
+   * run of the day.
    */
   const settle = () => {
     if (!g || settled.current) return;
     settled.current = true;
     const st = usePension.getState();
-    let gold = st.gold + g.gold - (g.setup.wallet ?? 0);
+    let gold = st.gold + g.gold;
     const run = g.lastStats;
     if (g.phase === "over" && run?.mode === "daily" && st.dailyPaid !== run.day) {
       gold += run.dailyBonus;
@@ -856,7 +857,7 @@ export default function NookBoy({ origin, onClose }: Props) {
       const bought = g.offers.some((o) => o.sold);
       const say2 =
         g.gold < cheapest
-          ? t("Hmm… pas assez d'or. Ta bourse grossit d'une partie à l'autre !", "Hmm… not enough gold. Your purse grows from run to run!")
+          ? t("Hmm… pas assez d'or. Ramasse des pépites !", "Hmm… not enough gold. Pick up some Nuggets!")
           : bought
             ? t("Merci bien ! Autre chose ?", "Thank you kindly! Anything else?")
             : g.setup.daily?.mod.noCenter
@@ -993,8 +994,8 @@ export default function NookBoy({ origin, onClose }: Props) {
               </p>
             ) : (
               <p>
-                <span>{t("Mode", "Mode")}</span>
-                <b>{run.mode === "coop" ? "coop" : t("classique", "classic")}</b>
+                <span>{t("Or de la partie", "Gold this run")}</span>
+                <b className={styles.goldText}>+{run.gold}</b>
               </p>
             )}
           </div>
@@ -1094,7 +1095,7 @@ export default function NookBoy({ origin, onClose }: Props) {
       </div>
       <div className={styles.pFoot}>
         <p>
-          {t("Pour toutes tes parties (sauf le défi du jour). Ton or est gardé d'une partie à l'autre.", "For all your runs (but the daily). Your gold is kept from run to run.")}
+          {t("Pour toutes tes parties (sauf le défi du jour). L'or de chaque partie remplit ta bourse.", "For all your runs (but the daily). Each run's gold fills your purse.")}
         </p>
         <button className={cursor >= PENSION.length ? styles.on : ""} onPointerEnter={() => setCursor(PENSION.length)} onClick={() => (gsfx.back(), setPension(false))}>
           {t("Retour", "Back")}

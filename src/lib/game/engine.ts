@@ -23,8 +23,6 @@ const DEFI_WINS_KEY = "nookdex:defi-wins";
 export interface RunSetup {
   mode: Mode;
   perm: Partial<Record<PensionId, number>>;
-  /** the purse brought in: what's in it at the end goes back */
-  wallet?: number;
   daily?: { day: string; mod: DailyMod; starter: number; target: number };
   defi?: Defi;
 }
@@ -734,7 +732,8 @@ export class Game {
   start(i: number, setup: RunSetup = { mode: "classic", perm: {} }, i2?: number) {
     this.setup = setup;
     this.cardRng = setup.daily ? seeded(dailyOf(setup.daily.day).seed) : setup.defi ? seeded(setup.defi.seed) : Math.random;
-    this.gold = setup.wallet ?? 0;
+    // a run's gold starts at 0 (Johan, 2026-10-17: a full purse bought Kecleon's whole stall early on), all of it goes to the purse
+    this.gold = 0;
     this.offers = [];
     this.shopRerolls = 0;
     this.inBreak = false;

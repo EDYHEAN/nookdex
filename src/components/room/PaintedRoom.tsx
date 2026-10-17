@@ -16,6 +16,7 @@ import type { BinderDef } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { useViewport } from "@/lib/useViewport";
 import { LAVA_THEMES, drawDust, drawLava, drawRain, drawSpooky, drawSunDust } from "./sceneAnim";
+import { GbBubble } from "./GbBubble";
 import { Monitor } from "./Monitor";
 import { SkinSpider } from "./SkinSpider";
 import { ShelfBinder, binderLabel, binderSize } from "./ShelfBinder";
@@ -802,6 +803,7 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
             }}
           />
 
+          <GbBubble x={GAMEBOY.x + GAMEBOY.w / 2} y={GAMEBOY.y} active={!compact && !paused && !veiled && !behind && !openId} />
           <button
             className={`${styles.hotspot} ${styles.bookSpot} ${styles.gbSpot}`}
             style={place(GAMEBOY)}
