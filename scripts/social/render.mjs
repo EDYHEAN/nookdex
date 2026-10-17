@@ -10,7 +10,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { APP, AVATAR, FONT_FACES, GRAIN, asset, card, dayOf, esc, market, money, setAssets, setOf, txt, url } from "./lib.mjs";
+import { APP, AVATAR, FONT_FACES, GRAIN, asset, card, curveSvg, dayOf, dayShort, esc, historyOf, market, money, pctOf, plain, setAssets, setOf, txt, url } from "./lib.mjs";
 import { renderMotion, renderStills } from "./motion.mjs";
 
 const args = process.argv.slice(2);
@@ -81,7 +81,13 @@ li::before { content: "✦"; position: absolute; left: 0; color: #a8701a; }
 .stat.hero > span { font-family: Press; font-size: 32px; line-height: 1.35; }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0 26px; }
 .stats .stat:nth-child(even) b { color: #b8433d; }
-.stats .stat:last-child:nth-child(odd) { grid-column: 1 / -1; }`;
+.stats .stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 30px; }
+.tile { padding: 14px 8px 12px; border: 5px solid #2b2230; border-radius: 14px; background: #fbf5e8; text-align: center; box-shadow: 6px 7px 0 rgba(20, 12, 28, 0.3); }
+.tile small { display: block; font-size: 32px; color: #6f6068; }
+.tile b { display: block; margin-top: 8px; font-family: Press; font-weight: normal; font-size: 30px; white-space: nowrap; }
+.tile.up { background: #e2f4d6; } .tile.up b { color: #3d8b2f; font-size: 40px; }
+.tile.down { background: #fbe1dc; } .tile.down b { color: #b8433d; font-size: 40px; }`;
 /** a number of a stats slide: spaced the French way (a plain no-break space: the pixel font has it) */
 const statNum = (v) => (typeof v === "number" ? v.toLocaleString("fr-FR").replace(/\u202f/g, "\u00a0") : esc(String(v)));
 
@@ -181,6 +187,23 @@ const SLIDES = {
            <p class="mid soft" style="margin-top:26px">n° ${esc(c.num)}${c.set.official ? `/${c.set.official}` : ""}<br>${esc(c.rarity ?? "")}</p>
            <span class="tag">${money(c.price.trend, c.set)}</span>
            <p class="credit">prix tendance ${market(c.set)}<br>du ${dayOf(c.set)}</p></div></div>`,
+    );
+  },
+  /** a card's price curve (Johan, 2026-10-17, after PriceCharting's « one month later »): the card, its daily curve, three big numbers */
+  curve(s, H, n) {
+    const hist = historyOf(s.card, s.from);
+    const { c, first, last, chg } = hist;
+    return paper(
+      n,
+      `<p class="kicker">${txt(s.kicker ?? plain(c.set.name))}</p><h1 style="font-size:46px;margin-top:22px">${esc(c.name)}</h1>
+       <div class="row" style="gap:22px;margin:30px 0 0;align-items:stretch"><img class="scan" src="${c.hi}" style="width:340px">${curveSvg(hist, 500, 520)}</div>
+       <div class="tiles">
+         <div class="tile"><small>le ${dayShort(first.day)}</small><b>${money(first.v, c.set)}</b></div>
+         <div class="tile ${chg >= 0 ? "up" : "down"}" style="rotate:-2deg"><small>en ${Math.round((Date.parse(last.day) - Date.parse(first.day)) / 864e5)} jours</small><b>${pctOf(chg)}</b></div>
+         <div class="tile"><small>le ${dayShort(last.day)}</small><b>${money(last.v, c.set)}</b></div>
+       </div>
+       <p class="lead soft" style="margin-top:34px;font-size:40px">Plus haut <b style="color:#2b2230">${money(Math.max(...hist.pts.map((p) => p.v)), c.set)}</b> · plus bas <b style="color:#2b2230">${money(Math.min(...hist.pts.map((p) => p.v)), c.set)}</b></p>
+       <p class="credit" style="margin-top:auto">prix tendance ${market(c.set)}, chaque jour, d'après NookDex</p>`,
     );
   },
   /** what one card of each of a set costs */

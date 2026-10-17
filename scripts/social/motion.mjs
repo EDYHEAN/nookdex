@@ -7,7 +7,7 @@
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { AVATAR, DESK, FONT_FACES, GRAIN, asset, card, dayOf, esc, market, setOf, txt, url } from "./lib.mjs";
+import { AVATAR, DESK, FONT_FACES, GRAIN, asset, card, curveSvg, dayOf, dayShort, esc, historyOf, market, plain, setOf, txt, url } from "./lib.mjs";
 
 const FPS = 30;
 const W = 1080;
@@ -110,6 +110,10 @@ body { position: relative; font-family: VT, monospace; color: #2b2230; backgroun
 @keyframes cam { from { transform: var(--from); } to { transform: none; } }
 @keyframes wander { 0% { left: 25%; top: 30%; } 25% { left: 72%; top: 26%; } 50% { left: 30%; top: 62%; } 75% { left: 66%; top: 70%; } 100% { left: 50%; top: 45%; } }
 @keyframes drift { from { transform: scale(1); } to { transform: scale(1.08); } }
+.chart .line { stroke-dasharray: 1; animation: draw 1.8s 1.1s linear both; }
+.chart .dot { animation: pop .3s var(--at) cubic-bezier(.3, 1.8, .5, 1) both; }
+.chart .lbl { animation: fade .3s var(--at) both; }
+@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 `;
 
 /** what moves without CSS: counters and typing, set at each frame's time */
@@ -119,7 +123,8 @@ window.tick = (t) => {
     const [to, t0, t1] = [+el.dataset.count, +el.dataset.t0, +el.dataset.t1];
     const k = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
     const v = to * (1 - Math.pow(1 - k, 3));
-    el.textContent = el.dataset.fmt === "usd" ? "$" + v.toFixed(2) : el.dataset.fmt === "int" ? Math.round(v).toLocaleString("fr-FR").replace(/\u202f/g, "\u00a0")
+    el.textContent = el.dataset.fmt === "pct" ? (v < 0 ? "-" : "+") + Math.abs(Math.round(v)) + "%"
+      : el.dataset.fmt === "usd" ? "$" + v.toFixed(2) : el.dataset.fmt === "int" ? Math.round(v).toLocaleString("fr-FR").replace(/\u202f/g, "\u00a0")
       : v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
   }
   for (const el of document.querySelectorAll("[data-type]")) {
@@ -245,6 +250,32 @@ const SCENES = {
         ${sparks(540, 1130, 2.3)}
         <p style="position:absolute;left:0;right:0;top:1200px;text-align:center;font-size:32px;color:#f4ecdc;text-shadow:2px 2px 0 #2b2230;animation:fade .4s 2.4s both">
           prix tendance ${market(c.set)} du ${dayOf(c.set)}</p>
+      </div>`,
+    };
+  },
+
+  /** a card's price curve: the card flips in, the line draws itself day by day, the three numbers count */
+  curve(s) {
+    const hist = historyOf(s.card, s.from);
+    const { c, first, last, chg } = hist;
+    const days = Math.round((Date.parse(last.day) - Date.parse(first.day)) / 864e5);
+    const tile = (left, at, inner, cls = "pill") =>
+      `<div class="${cls}" style="left:${left}px;top:1075px;width:300px;text-align:center;white-space:normal;--r:${cls === "sticker" ? -3 : 0}deg;animation:${cls === "sticker" ? "slam" : "pop"} .45s ${at}s both">${inner}</div>`;
+    return {
+      dur: 5.6,
+      bg: [c.hi],
+      body: `<div class="stage shake" style="--at:3.4s">
+        <span class="pill" style="left:50%;top:290px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.kicker ?? plain(c.set.name))}</span>
+        <p class="mega" style="top:380px;font-size:${c.name.length > 14 ? 50 : 62}px">${letters(c.name, 0.2, 0.035)}</p>
+        <div style="position:absolute;left:46px;top:560px;width:370px;animation:flip .8s .4s cubic-bezier(.2,1,.4,1) both"><img class="cardimg" src="${c.hi}"><div class="glint" style="--at:1.3s"></div></div>
+        <div class="chart" style="position:absolute;left:440px;top:540px;padding:18px 18px 6px;background:#f4ecdc;border:6px solid #2b2230;border-radius:20px;
+          box-shadow:10px 12px 0 rgba(20,12,28,.5);animation:pop .5s .7s cubic-bezier(.3,1.6,.5,1) both">${curveSvg(hist, 560, 440, { t0: 1.1, t1: 2.9 })}</div>
+        ${tile(40, 3, `<span style="font-size:24px">le ${dayShort(first.day)}</span><br><span ${priceAttrs(first.v, c.set, 3, 3.5)}></span>`)}
+        ${tile(390, 3.35, `<span style="font-size:24px">${days} jours</span><br><span style="color:${chg >= 0 ? "#3d8b2f" : "#b8433d"};font-size:40px" data-count="${chg.toFixed(1)}" data-t0="3.4" data-t1="4.2" data-fmt="pct"></span>`, "sticker")}
+        ${tile(740, 3.2, `<span style="font-size:24px">le ${dayShort(last.day)}</span><br><span ${priceAttrs(last.v, c.set, 3.2, 3.8)}></span>`)}
+        ${sparks(540, 1120, 4.2, 12)}
+        <p style="position:absolute;left:0;right:0;top:1220px;text-align:center;font-size:32px;color:#f4ecdc;text-shadow:2px 2px 0 #2b2230;animation:fade .4s 4.3s both">
+          prix tendance ${market(c.set)}, chaque jour</p>
       </div>`,
     };
   },

@@ -1241,8 +1241,10 @@ export class Game {
     }
     if (e.t > 5) {
       this.evo = null;
-      if (this.pendingLevels > 0) this.offerChoices();
-      else this.set("play");
+      // what comes next as after any card: the levels left, else the break's shop and 3-2-1, else the game (an evolution
+      // in a break used to drop straight into play with the break still on: no card was offered until the next boss,
+      // then all of them at once)
+      this.resume();
     }
   }
 
