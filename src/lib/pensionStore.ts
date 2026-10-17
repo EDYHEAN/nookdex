@@ -30,6 +30,17 @@ export function setGold(gold: number) {
   usePension.setState({ gold: Math.max(0, Math.round(gold)), goldAt: Date.now() });
 }
 
+/**
+ * The best classic or coop wave reached (it opens the Pension's 2nd rank, then the start tiers). Kept among the levels
+ * under "wave": it merges like them (the higher wins) and rides in the save and the cloud with them; the game reads only
+ * its upgrades' ids.
+ */
+export const bestWave = (levels: Record<string, number>) => levels.wave ?? 0;
+export function reachWave(wave: number) {
+  const { levels } = usePension.getState();
+  if (wave > bestWave(levels)) usePension.setState({ levels: { ...levels, wave } });
+}
+
 /** a level bought with the purse */
 export function buyLevel(id: string, cost: number) {
   const { levels, gold } = usePension.getState();

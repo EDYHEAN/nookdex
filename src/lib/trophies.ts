@@ -137,7 +137,7 @@ export const TROPHIES: Trophy[] = [
   { id: "game-wave10", tier: "bronze", cat: "game", name: { fr: "Ça tient bon", en: "Holding on" }, desc: { fr: "Atteins la vague 10.", en: "Reach wave 10." } },
   { id: "game-wave20", tier: "silver", cat: "game", name: { fr: "Increvable", en: "Unstoppable" }, desc: { fr: "Atteins la vague 20.", en: "Reach wave 20." } },
   { id: "game-wave30", tier: "gold", cat: "game", name: { fr: "Légende des vagues", en: "Wave legend" }, desc: { fr: "Atteins la vague 30.", en: "Reach wave 30." } },
-  { id: "game-wave100", tier: "gold", cat: "game", name: { fr: "Centenaire", en: "Centenarian" }, desc: { fr: "Survis aux 100 vagues.", en: "Survive all 100 waves." } },
+  { id: "game-wave100", tier: "gold", cat: "game", name: { fr: "Centenaire", en: "Centenarian" }, desc: { fr: "Survis à 100 vagues.", en: "Survive 100 waves." } },
   { id: "game-boss", tier: "bronze", cat: "game", name: { fr: "Réveil difficile", en: "Rude awakening" }, desc: { fr: "Bats ton premier boss.", en: "Beat your first boss." } },
   { id: "game-evolve", tier: "bronze", cat: "game", name: { fr: "Quoi ?!", en: "What?!" }, desc: { fr: "Fais évoluer ton Pokémon en pleine partie.", en: "Evolve your Pokémon mid-run." } },
   { id: "game-evomove", tier: "silver", cat: "game", name: { fr: "Capacité ultime", en: "Ultimate move" }, desc: { fr: "Fais évoluer une capacité.", en: "Evolve a move." } },

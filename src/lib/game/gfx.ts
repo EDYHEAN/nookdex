@@ -107,6 +107,14 @@ const COLORS = {
   poison2: "#d9f59a",
   fight: "#e0603a",
   fight2: "#ffc6a8",
+  fairy: "#ff9ed8",
+  fairy2: "#fff0f8",
+  steel: "#9fb4c8",
+  steel2: "#eef4fa",
+  dark: "#4a3a52",
+  dark2: "#a08cb0",
+  bug: "#a8c43a",
+  bug2: "#efffb0",
   coin: "#ffc93d",
   coin2: "#fff6c2",
   rock: "#8f8577",
@@ -138,6 +146,10 @@ export const TYPE_FX: Record<Elem, [ColorKey, ColorKey]> = {
   dragon: ["dragon", "dragon2"],
   poison: ["poison", "poison2"],
   fight: ["fight", "fight2"],
+  fairy: ["fairy", "fairy2"],
+  steel: ["steel", "steel2"],
+  dark: ["dark", "dark2"],
+  bug: ["bug", "bug2"],
 };
 
 const lum = (hex: string) => {

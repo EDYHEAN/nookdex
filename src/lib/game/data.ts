@@ -74,7 +74,10 @@ export interface Starter {
   talent?: { name: Txt; desc: Txt };
 }
 
-export type Elem = "grass" | "fire" | "water" | "elec" | "ice" | "ghost" | "ground" | "psy" | "normal" | "fly" | "dragon" | "poison" | "fight";
+export type Elem =
+  | "grass" | "fire" | "water" | "elec" | "ice" | "ghost" | "ground" | "psy" | "normal" | "fly" | "dragon" | "poison" | "fight"
+  // 2026-10-17: Fairy charms, Dark makes foes flinch, Steel and Bug for their combos
+  | "fairy" | "steel" | "dark" | "bug";
 
 /** how rare a level-up card is: the rarer, the less often it comes up (and the stronger) */
 export type Rarity = "common" | "rare" | "epic" | "legendary";
@@ -174,9 +177,10 @@ export type MoveId =
   | "thunder" | "flamethrower" | "surf" | "leaf" | "ice" | "quake" | "shadow" | "protect" | "swift" | "psychic"
   | "quick" | "sleep" | "hyper" | "rocks" | "toxic" | "solar" | "twister"
   | "bubble" | "discharge" | "bone" | "firespin" | "sludge" | "icebeam" | "gigadrain" | "hex" | "aura" | "future"
+  | "dazzle" | "flashcannon" | "darkpulse" | "xscissor"
   // the evolved ones
   | "fulgur" | "blast" | "hydro" | "petal" | "blizzard" | "draco" | "fissure"
-  | "scald" | "zapcannon" | "poltergeist" | "sacredfire" | "closecombat" | "doomdesire" | "gunk";
+  | "scald" | "zapcannon" | "poltergeist" | "sacredfire" | "closecombat" | "doomdesire" | "gunk" | "moonblast" | "steelbeam";
 export type ItemId =
   | "leftovers" | "band" | "scarf" | "claw" | "lens" | "magnet" | "share" | "hpup" | "root" | "shellbell" | "belt" | "lifeorb" | "helmet"
   | "eviolite" | "kingsrock" | "sash" | "spoon";
@@ -222,6 +226,10 @@ export const MOVES: MoveDef[] = [
   { id: "hex", rarity: "epic", name: ["Châtiment", "Hex"], type: "ghost", desc: ["Frappe fort chaque ennemi qui a un statut.", "Hits hard every foe with a status."], cd: [5, 4.6, 4.2, 3.8, 3.4] },
   { id: "aura", rarity: "rare", name: ["Aurasphère", "Aura Sphere"], type: "fight", desc: ["Une sphère qui ne rate jamais, et éclate.", "A sphere that never misses, and bursts."], cd: [3, 2.9, 2.8, 2.6, 2.3] },
   { id: "future", rarity: "epic", name: ["Prescience", "Future Sight"], type: "psy", desc: ["Marque les plus costauds… qui explosent après.", "Marks the toughest foes… who blow up later."], cd: [6, 5.6, 5.2, 4.8, 4.2] },
+  { id: "dazzle", rarity: "rare", name: ["Éclat Magique", "Dazzling Gleam"], type: "fairy", desc: ["Un éclat rose autour de toi : les ennemis touchés sont charmés.", "A pink flash all around you: the foes it hits are charmed."], cd: [6.5, 6.1, 5.7, 5.3, 4.9] },
+  { id: "flashcannon", rarity: "epic", name: ["Luminocanon", "Flash Cannon"], type: "steel", desc: ["Un rayon d'acier qui perce tout.", "A steel beam that pierces everything."], cd: [4.2, 3.9, 3.6, 3.3, 3] },
+  { id: "darkpulse", rarity: "rare", name: ["Vibrobscur", "Dark Pulse"], type: "dark", desc: ["Une onde noire qui repousse et fait flancher.", "A dark wave that pushes back and makes foes flinch."], cd: [5.5, 5.2, 4.9, 4.6, 4.2] },
+  { id: "xscissor", rarity: "common", name: ["Plaie-Croix", "X-Scissor"], type: "bug", desc: ["Deux lames en croix vers les plus proches.", "Two crossed blades at the closest foes."], cd: [1.8, 1.7, 1.6, 1.5, 1.3] },
   // evolutions: a move at level 5 + an item
   { id: "fulgur", rarity: "legendary", name: ["Fatal-Foudre", "Thunder"], type: "elec", desc: ["La foudre s'abat partout et rebondit.", "Lightning everywhere, bouncing on."], cd: [1.5, 1.5, 1.5, 1.5, 1.5], evo: { from: "thunder", item: "magnet" } },
   { id: "blast", rarity: "legendary", name: ["Déflagration", "Fire Blast"], type: "fire", desc: ["Une boule de feu qui explose en étoile.", "A fireball that bursts into a star."], cd: [2.6, 2.6, 2.6, 2.6, 2.6], evo: { from: "flamethrower", item: "band" } },
@@ -237,6 +245,8 @@ export const MOVES: MoveDef[] = [
   { id: "closecombat", rarity: "legendary", name: ["Close Combat", "Close Combat"], type: "fight", desc: ["Une rafale de coups devant toi.", "A flurry of blows in front of you."], cd: [1.1, 1.1, 1.1, 1.1, 1.1], evo: { from: "aura", item: "band" } },
   { id: "doomdesire", rarity: "legendary", name: ["Vœu Destructeur", "Doom Desire"], type: "psy", desc: ["Six cibles marquées, six explosions.", "Six foes marked, six blasts."], cd: [3, 3, 3, 3, 3], evo: { from: "future", item: "lens" } },
   { id: "gunk", rarity: "legendary", name: ["Détricanon", "Gunk Shot"], type: "poison", desc: ["D'énormes flaques toxiques partout.", "Huge toxic puddles everywhere."], cd: [2.5, 2.5, 2.5, 2.5, 2.5], evo: { from: "sludge", item: "eviolite" } },
+  { id: "moonblast", rarity: "legendary", name: ["Pouvoir Lunaire", "Moonblast"], type: "fairy", desc: ["Une lune tombe sur la mêlée, charme et te soigne.", "A moon falls on the crowd, charms it, heals you."], cd: [2.4, 2.4, 2.4, 2.4, 2.4], evo: { from: "dazzle", item: "shellbell" } },
+  { id: "steelbeam", rarity: "legendary", name: ["Métalaser", "Steel Beam"], type: "steel", desc: ["Quatre rayons d'acier en croix, qui tournent.", "Four steel beams in a cross, turning."], cd: [1.6, 1.6, 1.6, 1.6, 1.6], evo: { from: "flashcannon", item: "lifeorb" } },
 ];
 
 export interface ItemDef {
@@ -273,7 +283,7 @@ export type BonusId = "protein" | "ppup" | "sitrus";
  * Combos: a hit of one type on a foe in a state. Water wets, fire burns, Toxic poisons, Sleep Powder and Blizzard put to
  * sleep; the right type next does more. Shown in the pause screen.
  */
-export const COMBOS: { on: "wet" | "burn" | "poison" | "sleep"; by: Elem; mul: number; name: Txt }[] = [
+export const COMBOS: { on: "wet" | "burn" | "poison" | "sleep" | "charm"; by: Elem; mul: number; name: Txt }[] = [
   { on: "wet", by: "elec", mul: 1.8, name: ["Mouillé + Électrik : électrocution", "Wet + Electric: electrocution"] },
   { on: "wet", by: "ice", mul: 1.5, name: ["Mouillé + Glace : gelé net", "Wet + Ice: frozen solid"] },
   { on: "burn", by: "fly", mul: 1.6, name: ["Brûlé + Vol : le vent attise", "Burnt + Flying: the wind fans it"] },
@@ -285,6 +295,12 @@ export const COMBOS: { on: "wet" | "burn" | "poison" | "sleep"; by: Elem; mul: n
   { on: "poison", by: "fire", mul: 1.6, name: ["Empoisonné + Feu : le gaz s'enflamme", "Poisoned + Fire: the gas ignites"] },
   { on: "wet", by: "ground", mul: 1.4, name: ["Mouillé + Sol : dans la boue", "Wet + Ground: stuck in the mud"] },
   { on: "burn", by: "ghost", mul: 1.5, name: ["Brûlé + Spectre : feu follet", "Burnt + Ghost: will-o'-wisp"] },
+  { on: "charm", by: "dark", mul: 1.8, name: ["Charmé + Ténèbres : coup bas", "Charmed + Dark: a low blow"] },
+  { on: "charm", by: "psy", mul: 1.6, name: ["Charmé + Psy : hypnose", "Charmed + Psychic: hypnosis"] },
+  { on: "burn", by: "steel", mul: 1.5, name: ["Brûlé + Acier : métal en fusion", "Burnt + Steel: molten metal"] },
+  { on: "poison", by: "bug", mul: 1.7, name: ["Empoisonné + Insecte : nid de vermine", "Poisoned + Bug: a nest of vermin"] },
+  { on: "sleep", by: "fairy", mul: 1.6, name: ["Endormi + Fée : doux rêve", "Asleep + Fairy: sweet dreams"] },
+  { on: "wet", by: "grass", mul: 1.4, name: ["Mouillé + Plante : ça pousse", "Wet + Grass: it grows"] },
 ];
 export const BONUSES: { id: BonusId; name: Txt; desc: Txt }[] = [
   { id: "protein", name: ["Protéine", "Protein"], desc: ["+6 % de dégâts, pour toujours.", "+6% damage, for good."] },
@@ -417,7 +433,9 @@ export const xpFor = (level: number) => Math.round(4 + level * 3 + Math.pow(leve
 
 /* ---------------- the Pension: permanent boosts, bought with what's left of a run's gold ---------------- */
 
-export type PensionId = "power" | "hp" | "speed" | "haste" | "magnet" | "xp" | "gold" | "reroll" | "revive";
+export type PensionId =
+  | "power" | "hp" | "speed" | "haste" | "magnet" | "xp" | "gold" | "reroll" | "revive"
+  | "armor" | "crit" | "luck" | "regen" | "discount" | "pack";
 export interface PensionDef {
   id: PensionId;
   name: Txt;
@@ -431,6 +449,8 @@ export interface PensionDef {
   stat: Txt;
   /** a share (%), else a count */
   pct: boolean;
+  /** it takes off (damage taken, prices): shown "−4 %" */
+  less?: boolean;
 }
 export const PENSION: PensionDef[] = [
   { id: "power", name: ["Entraînement", "Training"], desc: ["+2 % de dégâts", "+2% damage"], max: 10, cost: 30, per: 2, stat: ["dégâts", "damage"], pct: true },
@@ -442,9 +462,24 @@ export const PENSION: PensionDef[] = [
   { id: "gold", name: ["Flair", "Flair"], desc: ["+6 % d'or ramassé", "+6% gold picked up"], max: 8, cost: 25, per: 6, stat: ["or", "gold"], pct: true },
   { id: "reroll", name: ["Dé pipé", "Lucky die"], desc: ["+1 relance des cartes par partie", "+1 card reroll per run"], max: 3, cost: 120, per: 1, stat: ["relance", "reroll"], pct: false },
   { id: "revive", name: ["Rappel", "Revive"], desc: ["te relève une fois par partie", "gets you up once per run"], max: 1, cost: 400, per: 1, stat: ["rappel", "revive"], pct: false },
+  // the second page (Johan, 2026-10-17: somewhere for the purse to go, now that a run starts with no gold)
+  { id: "armor", name: ["Carapace", "Hard shell"], desc: ["−2,5 % de dégâts subis", "−2.5% damage taken"], max: 8, cost: 45, per: 2.5, stat: ["dégâts subis", "damage taken"], pct: true, less: true },
+  { id: "crit", name: ["Concentration", "Focus"], desc: ["+1,5 % de chances de critique", "+1.5% crit chance"], max: 8, cost: 50, per: 1.5, stat: ["critiques", "crits"], pct: true },
+  { id: "luck", name: ["Trèfle", "Clover"], desc: ["cartes rares 10 % plus fréquentes", "rare cards 10% more often"], max: 6, cost: 60, per: 10, stat: ["cartes rares", "rare cards"], pct: true },
+  { id: "regen", name: ["Siestes", "Naps"], desc: ["+0,25 PV par seconde", "+0.25 HP a second"], max: 6, cost: 40, per: 0.25, stat: ["PV/s", "HP/s"], pct: false },
+  { id: "discount", name: ["Carte fidélité", "Loyalty card"], desc: ["−4 % chez Kecleon", "−4% at Kecleon's"], max: 6, cost: 50, per: 4, stat: ["prix", "prices"], pct: true, less: true },
+  { id: "pack", name: ["Sac à dos", "Backpack"], desc: ["+1 carte à choisir au départ", "+1 card to pick at the start"], max: 3, cost: 300, per: 1, stat: ["carte au départ", "starting card"], pct: false },
 ];
-/** the purse is kept from run to run: dearer, and climbing faster (Johan, 2026-10-13) */
-export const pensionCost = (d: PensionDef, level: number) => Math.round(d.cost * 2 * Math.pow(1.6, level));
+/** the 2nd rank (once wave 100 is reached): half as many levels again on top of the first */
+export const pensionMax2 = (d: PensionDef) => d.max + Math.ceil(d.max / 2);
+/** the best classic or coop wave reached at which the 2nd rank opens */
+export const RANK2_WAVE = 100;
+/**
+ * The purse is kept from run to run: dearer, and climbing faster (Johan, 2026-10-13). The 2nd rank climbs slower from the
+ * first rank's last price, or its levels would cost hundreds of thousands.
+ */
+export const pensionCost = (d: PensionDef, level: number) =>
+  level < d.max ? Math.round(d.cost * 2 * Math.pow(1.6, level)) : Math.round(d.cost * 2 * Math.pow(1.6, d.max - 1) * Math.pow(1.4, level - d.max + 1));
 
 /* ---------------- the daily challenge: the same starter and rule for everyone, no Pension ---------------- */
 

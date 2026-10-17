@@ -823,6 +823,93 @@
   }
 }
 
+/* the Game Boy talks now and then (GbBubble): the ladder's number one, in a pixel speech bubble above it (scene px) */
+/* the anchor: a point above the Game Boy, it pops and bobs (its own translate, so the box's placement never moves) */
+.gbBubble {
+  position: absolute;
+  z-index: 3;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  animation:
+    gbBubbleIn 0.4s cubic-bezier(0.34, 1.8, 0.5, 1) both,
+    gbBubbleOut 0.25s 6.75s steps(3) forwards,
+    ballBob 1.8s 0.4s ease-in-out infinite;
+}
+
+.gbBox {
+  position: absolute;
+  left: 0;
+  bottom: 34px;
+  translate: -50% 0;
+  padding: 10px 22px 14px;
+  background: #fff6e6;
+  color: #3a2a2e;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 4px #3a2a2e,
+    8px 10px 0 4px rgba(40, 20, 40, 0.35);
+  font-family: var(--font-vt), monospace;
+  font-size: 40px;
+  line-height: 36px;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gbBox strong {
+  font-weight: normal;
+  color: #b8452f;
+}
+
+.gbBox i {
+  font-style: normal;
+  color: #d9a227;
+}
+
+.gbBox span {
+  font-size: 34px;
+  color: #6b5560;
+}
+
+/* its tail, pointing down at the Game Boy */
+.gbBox::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 22px;
+  height: 22px;
+  translate: -50% -9px;
+  rotate: 45deg;
+  background: #fff6e6;
+  box-shadow: 4px 4px 0 0 #3a2a2e;
+}
+
+/* hovered, the Game Boy's tip says it already */
+.gbBubble:has(~ .gbSpot:hover) {
+  display: none;
+}
+
+@keyframes gbBubbleIn {
+  from {
+    scale: 0;
+  }
+}
+
+@keyframes gbBubbleOut {
+  to {
+    scale: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gbBubble {
+    animation: none;
+  }
+}
+
 /* hovered: the screen lights up (the hotspot comes after it in the scene) */
 .gbScreen:has(~ .gbSpot:hover) {
   opacity: 1;

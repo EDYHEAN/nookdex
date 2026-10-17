@@ -662,8 +662,15 @@
 
 .lWave {
   flex: none;
-  width: 44px;
+  min-width: 44px;
   text-align: right;
+}
+
+/* a run from a start tier: its wave, small, before the one reached */
+.lStart {
+  margin-right: 3px;
+  font-style: normal;
+  opacity: 0.6;
 }
 
 /* up to "99999 KO" on one line */
@@ -726,6 +733,52 @@
   to {
     transform: translateY(3px);
   }
+}
+
+/* the start tiers, between the starters and their card: V1 V25 V50 🔒V75 (a tier reached, the next one to aim at) */
+.tiers {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 142px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font: 7px/1 var(--font-press), monospace;
+  color: var(--c3);
+  text-shadow: 1px 1px var(--c0);
+}
+
+.tiers button {
+  padding: 3px 4px 2px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--c2);
+  color: var(--c0);
+  font: inherit;
+  text-shadow: none;
+  box-shadow: 0 0 0 1px var(--c0);
+  cursor: pointer;
+}
+
+.tiers button.on {
+  background: #ffc93d;
+  box-shadow: 0 0 0 1px var(--c0), 0 2px 0 var(--c0);
+  translate: 0 -1px;
+}
+
+.tierLabel {
+  margin-right: 2px;
+}
+
+.tierLock {
+  opacity: 0.6;
+}
+
+.tierInfo {
+  margin-left: 3px;
+  font: 11px/1 var(--font-vt), monospace;
 }
 
 .starter {
@@ -875,6 +928,18 @@
   color: var(--c1);
 }
 
+/* the run's combos: never past the pause menu, and the ones it has both halves of stand out */
+.recapCombos {
+  max-height: 150px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.recap p.comboOn {
+  color: var(--c0);
+  font-weight: bold;
+}
+
 /* gold, Kecleon's shop, the Pension, the daily, the ladder's boards */
 .goldText {
   color: #ffc93d;
@@ -925,11 +990,87 @@
   background: var(--c3);
 }
 
+/* the Pension's grid scrolls: a fade and a bobbing "▼ 6 more" while there's more below */
+.pScroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .pensionGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   margin-top: 4px;
+  /* room for the tiles' lift and outline when picked */
+  padding: 4px 6px 10px 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #ffc93d color-mix(in srgb, var(--c0) 50%, transparent);
+}
+
+.pensionGrid::-webkit-scrollbar {
+  width: 5px;
+}
+
+.pensionGrid::-webkit-scrollbar-thumb {
+  background: #ffc93d;
+  border-radius: 2px;
+}
+
+.pScrollMore::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 6px;
+  bottom: 0;
+  height: 34px;
+  pointer-events: none;
+  background: linear-gradient(transparent, color-mix(in srgb, var(--c0) 80%, transparent));
+}
+
+.pMore {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: 4px;
+  translate: -50% 0;
+  padding: 3px 7px 2px;
+  border: 0;
+  border-radius: 3px;
+  background: #ffc93d;
+  color: var(--c0);
+  font-size: 7px;
+  white-space: nowrap;
+  box-shadow: 0 0 0 1px var(--c0), 0 2px 0 var(--c0);
+  cursor: pointer;
+  animation: pMoreBob 1s ease-in-out infinite;
+}
+
+/* two little arrows, drawn (the pixel font has no ▼) */
+.pMore::before,
+.pMore::after {
+  content: "";
+  display: inline-block;
+  margin: 0 4px 1px;
+  border: 3px solid transparent;
+  border-top: 4px solid var(--c0);
+  border-bottom: 0;
+}
+
+@keyframes pMoreBob {
+  50% {
+    transform: translateY(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pMore {
+    animation: none;
+  }
 }
 
 .pTile {
@@ -978,6 +1119,21 @@
 .pPips i.pPipOn {
   background: #ffc93d;
   box-shadow: inset 0 -1px 0 #c47f00;
+}
+
+/* the 2nd rank's levels (from wave 100): a hotter colour */
+.pPips i.pPip2 {
+  opacity: 0.7;
+}
+
+.pPips i.pPipLock {
+  opacity: 0.3;
+}
+
+.pPips i.pPip2.pPipOn {
+  opacity: 1;
+  background: #ff6b4a;
+  box-shadow: inset 0 -1px 0 #b8322a;
 }
 
 .screen:not([data-palette="color"]) .pPips i.pPipOn {
@@ -1227,6 +1383,10 @@
 .screen[data-palette="color"] .t_fly { --tc: #bfe3ff; }
 .screen[data-palette="color"] .t_poison { --tc: #a35bc9; }
 .screen[data-palette="color"] .t_fight { --tc: #e0603a; }
+.screen[data-palette="color"] .t_fairy { --tc: #ff9ed8; }
+.screen[data-palette="color"] .t_steel { --tc: #9fb4c8; }
+.screen[data-palette="color"] .t_dark { --tc: #4a3a52; }
+.screen[data-palette="color"] .t_bug { --tc: #a8c43a; }
 
 /* evolution: the text box at the bottom */
 .textbox {

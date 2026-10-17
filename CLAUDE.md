@@ -234,11 +234,14 @@ doesn't show.
 
 - The Game Boy painted by the mug (`GAMEBOY` in PaintedRoom) runs Nook Survivors, a survivors-like (a name of our own: no brand in the game's title): a starter (Bulbasaur,
   Charmander, Squirtle, Pikachu; they evolve mid-run) against waves of wild Pokémon, 30 s a wave, a boss every 5th,
-  candies → levels → 3 cards (24 moves, auto-cast or keys 1-4, 4 at most; 17 held items; once all is maxed, stacking
-  bonuses). A move at level 5 + its item (`evo` in lib/game/data) offers its evolution first (14 of them). Statuses (wet,
-  burnt, poisoned, asleep/frozen, slowed) and `COMBOS` (11) are what the moves play on (Hex, Poltergeist hit the statused). Foes' HP and
-  damage grow with the square of the wave and the XP curve steepens past level 15 (Johan, 2026-10-12: wave 23 was too
-  easy); a god-mode bot run per wave (damage taken, foes on screen) is how it was tuned. Score = the wave reached.
+  candies → levels → 3 cards (31 moves of 17 types, auto-cast or keys 1-4, 4 at most; 17 held items; once all is maxed,
+  stacking bonuses). A move at level 5 + its item (`evo` in lib/game/data) offers its evolution first (16 of them).
+  Statuses (wet, burnt, poisoned, asleep/frozen, slowed, charmed: Fairy, the foe goes for its neighbours; Dark makes them
+  flinch) and `COMBOS` (17; the pause lists the run's own) are what the moves play on (Hex, Poltergeist hit the statused).
+  Foes' HP and damage grow with the square of the wave up to 100, in a straight line past it, and the XP curve steepens
+  past level 15 (Johan, 2026-10-12: wave 23 was too easy). Balance is tuned with a god-mode bot driving `window.nookboy`
+  through Playwright (damage taken per second / max HP, a boss's time to fall, a move's damage per second alone). Score
+  = the wave reached. The Game Boy on the desk names the classic ladder's number one now and then (`room/GbBubble`).
   Computers only: on a phone the Game Boy is out of frame (its tip says so).
 - In the room it's a CSS loop (`public/game/attract.png`, 8 frames, no script). The game (`components/game/NookBoy`,
   `lib/game/*`: engine, gfx, audio, data, scores) is a lazy chunk, loaded on click with its sprite atlas
@@ -248,14 +251,24 @@ doesn't show.
 - Sprites: PMD SpriteCollab (CC BY-NC 4.0: credits in the game's Crédits screen, non-commercial use only), downloaded,
   trimmed and packed by `npm run build-game` (`scripts/build-game.mjs`, cache `.cache/`), which also writes
   `src/data/game-sprites.json` and the room's loop. A new Pokémon: add its dex number to the script's ROSTER, run it.
-- Ladder: Supabase `game_scores` behind `game_top2` / `game_submit2` (docs/supabase.sql: plausibility checks, a wave
-  lasts 30 s, one run per name every 20 s, best run per name), open to everyone, account or not. A board per mode
+- Ladder: Supabase `game_scores` behind `game_top2` / `game_submit2` (v4 at the end of docs/supabase.sql: plausibility
+  checks, a wave lasts 30 s, up to wave 200, one run per name every 20 s, best run per name), open to everyone, account
+  or not. A board per mode
   (classic, daily then defi, coop) and period (the month's season, the daily's UTC day, all time); `game_top` / `game_submit` are
   the v1 the client falls back on.
-- Economy (Johan, 2026-10-13): gold (Nuggets, ~10 % of foes, more from elites, bosses, Chansey) goes in a **purse** kept
-  from run to run (`lib/pensionStore` `gold`, in the save and the cloud, the latest wins): a classic or coop run starts
-  with it and gives back what it ends with (game over, or the console put away mid-run). It buys the **Pension**
-  (permanent boosts, capped, dearer each level, merged by the higher level) from the menu or the game over. The old
+- Economy: gold (Nuggets, ~10 % of foes, more from elites, bosses, Chansey) goes in a **purse** kept from run to run
+  (`lib/pensionStore` `gold`, in the save and the cloud, the latest wins). A run starts with **no gold** (Johan,
+  2026-10-17: a 47k purse bought Kecleon's whole stall and made wave 92 easy); all it picks up goes to the purse at the
+  end (game over, or the console put away mid-run). The purse buys the **Pension** (15 permanent boosts in one scrolling
+  grid, capped, dearer each level, merged by the higher level; a **2nd rank**, half as many levels again, once wave 100 is
+  reached) from the menu or the game over. The best classic/coop wave is kept among the Pension's levels as `wave`
+  (`bestWave`, merged the same way). A click beside the console mid-run only pauses it.
+- **Beyond wave 100** (Johan, 2026-10-17): classic and coop runs go on to wave 200 (`MAX_WAVE`; the 100th boss gives
+  the "Centenaire" trophy and the run goes on), titans walk among the foes past 100 (`BEYOND`), every 10th wave is a
+  giga boss of the daily challenge's, Mega Mewtwo Y the 200th (won when it falls). **Start tiers**: a run may start at 25,
+  50 … 175 once that wave was reached (`TIERS`, `tierLevel`, `tierPicks` in the engine): the level of that far,
+  evolved, and a draft of cards; its clock starts there (the ladder's time check holds) and the ladder shows "↱50"
+  (`start`, `game_submit2` v4). The old
   daily (`dailyOf`, a wave to reach) ran until 2026-10-14; the **daily challenge** below replaced it. A moment after each boss falls, a **break**: the field is cleared, then the
   Pokémon Center's heal (no screen: forgetting moves was dropped, Johan 2026-10-13), the levels won, Kecleon's stall (cards, heal, reroll: prices up 8 % a wave),
   a 3-2-1. Statuses and combos: `COMBOS` in lib/game/data.
@@ -273,7 +286,7 @@ doesn't show.
   time (a win is sent as wave 11; `game_top2` / `game_submit2` v3 at the end of docs/supabase.sql). One Pokémon per UTC
   weekday, never a starter, each with its basic attack and talent (`DEFI_DAYS` in `lib/game/defi.ts`), themed foes
   (`DEFI_WILD`), titans from wave 3; x1.5 damage, x1.8 XP, seeded cards, no purse nor Pension. Gold: 12 a wave cleared,
-  250 on the day's first win. Classic and coop runs end at wave 100 (`MAX_WAVE`), won when its boss falls.
+  250 on the day's first win.
 - Local coop (two Game Boys side by side, WASD + mouse for P1, the arrows for P2, auto-aim): the engine's player state is
   a `Player` (`players`, `cur`); the Game's accessors reach the current one, switched to whoever acts (their move, a
   foe's nearest target, who picks up, the screen drawn: `draw(ctx, viewer)`). A downed player is got up by standing by

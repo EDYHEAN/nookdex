@@ -7,15 +7,30 @@ import {
   BONUSES, BOSSES, COMBOS, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, WAVE_SECONDS, WILD, xpFor,
   DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type Starter, type Wild,
 } from "./data";
-import { DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
+import { DEFI_DAYS, DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
 
 /** after each boss, a break: everyone healed, the levels won, shop (Kecleon's), countdown (3-2-1) */
 export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over" | "shop" | "countdown";
 /** "daily": the old daily (a wave to reach in a classic run), until 2026-10-14; "defi": the daily challenge since (lib/game/defi) */
 export type Mode = "classic" | "daily" | "coop" | "defi";
-/** the classic and coop runs end there, won once its boss falls */
-export const MAX_WAVE = 100;
+/** the classic and coop runs end there, won once its giga boss falls (Johan, 2026-10-17: 100 was too close) */
+export const MAX_WAVE = 200;
+/** past it, the titans: one every few seconds, and a giga boss every 10th wave; reaching it opens the Pension's 2nd rank */
+export const BEYOND = 100;
+/** a classic giga boss's HP before the wave's multiplier (the daily's are tuned for its 10 waves) */
+const GIGA_HP = 9000;
+/** a wild Pokémon's damage past wave 100: this much more of its base a wave */
+const BEYOND_DMG = 0.3;
+/**
+ * The start tiers (Johan, 2026-10-17: not the first 50 waves all over again): a classic or coop run may start at a tier
+ * reached before (its wave, its boss), the Pokémon at about the level a run has there, evolved, and a draft of cards to
+ * pick first. A draft of tier ÷ 5 left it far behind a played run (40-odd cards by wave 50); tuned with a bot (2026-10-17)
+ * so a start lands a bit behind a run played that far, the 48 cards a full build and its evolutions take.
+ */
+export const TIERS = [25, 50, 75, 100, 125, 150, 175];
+export const tierLevel = (tier: number) => Math.round(1.6 * tier);
+export const tierPicks = (tier: number) => Math.min(48, Math.round(0.45 * tier));
 /** the daily challenge's Pokémon won with (dex of their first form), for "defi-week": per device */
 const DEFI_WINS_KEY = "nookdex:defi-wins";
 
@@ -23,10 +38,10 @@ const DEFI_WINS_KEY = "nookdex:defi-wins";
 export interface RunSetup {
   mode: Mode;
   perm: Partial<Record<PensionId, number>>;
-  /** the purse brought in: what's in it at the end goes back */
-  wallet?: number;
   daily?: { day: string; mod: DailyMod; starter: number; target: number };
   defi?: Defi;
+  /** a start tier's wave (classic and coop), else from wave 1 */
+  start?: number;
 }
 
 /** the day's challenge: the same starter and rule for everyone (UTC day) */
@@ -96,7 +111,10 @@ export interface RunStats {
   wave: number;
   kills: number;
   level: number;
+  /** on the run's clock, which starts at a start tier's wave: the skipped waves count (the ladder's time check) */
   seconds: number;
+  /** the start tier's wave, else 1 */
+  start: number;
   starter: number;
   dex: number;
   /** the second player's Pokémon, in coop */
@@ -129,6 +147,8 @@ interface Enemy {
   burnDps: number;
   poisonT: number;
   poisonDps: number;
+  /** charmed (Fairy): it goes for its neighbours, not for the player */
+  charmT: number;
   dotT: number;
   state: string;
   stateT: number;
@@ -153,7 +173,7 @@ interface Enemy {
 }
 
 interface Shot {
-  kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe" | "blast" | "bubble" | "scald" | "bone" | "sludge" | "aura" | "psycut" | "gball" | "ice" | "psyorb";
+  kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe" | "blast" | "bubble" | "scald" | "bone" | "sludge" | "aura" | "psycut" | "gball" | "ice" | "psyorb" | "blade";
   x: number;
   y: number;
   vx: number;
@@ -590,6 +610,11 @@ export class Game {
   private nums: Num[] = [];
   private spawnAcc = 0;
   private treasureAt = -1;
+  /** past wave 100: the next titan's wait, and the wave its banner was shown */
+  private titanT = 0;
+  /** the run's clock at its start: 0, or a start tier's (the draft's cards are picked then) */
+  startAt = 0;
+  private titanWave = 0;
   /** the daily challenge: the wave's foes still to come, the next group's wait, the pause between two waves */
   private defiLeft = 0;
   private defiGroupT = 0;
@@ -698,7 +723,7 @@ export class Game {
     return (1 + 0.1 * this.itemLevel("root")) * (1 + this.stage * 0.08);
   }
   get crit() {
-    return 0.05 + 0.07 * this.itemLevel("lens");
+    return 0.05 + 0.07 * this.itemLevel("lens") + 0.015 * this.perm("crit");
   }
   get critMul() {
     return 1.8 + 0.25 * this.itemLevel("belt");
@@ -734,14 +759,19 @@ export class Game {
   start(i: number, setup: RunSetup = { mode: "classic", perm: {} }, i2?: number) {
     this.setup = setup;
     this.cardRng = setup.daily ? seeded(dailyOf(setup.daily.day).seed) : setup.defi ? seeded(setup.defi.seed) : Math.random;
-    this.gold = setup.wallet ?? 0;
+    // a run's gold starts at 0 (Johan, 2026-10-17: a full purse bought Kecleon's whole stall early on), all of it goes to the purse
+    this.gold = 0;
     this.offers = [];
     this.shopRerolls = 0;
     this.inBreak = false;
     Object.assign(this, {
-      time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1,
+      time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1, titanT: 4, titanWave: 0,
       bossAlive: null, breakAt: 0, shake: 0, flash: 0, dyingT: 0, defiLeft: setup.defi ? DEFI_QUOTA[0] : 0, defiGroupT: 1, defiGap: 0, defiTitans: 0, endAt: 0,
     });
+    // a start tier: the run's clock starts at its wave (whose boss waits, frozen, while the draft is picked)
+    const from = setup.daily || setup.defi ? 1 : (setup.start ?? 1);
+    this.startAt = (from - 1) * WAVE_SECONDS;
+    if (from > 1) this.time = this.startAt;
     // the daily is the same for all: its own starter, never a reward one
     const picks = setup.daily
       ? [STARTERS[setup.daily.starter]]
@@ -756,16 +786,27 @@ export class Game {
       this.cur = p;
       p.rerolls = this.perm("reroll");
       p.revives = this.perm("revive");
+      // the Pension's backpack: cards to pick before the first foe
+      p.pendingLevels = this.perm("pack");
+      if (from > 1) {
+        // a start tier: its level, evolved as far as that level goes, and its draft
+        p.level = tierLevel(from);
+        while (s.evolves[p.stage] && p.level >= s.evolves[p.stage][1]) p.dex = s.evolves[p.stage++][0];
+        p.pendingLevels += tierPicks(from);
+      }
       p.maxHp = this.computeMaxHp();
       p.hp = p.maxHp;
       return p;
     });
     this.cur = this.players[0];
+    music.boss(false);
     if (setup.defi) this.showBanner(this.tr(`VAGUE 1/${DEFI_WAVES}`, `WAVE 1/${DEFI_WAVES}`), this.tr(setup.defi.d.theme[0], setup.defi.d.theme[1]));
+    // its boss and its music come with it
+    else if (from > 1) this.newWave(from);
     else this.showBanner(this.tr("VAGUE 1", "WAVE 1"), this.tr("des Pokémon sauvages approchent", "wild Pokémon are coming"));
     gsfx.waveStart();
-    music.boss(false);
     this.set("play");
+    if (this.cur.pendingLevels > 0) this.offerChoices();
   }
 
   pause(on: boolean) {
@@ -842,9 +883,9 @@ export class Game {
     const base: Record<Rarity, number> = { common: 30, rare: 55, epic: 90, legendary: 150 };
     return this.drawChoices(3).map((c) => ({ choice: c, price: Math.round(base[c.rarity ?? "common"] * w), sold: false }));
   }
-  /** prices climb 12 % a wave after the first shop (wave 6) */
+  /** prices climb 12 % a wave after the first shop (wave 6); the Pension's loyalty card takes some off */
   private get priceUp() {
-    return Math.pow(1.12, Math.max(0, this.wave - 6));
+    return Math.pow(1.12, Math.max(0, this.wave - 6)) * (1 - 0.04 * this.perm("discount"));
   }
   get rerollPrice() {
     return Math.round((15 + 15 * this.shopRerolls) * this.priceUp);
@@ -962,19 +1003,21 @@ export class Game {
       (d) => d.evo && this.moves.some((m) => m.id === d.evo!.from && m.level >= MAX_LEVEL) && this.itemLevel(d.evo.item) > 0,
     ).map((d) => ({ kind: "evolve", id: d.id, level: MAX_LEVEL }));
     const weights: number[] = [];
+    // the Pension's clover: whatever isn't common comes up more often
+    const luck = (r: Rarity) => (r === "common" ? 1 : 1 + 0.1 * this.perm("luck"));
     for (const m of MOVES) {
       if (m.evo) continue;
       const has = this.moves.find((x) => x.id === m.id);
       if (!(has ? has.level < MAX_LEVEL : this.moves.length < MAX_MOVES)) continue;
       pool.push({ kind: "move", id: m.id, level: (has?.level ?? 0) + 1, rarity: m.rarity });
       // what you have comes back more; new moves too while the four slots aren't full
-      weights.push(RARITY[m.rarity].weight * (has ? 1.6 : this.moves.length < 2 ? 2.5 : 1));
+      weights.push(RARITY[m.rarity].weight * luck(m.rarity) * (has ? 1.6 : this.moves.length < 2 ? 2.5 : 1));
     }
     for (const it of ITEMS) {
       const has = this.items.find((x) => x.id === it.id);
       if (!(has ? has.level < MAX_LEVEL : this.items.length < MAX_ITEMS)) continue;
       pool.push({ kind: "item", id: it.id, level: (has?.level ?? 0) + 1, rarity: it.rarity });
-      weights.push(RARITY[it.rarity].weight * (has ? 1.6 : 1));
+      weights.push(RARITY[it.rarity].weight * luck(it.rarity) * (has ? 1.6 : 1));
     }
     const out: Choice[] = evolutions.slice(0, Math.min(2, n)).map((c) => ({ ...c, rarity: "legendary" as const }));
     while (out.length < n && pool.length) {
@@ -1089,7 +1132,7 @@ export class Game {
     const keep = this.cur;
     for (const p of this.players) {
       this.cur = p;
-      const regen = 0.3 * this.itemLevel("leftovers");
+      const regen = 0.3 * this.itemLevel("leftovers") + 0.25 * this.perm("regen");
       if (regen && !p.down) p.hp = Math.min(p.maxHp, p.hp + regen * dt);
       p.hurtFlash = Math.max(0, p.hurtFlash - dt * 4);
       // the camera trails the player a little
@@ -1134,7 +1177,7 @@ export class Game {
     const met = !!daily && this.wave >= daily.target;
     this.lastStats = {
       mode: this.setup.mode, day: daily?.day ?? this.setup.defi?.day, gold: this.gold, dailyBonus: daily ? dailyReward(this.wave, met) : 0, dailyWon: met, won,
-      wave: this.setup.defi && won ? DEFI_WAVES + 1 : this.wave, kills: this.kills, level: Math.max(...this.players.map((p) => p.level)), seconds: Math.floor(this.time),
+      wave: this.setup.defi && won ? DEFI_WAVES + 1 : this.wave, kills: this.kills, level: Math.max(...this.players.map((p) => p.level)), seconds: Math.floor(this.time), start: (this.setup.start ?? 1) > 1 && !this.setup.daily && !this.setup.defi ? this.setup.start! : 1,
       starter: this.players[0].starter.dex, dex: this.players[0].dex, dex2: this.players[1]?.dex,
     };
     music.stop();
@@ -1208,21 +1251,26 @@ export class Game {
     gsfx.waveStart();
     if (wave % 5 === 0) {
       const round = Math.floor((wave / 5 - 1) / BOSSES.length);
-      const b = BOSSES[(wave / 5 - 1) % BOSSES.length];
+      // past wave 100, every 10th: a giga boss of the daily challenge's (Mega Mewtwo Y for the 200th, the last)
+      const giga = wave > BEYOND && wave % 10 === 0;
+      const b = giga ? DEFI_DAYS[wave >= MAX_WAVE ? 0 : ((wave / 10 - 11) % (DEFI_DAYS.length - 1)) + 1].giga : BOSSES[(wave / 5 - 1) % BOSSES.length];
       const mult = (1 + round * 2) * (1 + wave * 0.02);
+      const hp = giga ? GIGA_HP * mult * (wave >= MAX_WAVE ? 1.25 : 1) : b.hp * mult;
       const a = Math.random() * Math.PI * 2;
       const e = this.makeEnemy(b.dex, this.x + Math.cos(a) * 170, this.y + Math.sin(a) * 150);
-      Object.assign(e, { boss: b, hp: b.hp * mult, max: b.hp * mult, speed: b.speed, dmg: b.dmg * (1 + round * 0.5) * (1 + wave * 0.04), r: b.r, actT: 3, final: wave >= MAX_WAVE });
+      Object.assign(e, { boss: b, hp, max: hp, speed: b.speed, dmg: b.dmg * (1 + round * 0.5) * (1 + wave * 0.04), r: b.r, actT: 3, n: 0, final: wave >= MAX_WAVE });
       this.enemies.push(e);
       this.bossAlive = e;
-      this.showBanner(`${this.name(b.dex)}`, this.tr(b.title[0], b.title[1]));
+      this.showBanner(`${this.name(b.dex)}`, giga ? this.tr(`GIGA BOSS · ${b.title[0]}`, `GIGA BOSS · ${b.title[1]}`) : this.tr(b.title[0], b.title[1]));
+      if (giga) this.shake = 12;
       gsfx.boss();
       music.boss(true);
     } else if (wave === 11) {
       // a joke wave: a shoal of Magikarp splashing about
       for (let i = 0; i < 40; i++) this.spawnOne(129, i / 40);
       this.showBanner(this.tr("VAGUE 11", "WAVE 11"), this.tr("une horde de Magicarpe ?!", "a shoal of Magikarp?!"));
-    } else this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), "");
+    } else if (wave === BEYOND + 1) this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), this.tr("au-delà : les titans arrivent", "beyond: the titans are coming"));
+    else this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), "");
     // the daily met: its banner wins over the others
     if (daily && wave === daily.target)
       this.showBanner(this.tr("DEFI REUSSI !", "CHALLENGE MET!"), this.tr(`+${dailyReward(wave, true)} or, et plus si tu tiens`, `+${dailyReward(wave, true)} gold, more if you hold on`));
@@ -1785,7 +1833,75 @@ export class Game {
       case "future":
         if (!this.foresee(2 + Math.floor(L / 2), (60 + 25 * L) * pw, 30 * this.area)) m.cd = 0.4;
         break;
+      case "dazzle": {
+        // all around: the foes it reaches are charmed (in damage)
+        const R = (55 + 8 * L) * this.area;
+        for (const e of this.around(this.x, this.y, R)) this.damage(e, (8 + 4 * L) * pw, 0, 0, "fairy", true);
+        this.fx.push({ kind: "ring", x: this.x, y: this.y, t: 0, life: 0.45, r: R, elem: "fairy" });
+        for (let i = 0; i < 14; i++) {
+          const a = Math.random() * Math.PI * 2;
+          this.part(this.x + Math.cos(a) * R * 0.5, this.y - 8 + Math.sin(a) * R * 0.4, Math.cos(a) * 40, Math.sin(a) * 30 - 20, "fairy2", 0.6, 2, 0, "spark");
+        }
+        gsfx.levelUp();
+        break;
+      }
+      case "flashcannon": {
+        const len = 240;
+        this.fx.push({
+          kind: "hbeam", x: this.x, y: this.y - 8, x2: this.x + this.aimV.x * len, y2: this.y - 8 + this.aimV.y * len, owner: this.cur,
+          t: 0, life: 0.5, charge: 0.15, r: (9 + 1.5 * L) * this.area, dmg: (34 + 15 * L) * pw, elem: "steel",
+        });
+        gsfx.zap();
+        break;
+      }
+      case "darkpulse":
+        this.fx.push({ kind: "ring", x: this.x, y: this.y, t: 0, life: 0.55, r: (65 + 10 * L) * this.area, elem: "dark", hit: new Set(), dmg: (18 + 8 * L) * pw });
+        gsfx.shoot("shadow");
+        break;
+      case "xscissor": {
+        // two blades crossing on each of the closest foes
+        const targets = this.nearestN(this.x, this.y, 1 + Math.floor(L / 2), 200);
+        if (!targets.length) {
+          m.cd = 0.3;
+          return;
+        }
+        for (const t of targets) {
+          const a = Math.atan2(t.y - this.y, t.x - this.x);
+          for (const da of [-0.35, 0.35]) this.shoot("blade", this.x, this.y - 8, Math.cos(a + da), Math.sin(a + da), 190, 4, (8 + 3 * L) * pw, 1, 1.4, "bug", t);
+        }
+        gsfx.shoot("whip");
+        break;
+      }
       // ---- the evolved moves ----
+      case "moonblast": {
+        // the moon falls where the foes are thickest; it heals a little
+        const near = this.nearestN(this.x, this.y, 12, 200);
+        let at = near[0] ?? null, most = -1;
+        for (const e of near) {
+          const n = this.around(e.x, e.y, 46 * this.area).length;
+          if (n > most) {
+            most = n;
+            at = e;
+          }
+        }
+        this.fx.push({ kind: "meteor", x: at ? at.x : this.x + rand(-60, 60), y: at ? at.y : this.y + rand(-50, 50), t: 0, life: 0.6, r: 46 * this.area, dmg: 70 * pw, elem: "fairy" });
+        this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.02);
+        gsfx.levelUp();
+        break;
+      }
+      case "steelbeam": {
+        // four beams in a cross, a little further round each time
+        const a0 = this.time * 1.3;
+        for (let i = 0; i < 4; i++) {
+          const a = a0 + (i * Math.PI) / 2;
+          this.fx.push({
+            kind: "hbeam", x: this.x, y: this.y - 8, x2: this.x + Math.cos(a) * 200, y2: this.y - 8 + Math.sin(a) * 200, owner: this.cur,
+            t: 0, life: 0.4, charge: 0.1, r: 10 * this.area, dmg: 75 * pw, elem: "steel",
+          });
+        }
+        gsfx.zap();
+        break;
+      }
       case "scald":
         for (let i = 0; i < 8; i++) {
           const a = (i / 8) * Math.PI * 2 + this.time;
@@ -2040,7 +2156,7 @@ export class Game {
   private hexAll(hard: number, soft: number) {
     let n = 0;
     for (const e of this.onScreen()) {
-      const marked = e.wetT > 0 || e.burnT > 0 || e.poisonT > 0 || e.sleepT > 0 || e.slowT > 0;
+      const marked = e.wetT > 0 || e.burnT > 0 || e.poisonT > 0 || e.sleepT > 0 || e.slowT > 0 || e.charmT > 0;
       if (!marked && !soft) continue;
       n++;
       this.damage(e, marked ? hard : soft, 0, 0, "ghost", true);
@@ -2141,13 +2257,16 @@ export class Game {
     // a combo: the right type on a foe in the right state
     let mul = 1;
     for (const c of COMBOS)
-      if (c.by === elem && c.mul > mul && (c.on === "wet" ? e.wetT : c.on === "burn" ? e.burnT : c.on === "poison" ? e.poisonT : e.sleepT) > 0) mul = c.mul;
+      if (c.by === elem && c.mul > mul && (c.on === "wet" ? e.wetT : c.on === "burn" ? e.burnT : c.on === "poison" ? e.poisonT : c.on === "charm" ? e.charmT : e.sleepT) > 0) mul = c.mul;
     if (elem === "water") e.wetT = 4;
     if (elem === "fire") {
       e.burnT = 3;
       e.burnDps = Math.max(e.burnDps, base * 0.12 * (1 + 0.3 * this.itemLevel("spoon")));
     }
     if (elem === "ice" && e.wetT > 0 && !e.boss) e.sleepT = Math.max(e.sleepT, 1.2);
+    // Fairy charms (a titan, not for long; a boss, never); Dark makes foes flinch now and then
+    if (elem === "fairy" && !e.boss) e.charmT = Math.max(e.charmT, e.titan ? 1 : 1.8);
+    if (elem === "dark" && !e.boss && Math.random() < 0.3) e.sleepT = Math.max(e.sleepT, 0.5);
     const crit = Math.random() < this.crit;
     const day = this.setup.daily?.mod.elem;
     const boost = day && (elem === day[0] || (day[0] === "water" && elem === "elec")) ? day[1] : 1;
@@ -2205,7 +2324,13 @@ export class Game {
       for (let i = 0; i < 14; i++) this.drop("candy", e.x + rand(-20, 20), e.y + rand(-20, 20), 8);
       for (let i = 0; i < 10; i++) this.drop("coin", e.x + rand(-24, 24), e.y + rand(-24, 24), 2 + Math.floor(this.wave / 4));
       gsfx.rare();
-      this.showBanner(this.tr(`${this.name(e.dex)} est K.O. !`, `${this.name(e.dex)} fainted!`), this.tr("un Super Bonbon est tombé", "a Rare Candy dropped"));
+      // the 100th wave's boss: what used to be the end, now the way beyond
+      if (this.wave === BEYOND) {
+        unlock("game-wave100");
+        gsfx.evolveDone();
+        this.showBanner(this.tr("100 VAGUES !", "100 WAVES!"), this.tr("et ce n'est pas fini…", "and it's not over…"));
+      } else
+        this.showBanner(this.tr(`${this.name(e.dex)} est K.O. !`, `${this.name(e.dex)} fainted!`), this.tr("un Super Bonbon est tombé", "a Rare Candy dropped"));
     } else if (e.w?.act === "treasure") {
       unlock("game-chansey");
       for (let i = 0; i < 8; i++) this.drop("candy", e.x + rand(-14, 14), e.y + rand(-14, 14), 8);
@@ -2297,7 +2422,7 @@ export class Game {
       gsfx.shield();
       return;
     }
-    dmg *= 1 - 0.07 * this.itemLevel("eviolite");
+    dmg *= (1 - 0.07 * this.itemLevel("eviolite")) * (1 - 0.025 * this.perm("armor"));
     // Focus Sash: a fatal blow leaves 1 HP, then it needs a while
     const sash = this.itemLevel("sash");
     if (sash && this.hp - dmg <= 0 && this.hp > 1 && this.cur.sashCd <= 0) {
@@ -2334,16 +2459,19 @@ export class Game {
     const w = WILD[dex] ?? DEFI_WILD[dex] ?? null;
     // the daily challenge's 10 waves climb like 17 of a classic run
     const k = (this.wave - 1) * (this.setup.defi ? 1.7 : 1);
-    // they get tougher faster than the player does, past the first waves
-    const hpMul = 1 + 0.18 * k + 0.009 * k * k;
+    // they get tougher faster than the player does, past the first waves; beyond the 100th, in a straight line (squared,
+    // the 200th would hit 4 times as hard as the 100th: one blow and out)
+    const kq = Math.min(k, BEYOND - 1), kl = Math.max(0, k - (BEYOND - 1));
+    const hpMul = 1 + 0.18 * kq + 0.009 * kq * kq + (0.18 + 0.018 * kq) * kl;
+    const dmgMul = 1 + 0.07 * kq + 0.003 * kq * kq + BEYOND_DMG * kl;
     const eliteOdds = this.setup.defi ? 0.04 + 0.008 * this.wave : (0.015 + 0.004 * this.wave) * (this.setup.daily?.mod.elite ?? 1);
     const elite = !titan && !!w && w.act !== "treasure" && w.act !== "flop" && Math.random() < eliteOdds;
     const big = titan ? TITAN : null;
     const hp = (w?.hp ?? 100) * hpMul * (elite ? 4 : 1) * (big?.hp ?? 1);
     return {
       w, boss: null, dex, x, y, kx: 0, ky: 0, hp, max: hp, speed: (w?.speed ?? 30) * (1 + Math.min(0.35, 0.012 * k)) * (elite ? 0.9 : 1) * (big?.speed ?? 1),
-      dmg: (w?.dmg ?? 10) * (1 + 0.07 * k + 0.003 * k * k) * (elite ? 1.5 : 1) * (this.setup.daily?.mod.enemyDmg ?? 1) * (big?.dmg ?? 1),
-      r: (w?.r ?? 7) * (elite ? 1.3 : 1) * (big?.scale ?? 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0, wetT: 0, burnT: 0, burnDps: 0, poisonT: 0, poisonDps: 0, dotT: 0.5,
+      dmg: (w?.dmg ?? 10) * dmgMul * (elite ? 1.5 : 1) * (this.setup.daily?.mod.enemyDmg ?? 1) * (big?.dmg ?? 1),
+      r: (w?.r ?? 7) * (elite ? 1.3 : 1) * (big?.scale ?? 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0, wetT: 0, burnT: 0, burnDps: 0, poisonT: 0, poisonDps: 0, charmT: 0, dotT: 0.5,
       state: "", stateT: rand(1, 3), actT: 2, elite, titan, z: 0, alpha: 1, aim: { x: 0, y: 0 }, touchT: 0, n: 0, dead: false, deadT: 0, seed: Math.random() * 100,
     };
   }
@@ -2356,6 +2484,25 @@ export class Game {
     this.enemies.push(this.makeEnemy(dex, p.x + Math.cos(a) * d, p.y + Math.sin(a) * d));
   }
 
+  /** the closest foe to another one (a charmed foe's target): not charmed itself, never a boss */
+  private nearestFoe(e: Enemy, R: number) {
+    let best: Enemy | null = null, bd = R;
+    for (const o of this.enemies) {
+      if (o === e || o.dead || o.boss || o.charmT > 0 || o.w?.act === "treasure") continue;
+      const d = Math.hypot(o.x - e.x, o.y - e.y);
+      if (d < bd) {
+        bd = d;
+        best = o;
+      }
+    }
+    return best;
+  }
+
+  /** the wild Pokémon of this wave: those come so far, but the ones gone by now */
+  private get wildPool() {
+    return POOLS.filter(([w]) => w <= this.wave).flatMap(([, d]) => d).filter((d) => !(RETIRE[d] && this.wave >= RETIRE[d]));
+  }
+
   private spawn(dt: number) {
     // won: nobody else comes
     if (this.endAt) return;
@@ -2364,7 +2511,7 @@ export class Game {
     const cap = Math.min(260, 120 + this.wave * 6);
     const rate = (0.6 + 0.3 * this.wave + 0.012 * this.wave * this.wave) * (this.bossAlive ? 0.5 : 1) * (this.setup.daily?.mod.spawn ?? 1);
     this.spawnAcc += rate * dt;
-    const pool = POOLS.filter(([w]) => w <= this.wave).flatMap(([, d]) => d).filter((d) => !(RETIRE[d] && this.wave >= RETIRE[d]));
+    const pool = this.wildPool;
     while (this.spawnAcc >= 1) {
       this.spawnAcc--;
       if (alive >= cap) continue;
@@ -2374,6 +2521,18 @@ export class Game {
         const f = Math.random();
         for (let i = 0; i < 5; i++) this.spawnOne(dex, f + rand(-0.03, 0.03));
       } else this.spawnOne(dex);
+    }
+    // past wave 100, titans walk among the crowd, more and more often (a third as many while a boss is out)
+    if (this.wave > BEYOND) {
+      this.titanT -= dt;
+      if (this.titanT <= 0) {
+        this.titanT = Math.max(4, 14 - (this.wave - BEYOND) * 0.1) * (this.bossAlive ? 3 : 1);
+        const a = Math.random() * Math.PI * 2, d = VIEW_R + 20;
+        const p = pick(this.alive().length ? this.alive() : this.players);
+        this.enemies.push(this.makeEnemy(pick(pool), p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, true));
+        if (this.titanWave !== this.wave && !this.bossAlive) this.showBanner(this.tr("UN TITAN !", "A TITAN!"), this.tr("un ennemi géant", "a giant foe"));
+        this.titanWave = this.wave;
+      }
     }
     if (this.treasureAt > 0 && this.time >= this.treasureAt) {
       this.treasureAt = -1;
@@ -2406,6 +2565,7 @@ export class Game {
       e.wetT = Math.max(0, e.wetT - dt);
       e.burnT = Math.max(0, e.burnT - dt);
       e.poisonT = Math.max(0, e.poisonT - dt);
+      e.charmT = Math.max(0, e.charmT - dt);
       if (e.burnT <= 0) e.burnDps = 0;
       if (e.poisonT <= 0) e.poisonDps = 0;
       e.dotT -= dt;
@@ -2525,6 +2685,21 @@ export class Game {
             break;
           }
         }
+      if (e.charmT > 0 && !e.boss) {
+        // charmed: off after the closest foe that isn't, and it hits it
+        if (Math.random() < 0.05) this.part(e.x + rand(-4, 4), e.y - 18, 0, -14, "fairy", 0.8, 2, 0, "dot");
+        const o = this.nearestFoe(e, 90);
+        if (o) {
+          const ox = o.x - e.x, oy = o.y - e.y, od = Math.hypot(ox, oy) || 1;
+          vx = ox / od;
+          vy = oy / od;
+          sp = e.speed;
+          if (od < e.r + o.r + 2 && e.touchT <= 0) {
+            e.touchT = 0.6;
+            this.damage(o, e.dmg * 1.5, vx * 60, vy * 60, "normal", true);
+          }
+        } else sp = 0;
+      }
       if (e.sleepT > 0) {
         sp = 0;
         if (Math.random() < 0.02) this.part(e.x + 4, e.y - 18, 6, -12, "uiDim", 1, 1, 0, "dot");
@@ -2536,7 +2711,7 @@ export class Game {
       e.ky *= 0.86;
       if (sp > 0) e.dir = dirOf(vx, vy);
       // touching the player
-      if (e.alpha >= 0.5 && e.z < 4 && e.sleepT <= 0 && e.w?.act !== "treasure" && d < e.r + PLAYER_R) {
+      if (e.alpha >= 0.5 && e.z < 4 && e.sleepT <= 0 && (e.charmT <= 0 || e.boss) && e.w?.act !== "treasure" && d < e.r + PLAYER_R) {
         this.hurt(e.dmg, e);
         if (e.w?.act === "explode" && e.state !== "fuse") {
           e.state = "fuse";
@@ -2732,7 +2907,7 @@ export class Game {
       e.z = 0;
       e.alpha = 1;
       const d = this.setup.defi?.d;
-      const pool = d ? [...d.mid, ...d.late] : [b.dex];
+      const pool = d ? [...d.mid, ...d.late] : this.wildPool;
       for (let i = 0; i < 4 + 3 * phase; i++) {
         const a = (i / (4 + 3 * phase)) * Math.PI * 2;
         const g = this.makeEnemy(pick(pool), e.x + Math.cos(a) * 60, e.y + Math.sin(a) * 50);
@@ -3041,8 +3216,8 @@ export class Game {
       }
       if (f.kind === "meteor" && !f.done && f.t >= f.life) {
         f.done = 1;
-        this.fx.push({ kind: "boom", x: f.x, y: f.y, t: 0, life: 0.35, r: f.r, elem: "dragon" });
-        for (const e of this.around(f.x, f.y, f.r!)) this.damage(e, f.dmg!, (e.x - f.x) * 3, (e.y - f.y) * 3, "dragon", true);
+        this.fx.push({ kind: "boom", x: f.x, y: f.y, t: 0, life: 0.35, r: f.r, elem: f.elem ?? "dragon" });
+        for (const e of this.around(f.x, f.y, f.r!)) this.damage(e, f.dmg!, (e.x - f.x) * 3, (e.y - f.y) * 3, f.elem ?? "dragon", true);
         this.shake = Math.max(this.shake, 3);
         gsfx.boom();
       }
@@ -3586,6 +3761,10 @@ export class Game {
         // a shard of ice, pointing where it flies
         pix(ctx, g, PIX.blade, x, y, dir4(s.vx, s.vy), { p: "ice", P: "ice2" });
         break;
+      case "blade":
+        // X-Scissor: a blade in its type's colours, pointing where it flies
+        pix(ctx, g, PIX.blade, x, y, dir4(s.vx, s.vy), { p: c1, P: c2 });
+        break;
       case "aura": {
         // Aura Sphere: a blue-white core in its glow
         ctx.fillStyle = g.c.fight;
@@ -3792,20 +3971,22 @@ export class Game {
         break;
       }
       case "meteor": {
-        // the shadow grows where it will land, the meteor falls on it
+        // the shadow grows where it will land, the meteor falls on it (Moonblast's moon: pink, and bigger)
         const kk = Math.min(1, k);
-        ctx.strokeStyle = g.c.dragon;
+        const [m1, m2] = TYPE_FX[f.elem ?? "dragon"];
+        const ms = f.elem === "fairy" ? 2 : 1;
+        ctx.strokeStyle = g.c[m1];
         ctx.globalAlpha = 0.5;
         ring(ctx, x, y, f.r! * (0.4 + kk * 0.6), 0.5);
         ctx.globalAlpha = 1;
         const my = y - (1 - kk) * 160;
         const mx = x + (1 - kk) * 60;
         ctx.fillStyle = g.c.ink;
-        ctx.fillRect(Math.round(mx) - 4, Math.round(my) - 4, 8, 8);
-        ctx.fillStyle = g.c.dragon;
-        ctx.fillRect(Math.round(mx) - 3, Math.round(my) - 3, 6, 6);
-        ctx.fillStyle = g.c.dragon2;
-        ctx.fillRect(Math.round(mx) - 1, Math.round(my) - 2, 2, 2);
+        ctx.fillRect(Math.round(mx) - 4 * ms, Math.round(my) - 4 * ms, 8 * ms, 8 * ms);
+        ctx.fillStyle = g.c[m1];
+        ctx.fillRect(Math.round(mx) - 3 * ms, Math.round(my) - 3 * ms, 6 * ms, 6 * ms);
+        ctx.fillStyle = g.c[m2];
+        ctx.fillRect(Math.round(mx) - ms, Math.round(my) - 2 * ms, 2 * ms, 2 * ms);
         if (Math.random() < 0.7) this.part(mx - ox + 4, my - oy - 4, 20, -10, "dragon2", 0.3, 2, 0, "puff");
         break;
       }
