@@ -22,6 +22,7 @@ export const CHANGELOG: Release[] = [
       { fr: "La Pension grandit : 6 nouveaux bonus, et un 2ᵉ rang après la vague 100.", en: "The Pension grows: 6 new boosts, and a 2nd rank past wave 100." },
       { fr: "Nouvelles capacités Fée, Acier, Ténèbres et Insecte, et 6 combos.", en: "New Fairy, Steel, Dark and Bug moves, and 6 combos." },
       { fr: "8 nouveaux trophées pour aller au bout.", en: "8 new trophies to go all the way." },
+      { fr: "« J'ai tout » : un set ou un master set complet en un clic dans un classeur.", en: "\"Got 'em all\": a full set or a master set in one tap in a binder." },
       { fr: "Chaque partie démarre sans or : tout ce que tu ramasses va dans ta bourse.", en: "Each run starts with no gold: all you pick up goes to your purse." },
       { fr: "Importe ta collection Pokécardex depuis NookDex OS.", en: "Import your Pokécardex collection from NookDex OS." },
     ],
