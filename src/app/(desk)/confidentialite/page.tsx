@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Fr() {
   return (
-    <LegalPage path="/confidentialite" title="Règles de confidentialité" updated="16 octobre 2026">
+    <LegalPage path="/confidentialite" title="Règles de confidentialité" updated="17 octobre 2026">
       <p>
         {SITE_NAME} ({SITE_DOMAIN}) est un site gratuit pour ranger et suivre sa collection de cartes Pokémon dans des classeurs virtuels. Cette page
         explique quelles données le site collecte, pourquoi, avec qui elles sont partagées, combien de temps elles sont gardées et comment les
@@ -44,8 +44,11 @@ function Fr() {
         <b>Formulaire de contact.</b> Si tu nous écris : ton e-mail, le sujet et ton message.
       </p>
       <p>
-        <b>Mesure d&apos;audience.</b> Des statistiques de visite anonymes (pages vues, pays, type d&apos;appareil), sans cookie et sans suivi
-        d&apos;une visite à l&apos;autre.
+        <b>Mesure d&apos;audience.</b> Des statistiques de visite anonymes (pages vues, pays, type d&apos;appareil), sans cookie. Et, pour savoir ce
+        qui donne envie de rester : un identifiant tiré au hasard, gardé dans ton navigateur, relie tes visites. Il note d&apos;où tu es arrivé la
+        première fois (Google, Instagram…), les jours où tu reviens et quelques étapes (premier classeur, 10 cartes, compte, partie de Nook
+        Survivors). Rien de personnel : ni nom, ni e-mail, ni adresse IP, et rien n&apos;est croisé avec ton compte. L&apos;identifiant et ces
+        données sont effacés au bout de 13 mois ; vider les données du site dans ton navigateur les détache de toi aussitôt.
       </p>
       <p>
         <b>Achats dans la boutique.</b> Si tu achètes un objet de décoration : l&apos;objet, son prix, la date et la référence du paiement, liés à
@@ -143,7 +146,7 @@ function Fr() {
 
 function En() {
   return (
-    <LegalPage path="/confidentialite" title="Privacy policy" updated="16 October 2026" en>
+    <LegalPage path="/confidentialite" title="Privacy policy" updated="17 October 2026" en>
       <p>
         {SITE_NAME} ({SITE_DOMAIN}) is a free site to file and track your Pokémon card collection in virtual binders. This page explains which
         data the site collects, why, who it is shared with, how long it is kept and how to delete it. We collect as little as possible, and nothing
@@ -173,8 +176,11 @@ function En() {
         <b>Contact form.</b> If you write to us: your e-mail, the subject and your message.
       </p>
       <p>
-        <b>Audience measurement.</b> Anonymous visit statistics (pages viewed, country, device type), with no cookie and no tracking from one visit
-        to the next.
+        <b>Audience measurement.</b> Anonymous visit statistics (pages viewed, country, device type), with no cookie. And, to know what makes people
+        stay: a random id, kept in your browser, ties your visits together. It notes where you first came from (Google, Instagram…), the days you
+        come back and a few steps (first binder, 10 cards, account, a Nook Survivors run). Nothing personal: no name, no e-mail, no IP address,
+        and nothing is matched with your account. The id and this data are erased after 13 months; clearing the site&apos;s data in your browser
+        cuts them off from you at once.
       </p>
       <p>
         <b>Shop purchases.</b> If you buy a decoration: the item, its price, the date and the payment reference, linked to your account. The
