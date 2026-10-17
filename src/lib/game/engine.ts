@@ -7,15 +7,21 @@ import {
   BONUSES, BOSSES, COMBOS, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, WAVE_SECONDS, WILD, xpFor,
   DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type Starter, type Wild,
 } from "./data";
-import { DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
+import { DEFI_DAYS, DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
 
 /** after each boss, a break: everyone healed, the levels won, shop (Kecleon's), countdown (3-2-1) */
 export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over" | "shop" | "countdown";
 /** "daily": the old daily (a wave to reach in a classic run), until 2026-10-14; "defi": the daily challenge since (lib/game/defi) */
 export type Mode = "classic" | "daily" | "coop" | "defi";
-/** the classic and coop runs end there, won once its boss falls */
-export const MAX_WAVE = 100;
+/** the classic and coop runs end there, won once its giga boss falls (Johan, 2026-10-17: 100 was too close) */
+export const MAX_WAVE = 200;
+/** past it, the titans: one every few seconds, and a giga boss every 10th wave; reaching it opens the Pension's 2nd rank */
+export const BEYOND = 100;
+/** a classic giga boss's HP before the wave's multiplier (the daily's are tuned for its 10 waves) */
+const GIGA_HP = 9000;
+/** a wild Pokémon's damage past wave 100: this much more of its base a wave */
+const BEYOND_DMG = 0.3;
 /** the daily challenge's Pokémon won with (dex of their first form), for "defi-week": per device */
 const DEFI_WINS_KEY = "nookdex:defi-wins";
 
@@ -588,6 +594,9 @@ export class Game {
   private nums: Num[] = [];
   private spawnAcc = 0;
   private treasureAt = -1;
+  /** past wave 100: the next titan's wait, and the wave its banner was shown */
+  private titanT = 0;
+  private titanWave = 0;
   /** the daily challenge: the wave's foes still to come, the next group's wait, the pause between two waves */
   private defiLeft = 0;
   private defiGroupT = 0;
@@ -738,7 +747,7 @@ export class Game {
     this.shopRerolls = 0;
     this.inBreak = false;
     Object.assign(this, {
-      time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1,
+      time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1, titanT: 4, titanWave: 0,
       bossAlive: null, breakAt: 0, shake: 0, flash: 0, dyingT: 0, defiLeft: setup.defi ? DEFI_QUOTA[0] : 0, defiGroupT: 1, defiGap: 0, defiTitans: 0, endAt: 0,
     });
     // the daily is the same for all: its own starter, never a reward one
@@ -1212,21 +1221,26 @@ export class Game {
     gsfx.waveStart();
     if (wave % 5 === 0) {
       const round = Math.floor((wave / 5 - 1) / BOSSES.length);
-      const b = BOSSES[(wave / 5 - 1) % BOSSES.length];
+      // past wave 100, every 10th: a giga boss of the daily challenge's (Mega Mewtwo Y for the 200th, the last)
+      const giga = wave > BEYOND && wave % 10 === 0;
+      const b = giga ? DEFI_DAYS[wave >= MAX_WAVE ? 0 : ((wave / 10 - 11) % (DEFI_DAYS.length - 1)) + 1].giga : BOSSES[(wave / 5 - 1) % BOSSES.length];
       const mult = (1 + round * 2) * (1 + wave * 0.02);
+      const hp = giga ? GIGA_HP * mult * (wave >= MAX_WAVE ? 1.25 : 1) : b.hp * mult;
       const a = Math.random() * Math.PI * 2;
       const e = this.makeEnemy(b.dex, this.x + Math.cos(a) * 170, this.y + Math.sin(a) * 150);
-      Object.assign(e, { boss: b, hp: b.hp * mult, max: b.hp * mult, speed: b.speed, dmg: b.dmg * (1 + round * 0.5) * (1 + wave * 0.04), r: b.r, actT: 3, final: wave >= MAX_WAVE });
+      Object.assign(e, { boss: b, hp, max: hp, speed: b.speed, dmg: b.dmg * (1 + round * 0.5) * (1 + wave * 0.04), r: b.r, actT: 3, n: 0, final: wave >= MAX_WAVE });
       this.enemies.push(e);
       this.bossAlive = e;
-      this.showBanner(`${this.name(b.dex)}`, this.tr(b.title[0], b.title[1]));
+      this.showBanner(`${this.name(b.dex)}`, giga ? this.tr(`GIGA BOSS · ${b.title[0]}`, `GIGA BOSS · ${b.title[1]}`) : this.tr(b.title[0], b.title[1]));
+      if (giga) this.shake = 12;
       gsfx.boss();
       music.boss(true);
     } else if (wave === 11) {
       // a joke wave: a shoal of Magikarp splashing about
       for (let i = 0; i < 40; i++) this.spawnOne(129, i / 40);
       this.showBanner(this.tr("VAGUE 11", "WAVE 11"), this.tr("une horde de Magicarpe ?!", "a shoal of Magikarp?!"));
-    } else this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), "");
+    } else if (wave === BEYOND + 1) this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), this.tr("au-delà : les titans arrivent", "beyond: the titans are coming"));
+    else this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), "");
     // the daily met: its banner wins over the others
     if (daily && wave === daily.target)
       this.showBanner(this.tr("DEFI REUSSI !", "CHALLENGE MET!"), this.tr(`+${dailyReward(wave, true)} or, et plus si tu tiens`, `+${dailyReward(wave, true)} gold, more if you hold on`));
@@ -2209,7 +2223,13 @@ export class Game {
       for (let i = 0; i < 14; i++) this.drop("candy", e.x + rand(-20, 20), e.y + rand(-20, 20), 8);
       for (let i = 0; i < 10; i++) this.drop("coin", e.x + rand(-24, 24), e.y + rand(-24, 24), 2 + Math.floor(this.wave / 4));
       gsfx.rare();
-      this.showBanner(this.tr(`${this.name(e.dex)} est K.O. !`, `${this.name(e.dex)} fainted!`), this.tr("un Super Bonbon est tombé", "a Rare Candy dropped"));
+      // the 100th wave's boss: what used to be the end, now the way beyond
+      if (this.wave === BEYOND) {
+        unlock("game-wave100");
+        gsfx.evolveDone();
+        this.showBanner(this.tr("100 VAGUES !", "100 WAVES!"), this.tr("et ce n'est pas fini…", "and it's not over…"));
+      } else
+        this.showBanner(this.tr(`${this.name(e.dex)} est K.O. !`, `${this.name(e.dex)} fainted!`), this.tr("un Super Bonbon est tombé", "a Rare Candy dropped"));
     } else if (e.w?.act === "treasure") {
       unlock("game-chansey");
       for (let i = 0; i < 8; i++) this.drop("candy", e.x + rand(-14, 14), e.y + rand(-14, 14), 8);
@@ -2338,15 +2358,18 @@ export class Game {
     const w = WILD[dex] ?? DEFI_WILD[dex] ?? null;
     // the daily challenge's 10 waves climb like 17 of a classic run
     const k = (this.wave - 1) * (this.setup.defi ? 1.7 : 1);
-    // they get tougher faster than the player does, past the first waves
-    const hpMul = 1 + 0.18 * k + 0.009 * k * k;
+    // they get tougher faster than the player does, past the first waves; beyond the 100th, in a straight line (squared,
+    // the 200th would hit 4 times as hard as the 100th: one blow and out)
+    const kq = Math.min(k, BEYOND - 1), kl = Math.max(0, k - (BEYOND - 1));
+    const hpMul = 1 + 0.18 * kq + 0.009 * kq * kq + (0.18 + 0.018 * kq) * kl;
+    const dmgMul = 1 + 0.07 * kq + 0.003 * kq * kq + BEYOND_DMG * kl;
     const eliteOdds = this.setup.defi ? 0.04 + 0.008 * this.wave : (0.015 + 0.004 * this.wave) * (this.setup.daily?.mod.elite ?? 1);
     const elite = !titan && !!w && w.act !== "treasure" && w.act !== "flop" && Math.random() < eliteOdds;
     const big = titan ? TITAN : null;
     const hp = (w?.hp ?? 100) * hpMul * (elite ? 4 : 1) * (big?.hp ?? 1);
     return {
       w, boss: null, dex, x, y, kx: 0, ky: 0, hp, max: hp, speed: (w?.speed ?? 30) * (1 + Math.min(0.35, 0.012 * k)) * (elite ? 0.9 : 1) * (big?.speed ?? 1),
-      dmg: (w?.dmg ?? 10) * (1 + 0.07 * k + 0.003 * k * k) * (elite ? 1.5 : 1) * (this.setup.daily?.mod.enemyDmg ?? 1) * (big?.dmg ?? 1),
+      dmg: (w?.dmg ?? 10) * dmgMul * (elite ? 1.5 : 1) * (this.setup.daily?.mod.enemyDmg ?? 1) * (big?.dmg ?? 1),
       r: (w?.r ?? 7) * (elite ? 1.3 : 1) * (big?.scale ?? 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0, wetT: 0, burnT: 0, burnDps: 0, poisonT: 0, poisonDps: 0, dotT: 0.5,
       state: "", stateT: rand(1, 3), actT: 2, elite, titan, z: 0, alpha: 1, aim: { x: 0, y: 0 }, touchT: 0, n: 0, dead: false, deadT: 0, seed: Math.random() * 100,
     };
@@ -2360,6 +2383,11 @@ export class Game {
     this.enemies.push(this.makeEnemy(dex, p.x + Math.cos(a) * d, p.y + Math.sin(a) * d));
   }
 
+  /** the wild Pokémon of this wave: those come so far, but the ones gone by now */
+  private get wildPool() {
+    return POOLS.filter(([w]) => w <= this.wave).flatMap(([, d]) => d).filter((d) => !(RETIRE[d] && this.wave >= RETIRE[d]));
+  }
+
   private spawn(dt: number) {
     // won: nobody else comes
     if (this.endAt) return;
@@ -2368,7 +2396,7 @@ export class Game {
     const cap = Math.min(260, 120 + this.wave * 6);
     const rate = (0.6 + 0.3 * this.wave + 0.012 * this.wave * this.wave) * (this.bossAlive ? 0.5 : 1) * (this.setup.daily?.mod.spawn ?? 1);
     this.spawnAcc += rate * dt;
-    const pool = POOLS.filter(([w]) => w <= this.wave).flatMap(([, d]) => d).filter((d) => !(RETIRE[d] && this.wave >= RETIRE[d]));
+    const pool = this.wildPool;
     while (this.spawnAcc >= 1) {
       this.spawnAcc--;
       if (alive >= cap) continue;
@@ -2378,6 +2406,18 @@ export class Game {
         const f = Math.random();
         for (let i = 0; i < 5; i++) this.spawnOne(dex, f + rand(-0.03, 0.03));
       } else this.spawnOne(dex);
+    }
+    // past wave 100, titans walk among the crowd, more and more often (a third as many while a boss is out)
+    if (this.wave > BEYOND) {
+      this.titanT -= dt;
+      if (this.titanT <= 0) {
+        this.titanT = Math.max(4, 14 - (this.wave - BEYOND) * 0.1) * (this.bossAlive ? 3 : 1);
+        const a = Math.random() * Math.PI * 2, d = VIEW_R + 20;
+        const p = pick(this.alive().length ? this.alive() : this.players);
+        this.enemies.push(this.makeEnemy(pick(pool), p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, true));
+        if (this.titanWave !== this.wave && !this.bossAlive) this.showBanner(this.tr("UN TITAN !", "A TITAN!"), this.tr("un ennemi géant", "a giant foe"));
+        this.titanWave = this.wave;
+      }
     }
     if (this.treasureAt > 0 && this.time >= this.treasureAt) {
       this.treasureAt = -1;
@@ -2736,7 +2776,7 @@ export class Game {
       e.z = 0;
       e.alpha = 1;
       const d = this.setup.defi?.d;
-      const pool = d ? [...d.mid, ...d.late] : [b.dex];
+      const pool = d ? [...d.mid, ...d.late] : this.wildPool;
       for (let i = 0; i < 4 + 3 * phase; i++) {
         const a = (i / (4 + 3 * phase)) * Math.PI * 2;
         const g = this.makeEnemy(pick(pool), e.x + Math.cos(a) * 60, e.y + Math.sin(a) * 50);

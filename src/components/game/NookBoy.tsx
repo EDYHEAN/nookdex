@@ -5,13 +5,13 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, PENSION_PAGE, RARITY, STARTERS, pensionCost, say, type Lang } from "@/lib/game/data";
+import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, PENSION_PAGE, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, type Lang } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
 import { Game, MAX_WAVE, dailyOf, dailyReward, pickX, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
 import { lastName, myRewards, submitScore, topScores, type Period, type Score } from "@/lib/game/scores";
-import { buyLevel, setGold, usePension } from "@/lib/pensionStore";
+import { bestWave, buyLevel, reachWave, setGold, usePension } from "@/lib/pensionStore";
 import { unlock } from "@/lib/trophyStore";
 import { startAmbient, stopAmbient } from "@/lib/sound";
 import { useStore } from "@/lib/store";
@@ -270,6 +270,7 @@ export default function NookBoy({ origin, onClose }: Props) {
       }
     }
     setGold(gold);
+    if (g.setup.mode === "classic" || g.setup.mode === "coop") reachWave(run?.wave ?? g.wave);
   };
   const openPension = () => {
     gsfx.ok();
@@ -283,11 +284,14 @@ export default function NookBoy({ origin, onClose }: Props) {
     setCursor(0);
   };
   const pensionTiles = PENSION.slice(pPage * PENSION_PAGE, (pPage + 1) * PENSION_PAGE);
+  /** wave 100 reached once: every upgrade gets its 2nd rank */
+  const rank2 = bestWave(levels) >= RANK2_WAVE;
+  const capOf = (d: (typeof PENSION)[number]) => (rank2 ? pensionMax2(d) : d.max);
   const buyPension = (i: number) => {
     const d = PENSION[i];
     const lv = levels[d.id] ?? 0;
     const cost = pensionCost(d, lv);
-    if (lv >= d.max || !buyLevel(d.id, cost)) return gsfx.back();
+    if (lv >= capOf(d) || !buyLevel(d.id, cost)) return gsfx.back();
     gsfx.coin();
     unlock("game-pension");
   };
@@ -1087,7 +1091,8 @@ export default function NookBoy({ origin, onClose }: Props) {
         {pensionTiles.map((d, i) => {
           const lv = levels[d.id] ?? 0;
           const cost = pensionCost(d, lv);
-          const max = lv >= d.max;
+          const cap = capOf(d);
+          const max = lv >= cap;
           const can = !max && purse >= cost;
           const num = (v: number) => (Math.round(v * 100) / 100).toLocaleString(lang === "fr" ? "fr-FR" : "en-GB");
           const fmt = (l: number) => (d.pct ? `${d.less ? "−" : "+"}${num(d.per * l)} %` : d.per < 1 ? `+${num(d.per * l)}` : `${d.per * l}`);
@@ -1100,8 +1105,9 @@ export default function NookBoy({ origin, onClose }: Props) {
             >
               <span className={styles.pName}>{say(d.name, lang)}</span>
               <span className={styles.pPips}>
-                {Array.from({ length: d.max }, (_, k) => (
-                  <i key={k} className={k < lv ? styles.pPipOn : ""} />
+                {/* the 2nd rank's levels show from the start, locked until wave 100 */}
+                {Array.from({ length: pensionMax2(d) }, (_, k) => (
+                  <i key={k} className={`${k < lv ? styles.pPipOn : ""} ${k >= d.max ? (rank2 ? styles.pPip2 : styles.pPipLock) : ""}`} />
                 ))}
               </span>
               <span className={styles.pEff}>
@@ -1115,7 +1121,9 @@ export default function NookBoy({ origin, onClose }: Props) {
                   </>
                 )}
               </span>
-              <span className={`${styles.pPrice} ${can ? styles.pPriceOk : ""}`}>{max ? "MAX" : `${cost} ${t("or", "gold")}`}</span>
+              <span className={`${styles.pPrice} ${can ? styles.pPriceOk : ""}`}>
+                {max ? (rank2 ? "MAX" : t(`🔒 V${RANK2_WAVE}`, `🔒 W${RANK2_WAVE}`)) : `${cost} ${t("or", "gold")}`}
+              </span>
             </button>
           );
         })}

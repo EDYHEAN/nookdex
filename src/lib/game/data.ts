@@ -456,8 +456,16 @@ export const PENSION: PensionDef[] = [
   { id: "discount", name: ["Carte fidélité", "Loyalty card"], desc: ["−4 % chez Kecleon", "−4% at Kecleon's"], max: 6, cost: 50, per: 4, stat: ["prix", "prices"], pct: true, less: true },
   { id: "pack", name: ["Sac à dos", "Backpack"], desc: ["+1 carte à choisir au départ", "+1 card to pick at the start"], max: 3, cost: 300, per: 1, stat: ["carte au départ", "starting card"], pct: false },
 ];
-/** the purse is kept from run to run: dearer, and climbing faster (Johan, 2026-10-13) */
-export const pensionCost = (d: PensionDef, level: number) => Math.round(d.cost * 2 * Math.pow(1.6, level));
+/** the 2nd rank (once wave 100 is reached): half as many levels again on top of the first */
+export const pensionMax2 = (d: PensionDef) => d.max + Math.ceil(d.max / 2);
+/** the best classic or coop wave reached at which the 2nd rank opens */
+export const RANK2_WAVE = 100;
+/**
+ * The purse is kept from run to run: dearer, and climbing faster (Johan, 2026-10-13). The 2nd rank climbs slower from the
+ * first rank's last price, or its levels would cost hundreds of thousands.
+ */
+export const pensionCost = (d: PensionDef, level: number) =>
+  level < d.max ? Math.round(d.cost * 2 * Math.pow(1.6, level)) : Math.round(d.cost * 2 * Math.pow(1.6, d.max - 1) * Math.pow(1.4, level - d.max + 1));
 
 /* ---------------- the daily challenge: the same starter and rule for everyone, no Pension ---------------- */
 
