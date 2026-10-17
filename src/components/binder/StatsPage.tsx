@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { BINDER_COLORS, GRIDS, type Pocket } from "@/lib/binders";
 import { formatMoney, marketName, type SetStats } from "@/lib/price";
 import { SORT_LABEL, SORT_LABEL_EN } from "@/lib/rarity";
@@ -31,6 +31,9 @@ interface Props {
 
 export function StatsPage({ binder, title, stats, pages, collection, onJump, onFind }: Props) {
   const t = useT();
+  const mapRef = useRef<HTMLDivElement>(null);
+  const g = GRIDS[binder.grid];
+  const mapCols = useMapCols(mapRef, pages.length, g.cols, g.rows, g.cols === 3 ? 0.074 : 0.05);
   const free = binder.kind === "free";
   const pct = stats.total ? stats.owned / stats.total : 0;
   const segments = 20;
@@ -149,16 +152,14 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
         <p className={styles.mapTitle}>{t("Carte du classeur", "Binder map")}</p>
         <Colors id={binder.id} current={binder.color} />
       </div>
-      {/* a mini page as wide as its columns: the pockets keep their size whatever the grid, the map its room (smaller on
-          a 6-pocket binder's narrow summary, whose figures take two rows more) */}
-      <div className={styles.map} style={{ ["--mapw" as string]: `calc(var(--pw) * ${(binder.grid === 6 ? 0.0155 : 0.0207) * GRIDS[binder.grid].cols})` }}>
+      <div ref={mapRef} className={styles.map} style={{ gridTemplateColumns: `repeat(${mapCols}, 1fr)` }}>
         {pages.map((pockets, i) => {
           const owned = pockets.filter(filled).length;
           return (
             <button
               key={i}
               className={`${styles.mapPage} ${owned === pockets.length ? styles.mapDone : ""}`}
-              style={{ gridTemplateColumns: `repeat(${GRIDS[binder.grid].cols}, 1fr)` }}
+              style={{ gridTemplateColumns: `repeat(${g.cols}, 1fr)` }}
               onClick={(e) => {
                 e.stopPropagation();
                 sfx.click();
@@ -181,6 +182,37 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
       )}
     </div>
   );
+}
+
+/**
+ * The binder map's mini pages a row: as many as it takes for all of them to fit in the room the summary leaves it (no
+ * scroll: the wheel turns the binder's pages; Johan, 2026-10-17), no wider than `widest` of the map (their size on a
+ * short set). A mini page: `cols` x `rows` pockets, 1 px apart, 2 px of padding.
+ */
+function useMapCols(ref: RefObject<HTMLDivElement | null>, count: number, cols: number, rows: number, widest: number) {
+  const [n, setN] = useState(12);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fit = () => {
+      const { clientWidth: W, clientHeight: H } = el;
+      const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+      const height = (k: number) => {
+        const lines = Math.ceil(count / k);
+        const pocket = ((W - (k - 1) * gap) / k - 4 - (cols - 1)) / cols;
+        // (+3: its border and the pixels lost rounding each pocket)
+        return lines * (rows * pocket * (88 / 63) + (rows - 1) + 4 + 3) + (lines - 1) * gap;
+      };
+      let k = Math.max(1, Math.floor((W + gap) / (W * widest + gap)));
+      while (k < count && height(k) > H) k++;
+      setN(k);
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, count, cols, rows, widest]);
+  return n;
 }
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
