@@ -46,4 +46,19 @@ jobs:
           git config user.name "nookdex-bot"
           git config user.email "nookdex-bot@users.noreply.github.com"
           git add renders
-          git diff --cached --quiet || (git commit -m "Rendus des posts" && git push)
+          git diff --cached --quiet && exit 0
+          git commit -qm "Rendus des posts"
+          for try in 1 2 3; do
+            git push && exit 0
+            # the social branch moved meanwhile (a post pushed): on top of it; if both touched the same renders, draw them again on top
+            git fetch -q origin social
+            if ! git rebase -q origin/social; then
+              git rebase --abort
+              git reset -q --hard origin/social
+              (cd ../app && node scripts/social/render.mjs --social ../social)
+              git add renders
+              git diff --cached --quiet && exit 0
+              git commit -qm "Rendus des posts"
+            fi
+          done
+          exit 1
