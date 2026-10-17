@@ -307,6 +307,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (lv >= capOf(d) || !buyLevel(d.id, cost)) return gsfx.back();
     gsfx.coin();
     unlock("game-pension");
+    if (lv >= d.max) unlock("game-rank2");
   };
 
   /* ---------------- what each button does, screen by screen ---------------- */

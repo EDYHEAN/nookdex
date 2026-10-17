@@ -612,6 +612,8 @@ export class Game {
   private treasureAt = -1;
   /** past wave 100: the next titan's wait, and the wave its banner was shown */
   private titanT = 0;
+  /** foes charmed this run (the "Charmer" trophy) */
+  private charmed = 0;
   /** the run's clock at its start: 0, or a start tier's (the draft's cards are picked then) */
   startAt = 0;
   private titanWave = 0;
@@ -772,6 +774,9 @@ export class Game {
     const from = setup.daily || setup.defi ? 1 : (setup.start ?? 1);
     this.startAt = (from - 1) * WAVE_SECONDS;
     if (from > 1) this.time = this.startAt;
+    if (from > 1) unlock("game-tier");
+    if (from >= 175) unlock("game-tier175");
+    this.charmed = 0;
     // the daily is the same for all: its own starter, never a reward one
     const picks = setup.daily
       ? [STARTERS[setup.daily.starter]]
@@ -831,6 +836,9 @@ export class Game {
       const m = this.moves.find((x) => x.id === c.id);
       if (m) m.level++;
       else this.moves.push({ id: c.id as MoveId, level: 1, cd: 0.5, active: 0 });
+      // the four types of 2026-10-17 in one run
+      const types = new Set(this.moves.map((x) => MOVES.find((d) => d.id === x.id)!.type));
+      if (["fairy", "steel", "dark", "bug"].every((t) => types.has(t as Elem))) unlock("game-types");
       gsfx.learn();
     } else if (c.kind === "item") {
       const it = this.items.find((x) => x.id === c.id);
@@ -1172,7 +1180,10 @@ export class Game {
   private finish(won: boolean) {
     const daily = this.setup.daily;
     if (this.setup.mode === "coop") unlock("game-coop");
-    if (won && !this.setup.defi) unlock("game-wave100");
+    if (won && !this.setup.defi) {
+      unlock("game-wave100");
+      unlock("game-wave200");
+    }
     if (won && this.setup.defi) this.defiWon(this.players[0].starter.dex, Math.floor(this.time));
     const met = !!daily && this.wave >= daily.target;
     this.lastStats = {
@@ -1248,6 +1259,7 @@ export class Game {
     if (wave >= 10) unlock("game-wave10");
     if (wave >= 20) unlock("game-wave20");
     if (wave >= 30) unlock("game-wave30");
+    if (wave >= 150) unlock("game-wave150");
     gsfx.waveStart();
     if (wave % 5 === 0) {
       const round = Math.floor((wave / 5 - 1) / BOSSES.length);
@@ -2265,7 +2277,10 @@ export class Game {
     }
     if (elem === "ice" && e.wetT > 0 && !e.boss) e.sleepT = Math.max(e.sleepT, 1.2);
     // Fairy charms (a titan, not for long; a boss, never); Dark makes foes flinch now and then
-    if (elem === "fairy" && !e.boss) e.charmT = Math.max(e.charmT, e.titan ? 1 : 1.8);
+    if (elem === "fairy" && !e.boss) {
+      if (e.charmT <= 0 && ++this.charmed === 100) unlock("game-charm");
+      e.charmT = Math.max(e.charmT, e.titan ? 1 : 1.8);
+    }
     if (elem === "dark" && !e.boss && Math.random() < 0.3) e.sleepT = Math.max(e.sleepT, 0.5);
     const crit = Math.random() < this.crit;
     const day = this.setup.daily?.mod.elem;
@@ -2311,6 +2326,7 @@ export class Game {
     }
     const xp = (e.w?.xp ?? 0) * (e.elite ? 4 : e.titan ? TITAN.xp : 1);
     if (e.titan) unlock("defi-titan");
+    if (e.boss?.giga && !this.setup.defi) unlock("game-giga");
     if (e.boss && (this.setup.defi || e.final)) this.bossDown(e);
     else if (e.boss) {
       unlock("game-boss");

@@ -1,6 +1,6 @@
 {
   "cols": 10,
-  "rows": 9,
+  "rows": 10,
   "cell": 128,
   "index": {
     "first-card": 0,
@@ -86,6 +86,14 @@
     "defi-titan": 80,
     "defi-karp": 81,
     "defi-top1": 82,
-    "game-wave100": 83
+    "game-wave100": 83,
+    "game-wave150": 84,
+    "game-wave200": 85,
+    "game-giga": 86,
+    "game-tier": 87,
+    "game-tier175": 88,
+    "game-charm": 89,
+    "game-types": 90,
+    "game-rank2": 91
   }
 }
