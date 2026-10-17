@@ -220,7 +220,9 @@ doesn't show.
 - Release calendar: `/calendrier-des-sorties` and `/en/release-calendar` (notebook tab "Sorties / Releases",
   `components/ReleaseCalendar.tsx`, `lib/releases.ts`). Coming up = `src/data/releases.json` (official announcements
   only, with their source, kept up to date by the blog routine, see docs/blog.md); the past year = the catalogs'
-  binder sets, linked to their pages. Generated FAQ ("next set", "latest set") for AI answers. An entry's `post`
+  binder sets, linked to their pages. An « En bref » answer on top (the next set, in how many days), the coming releases
+  by month (« Sorties Pokémon de novembre 2026 »), a generated FAQ (next set, next releases, each month's, next year's, latest
+  set, Japanese sets) for search and AI answers (2026-10-17, from the first weekly report). An entry's `post`
   (`{ fr, en }` slugs) links it to its blog post. The routine writes about releases on its own (docs/blog.md
   "Releases come first": the month's releases on the first run of a month, a set preview 21 days before, its first
   prices 7-30 days after).

@@ -1,4 +1,32 @@
 /* The release calendar: each coming release on a torn calendar leaf, the year's releases as a list */
+
+/* "En bref": the next set in one sentence, a sticky note at the top */
+.answer {
+  position: relative;
+  margin: 6px 0 14px !important;
+  padding: 12px 14px 10px;
+  border-radius: 4px;
+  background: #fff3b0;
+  box-shadow: 2px 3px 0 rgba(43, 34, 48, 0.18);
+  line-height: 1.35;
+  transform: rotate(-0.4deg);
+}
+
+.answer b {
+  display: block;
+  margin-bottom: 2px;
+  font-family: var(--font-press), monospace;
+  font-size: 0.7em;
+  font-weight: normal;
+  letter-spacing: 0.04em;
+  color: #b8452f;
+}
+
+.answer small {
+  display: block;
+  margin-top: 4px;
+  opacity: 0.6;
+}
 .upcoming {
   display: flex;
   flex-direction: column;
