@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-17T14:06:17.654Z",
+ "updated": "2026-10-17T15:57:12.269Z",
  "posts": [
   {
    "id": "2026-10-08-bienvenue",
@@ -386,6 +386,35 @@
    "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-21-chaos-ascendant-top5/tiktok.mp4"
+  },
+  {
+   "id": "2026-10-22-qui-monte-qui-chute",
+   "date": "2026-10-22",
+   "time": "18:30",
+   "platforms": [
+    "instagram",
+    "tiktok",
+    "reels"
+   ],
+   "kind": "fact",
+   "format": "post",
+   "title": "Qui monte, qui chute : les cotes depuis début octobre",
+   "note": "Premier post « courbes » (slide curve, format inspiré de PriceCharting). Les courbes et les prix sont redessinés avec les cotes du jour la veille et le jour même : vérifie que les 4 cartes montent/chutent toujours comme annoncé dans la légende.",
+   "caption": "Les cotes Cardmarket, jour après jour, depuis début octobre 📈📉\nDracaufeu-ex s'envole, Méga-Lucario-ex dégringole… Laquelle tu aurais achetée ?\nSuis la cote de ta collec sur nookdex.com (lien en bio)\n#pokemon #pokemontcg #cartespokemon #dracaufeu #collection",
+   "captionTiktok": "Qui monte, qui chute ? Les cotes depuis début octobre 📈📉 #pokemon #pokemontcg #cartespokemon #dracaufeu #collection",
+   "prices": true,
+   "slides": [
+    "2026-10-22-qui-monte-qui-chute/slide-01.jpg",
+    "2026-10-22-qui-monte-qui-chute/slide-02.jpg",
+    "2026-10-22-qui-monte-qui-chute/slide-03.jpg",
+    "2026-10-22-qui-monte-qui-chute/slide-04.jpg",
+    "2026-10-22-qui-monte-qui-chute/slide-05.jpg",
+    "2026-10-22-qui-monte-qui-chute/slide-06.jpg"
+   ],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": "2026-10-22-qui-monte-qui-chute/tiktok.mp4"
   },
   {
    "id": "2026-10-23-story-avant-premieres",
