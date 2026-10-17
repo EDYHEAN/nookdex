@@ -145,6 +145,11 @@ interface State {
   fillSet: (items: { cardId: string; variant: Variant }[]) => { cardId: string; copyId: string }[];
   /** Takes back the copies a fillSet added. */
   removeCopies: (items: { cardId: string; copyId: string }[]) => void;
+  /**
+   * « Échange accepté » on the trade mat: a copy of each given card leaves the collection (the one picked, else one of
+   * that version, the loose ones first), each received card comes in as a copy kept by its set, in its condition.
+   */
+  trade: (give: { key: string; variant: Variant; copyId?: string }[], get: { key: string; variant: Variant; condition: Condition }[]) => void;
   importBackup: (backup: Backup) => void;
   /**
    * Copies from another site's export (lib/pokecardex), kept by their set (no pocket): a card and variant already owned
@@ -288,6 +293,26 @@ export const useStore = create<State>()(
         });
         return added.map(({ cardId, copy }) => ({ cardId, copyId: copy.id }));
       },
+      trade: (give, get) =>
+        set((s) => {
+          const collection = { ...s.collection };
+          for (const g of give) {
+            const copies = [...(collection[g.key] ?? [])];
+            const i =
+              (g.copyId ? copies.findIndex((c) => c.id === g.copyId) : -1) + 1 ||
+              copies.findIndex((c) => c.variant === g.variant && !c.at) + 1 ||
+              copies.findIndex((c) => c.variant === g.variant) + 1 ||
+              copies.findIndex(() => true) + 1;
+            if (!i) continue;
+            const c = copies[i - 1];
+            if (c.qty > 1) copies[i - 1] = { ...c, qty: c.qty - 1 };
+            else copies.splice(i - 1, 1);
+            if (copies.length) collection[g.key] = copies;
+            else delete collection[g.key];
+          }
+          for (const g of get) collection[g.key] = [...(collection[g.key] ?? []), { ...newCopy(g.variant), condition: g.condition }];
+          return { collection };
+        }),
       removeCopies: (items) =>
         set((s) => {
           const gone = new Set(items.map((i) => `${i.cardId}|${i.copyId}`));

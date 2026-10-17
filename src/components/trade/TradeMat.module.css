@@ -1,0 +1,753 @@
+/* The trade mat: Gemini's playmat (public/trade/mat-*.webp, cropped from img/trade-mat-*.jpg) over nearly the whole screen,
+   the zones of the code laid on its painted ones (their place in % of the mat, measured on the pictures): a phone holds
+   it upright (the zones one above the other), a wide screen flat (side by side). The title above it, « Échange accepté »
+   under it. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+  background: rgba(10, 6, 18, 0.78);
+  font-family: var(--font-vt), monospace;
+  color: var(--ink);
+}
+
+.shell {
+  --paper: #f4ecdc;
+  --line: #1a1420;
+  --give: #ff8f7a;
+  --get: #9de07a;
+  --gold: #ffd35a;
+  /* the mat's shape, and the room the title and the button take */
+  --ar: 0.6;
+  --chrome: 128px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: min(100%, calc((100dvh - var(--chrome)) * var(--ar)));
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* the site's sound button stays in the top right corner, over everything */
+  padding: 0 52px 0 2px;
+  min-height: 40px;
+}
+
+.title {
+  flex: 1;
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  color: var(--paper);
+  text-shadow: 2px 2px 0 var(--line);
+}
+
+.close,
+.clear {
+  padding: 7px 10px 5px;
+  border: 3px solid var(--paper);
+  border-radius: 9px;
+  background: rgba(26, 20, 32, 0.6);
+  color: var(--paper);
+  font-family: var(--font-press), monospace;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.clear {
+  border-color: rgba(244, 236, 220, 0.5);
+}
+
+/* the mat, cut out of its desk (scripts/build-trade-mat.mjs): its shadow follows its painted edge */
+.mat {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--ar);
+  background: url(/trade/mat-phone.webp) center / 100% 100% no-repeat;
+  filter: drop-shadow(10px 14px 0 rgba(10, 6, 16, 0.55));
+}
+
+/* a zone, on its painted frame */
+.zone {
+  position: absolute;
+  left: 10.6%;
+  width: 78.9%;
+  height: 37.2%;
+}
+
+.give {
+  top: 6%;
+}
+
+.get {
+  top: 56.4%;
+}
+
+.zone header {
+  position: absolute;
+  z-index: 2;
+  top: -12px;
+  left: 10px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.lab,
+.sum {
+  font-family: var(--font-press), monospace;
+  font-size: 9px;
+  padding: 5px 7px 3px;
+  border-radius: 7px;
+  border: 3px solid var(--line);
+  background: var(--paper);
+}
+
+.give .lab {
+  background: var(--give);
+}
+
+.get .lab {
+  background: var(--get);
+}
+
+.lay {
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 18px 12px 6px;
+  scrollbar-width: none;
+}
+
+.card {
+  position: relative;
+  flex: none;
+  height: 92%;
+  aspect-ratio: 63 / 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.card img,
+.card > :first-child {
+  width: 100%;
+  aspect-ratio: 63 / 88;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px var(--line), 4px 6px 0 rgba(0, 0, 0, 0.35);
+}
+
+.price {
+  margin-top: 4px;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--paper);
+  text-shadow: 2px 2px 0 var(--line);
+  white-space: nowrap;
+}
+
+.mine,
+.badge {
+  position: absolute;
+  font-family: var(--font-press), monospace;
+  font-size: 7px;
+  padding: 3px 4px 2px;
+  border-radius: 4px;
+  border: 2px solid var(--line);
+}
+
+.mine {
+  top: -8px;
+  left: -6px;
+  background: #9b82d0;
+  color: #fff;
+}
+
+.badge {
+  top: -8px;
+  right: -6px;
+  background: var(--gold);
+}
+
+.add {
+  flex: none;
+  height: 70%;
+  aspect-ratio: 63 / 88;
+  display: grid;
+  place-content: center;
+  gap: 4px;
+  border: 3px dashed rgba(244, 236, 220, 0.7);
+  border-radius: 8px;
+  background: rgba(244, 236, 220, 0.08);
+  color: var(--paper);
+  font-family: var(--font-press), monospace;
+  font-size: 8px;
+  cursor: pointer;
+}
+
+.add i {
+  font-style: normal;
+  font-size: 26px;
+}
+
+/* the weight of the trade, between the zones: the verdict, and a bar on the painted band */
+.weigh {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  /* the verdict under the top zone, the bar on the painted band (49.7 %) */
+  top: 43.8%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  text-align: center;
+  color: var(--paper);
+  text-shadow: 2px 2px 0 var(--line);
+}
+
+.verdict {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.verdict b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 12px;
+  color: var(--gold);
+}
+
+.win .verdict b {
+  color: var(--get);
+}
+
+.lose .verdict b {
+  color: var(--give);
+}
+
+.verdict small {
+  font-size: 19px;
+  opacity: 0.9;
+}
+
+.verdict small::before {
+  content: "· ";
+}
+
+.gauge {
+  position: relative;
+  height: 14px;
+  margin: 7px 0 0;
+  border-radius: 9px;
+  border: 3px solid var(--line);
+  background: var(--line);
+}
+
+.g,
+.r {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.g {
+  left: 0;
+  background: var(--give);
+  border-radius: 6px 0 0 6px;
+}
+
+.r {
+  right: 0;
+  background: var(--get);
+  border-radius: 0 6px 6px 0;
+}
+
+.mid {
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  bottom: -6px;
+  width: 2px;
+  background: var(--paper);
+  opacity: 0.6;
+}
+
+.knob {
+  position: absolute;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 3px solid var(--line);
+}
+
+.empty .gauge {
+  opacity: 0.4;
+}
+
+.accept {
+  padding: 13px 10px 11px;
+  border: 3px solid var(--line);
+  border-radius: 12px;
+  background: var(--get);
+  font-family: var(--font-press), monospace;
+  font-size: 12px;
+  box-shadow: 4px 5px 0 var(--line);
+  cursor: pointer;
+}
+
+.accept:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* a wide screen: the mat flat, the zones side by side, the verdict on the band between them */
+@media (min-aspect-ratio: 1/1) and (min-width: 700px) {
+  .shell {
+    --ar: 1.778;
+    --chrome: 150px;
+  }
+
+  .title {
+    font-size: 15px;
+  }
+
+  .mat {
+    background-image: url(/trade/mat-desk.webp);
+  }
+
+  .zone {
+    top: 8.9%;
+    width: 36.6%;
+    height: 82.2%;
+  }
+
+  .give {
+    left: 5.1%;
+  }
+
+  .get {
+    left: 58.3%;
+  }
+
+  .lay {
+    flex-wrap: wrap;
+    align-content: flex-start;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 24px 14px 10px;
+    row-gap: 16px;
+  }
+
+  .card {
+    height: 44%;
+  }
+
+  .add {
+    height: 34%;
+  }
+
+  .weigh {
+    left: 41.7%;
+    right: 41.6%;
+    top: 57%;
+    height: auto;
+  }
+
+  .verdict {
+    white-space: normal;
+  }
+
+  .verdict small {
+    display: block;
+  }
+
+  .verdict small::before {
+    content: none;
+  }
+
+  .accept {
+    align-self: center;
+    width: min(360px, 100%);
+  }
+}
+
+/* the sheets: from the bottom on a phone, a card in the middle on a computer */
+.sheetWrap {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(10, 6, 18, 0.55);
+}
+
+.sheet {
+  width: min(100%, 560px);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px max(16px, env(safe-area-inset-bottom));
+  border: 4px solid #1a1420;
+  border-bottom: 0;
+  border-radius: 22px 22px 0 0;
+  background: #f4ecdc;
+  box-shadow: 0 -6px 0 rgba(20, 12, 28, 0.3);
+}
+
+@media (min-width: 900px) {
+  .sheetWrap {
+    align-items: center;
+  }
+
+  .sheet {
+    border-bottom: 4px solid #1a1420;
+    border-radius: 20px;
+    max-height: 80vh;
+  }
+}
+
+.grip {
+  width: 50px;
+  height: 5px;
+  flex: none;
+  margin: 0 auto 10px;
+  border-radius: 3px;
+  background: #6f6068;
+  opacity: 0.6;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.tabs button,
+.langs button,
+.seg button {
+  font-family: var(--font-press), monospace;
+  border: 3px solid #1a1420;
+  background: #fff;
+  color: #2b2230;
+  cursor: pointer;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 10px 4px 8px;
+  border-radius: 9px;
+  font-size: 10px;
+}
+
+.tabs .on,
+.langs .on,
+.seg .on {
+  background: #ffd35a;
+  box-shadow: 2px 3px 0 #1a1420;
+}
+
+.searchRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px 6px;
+  border: 3px solid #1a1420;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: 22px;
+  color: #2b2230;
+}
+
+.langs {
+  display: flex;
+  gap: 4px;
+}
+
+.langs button {
+  padding: 0 7px;
+  border-radius: 8px;
+  font-size: 9px;
+}
+
+.results {
+  flex: 1;
+  min-height: 120px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.empty {
+  padding: 20px 0;
+  text-align: center;
+  font-size: 20px;
+  color: #6f6068;
+}
+
+.res {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 2px;
+  border: 0;
+  border-bottom: 2px dashed rgba(43, 34, 48, 0.2);
+  background: none;
+  font: inherit;
+  color: #2b2230;
+  text-align: left;
+  cursor: pointer;
+}
+
+.res img,
+.noimg {
+  width: 44px;
+  aspect-ratio: 63 / 88;
+  flex: none;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1.5px #1a1420;
+  background: #d8cbb4;
+}
+
+.resTxt {
+  flex: 1;
+  min-width: 0;
+  font-size: 21px;
+  line-height: 1;
+}
+
+.resTxt small {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  font-size: 17px;
+  color: #6f6068;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.res b {
+  font-size: 20px;
+  font-weight: normal;
+  white-space: nowrap;
+}
+
+.plus {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 3px solid #1a1420;
+  border-radius: 9px;
+  background: #ffd35a;
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  font-style: normal;
+}
+
+.edit {
+  display: flex;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.editCard {
+  width: 130px;
+  flex: none;
+}
+
+.editCard img,
+.editCard > * {
+  display: block;
+  width: 100%;
+  border-radius: 7px;
+  box-shadow: 0 0 0 2px #1a1420, 4px 5px 0 rgba(20, 12, 28, 0.35);
+}
+
+.editOpts {
+  flex: 1;
+  min-width: 0;
+}
+
+.editOpts h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.lbl {
+  margin: 10px 0 5px;
+  font-family: var(--font-press), monospace;
+  font-size: 8px;
+  color: #6f6068;
+}
+
+.seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.seg button {
+  padding: 6px 6px 5px;
+  border-width: 2px;
+  border-radius: 6px;
+  font-size: 8px;
+}
+
+.seg small {
+  font-family: var(--font-vt), monospace;
+  font-size: 13px;
+  color: #6f6068;
+}
+
+.kept {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 9px 12px 7px;
+  border: 3px solid #1a1420;
+  border-radius: 10px;
+  background: #fbf5e8;
+}
+
+.kept > span {
+  font-size: 19px;
+  color: #6f6068;
+}
+
+.kept em {
+  font-style: normal;
+  color: #b8433d;
+}
+
+.kept b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 15px;
+}
+
+.kept label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 19px;
+  color: #6f6068;
+}
+
+.kept input {
+  width: 120px;
+  padding: 4px 8px 2px;
+  border: 3px solid #1a1420;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 22px;
+  color: #2b2230;
+  text-align: right;
+}
+
+.editBtns {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.editBtns button {
+  flex: 1;
+  padding: 11px 6px 9px;
+  border: 3px solid #1a1420;
+  border-radius: 10px;
+  font-family: var(--font-press), monospace;
+  font-size: 10px;
+  box-shadow: 3px 4px 0 #1a1420;
+  cursor: pointer;
+}
+
+.remove {
+  background: #fff;
+  color: #b8433d;
+}
+
+.ok {
+  background: #9de07a;
+  flex: 1.5 !important;
+}
+
+/* « Échange accepté » */
+.done {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(10, 6, 18, 0.7);
+  cursor: pointer;
+}
+
+.doneHead {
+  margin-bottom: 14px;
+  padding: 14px 18px 12px;
+  border: 4px solid #1a1420;
+  border-radius: 12px;
+  background: #9de07a;
+  font-family: var(--font-press), monospace;
+  font-size: 16px;
+  box-shadow: 5px 6px 0 #1a1420;
+}
+
+.out,
+.in,
+.doneSub {
+  font-size: 28px;
+  text-shadow: 2px 2px 0 #1a1420;
+}
+
+.out {
+  color: #ff8f7a;
+}
+
+.in {
+  color: #9de07a;
+}
+
+.doneSub {
+  margin-top: 12px;
+  font-size: 22px;
+  color: #f4ecdc;
+}

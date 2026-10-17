@@ -12,6 +12,7 @@ import { CONDITIONS, CONDITION_LABEL, useStore } from "@/lib/store";
 import type { CardData, Condition, Copy, Variant } from "@/lib/types";
 import { AddTo } from "./AddTo";
 import { WishButton } from "./WishButton";
+import { openTrade } from "@/lib/trade";
 import type { AddResult } from "./CardSlot";
 import { CardBack } from "./CardBack";
 import { PriceChart } from "./PriceChart";
@@ -338,6 +339,19 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd, onOpenBi
             </button>
           ) : (
             <WishButton card={card} />
+          )}
+          {owned && (
+            <button
+              className={styles.wishBtn}
+              onClick={() => {
+                sfx.pop();
+                // the copy looked at here, else the first one
+                openTrade({ key: card.id, copy: copies!.find((c) => (c.at?.binder ?? null) === binderId) ?? copies![0] });
+              }}
+              onPointerEnter={sfx.hover}
+            >
+              ⇄ {t("Échanger", "Trade")}
+            </button>
           )}
           {keptHere && (
             <HoldButton

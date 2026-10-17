@@ -13,6 +13,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.15",
+    date: "2026-10-17",
+    title: { fr: "Le tapis d'échange", en: "The trade mat" },
+    items: [
+      { fr: "En salon : pose ce que tu donnes et ce que tu reçois, le tapis te dit si l'échange est équitable.", en: "At a fair: lay what you give and what you get, the mat tells you if the trade is fair." },
+      { fr: "L'état et les cartes gradées (PSA, CGC…) comptent dans le prix.", en: "Condition and graded cards (PSA, CGC…) count in the price." },
+      { fr: "« Échanger » sur une carte de ta collection, « Échange accepté » met ta collection à jour.", en: "\"Trade\" on a card you own; \"Trade done\" updates your collection." },
+    ],
+  },
+  {
     version: "0.14",
     date: "2026-10-17",
     title: { fr: "Au-delà de la vague 100", en: "Beyond wave 100" },

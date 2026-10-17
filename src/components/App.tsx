@@ -13,6 +13,7 @@ import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
 import { useTrophyWatch } from "@/lib/useTrophyWatch";
 import { funnelStep, funnelVisit } from "@/lib/funnel";
+import { closeTrade, useTradeMat } from "@/lib/trade";
 import { isCompact, useViewport } from "@/lib/useViewport";
 import { BinderView } from "./binder/BinderView";
 import { Inspector } from "./binder/Inspector";
@@ -39,6 +40,8 @@ import { LANG_COOKIE, currentLang, useLang, useT } from "@/lib/lang";
 
 /** The NookBoy game: its code, sprites and sounds load only when the Game Boy is picked up. */
 const NookBoy = dynamic(() => import("./game/NookBoy"), { ssr: false });
+/** The trade mat (NookDex OS → « Échange », a card sheet's « Échanger »): loaded when it's brought out. */
+const TradeMat = dynamic(() => import("./trade/TradeMat"), { ssr: false });
 
 interface Open {
   binderId: string;
@@ -85,6 +88,7 @@ export function App() {
   const [revealed, setRevealed] = useState(false);
   const profile = useStore((s) => s.profile);
   const cloud = useCloud();
+  const trade = useTradeMat();
   // the funnel (lib/funnel): a visit a day, and each step the first time it's reached
   const binderCount = useStore((s) => s.binders.length);
   const copyCount = useStore((s) => Object.values(s.collection).reduce((n, c) => n + c.length, 0));
@@ -408,6 +412,7 @@ export function App() {
       </AnimatePresence>
 
       <AnimatePresence>{game && <NookBoy key="nookboy" origin={game} onClose={() => setGame(null)} />}</AnimatePresence>
+      <AnimatePresence>{trade.open && <TradeMat key="trade" seed={trade.seed} onClose={closeTrade} />}</AnimatePresence>
 
       <AnimatePresence>
         {adding && (
