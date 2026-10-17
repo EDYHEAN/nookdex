@@ -29,8 +29,8 @@
 }
 
 /* the remove choice hangs below the header, over the binder: its leaves are stacked up to one z-index a page (and the
-   corners at 300), lift the header above them all while it's open */
-.title:has([aria-expanded="true"]) {
+   corners at 300), lift the header above them all while it's open (« J'ai tout »'s undo strip too, while it shows) */
+.title:has([aria-expanded="true"], [data-lift]) {
   z-index: 1000;
 }
 

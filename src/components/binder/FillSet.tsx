@@ -114,7 +114,7 @@ export function FillSet({ set }: { set: SetData }) {
         </span>
       )}
       {undo && (
-        <span className={styles.fillDone} role="status">
+        <span className={styles.fillDone} role="status" data-lift>
           ✓ {t(`${undo.n} ajoutées`, `${undo.n} added`)}
           <button
             onClick={(e) => {
