@@ -1272,20 +1272,23 @@ export default function NookBoy({ origin, onClose }: Props) {
 
 
   return (
-    <motion.div
-      className={styles.overlay}
-      style={{ transformOrigin: `${origin.x}px ${origin.y}px` }}
-      initial={{ scale: 0.06, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0.06, opacity: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      onPointerDown={(e) => {
-        if (e.target !== e.currentTarget) return;
-        // a click beside the console mid-run only pauses it (Johan, 2026-10-17: a friend lost a run that way)
-        if (g && !["title", "select", "over"].includes(g.phase)) return g.pause(true);
-        onClose();
-      }}
-    >
+    // the dark backdrop only fades; the console zooms out of the desk over it (Johan, 2026-10-17: zoomed with it, its
+    // edges showed)
+    <motion.div className={styles.overlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
+      <motion.div
+        className={styles.zoom}
+        style={{ transformOrigin: `${origin.x}px ${origin.y}px` }}
+        initial={{ scale: 0.06, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.06, opacity: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        onPointerDown={(e) => {
+          if (e.target !== e.currentTarget) return;
+          // a click beside the console mid-run only pauses it (Johan, 2026-10-17: a friend lost a run that way)
+          if (g && !["title", "select", "over"].includes(g.phase)) return g.pause(true);
+          onClose();
+        }}
+      >
       <button className={styles.close} onClick={onClose} aria-label={t("Ranger la console", "Put the console away")}>
         ✕ {t("Ranger", "Put away")}
       </button>
@@ -1300,6 +1303,7 @@ export default function NookBoy({ origin, onClose }: Props) {
       <p className={styles.hint} style={{ width: hintW, display: hintW < 150 || coopRun ? "none" : undefined }}>
         {t("ZQSD / flèches : bouger · souris : viser · Entrée : pause · Tab : palette", "WASD / arrows: move · mouse: aim · Enter: pause · Tab: palette")}
       </p>
+      </motion.div>
     </motion.div>
   );
 }

@@ -12,6 +12,11 @@
   user-select: none;
 }
 
+.zoom {
+  position: absolute;
+  inset: 0;
+}
+
 .close {
   position: absolute;
   top: 14px;
