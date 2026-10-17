@@ -96,7 +96,12 @@ export type UserBinder = ({ kind: "set"; setId: string } | { kind: "free"; name:
   color?: string;
   /** Order of the cards in a set binder (default: set number) */
   sort?: BinderSort;
+  /** Pockets a page (default 9) */
+  grid?: BinderGrid;
 };
+
+/** Pockets a page: 2x2, 2x3 or 3x3, like real binders (Johan, 2026-10-17: the commonest) */
+export type BinderGrid = 4 | 6 | 9;
 
 export type BinderSort = "num" | "rarity" | "price" | "name";
 
@@ -121,6 +126,8 @@ export interface BinderDef {
   page: number;
   /** Set binders only (a set key, see lib/cardLang) */
   setId: string | null;
+  /** Pockets a page */
+  grid: BinderGrid;
   /** Card language of a set binder; null for a free binder (its cards can be of any language) */
   lang: CardLang | null;
   sort: BinderSort;

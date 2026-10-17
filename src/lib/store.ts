@@ -9,7 +9,7 @@ import { type Currency, keyOf, langOfKey } from "./cardLang";
 import { resolveLang } from "./resolveLang";
 import { mergeTrophies, unlock, useTrophyStore } from "./trophyStore";
 import { mergePension, mergeWallet, usePension } from "./pensionStore";
-import type { BinderSort, Condition, Copy, UserBinder, Variant } from "./types";
+import type { BinderGrid, BinderSort, Condition, Copy, UserBinder, Variant } from "./types";
 
 export const CONDITIONS: Condition[] = ["MT", "NM", "EX", "GD", "LP", "PL", "PO"];
 
@@ -121,6 +121,7 @@ interface State {
   obtainWish: (binderId: string, pocket: number, variant: Variant) => void;
   setBinderColor: (id: string, color: string) => void;
   setBinderSort: (id: string, sort: BinderSort) => void;
+  setBinderGrid: (id: string, grid: BinderGrid) => void;
   /**
    * A binder leaves the shelf. Its cards go in the box on the shelf (`keep`: a free binder's copies leave their pockets,
    * a set binder's stay where they are, off the shelf) or are deleted with it.
@@ -226,6 +227,7 @@ export const useStore = create<State>()(
         set((s) => ({ binders: s.binders.map((b) => (b.id === id ? { ...b, color } : b)) }));
         unlock("decorator");
       },
+      setBinderGrid: (id, grid) => set((s) => ({ binders: s.binders.map((b) => (b.id === id ? { ...b, grid } : b)) })),
       setBinderSort: (id, sort) => {
         set((s) => ({ binders: s.binders.map((b) => (b.id === id ? { ...b, sort } : b)) }));
         if (sort !== "num") unlock("sorter");

@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { BINDER_COLORS, type Pocket } from "@/lib/binders";
+import { BINDER_COLORS, GRIDS, type Pocket } from "@/lib/binders";
 import { formatMoney, marketName, type SetStats } from "@/lib/price";
 import { SORT_LABEL, SORT_LABEL_EN } from "@/lib/rarity";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
-import type { BinderDef, BinderSort, Copy } from "@/lib/types";
+import type { BinderDef, BinderGrid, BinderSort, Copy } from "@/lib/types";
 import styles from "./Binder.module.css";
 import { useT } from "@/lib/lang";
 
@@ -54,6 +54,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
 
       <Finder pages={pages} collection={collection} onFind={onFind} />
       {!free && <SortChips id={binder.id} current={binder.sort} />}
+      <GridChips id={binder.id} current={binder.grid} />
 
       {wish ? (
         <>
@@ -155,6 +156,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
             <button
               key={i}
               className={`${styles.mapPage} ${owned === pockets.length ? styles.mapDone : ""}`}
+              style={{ gridTemplateColumns: `repeat(${GRIDS[binder.grid].cols}, 1fr)` }}
               onClick={(e) => {
                 e.stopPropagation();
                 sfx.click();
@@ -267,6 +269,39 @@ function SortChips({ id, current }: { id: string; current: BinderSort }) {
           onPointerEnter={sfx.hover}
         >
           {t(SORT_LABEL[k], SORT_LABEL_EN[k])}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Pockets a page: 4, 6 or 9, each chip a little drawing of its page */
+function GridChips({ id, current }: { id: string; current: BinderGrid }) {
+  const t = useT();
+  const setGrid = useStore((s) => s.setBinderGrid);
+  return (
+    <div className={styles.sortChips} role="radiogroup" aria-label={t("Cartes par page", "Cards a page")}>
+      <span>{t("Par page", "A page")}</span>
+      {([4, 6, 9] as BinderGrid[]).map((g) => (
+        <button
+          key={g}
+          role="radio"
+          aria-checked={g === current}
+          className={`${styles.gridChip} ${g === current ? styles.chipOn : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (g === current) return;
+            sfx.riffle();
+            setGrid(id, g);
+          }}
+          onPointerEnter={sfx.hover}
+        >
+          <i className={styles.gridIcon} style={{ gridTemplateColumns: `repeat(${GRIDS[g].cols}, 1fr)` }} aria-hidden>
+            {Array.from({ length: g }, (_, k) => (
+              <b key={k} />
+            ))}
+          </i>
+          {g}
         </button>
       ))}
     </div>

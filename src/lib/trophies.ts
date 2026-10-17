@@ -235,9 +235,11 @@ export function factsOf({ collection, binders, cards, sets, signedIn }: Input): 
   for (const b of binders) {
     if (b.kind === "free") {
       const pockets = pocketsOf(b.id, collection);
-      const pages = new Set([...pockets.keys()].map((p) => Math.floor(p / PER_PAGE)));
+      // a page as the binder shows it (4, 6 or 9 pockets)
+      const per = b.grid ?? PER_PAGE;
+      const pages = new Set([...pockets.keys()].map((p) => Math.floor(p / per)));
       for (const pg of pages) {
-        if (Array.from({ length: PER_PAGE }, (_, k) => pockets.has(pg * PER_PAGE + k)).every(Boolean)) f.fullPage = true;
+        if (Array.from({ length: per }, (_, k) => pockets.has(pg * per + k)).every(Boolean)) f.fullPage = true;
       }
       continue;
     }
@@ -247,8 +249,9 @@ export function factsOf({ collection, binders, cards, sets, signedIn }: Input): 
     f.setPct = Math.max(f.setPct, st.owned / st.total);
     if (st.masterTotal && st.masterOwned >= st.masterTotal) f.master = true;
     const sorted = sortCards(set.cards, b.sort ?? "num");
-    for (let i = 0; i + PER_PAGE <= sorted.length && !f.fullPage; i += PER_PAGE) {
-      if (sorted.slice(i, i + PER_PAGE).every((c) => collection[c.id]?.length)) f.fullPage = true;
+    const per = b.grid ?? PER_PAGE;
+    for (let i = 0; i + per <= sorted.length && !f.fullPage; i += per) {
+      if (sorted.slice(i, i + per).every((c) => collection[c.id]?.length)) f.fullPage = true;
     }
   }
   return f;
