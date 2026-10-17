@@ -224,6 +224,11 @@ doesn't show.
   share its TCGdex id (hreflang). Card list, rarities, most expensive cards, "one of each" value, generated FAQ
   (FAQPage), blog posts showing its cards (`lib/setPages.ts`, `components/SetPageView.tsx`). No pages for Japanese sets.
   Blog card sheets link to their set's page.
+- **Card pages** (2026-10-17, for « <carte> <numéro> prix »): one per card under its set's page, `/extensions/<set>/<card>`
+  and `/en/sets/<set>/<card>` (card slug = name + number, `lib/cardPages`, `CardPageView`): scan, today's price per version,
+  the curve from `public/history`, the same Pokémon in the other sets, prev/next, FAQ (FAQPage), hreflang to the twin card.
+  ~45 000 pages: rendered on the first visit and kept a day (`revalidate`), linked from the set page's card list, listed in
+  `/cartes/sitemap/fr.xml` and `en.xml` (built with the deploy, named in robots.txt).
 - `/` is the French home for search engines (they send no language), `/en` the English one (hreflang between them). The
   home text (`HomeText`) carries `WebApplication` JSON-LD; its title is written visibly on the loader's paper (hidden
   once the room is in: `html[data-room]`, set by App). Landing on `/en…` starts the room in English (`resolveLang`).

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { cardGallery, formatDate, num } from "@/lib/blog";
 import { keyOf } from "@/lib/cardLang";
 import { type PageLang, SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
+import { cardSlug } from "@/lib/cardPages";
 import { cardCount, money, setFaq, setPage, trendOf } from "@/lib/setPages";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import type { CardData } from "@/lib/types";
@@ -191,6 +192,8 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
             const label = `${c.name} ${numOf(c)}`;
             return (
               <li key={c.id} className={styles.card}>
+                {/* its own page (lib/cardPages): how search engines find the cards */}
+                <Link href={`${p.path}/${cardSlug(c)}`} className={styles.cardLink}>
                 {c.img ? (
                   <img src={`${c.img}/low.webp`} alt={`${label} · ${name}`} width={245} height={342} loading="lazy" decoding="async" />
                 ) : (
@@ -201,6 +204,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
                 <b>{c.name}</b>
                 {c.rarity && <small>{c.rarity}</small>}
                 <span className={styles.price}>{price != null ? money(price, p) : "—"}</span>
+                </Link>
               </li>
             );
           })}
