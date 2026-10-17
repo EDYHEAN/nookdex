@@ -34,7 +34,11 @@ Skip a day that already has a post. The Instagram mix over the week, in this ord
 1. **news** (only when there is real news): a set revealed or dated, a product announced, a big tournament result. Check
    `src/data/releases.json` and the sources below. Confirmed by an official source or two reliable ones, else not a post.
    A set coming out within 21 days always earns one (the cards it shows, the date, "prépare ta wishlist").
-2. **fact**: a number from our own data: a set's top 5 (`price` slides), what one of each costs (`total`), the card
+2. **fact**: a number from our own data. **Price curves** (`curve` slides, Johan 2026-10-17, after PriceCharting's « one
+   month later »): a new set **1 week and 1 month after its release** (« Règne Delta, 1 semaine après » : its 4-5 cards
+   that moved the most), or « qui monte, qui chute » (the week's biggest moves). Only cards worth 15 € or more, with a
+   smooth series (no day-to-day jump over ±35 %: one odd sale), 7+ days of history; `prices: true`; the caption names the
+   market (Cardmarket / TCGplayer), never eBay. Also: a set's top 5 (`price` slides), what one of each costs (`total`), the card
    that rose the most this week (from `public/history/fr/<set>.json`, only moves on cards worth 10 € or more, and only
    once the history covers 14+ days), the most expensive card of a Pokémon across sets.
 3. **fun**: a game or a themed page. Cards full screen, almost no text (Johan, 2026-10-11). Ideas below.
@@ -123,6 +127,7 @@ Rumors and leaks: no.
 | `zoom` | `card`, `rect` `[x, y, w, h]` in the 600×825 scan (w:h = 4:5), `label` | a close-up |
 | `find` | `card`, `blur` `[x, y, w, h]`, `label` | a Pokémon to find, blurred, name and texts covered |
 | `reveal` | `items` (`[{ card, rect, name }]`), `label` | the answers of zooms / finds |
+| `curve` | `card`, `from` (YYYY-MM-DD, optional: else all the history), `kicker` (default: the set's name) | a card's daily price curve (`public/history`), the price then, the % change, the price now; in the video the line draws itself day by day |
 | `stats` | `kicker`, `title`, `items` (`[{ n, label }]`: the first one huge, then tiles; `n` a number counts up in the video), `ending` | a milestone, a recap in numbers |
 | `end` | `kicker`, `title`, `lead` | the closing question and the address |
 
