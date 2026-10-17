@@ -13,6 +13,19 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.14",
+    date: "2026-10-17",
+    title: { fr: "Au-delà de la vague 100", en: "Beyond wave 100" },
+    items: [
+      { fr: "Nook Survivors va jusqu'à la vague 200 : titans et giga-boss au-delà de 100.", en: "Nook Survivors goes on to wave 200: titans and giga bosses past 100." },
+      { fr: "Repars d'une vague déjà atteinte (25, 50…), avec un tirage de cartes.", en: "Start again from a wave you reached (25, 50…), with a draft of cards." },
+      { fr: "La Pension grandit : 6 nouveaux bonus, et un 2ᵉ rang après la vague 100.", en: "The Pension grows: 6 new boosts, and a 2nd rank past wave 100." },
+      { fr: "Nouvelles capacités Fée, Acier, Ténèbres et Insecte, et 6 combos.", en: "New Fairy, Steel, Dark and Bug moves, and 6 combos." },
+      { fr: "Chaque partie démarre sans or : tout ce que tu ramasses va dans ta bourse.", en: "Each run starts with no gold: all you pick up goes to your purse." },
+      { fr: "Importe ta collection Pokécardex depuis NookDex OS.", en: "Import your Pokécardex collection from NookDex OS." },
+    ],
+  },
+  {
     version: "0.13",
     date: "2026-10-16",
     title: { fr: "La boutique ouvre", en: "The shop opens" },
