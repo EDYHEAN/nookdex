@@ -928,6 +928,18 @@
   color: var(--c1);
 }
 
+/* the run's combos: never past the pause menu, and the ones it has both halves of stand out */
+.recapCombos {
+  max-height: 150px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.recap p.comboOn {
+  color: var(--c0);
+  font-weight: bold;
+}
+
 /* gold, Kecleon's shop, the Pension, the daily, the ladder's boards */
 .goldText {
   color: #ffc93d;
@@ -1371,6 +1383,10 @@
 .screen[data-palette="color"] .t_fly { --tc: #bfe3ff; }
 .screen[data-palette="color"] .t_poison { --tc: #a35bc9; }
 .screen[data-palette="color"] .t_fight { --tc: #e0603a; }
+.screen[data-palette="color"] .t_fairy { --tc: #ff9ed8; }
+.screen[data-palette="color"] .t_steel { --tc: #9fb4c8; }
+.screen[data-palette="color"] .t_dark { --tc: #4a3a52; }
+.screen[data-palette="color"] .t_bug { --tc: #a8c43a; }
 
 /* evolution: the text box at the bottom */
 .textbox {

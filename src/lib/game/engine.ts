@@ -147,6 +147,8 @@ interface Enemy {
   burnDps: number;
   poisonT: number;
   poisonDps: number;
+  /** charmed (Fairy): it goes for its neighbours, not for the player */
+  charmT: number;
   dotT: number;
   state: string;
   stateT: number;
@@ -171,7 +173,7 @@ interface Enemy {
 }
 
 interface Shot {
-  kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe" | "blast" | "bubble" | "scald" | "bone" | "sludge" | "aura" | "psycut" | "gball" | "ice" | "psyorb";
+  kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe" | "blast" | "bubble" | "scald" | "bone" | "sludge" | "aura" | "psycut" | "gball" | "ice" | "psyorb" | "blade";
   x: number;
   y: number;
   vx: number;
@@ -1831,7 +1833,75 @@ export class Game {
       case "future":
         if (!this.foresee(2 + Math.floor(L / 2), (60 + 25 * L) * pw, 30 * this.area)) m.cd = 0.4;
         break;
+      case "dazzle": {
+        // all around: the foes it reaches are charmed (in damage)
+        const R = (55 + 8 * L) * this.area;
+        for (const e of this.around(this.x, this.y, R)) this.damage(e, (8 + 4 * L) * pw, 0, 0, "fairy", true);
+        this.fx.push({ kind: "ring", x: this.x, y: this.y, t: 0, life: 0.45, r: R, elem: "fairy" });
+        for (let i = 0; i < 14; i++) {
+          const a = Math.random() * Math.PI * 2;
+          this.part(this.x + Math.cos(a) * R * 0.5, this.y - 8 + Math.sin(a) * R * 0.4, Math.cos(a) * 40, Math.sin(a) * 30 - 20, "fairy2", 0.6, 2, 0, "spark");
+        }
+        gsfx.levelUp();
+        break;
+      }
+      case "flashcannon": {
+        const len = 240;
+        this.fx.push({
+          kind: "hbeam", x: this.x, y: this.y - 8, x2: this.x + this.aimV.x * len, y2: this.y - 8 + this.aimV.y * len, owner: this.cur,
+          t: 0, life: 0.5, charge: 0.15, r: (9 + 1.5 * L) * this.area, dmg: (34 + 15 * L) * pw, elem: "steel",
+        });
+        gsfx.zap();
+        break;
+      }
+      case "darkpulse":
+        this.fx.push({ kind: "ring", x: this.x, y: this.y, t: 0, life: 0.55, r: (65 + 10 * L) * this.area, elem: "dark", hit: new Set(), dmg: (18 + 8 * L) * pw });
+        gsfx.shoot("shadow");
+        break;
+      case "xscissor": {
+        // two blades crossing on each of the closest foes
+        const targets = this.nearestN(this.x, this.y, 1 + Math.floor(L / 2), 200);
+        if (!targets.length) {
+          m.cd = 0.3;
+          return;
+        }
+        for (const t of targets) {
+          const a = Math.atan2(t.y - this.y, t.x - this.x);
+          for (const da of [-0.35, 0.35]) this.shoot("blade", this.x, this.y - 8, Math.cos(a + da), Math.sin(a + da), 190, 4, (8 + 3 * L) * pw, 1, 1.4, "bug", t);
+        }
+        gsfx.shoot("whip");
+        break;
+      }
       // ---- the evolved moves ----
+      case "moonblast": {
+        // the moon falls where the foes are thickest; it heals a little
+        const near = this.nearestN(this.x, this.y, 12, 200);
+        let at = near[0] ?? null, most = -1;
+        for (const e of near) {
+          const n = this.around(e.x, e.y, 46 * this.area).length;
+          if (n > most) {
+            most = n;
+            at = e;
+          }
+        }
+        this.fx.push({ kind: "meteor", x: at ? at.x : this.x + rand(-60, 60), y: at ? at.y : this.y + rand(-50, 50), t: 0, life: 0.6, r: 46 * this.area, dmg: 70 * pw, elem: "fairy" });
+        this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.02);
+        gsfx.levelUp();
+        break;
+      }
+      case "steelbeam": {
+        // four beams in a cross, a little further round each time
+        const a0 = this.time * 1.3;
+        for (let i = 0; i < 4; i++) {
+          const a = a0 + (i * Math.PI) / 2;
+          this.fx.push({
+            kind: "hbeam", x: this.x, y: this.y - 8, x2: this.x + Math.cos(a) * 200, y2: this.y - 8 + Math.sin(a) * 200, owner: this.cur,
+            t: 0, life: 0.4, charge: 0.1, r: 10 * this.area, dmg: 75 * pw, elem: "steel",
+          });
+        }
+        gsfx.zap();
+        break;
+      }
       case "scald":
         for (let i = 0; i < 8; i++) {
           const a = (i / 8) * Math.PI * 2 + this.time;
@@ -2086,7 +2156,7 @@ export class Game {
   private hexAll(hard: number, soft: number) {
     let n = 0;
     for (const e of this.onScreen()) {
-      const marked = e.wetT > 0 || e.burnT > 0 || e.poisonT > 0 || e.sleepT > 0 || e.slowT > 0;
+      const marked = e.wetT > 0 || e.burnT > 0 || e.poisonT > 0 || e.sleepT > 0 || e.slowT > 0 || e.charmT > 0;
       if (!marked && !soft) continue;
       n++;
       this.damage(e, marked ? hard : soft, 0, 0, "ghost", true);
@@ -2187,13 +2257,16 @@ export class Game {
     // a combo: the right type on a foe in the right state
     let mul = 1;
     for (const c of COMBOS)
-      if (c.by === elem && c.mul > mul && (c.on === "wet" ? e.wetT : c.on === "burn" ? e.burnT : c.on === "poison" ? e.poisonT : e.sleepT) > 0) mul = c.mul;
+      if (c.by === elem && c.mul > mul && (c.on === "wet" ? e.wetT : c.on === "burn" ? e.burnT : c.on === "poison" ? e.poisonT : c.on === "charm" ? e.charmT : e.sleepT) > 0) mul = c.mul;
     if (elem === "water") e.wetT = 4;
     if (elem === "fire") {
       e.burnT = 3;
       e.burnDps = Math.max(e.burnDps, base * 0.12 * (1 + 0.3 * this.itemLevel("spoon")));
     }
     if (elem === "ice" && e.wetT > 0 && !e.boss) e.sleepT = Math.max(e.sleepT, 1.2);
+    // Fairy charms (a titan, not for long; a boss, never); Dark makes foes flinch now and then
+    if (elem === "fairy" && !e.boss) e.charmT = Math.max(e.charmT, e.titan ? 1 : 1.8);
+    if (elem === "dark" && !e.boss && Math.random() < 0.3) e.sleepT = Math.max(e.sleepT, 0.5);
     const crit = Math.random() < this.crit;
     const day = this.setup.daily?.mod.elem;
     const boost = day && (elem === day[0] || (day[0] === "water" && elem === "elec")) ? day[1] : 1;
@@ -2398,7 +2471,7 @@ export class Game {
     return {
       w, boss: null, dex, x, y, kx: 0, ky: 0, hp, max: hp, speed: (w?.speed ?? 30) * (1 + Math.min(0.35, 0.012 * k)) * (elite ? 0.9 : 1) * (big?.speed ?? 1),
       dmg: (w?.dmg ?? 10) * dmgMul * (elite ? 1.5 : 1) * (this.setup.daily?.mod.enemyDmg ?? 1) * (big?.dmg ?? 1),
-      r: (w?.r ?? 7) * (elite ? 1.3 : 1) * (big?.scale ?? 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0, wetT: 0, burnT: 0, burnDps: 0, poisonT: 0, poisonDps: 0, dotT: 0.5,
+      r: (w?.r ?? 7) * (elite ? 1.3 : 1) * (big?.scale ?? 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0, wetT: 0, burnT: 0, burnDps: 0, poisonT: 0, poisonDps: 0, charmT: 0, dotT: 0.5,
       state: "", stateT: rand(1, 3), actT: 2, elite, titan, z: 0, alpha: 1, aim: { x: 0, y: 0 }, touchT: 0, n: 0, dead: false, deadT: 0, seed: Math.random() * 100,
     };
   }
@@ -2409,6 +2482,20 @@ export class Game {
     // around one of the players standing
     const p = pick(this.alive().length ? this.alive() : this.players);
     this.enemies.push(this.makeEnemy(dex, p.x + Math.cos(a) * d, p.y + Math.sin(a) * d));
+  }
+
+  /** the closest foe to another one (a charmed foe's target): not charmed itself, never a boss */
+  private nearestFoe(e: Enemy, R: number) {
+    let best: Enemy | null = null, bd = R;
+    for (const o of this.enemies) {
+      if (o === e || o.dead || o.boss || o.charmT > 0 || o.w?.act === "treasure") continue;
+      const d = Math.hypot(o.x - e.x, o.y - e.y);
+      if (d < bd) {
+        bd = d;
+        best = o;
+      }
+    }
+    return best;
   }
 
   /** the wild Pokémon of this wave: those come so far, but the ones gone by now */
@@ -2478,6 +2565,7 @@ export class Game {
       e.wetT = Math.max(0, e.wetT - dt);
       e.burnT = Math.max(0, e.burnT - dt);
       e.poisonT = Math.max(0, e.poisonT - dt);
+      e.charmT = Math.max(0, e.charmT - dt);
       if (e.burnT <= 0) e.burnDps = 0;
       if (e.poisonT <= 0) e.poisonDps = 0;
       e.dotT -= dt;
@@ -2597,6 +2685,21 @@ export class Game {
             break;
           }
         }
+      if (e.charmT > 0 && !e.boss) {
+        // charmed: off after the closest foe that isn't, and it hits it
+        if (Math.random() < 0.05) this.part(e.x + rand(-4, 4), e.y - 18, 0, -14, "fairy", 0.8, 2, 0, "dot");
+        const o = this.nearestFoe(e, 90);
+        if (o) {
+          const ox = o.x - e.x, oy = o.y - e.y, od = Math.hypot(ox, oy) || 1;
+          vx = ox / od;
+          vy = oy / od;
+          sp = e.speed;
+          if (od < e.r + o.r + 2 && e.touchT <= 0) {
+            e.touchT = 0.6;
+            this.damage(o, e.dmg * 1.5, vx * 60, vy * 60, "normal", true);
+          }
+        } else sp = 0;
+      }
       if (e.sleepT > 0) {
         sp = 0;
         if (Math.random() < 0.02) this.part(e.x + 4, e.y - 18, 6, -12, "uiDim", 1, 1, 0, "dot");
@@ -2608,7 +2711,7 @@ export class Game {
       e.ky *= 0.86;
       if (sp > 0) e.dir = dirOf(vx, vy);
       // touching the player
-      if (e.alpha >= 0.5 && e.z < 4 && e.sleepT <= 0 && e.w?.act !== "treasure" && d < e.r + PLAYER_R) {
+      if (e.alpha >= 0.5 && e.z < 4 && e.sleepT <= 0 && (e.charmT <= 0 || e.boss) && e.w?.act !== "treasure" && d < e.r + PLAYER_R) {
         this.hurt(e.dmg, e);
         if (e.w?.act === "explode" && e.state !== "fuse") {
           e.state = "fuse";
@@ -3113,8 +3216,8 @@ export class Game {
       }
       if (f.kind === "meteor" && !f.done && f.t >= f.life) {
         f.done = 1;
-        this.fx.push({ kind: "boom", x: f.x, y: f.y, t: 0, life: 0.35, r: f.r, elem: "dragon" });
-        for (const e of this.around(f.x, f.y, f.r!)) this.damage(e, f.dmg!, (e.x - f.x) * 3, (e.y - f.y) * 3, "dragon", true);
+        this.fx.push({ kind: "boom", x: f.x, y: f.y, t: 0, life: 0.35, r: f.r, elem: f.elem ?? "dragon" });
+        for (const e of this.around(f.x, f.y, f.r!)) this.damage(e, f.dmg!, (e.x - f.x) * 3, (e.y - f.y) * 3, f.elem ?? "dragon", true);
         this.shake = Math.max(this.shake, 3);
         gsfx.boom();
       }
@@ -3658,6 +3761,10 @@ export class Game {
         // a shard of ice, pointing where it flies
         pix(ctx, g, PIX.blade, x, y, dir4(s.vx, s.vy), { p: "ice", P: "ice2" });
         break;
+      case "blade":
+        // X-Scissor: a blade in its type's colours, pointing where it flies
+        pix(ctx, g, PIX.blade, x, y, dir4(s.vx, s.vy), { p: c1, P: c2 });
+        break;
       case "aura": {
         // Aura Sphere: a blue-white core in its glow
         ctx.fillStyle = g.c.fight;
@@ -3864,20 +3971,22 @@ export class Game {
         break;
       }
       case "meteor": {
-        // the shadow grows where it will land, the meteor falls on it
+        // the shadow grows where it will land, the meteor falls on it (Moonblast's moon: pink, and bigger)
         const kk = Math.min(1, k);
-        ctx.strokeStyle = g.c.dragon;
+        const [m1, m2] = TYPE_FX[f.elem ?? "dragon"];
+        const ms = f.elem === "fairy" ? 2 : 1;
+        ctx.strokeStyle = g.c[m1];
         ctx.globalAlpha = 0.5;
         ring(ctx, x, y, f.r! * (0.4 + kk * 0.6), 0.5);
         ctx.globalAlpha = 1;
         const my = y - (1 - kk) * 160;
         const mx = x + (1 - kk) * 60;
         ctx.fillStyle = g.c.ink;
-        ctx.fillRect(Math.round(mx) - 4, Math.round(my) - 4, 8, 8);
-        ctx.fillStyle = g.c.dragon;
-        ctx.fillRect(Math.round(mx) - 3, Math.round(my) - 3, 6, 6);
-        ctx.fillStyle = g.c.dragon2;
-        ctx.fillRect(Math.round(mx) - 1, Math.round(my) - 2, 2, 2);
+        ctx.fillRect(Math.round(mx) - 4 * ms, Math.round(my) - 4 * ms, 8 * ms, 8 * ms);
+        ctx.fillStyle = g.c[m1];
+        ctx.fillRect(Math.round(mx) - 3 * ms, Math.round(my) - 3 * ms, 6 * ms, 6 * ms);
+        ctx.fillStyle = g.c[m2];
+        ctx.fillRect(Math.round(mx) - ms, Math.round(my) - 2 * ms, 2 * ms, 2 * ms);
         if (Math.random() < 0.7) this.part(mx - ox + 4, my - oy - 4, 20, -10, "dragon2", 0.3, 2, 0, "puff");
         break;
       }

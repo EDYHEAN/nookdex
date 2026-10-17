@@ -5,7 +5,7 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, type Lang } from "@/lib/game/data";
+import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, type Elem, type Lang } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
 import { Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickX, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
@@ -1305,6 +1305,7 @@ export default function NookBoy({ origin, onClose }: Props) {
 
 /** the pause's recap: moves, items, and the combos to look for */
 function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string) => string }) {
+  const combos = combosOf(g);
   return (
     <div className={styles.recap}>
       <div className={styles.box}>
@@ -1332,14 +1333,36 @@ function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string
           <p className={styles.dim}>{t("aucun pour l'instant", "none yet")}</p>
         )}
       </div>
-      <div className={styles.box}>
-        <p className={styles.recapTitle}>COMBOS</p>
-        {COMBOS.map((c) => (
-          <p key={c.on + c.by}>{say(c.name, lang)}</p>
-        ))}
+      <div className={`${styles.box} ${styles.recapCombos}`}>
+        <p className={styles.recapTitle}>{t("TES COMBOS", "YOUR COMBOS")}</p>
+        {combos.length ? (
+          combos.map(({ c, both }) => (
+            <p key={c.on + c.by} className={both ? styles.comboOn : ""}>
+              {both ? "✓ " : ""}
+              {say(c.name, lang)}
+            </p>
+          ))
+        ) : (
+          <p className={styles.dim}>{t("Mélange les types pour en trouver !", "Mix the types to find some!")}</p>
+        )}
       </div>
     </div>
   );
+}
+
+/** which types put a foe in each state (a dark hit makes it flinch: asleep for a moment) */
+const STATUS_BY: Record<(typeof COMBOS)[number]["on"], Elem[]> = { wet: ["water"], burn: ["fire"], poison: ["poison"], sleep: ["grass", "ice", "dark"], charm: ["fairy"] };
+
+/**
+ * The combos the run's moves (and the starter's own type) take part in, the ones it has both halves of first: 17 of them
+ * don't fit on the pause screen (Johan, 2026-10-17), and those are the ones that matter.
+ */
+function combosOf(g: Game) {
+  const types = new Set<Elem>([g.starter.type, ...g.moves.map((m) => MOVES.find((d) => d.id === m.id)!.type)]);
+  return COMBOS.map((c) => ({ c, by: types.has(c.by), on: STATUS_BY[c.on].some((e) => types.has(e)) }))
+    .filter((x) => x.by || x.on)
+    .map((x) => ({ c: x.c, both: x.by && x.on }))
+    .sort((a, b) => Number(b.both) - Number(a.both));
 }
 
 /* ---------------- the ladder ---------------- */
