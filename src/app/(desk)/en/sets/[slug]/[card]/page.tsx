@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { CardPageView, cardPageMetadata } from "@/components/CardPageView";
 
-// 25 000 cards: each page is drawn on its first visit, then kept a day (the prices commit redeploys every day anyway)
-export const revalidate = 86400;
-export function generateStaticParams() {
-  return [];
-}
+// drawn on each visit like every page of the site (the root layout reads the visitor's language): no static params, no
+// revalidate (they would ask for a static page: DYNAMIC_SERVER_USAGE in production)
 
 export async function generateMetadata({ params }: PageProps<"/en/sets/[slug]/[card]">): Promise<Metadata> {
   const { slug, card } = await params;
