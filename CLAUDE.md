@@ -297,7 +297,8 @@ doesn't show.
 - **Beyond wave 100** (Johan, 2026-10-17): classic and coop runs go on to wave 200 (`MAX_WAVE`; the 100th boss gives
   the "Centenaire" trophy and the run goes on), titans walk among the foes past 100 (`BEYOND`), every 10th wave is a
   giga boss of the daily challenge's, Mega Mewtwo Y the 200th (won when it falls). **Start tiers**: a run may start at 25,
-  50 … 175 once that wave was reached (`TIERS`, `tierLevel`, `tierPicks` in the engine): the level of that far,
+  50 … 175 once that wave was reached (`TIERS`, `tierLevel`, `tierPicks` in the engine): the level a played run has there
+  (`TIER_LEVEL`, from the ladder: 42 at 25, 110 at 50; 80 at 50 was too weak, a friend 2026-10-18),
   evolved, a card per level (past a full build: stacking boosts), all of them as a build pack picked out of 3 (`PACKS` in lib/game/data: 15 builds of
   4 moves + 4 items, drawn by rarity, legendaries rare and broken, Johan 2026-10-18: luck, not a build menu; the moves raised and evolved first, then the items); a ramp then (`RAMP`: foes trickle in, the full crowd after 60 s, the tier's boss after 30 s, 3 s
   untouchable at first, Johan 2026-10-18: cornered at once otherwise); its clock starts there (the ladder's time check holds) and the ladder shows "↱50"

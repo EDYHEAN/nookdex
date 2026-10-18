@@ -23,6 +23,7 @@ export const CHANGELOG: Release[] = [
       { fr: "Nook Survivors : repartir d'une vague, c'est un build tout prêt à choisir parmi 3 (les légendaires sont rares).", en: "Nook Survivors: starting from a wave means picking a ready-made build out of 3 (legendary ones are rare)." },
       { fr: "Kecleon échange une capacité ou un objet contre une des 3 qu'il te propose, au même niveau.", en: "Kecleon swaps a move or an item for one of the 3 he offers, at the same level." },
       { fr: "Plus de K.O. en un seul coup : un ennemi te retire au plus 30 % de tes PV.", en: "No more one-hit K.O.: a foe takes at most 30% of your HP." },
+      { fr: "Repartir de la vague 50 ou plus te donne le niveau d'une vraie partie arrivée là ; le build Orage devient légendaire.", en: "Starting from wave 50 or more gives you the level of a real run that far; the Thunderstorm build turns legendary." },
       { fr: "Le tapis d'échange tient autant de cartes que tu veux : elles se rangent en éventail.", en: "The trade mat holds as many cards as you like: they fan out." },
       { fr: "Le classement montre le top 50, page par page.", en: "The ladder shows the top 50, page by page." },
     ],
