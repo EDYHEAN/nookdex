@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-18T10:41:30.236Z",
+ "updated": "2026-10-18T11:23:59.631Z",
  "posts": [
   {
    "id": "2026-10-08-bienvenue",
@@ -333,32 +333,26 @@
    "tiktok": "2026-10-19-vieilles-cartes/tiktok.mp4"
   },
   {
-   "id": "2026-10-20-30-ans",
+   "id": "2026-10-20-automne",
    "date": "2026-10-20",
-   "time": null,
+   "time": "18:30",
    "platforms": [
-    "instagram",
-    "reels"
+    "instagram"
    ],
-   "kind": "news",
+   "kind": "fun",
    "format": "post",
-   "title": "Le JCC Pokémon a 30 ans",
-   "note": "Le jour du vrai anniversaire.",
-   "caption": "Le JCC Pokémon fête ses 30 ans ✨\n\nEn 1996, le tout premier booster sortait au Japon. Pour fêter ça, le set 30ᵉ Anniversaire :\n✦ 100 % brillant, avec un Pikachu dans chaque booster (30 à trouver !)\n✦ une rareté inédite, la Futuristic Rare, signée YOSHIROTTEN : Mewtwo-ex et Mew-ex\n✦ 30 cartes cultes qui reviennent, du Dracaufeu du Set de Base à Lugia\n✦ 10 illustrations spéciales à chasser\n\n👉 Et toi, ton tout premier booster, c'était lequel ?\n\nCoche tes 30 Pikachu et suis la cote de tes cartes sur nookdex.com (lien en bio) 📒\n\nProjet de fan, sans lien avec Nintendo, Creatures, GAME FREAK ou The Pokémon Company.\n\n#pokemon #pokemontcg #jccpokemon #pokemon30th #30thcelebration #cartespokemon #collectionpokemon #pokemonfr #pikachu #mew",
+   "title": "Page thème : l'automne en cartes",
+   "note": "Remplace le post « 30 ans » (déjà publié). Une seule page, 9 illustrations aux couleurs d'automne.",
+   "caption": "L'automne est là 🍂\n\n9 cartes aux couleurs de la saison : un Goupix au coin du feu, Vivaldaim et Haydaim dans les feuilles rousses, Ursaking dans la forêt…\n\nSi tu ne devais en garder qu'une pour ton classeur, tu prends laquelle ? 👇\n\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #automne #illustrationrare #pokemonfr",
    "captionTiktok": null,
    "prices": false,
    "slides": [
-    "2026-10-20-30-ans/slide-01.jpg",
-    "2026-10-20-30-ans/slide-02.jpg",
-    "2026-10-20-30-ans/slide-03.jpg",
-    "2026-10-20-30-ans/slide-04.jpg",
-    "2026-10-20-30-ans/slide-05.jpg",
-    "2026-10-20-30-ans/slide-06.jpg"
+    "2026-10-20-automne/slide-01.jpg"
    ],
    "photos": [],
    "tiktokAs": "video",
    "video": null,
-   "tiktok": "2026-10-20-30-ans/tiktok.mp4"
+   "tiktok": null
   },
   {
    "id": "2026-10-20-tiktok-lugia",
