@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-20",
+  "time": "18:30",
+  "platforms": ["instagram"],
+  "kind": "fun",
+  "format": "post",
+  "title": "Page thème : l'automne en cartes",
+  "note": "Remplace le post « 30 ans » (déjà publié). Une seule page, 9 illustrations aux couleurs d'automne.",
+  "prices": false,
+  "caption": "L'automne est là 🍂\n\n9 cartes aux couleurs de la saison : un Goupix au coin du feu, Vivaldaim et Haydaim dans les feuilles rousses, Ursaking dans la forêt…\n\nSi tu ne devais en garder qu'une pour ton classeur, tu prends laquelle ? 👇\n\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #automne #illustrationrare #pokemonfr",
+  "slides": [
+    {
+      "type": "grid",
+      "label": "L'AUTOMNE EN CARTES",
+      "cards": ["me01-138", "sv03-199", "sv01-222", "sv05-165", "sv06-216", "sv05-166", "sv08-205", "sv10.5b-095", "sv06-188"]
+    }
+  ]
+}
