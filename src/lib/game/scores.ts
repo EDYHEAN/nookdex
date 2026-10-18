@@ -30,7 +30,8 @@ export function lastName(fallback: string) {
   }
 }
 
-export async function topScores(mode: Mode = "classic", period: Period = "season", day?: string, limit = 20): Promise<Score[] | null> {
+/** a board's top 50 (Johan, 2026-10-18: a top 20 left the 21st out, "where's Sophie?"), shown page by page */
+export async function topScores(mode: Mode = "classic", period: Period = "season", day?: string, limit = 50): Promise<Score[] | null> {
   const { data, error } = await supabase.rpc("game_top2", { p_mode: mode, p_period: period, p_day: day ?? null, p_limit: limit });
   if (!error) return data as Score[];
   if (mode !== "classic") return null;

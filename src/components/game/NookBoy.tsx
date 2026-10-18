@@ -28,6 +28,8 @@ interface Props {
 type Screen = "boot" | "menu" | "ladder" | "options" | "credits" | "daily";
 
 /** the ladder's boards */
+/** a ladder page: what the Game Boy screen holds without scrolling */
+const LADDER_ROWS = 15;
 const BOARDS: { mode: Mode; period: Period; label: [string, string] }[] = [
   { mode: "classic", period: "season", label: ["Saison", "Season"] },
   { mode: "daily", period: "day", label: ["Défi du jour", "Daily"] },
@@ -98,6 +100,7 @@ export default function NookBoy({ origin, onClose }: Props) {
   const [name, setName] = useState(() => lastName(nickname));
   const [sent, setSent] = useState<"idle" | "sending" | "error" | number>("idle");
   const [ladder, setLadder] = useState<Score[] | null | "loading">("loading");
+  const [ladderPage, setLadderPage] = useState(0);
   const [board, setBoard] = useState(0);
   /** the Pension's screen, open over the menu or the game over: it spends the purse */
   const [pension, setPension] = useState(false);
@@ -230,7 +233,18 @@ export default function NookBoy({ origin, onClose }: Props) {
     setBoard(i);
     setLadder("loading");
     const b = boardOf(i);
-    setLadder(await topScores(b.mode, b.period, b.period === "day" ? today() : undefined));
+    const rows = await topScores(b.mode, b.period, b.period === "day" ? today() : undefined);
+    setLadder(rows);
+    // opens on the page with the player's own name, else the top
+    const me = rows?.findIndex((r) => r.name.toLowerCase() === lastName("").trim().toLowerCase()) ?? -1;
+    setLadderPage(me > 0 ? Math.floor(me / LADDER_ROWS) : 0);
+  };
+  const ladderPages = Array.isArray(ladder) ? Math.max(1, Math.ceil(ladder.length / LADDER_ROWS)) : 1;
+  const turnLadder = (d: number) => {
+    const next = Math.min(ladderPages - 1, Math.max(0, ladderPage + d));
+    if (next === ladderPage) return gsfx.back();
+    gsfx.move();
+    setLadderPage(next);
   };
   /**
    * A run: classic and coop bring the purse in (Kecleon takes it) and the Pension's levels; the day's challenge starts
@@ -371,6 +385,7 @@ export default function NookBoy({ origin, onClose }: Props) {
       }
       return;
     }
+    if (p === "title" && screen === "ladder" && (b === "up" || b === "down")) return turnLadder(b === "up" ? -1 : 1);
     if (p === "title" && screen === "ladder" && (b === "left" || b === "right")) {
       gsfx.move();
       return void openLadder((board + (b === "left" ? -1 : 1) + BOARDS.length) % BOARDS.length);
@@ -785,9 +800,20 @@ export default function NookBoy({ origin, onClose }: Props) {
                 </button>
               ))}
             </div>
-            <Ladder rows={ladder} nameOf={nameOf} t={t} timed={boardOf(board).mode === "defi"} />
+            <Ladder
+              rows={ladder}
+              nameOf={nameOf}
+              t={t}
+              highlight={lastName("")}
+              timed={boardOf(board).mode === "defi"}
+              page={ladderPage}
+              pages={ladderPages}
+              onTurn={turnLadder}
+            />
             <p className={styles.keys} onClick={() => press("b")}>
-              {t("◀ ▶ changer · B : retour", "◀ ▶ switch · B: back")}
+              {ladderPages > 1
+                ? t("◀ ▶ changer · ▲ ▼ pages · B : retour", "◀ ▶ switch · ▲ ▼ pages · B: back")
+                : t("◀ ▶ changer · B : retour", "◀ ▶ switch · B: back")}
             </p>
           </div>
         );
@@ -1468,15 +1494,34 @@ function combosOf(g: Game) {
 
 /* ---------------- the ladder ---------------- */
 
-function Ladder(props: { rows: Score[] | null | "loading"; nameOf: (d: number) => string; t: (fr: string, en: string) => string; small?: boolean; highlight?: string; timed?: boolean }) {
-  const { rows, nameOf, t, small, highlight, timed } = props;
+/**
+ * A board, page by page like the games' menus (a scrollbar on the Game Boy's screen looked out of place): ▲ ▼ or the wheel
+ * turn the pages, the player's own row stands out.
+ */
+function Ladder(props: {
+  rows: Score[] | null | "loading";
+  nameOf: (d: number) => string;
+  t: (fr: string, en: string) => string;
+  small?: boolean;
+  highlight?: string;
+  timed?: boolean;
+  page?: number;
+  pages?: number;
+  onTurn?: (d: number) => void;
+}) {
+  const { rows, nameOf, t, small, highlight, timed, page = 0, pages = 1, onTurn } = props;
   if (rows === "loading") return <p className={`${styles.box} ${styles.blink}`}>{t("Connexion…", "Connecting…")}</p>;
   if (!rows) return <p className={styles.box}>{t("Classement indisponible pour l'instant.", "The ladder is unavailable for now.")}</p>;
   if (!rows.length) return <p className={styles.box}>{t("Personne encore : à toi d'ouvrir le bal !", "Nobody yet: be the first!")}</p>;
   return (
-    <ol className={`${styles.box} ${styles.ladder} ${small ? styles.ladderSmall : ""}`}>
-      {rows.slice(0, small ? 5 : 20).map((r, i) => (
-        <li key={`${r.name}${i}`} className={highlight && r.name.toLowerCase() === highlight.toLowerCase() ? styles.me : ""}>
+    <ol
+      className={`${styles.box} ${styles.ladder} ${small ? styles.ladderSmall : ""}`}
+      onWheel={(e) => !small && pages > 1 && Math.abs(e.deltaY) > 8 && onTurn?.(e.deltaY > 0 ? 1 : -1)}
+    >
+      {(small ? rows.slice(0, 5) : rows.slice(page * LADDER_ROWS, (page + 1) * LADDER_ROWS)).map((r, k) => {
+        const i = small ? k : page * LADDER_ROWS + k;
+        return (
+        <li key={`${r.name}${i}`} className={highlight && r.name.toLowerCase() === highlight.trim().toLowerCase() ? styles.me : ""}>
           <span className={styles.lRank}>{i + 1}</span>
           <Mini dex={r.starter} label={nameOf(r.starter)} />
           <span className={styles.lName}>{r.name}</span>
@@ -1497,7 +1542,21 @@ function Ladder(props: { rows: Score[] | null | "loading"; nameOf: (d: number) =
             </>
           )}
         </li>
-      ))}
+        );
+      })}
+      {!small && pages > 1 && (
+        <li className={styles.lPages}>
+          <button disabled={page === 0} onClick={() => onTurn?.(-1)} aria-label={t("Page précédente", "Previous page")}>
+            ▲
+          </button>
+          <span>
+            {page + 1}/{pages}
+          </span>
+          <button disabled={page >= pages - 1} onClick={() => onTurn?.(1)} aria-label={t("Page suivante", "Next page")}>
+            ▼
+          </button>
+        </li>
+      )}
     </ol>
   );
 }
