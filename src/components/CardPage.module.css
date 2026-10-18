@@ -1,138 +1,271 @@
-/* A card's page: its scan like a card slipped in the notebook, its price label beside it */
-.crumbs {
-  margin: -6px 0 14px;
-  font-size: 0.95em;
-  color: var(--ink-soft);
-}
-
-.top {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 22px 28px;
-  align-items: flex-start;
-  margin-bottom: 18px;
-}
-
-.scan {
-  flex: 0 1 260px;
-  min-width: 180px;
-  transform: rotate(-1.2deg);
+/* A card's page (in WidePage): the card big beside its name and price, then its curve, its other versions, the FAQ */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(220px, 380px) 1fr;
+  gap: 32px 44px;
+  align-items: start;
 }
 
 .scan img {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 4.5%/3.3%;
-  box-shadow: 0 0 0 2px var(--ink), 6px 8px 0 rgba(43, 34, 48, 0.25);
+  border-radius: 4.5% / 3.3%;
+  box-shadow: 0 0 0 3px var(--ink), 8px 10px 0 rgba(43, 34, 48, 0.22);
+  transform: rotate(-1.5deg);
 }
 
 .back {
   display: grid;
   place-items: center;
   aspect-ratio: 63 / 88;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #3a4f8a;
   color: #f4ecdc;
 }
 
-.sheet {
-  flex: 1 1 260px;
+.info {
   min-width: 0;
+  padding-top: 4px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 22px;
+}
+
+.chip {
+  padding: 4px 11px;
+  border: 2px solid var(--ink);
+  border-radius: 20px;
+  background: #fff;
+  color: var(--ink) !important;
+  font-size: 15px;
+  text-decoration: none;
+}
+
+a.chip {
+  background: #ffe9a8;
 }
 
 .prices {
-  display: grid;
-  gap: 10px;
-  margin: 0 0 10px;
-}
-
-.prices div {
-  padding: 10px 14px 8px;
-  border: 2px dashed var(--ink-gold);
-  background: rgba(255, 250, 240, 0.6);
-}
-
-.prices dt {
-  color: var(--ink-soft);
-  font-size: 0.85em;
-}
-
-.prices dd {
-  margin: 0;
   display: flex;
-  align-items: baseline;
   flex-wrap: wrap;
-  gap: 4px 12px;
+  gap: 14px;
 }
 
-.prices b {
-  font-size: 1.7em;
-  line-height: 1.1;
+.price {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 18px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 5px 6px 0 rgba(43, 34, 48, 0.18);
 }
 
-.prices small,
-.small,
+.price small {
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+.price b {
+  font-family: var(--font-vt), monospace;
+  font-weight: normal;
+  font-size: 52px;
+  line-height: 1;
+  margin: 4px 0 2px;
+}
+
+.price span {
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
 .none {
   color: var(--ink-soft);
-  font-size: 0.9em;
+}
+
+.move {
+  display: inline-block;
+  margin: 16px 0 0;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
 }
 
 .up {
-  color: #3d8b2f;
+  background: #e2f4d6;
+  color: #2f6e24;
 }
 
 .down {
-  color: #b8433d;
+  background: #fbe1dc;
+  color: #a33a33;
+}
+
+.source {
+  margin: 12px 0 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-top: 24px;
+}
+
+.ctaBtn {
+  display: inline-block;
+  padding: 14px 20px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: #9de07a;
+  color: var(--ink) !important;
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  text-decoration: none;
+  box-shadow: 4px 5px 0 var(--ink);
+  max-width: 100%;
+}
+
+.cta span {
+  color: var(--ink-soft);
+  font-size: 15px;
 }
 
 .curve {
-  margin: 8px 0 20px;
+  margin: 0;
+  padding: 16px 20px 18px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  background: #fff;
 }
 
 .curve svg {
   display: block;
   width: 100%;
-  height: auto;
+  height: clamp(140px, 22vw, 240px);
   color: var(--ink);
+}
+
+.ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.ends span {
+  display: flex;
+  flex-direction: column;
+}
+
+.ends span + span {
+  text-align: right;
+}
+
+.ends small {
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+.ends b {
   font-family: var(--font-vt), monospace;
+  font-weight: normal;
+  font-size: 30px;
+  line-height: 1;
 }
 
 .same {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 16px 12px;
-  margin: 10px 0 24px;
-  padding: 0 !important;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  gap: 22px 16px;
+  margin: 0;
+  padding: 0;
   list-style: none;
 }
 
 .same a {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  color: inherit !important;
   text-decoration: none;
-  color: inherit;
 }
 
 .same img {
   width: 100%;
   height: auto;
-  border-radius: 4.5%/3.3%;
-  box-shadow: 0 0 0 1.5px var(--ink);
+  border-radius: 4.5% / 3.3%;
+  box-shadow: 0 0 0 2px var(--ink);
+  transition: transform 0.15s;
+}
+
+.same a:hover img {
+  transform: translateY(-4px) rotate(-1deg);
 }
 
 .same small {
   color: var(--ink-soft);
-  font-size: 0.85em;
-  line-height: 1.1;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.same b {
+  font-family: var(--font-vt), monospace;
+  font-weight: normal;
+  font-size: 22px;
+}
+
+.faq {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 6px 36px;
+}
+
+.faq h3 {
+  margin: 10px 0 4px;
+  font-size: 17px;
+}
+
+.faq p {
+  margin: 0;
+  color: #4a3d48;
 }
 
 .walk {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
   flex-wrap: wrap;
-  margin-top: 18px;
-  font-size: 0.95em;
+  gap: 10px 20px;
+  margin-top: 34px;
+  padding-top: 18px;
+  border-top: 2px dashed rgba(43, 34, 48, 0.25);
+  font-size: 15px;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .scan {
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  .price b {
+    font-size: 44px;
+  }
+
+  .ctaBtn {
+    font-size: 11px;
+  }
 }

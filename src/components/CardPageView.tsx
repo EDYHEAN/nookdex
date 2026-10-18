@@ -6,9 +6,7 @@ import { type CardPage, cardFaq, cardPage } from "@/lib/cardPages";
 import { money } from "@/lib/setPages";
 import { type PageLang, SET_PAGES_ROOT } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import blog from "./Blog.module.css";
-import legal from "./LegalPage.module.css";
-import { LegalPage } from "./LegalPage";
+import { WidePage } from "./WidePage";
 import styles from "./CardPage.module.css";
 
 /**
@@ -49,42 +47,37 @@ export async function cardPageMetadata(lang: PageLang, set: string, slug: string
 
 const ld = (data: object) => <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 
-/** The trend day by day: a line, the first and last prices, the extremes (server drawn, no script) */
+/** The trend day by day: the line stretched to the box (server drawn, no script), the first and last prices in text
+ * above it, readable at any width (SVG text shrank to nothing on a phone) */
 function Curve({ p }: { p: CardPage }) {
   const pts = p.history;
   if (pts.length < 2) return null;
-  const [W, H, L, R, T, B] = [640, 220, 8, 8, 28, 34];
+  const [W, H, P] = [1000, 200, 8];
   const t0 = Date.parse(pts[0].day), t1 = Date.parse(pts.at(-1)!.day);
   const vs = pts.map((x) => x.v);
-  const lo = Math.min(...vs), hi = Math.max(...vs), pad = (hi - lo || hi * 0.1) * 0.2;
-  const X = (d: string) => L + ((Date.parse(d) - t0) / (t1 - t0 || 1)) * (W - L - R);
-  const Y = (v: number) => T + (1 - (v - (lo - pad)) / (hi - lo + 2 * pad)) * (H - T - B);
+  const lo = Math.min(...vs), hi = Math.max(...vs), pad = (hi - lo || hi * 0.1) * 0.15;
+  const X = (d: string) => ((Date.parse(d) - t0) / (t1 - t0 || 1)) * W;
+  const Y = (v: number) => P + (1 - (v - (lo - pad)) / (hi - lo + 2 * pad)) * (H - 2 * P);
   const up = vs.at(-1)! >= vs[0];
   const color = up ? "#3d8b2f" : "#b8433d";
   const line = pts.map((x, i) => `${i ? "L" : "M"}${X(x.day).toFixed(1)},${Y(x.v).toFixed(1)}`).join(" ");
-  const label = (x: { day: string; v: number }, anchor: "start" | "end") => (
-    <text x={X(x.day) + (anchor === "start" ? 2 : -2)} y={Y(x.v) - 12} textAnchor={anchor} fill={color} fontSize="16">
-      {money(x.v, p)}
-    </text>
+  const end = (x: { day: string; v: number }) => (
+    <span>
+      <small>{formatDate(x.day, p.lang)}</small>
+      <b style={{ color }}>{money(x.v, p)}</b>
+    </span>
   );
   return (
     <figure className={styles.curve}>
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={p.lang === "fr" ? "Courbe du prix tendance" : "Market price history"}>
+      <div className={styles.ends}>
+        {end(pts[0])}
+        {end(pts.at(-1)!)}
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={p.lang === "fr" ? "Courbe du prix tendance" : "Market price history"}>
         {[0.25, 0.5, 0.75].map((k) => (
-          <line key={k} x1={L} x2={W - R} y1={T + k * (H - T - B)} y2={T + k * (H - T - B)} stroke="currentColor" strokeOpacity=".12" strokeDasharray="4 6" />
+          <line key={k} x1={0} x2={W} y1={k * H} y2={k * H} stroke="currentColor" strokeOpacity=".12" strokeDasharray="4 6" vectorEffect="non-scaling-stroke" />
         ))}
-        <path d={line} fill="none" stroke={color} strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" />
-        {pts.map((x) => (
-          <circle key={x.day} cx={X(x.day)} cy={Y(x.v)} r="3.5" fill={color} />
-        ))}
-        {label(pts[0], "start")}
-        {label(pts.at(-1)!, "end")}
-        <text x={L} y={H - 8} fontSize="15" fill="currentColor" opacity=".6">
-          {formatDate(pts[0].day, p.lang)}
-        </text>
-        <text x={W - R} y={H - 8} fontSize="15" fill="currentColor" opacity=".6" textAnchor="end">
-          {formatDate(pts.at(-1)!.day, p.lang)}
-        </text>
+        <path d={line} fill="none" stroke={color} strokeWidth="3.5" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
       </svg>
     </figure>
   );
@@ -101,8 +94,16 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
   const faq = cardFaq(p);
   const url = `${SITE_URL}${p.path}`;
   const root = SET_PAGES_ROOT[lang];
+  const home = fr ? "/" : "/en";
   return (
-    <LegalPage path={root} title={`${card.name} ${p.printed}`} en={!fr}>
+    <WidePage
+      en={!fr}
+      crumbs={[
+        { href: root, label: t("Extensions", "Sets") },
+        { href: p.setPath, label: p.set.name },
+        { href: p.path, label: `${card.name} ${p.printed}` },
+      ]}
+    >
       {ld({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -120,14 +121,7 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
         mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
       })}
 
-      <p className={styles.crumbs}>
-        <Link href={p.setPath}>
-          {p.set.name} ({p.set.code})
-        </Link>
-        {card.rarity ? ` · ${card.rarity}` : ""}
-      </p>
-
-      <div className={styles.top}>
+      <section className={styles.hero}>
         <div className={styles.scan}>
           {card.img ? (
             <img src={`${card.img}/high.webp`} alt={`${card.name} ${p.printed} · ${p.set.name}`} width={600} height={825} />
@@ -135,84 +129,95 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
             <span className={styles.back}>{t("Bientôt de retour", "Back soon")}</span>
           )}
         </div>
-        <div className={styles.sheet}>
+        <div className={styles.info}>
+          <h1>{card.name}</h1>
+          <p className={styles.chips}>
+            <Link href={p.setPath} className={styles.chip}>
+              {p.set.name}
+            </Link>
+            <span className={styles.chip}>n° {p.printed}</span>
+            {card.rarity && <span className={styles.chip}>{card.rarity}</span>}
+          </p>
+
           {p.prices.length ? (
-            <dl className={styles.prices}>
+            <div className={styles.prices}>
               {p.prices.map((x) => (
-                <div key={x.label}>
-                  <dt>{x.label}</dt>
-                  <dd>
-                    <b>{x.trend != null ? money(x.trend, p) : "—"}</b>
-                    {x.low != null && <small>{t(`dès ${money(x.low, p)}`, `from ${money(x.low, p)}`)}</small>}
-                  </dd>
+                <div key={x.label} className={styles.price}>
+                  <small>{x.label}</small>
+                  <b>{x.trend != null ? money(x.trend, p) : "—"}</b>
+                  {x.low != null && <span>{t(`à partir de ${money(x.low, p)}`, `from ${money(x.low, p)}`)}</span>}
                 </div>
               ))}
-            </dl>
+            </div>
           ) : (
             <p className={styles.none}>{t(`Pas en vente sur ${market} en ce moment.`, `Not for sale on ${market} right now.`)}</p>
           )}
           {p.move != null && (
-            <p className={p.move > 0 ? styles.up : styles.down}>
-              {p.move > 0 ? "↗" : "↘"} {t(`${Math.round(p.move)} % sur la semaine, comparée au mois`, `${Math.round(p.move)}% this week against the month`)}
+            <p className={`${styles.move} ${p.move > 0 ? styles.up : styles.down}`}>
+              {p.move > 0 ? "↗" : "↘"} {t(`${p.move > 0 ? "+" : ""}${Math.round(p.move)} % cette semaine`, `${p.move > 0 ? "+" : ""}${Math.round(p.move)}% this week`)}
             </p>
           )}
-          <p className={styles.small}>
-            {t(`Prix tendance ${market} du ${day}${fr ? ", toutes langues d'impression confondues" : ""}.`, `${market} market price, ${day}.`)}
+          <p className={styles.source}>
+            {t(`Prix tendance ${market}, mis à jour le ${day}${fr ? " (toutes langues d'impression confondues)" : ""}.`, `${market} market price, updated ${day}.`)}
           </p>
-          <p className={blog.cta}>
-            <Link href={fr ? "/" : "/en"} className={legal.cta}>
-              {t(`Suis la cote de ta collection sur ${SITE_NAME} ▶`, `Track your collection's value on ${SITE_NAME} ▶`)}
+
+          <div className={styles.cta}>
+            <Link href={home} className={styles.ctaBtn}>
+              {t("Ajouter à ma collection", "Add it to my collection")} ▶
             </Link>
-          </p>
+            <span>{t("Gratuit, sans compte pour commencer.", "Free, no account needed to start.")}</span>
+          </div>
           {p.other && (
-            <p className={styles.small}>
+            <p className={styles.source}>
               <Link href={p.other.path} hrefLang={p.other.lang}>
                 {fr ? `EN · ${card.name}: the English card and its TCGplayer price` : `FR · ${card.name} : la carte française et son prix Cardmarket`}
               </Link>
             </p>
           )}
         </div>
-      </div>
+      </section>
 
-      <div className={blog.body}>
-        {p.history.length >= 2 && (
-          <>
-            <h2>{t(`La cote de ${card.name}, jour après jour`, `${card.name}'s price, day by day`)}</h2>
-            <Curve p={p} />
-          </>
-        )}
+      {p.history.length >= 2 && (
+        <section>
+          <h2>{t(`La cote de ${card.name}, jour après jour`, `${card.name}'s price, day by day`)}</h2>
+          <Curve p={p} />
+        </section>
+      )}
 
-        {p.same.length > 0 && (
-          <>
-            <h2>{t(`Les autres cartes ${card.name}`, `Other ${card.name} cards`)}</h2>
-            <ul className={styles.same}>
-              {p.same.map((s) => (
-                <li key={s.path}>
-                  <Link href={s.path}>
-                    <img src={`${s.img}/low.webp`} alt={`${s.name} ${s.num} · ${s.set}`} width={245} height={342} loading="lazy" decoding="async" />
-                    <small>{s.set}</small>
-                    <b>{s.trend != null ? money(s.trend, p) : "—"}</b>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
+      {p.same.length > 0 && (
+        <section>
+          <h2>{t(`Les autres cartes ${card.name}`, `Other ${card.name} cards`)}</h2>
+          <ul className={styles.same}>
+            {p.same.map((s) => (
+              <li key={s.path}>
+                <Link href={s.path}>
+                  <img src={`${s.img}/low.webp`} alt={`${s.name} ${s.num} · ${s.set}`} width={245} height={342} loading="lazy" decoding="async" />
+                  <small>{s.set}</small>
+                  <b>{s.trend != null ? money(s.trend, p) : "—"}</b>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
+      <section>
         <h2>{t("Questions fréquentes", "FAQ")}</h2>
-        {faq.map((f) => (
-          <div key={f.q}>
-            <h3>{f.q}</h3>
-            <p>{f.a}</p>
-          </div>
-        ))}
-      </div>
+        <div className={styles.faq}>
+          {faq.map((f) => (
+            <div key={f.q}>
+              <h3>{f.q}</h3>
+              <p>{f.a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <nav className={styles.walk} aria-label={p.set.name}>
         {p.prev ? <Link href={p.prev.path}>← {p.prev.name}</Link> : <span />}
-        <Link href={p.setPath}>{t(`toutes les cartes de ${p.set.name}`, `every ${p.set.name} card`)}</Link>
+        <Link href={p.setPath}>{t(`Toutes les cartes de ${p.set.name}`, `Every ${p.set.name} card`)}</Link>
         {p.next ? <Link href={p.next.path}>{p.next.name} →</Link> : <span />}
       </nav>
-    </LegalPage>
+    </WidePage>
   );
 }
