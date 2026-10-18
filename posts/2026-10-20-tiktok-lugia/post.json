@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-20",
+  "time": "18:30",
+  "platforms": [
+    "tiktok",
+    "reels"
+  ],
+  "kind": "fact",
+  "format": "post",
+  "title": "TikTok : les 5 Lugia les plus chers",
+  "note": "Vidéo TikTok + Reel (même vidéo). Un son tendance dans l'appli.",
+  "prices": true,
+  "caption": "Les 5 Lugia les plus chers 🌊 Le n°1 écrase tout le monde : plus que les quatre autres réunis.\n\nTu en as un dans ton classeur ? 👇\n\n#pokemontcg #lugia #cartespokemon #pokemonfr #pokemoncards",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "TOP 5",
+      "title": "Lugia",
+      "size": 90,
+      "cards": [
+        "ex10-105",
+        "ecard2-149",
+        "swsh12-186"
+      ],
+      "banner": "LES 5 PLUS CHERS"
+    },
+    {
+      "type": "price",
+      "card": "xy7-94",
+      "rank": 5,
+      "name": "ORIGINES ANTIQUES · 2015"
+    },
+    {
+      "type": "price",
+      "card": "ex10-105",
+      "rank": 4,
+      "name": "EX FORCES CACHEES · 2005"
+    },
+    {
+      "type": "price",
+      "card": "col1-15",
+      "rank": 3,
+      "name": "L'APPEL DES LEGENDES · 2011"
+    },
+    {
+      "type": "price",
+      "card": "swsh12-186",
+      "rank": 2,
+      "name": "TEMPETE ARGENTEE · 2022"
+    },
+    {
+      "type": "price",
+      "card": "ecard2-149",
+      "rank": 1,
+      "name": "AQUAPOLIS · 2003"
+    },
+    {
+      "type": "paper",
+      "kicker": "LE N°1 ?",
+      "title": "Il vaut plus que<br>les 4 autres",
+      "em": "réunis",
+      "cards": [
+        "ecard2-149"
+      ]
+    },
+    {
+      "type": "end",
+      "title": "Et ton Lugia,<br>il vaut quoi ?",
+      "lead": "La cote de chaque carte, chaque jour"
+    }
+  ]
+}

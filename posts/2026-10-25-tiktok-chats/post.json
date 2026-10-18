@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-25",
+  "time": "18:30",
+  "platforms": [
+    "tiktok"
+  ],
+  "tiktok": "photos",
+  "kind": "fun",
+  "format": "post",
+  "title": "TikTok : la team Miaouss",
+  "note": "Carrousel photo TikTok (mode photo). Un son tendance.",
+  "prices": true,
+  "caption": "La team Miaouss, Persian et Miascarade 🐱 Swipe jusqu'au bout pour voir ce que vaut la plus chère.\n\nTu prends laquelle ? 👇\n\n#pokemontcg #miaouss #persian #cartespokemon #pokemonfr",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "LES CHATS",
+      "title": "La team<br>Miaouss",
+      "size": 110,
+      "cards": [
+        "sv10-203",
+        "me03-121",
+        "sv06.5-078"
+      ],
+      "banner": "TU PRENDS LAQUELLE ?"
+    },
+    {
+      "type": "grid",
+      "label": "6 ILLUSTRATIONS DE CHATS",
+      "cards": [
+        "me03-121",
+        "sv06.5-078",
+        "sv10-203",
+        "sv02-256",
+        "me02-106",
+        "30th-144"
+      ]
+    },
+    {
+      "type": "price",
+      "card": "me03-121",
+      "name": "ET CELLE-CI VAUT…"
+    },
+    {
+      "type": "end",
+      "title": "Tu prends<br>laquelle ?",
+      "lead": "Fais-en ta wishlist sur NookDex"
+    }
+  ]
+}
