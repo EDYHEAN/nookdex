@@ -637,7 +637,30 @@
 .ladder {
   list-style: none;
   padding: 4px 6px;
-  overflow: auto;
+  overflow: hidden;
+}
+
+/* the page turner under a board: ▲ 2/4 ▼ */
+.ladder li.lPages {
+  justify-content: center;
+  gap: 10px;
+  height: 14px;
+  margin-top: 3px;
+  color: var(--c1);
+}
+
+.lPages button {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--c0);
+  font: inherit;
+  cursor: pointer;
+}
+
+.lPages button:disabled {
+  opacity: 0.25;
+  cursor: default;
 }
 
 .ladder li {
