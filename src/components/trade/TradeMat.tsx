@@ -116,13 +116,14 @@ export default function TradeMat({ onClose, seed }: { onClose: () => void; seed?
           ? { head: t("TU Y GAGNES", "YOU GAIN"), sub: `+${formatMoney(v.diff)}` }
           : { head: t("TU Y PERDS", "YOU LOSE"), sub: `-${formatMoney(-v.diff)}` };
 
+  const hands = { give: useHand(side("give").length), get: useHand(side("get").length) };
   const zone = (s: Side) => (
     <section className={`${styles.zone} ${s === "give" ? styles.give : styles.get}`}>
       <header>
         <span className={styles.lab}>{s === "give" ? t("🫴 JE DONNE", "🫴 I GIVE") : t("🤲 JE REÇOIS", "🤲 I GET")}</span>
         <span className={styles.sum}>{formatMoney(s === "give" ? give : get)}</span>
       </header>
-      <div className={styles.lay}>
+      <div ref={hands[s].ref} className={`${styles.lay} ${hands[s].style ? styles.hand : ""}`} style={hands[s].style}>
         <AnimatePresence initial={false}>
           {side(s).map((it, i) => {
             const card = cards[it.key];
@@ -439,4 +440,52 @@ function Done({ give, get, onEnd }: { give: string[]; get: string[]; onEnd: () =
       </motion.p>
     </motion.div>
   );
+}
+
+/**
+ * A zone's cards held like a hand once they don't fit (Johan, 2026-10-18: a 5th card fell off the computer's mat, the
+ * phone's row ran off the side): they overlap, on 2 rows on a computer and 1 on a phone, always inside their painted
+ * zone; the one under the pointer comes on top, the + slot becomes a round button in the corner. Undefined: they fit.
+ */
+function useHand(n: number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState<{ w: number; h: number; wide: boolean } | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // the same test as the stylesheet's flat mat
+    const flat = matchMedia("(min-aspect-ratio: 1/1) and (min-width: 700px)");
+    const read = () => {
+      const cs = getComputedStyle(el);
+      const w = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const h = el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      setBox((b) => (b && b.w === w && b.h === h && b.wide === flat.matches ? b : { w, h, wide: flat.matches }));
+    };
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    flat.addEventListener("change", read);
+    return () => {
+      ro.disconnect();
+      flat.removeEventListener("change", read);
+    };
+  }, []);
+  let style: React.CSSProperties | undefined;
+  if (box && box.w > 0) {
+    // a card's size as the stylesheet makes it: 44 % of the zone's height on the flat mat (2 rows), 92 % on a phone
+    const ch = box.h * (box.wide ? 0.44 : 0.92);
+    const cw = ch * 0.63;
+    const gap = 10;
+    const perRow = box.wide ? Math.ceil(n / 2) : n;
+    // the + slot counts while it's a card-sized slot
+    const fits = box.wide ? n + 1 <= 4 : (n + 1) * cw + n * gap <= box.w;
+    if (!fits && perRow > 1) {
+      const step = Math.min(cw + gap, (box.w - cw) / (perRow - 1));
+      style = {
+        gridTemplateColumns: `repeat(${perRow - 1}, ${step}px) ${cw}px`,
+        ["--ch" as string]: `${ch}px`,
+      };
+    }
+  }
+  return { ref, style };
 }
