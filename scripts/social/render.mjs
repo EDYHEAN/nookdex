@@ -461,7 +461,8 @@ for (const id of ids.sort()) {
     caption: fill(post.caption) ?? "",
     captionTiktok: fill(post.captionTiktok),
     prices: !!post.prices,
-    slides: rendered.filter((f) => /^slide-\d+\.(jpg|png)$/.test(f)).map((f) => `${id}/${f}`),
+    // a post made by hand may hold videos among its slides (an Instagram carousel takes both)
+    slides: rendered.filter((f) => /^slide-\d+\.(jpg|png|mp4)$/.test(f)).map((f) => `${id}/${f}`),
     photos: rendered.filter((f) => /^photo-\d+\.jpg$/.test(f)).map((f) => `${id}/${f}`),
     tiktokAs: post.tiktok === "photos" ? "photos" : "video",
     video: rendered.includes("reel.mp4") ? `${id}/reel.mp4` : null,

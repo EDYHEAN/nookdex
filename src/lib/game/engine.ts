@@ -26,12 +26,13 @@ const BEYOND_DMG = 0.3;
  * The start tiers (Johan, 2026-10-17: not the first 50 waves all over again): a classic or coop run may start at a tier
  * reached before (its wave, its boss), the Pokémon at about the level a run has there, evolved, and a draft of cards to
  * pick first. A card per level, as a run played that far (a friend's feedback, 2026-10-18: 11 cards at wave 25, against
- * the 50-odd of a run, couldn't hold its boss), up to the 48 a full build and its evolutions take. All of them come at
- * once as a build pack picked out of 3 (`PACKS`), no card by card after it (Johan, 2026-10-18).
+ * the 50-odd of a run, couldn't hold its boss). All of them come at once as a build pack picked out of 3 (`PACKS`), no card
+ * by card after it (Johan, 2026-10-18); past the 48 a full build and its evolutions take, the stacking boosts a run
+ * picks then (2 Proteins for a PP Up): without them a wave-125 start knocked out 2 foes in 9 s.
  */
 export const TIERS = [25, 50, 75, 100, 125, 150, 175];
 export const tierLevel = (tier: number) => Math.round(1.6 * tier);
-export const tierPicks = (tier: number) => Math.min(48, tierLevel(tier) - 1);
+export const tierPicks = (tier: number) => tierLevel(tier) - 1;
 /**
  * A start tier's ramp (Johan, 2026-10-18: dropped into wave 25 at its full rate, the crowd closed in at once): the foes
  * come slowly at first, at the wave's full rate after RAMP seconds, and the tier's boss after BOSS_LATE.
@@ -863,7 +864,7 @@ export class Game {
     this.afterLevel();
   }
 
-  /** a build pack: its moves and items learnt, the moves raised to the top and evolved, then the items, as far as n cards go */
+  /** a build pack: its moves and items learnt, the moves raised to the top and evolved, then the items, then boosts: n cards */
   private applyPack(def: PackDef, n: number) {
     const steps: Choice[] = [...def.moves.map((id) => ({ kind: "move" as const, id, level: 1 })), ...def.items.map((id) => ({ kind: "item" as const, id, level: 1 }))];
     for (let l = 2; l <= MAX_LEVEL; l++) for (const id of def.moves) steps.push({ kind: "move", id, level: l });
@@ -880,6 +881,8 @@ export class Game {
       this.apply(c);
       n--;
     }
+    // the build full: what a run picks from then on
+    for (let k = 0; n > 0; k++, n--) this.apply({ kind: "bonus", id: k % 3 === 2 ? "ppup" : "protein", level: 0 });
   }
 
   /** 3 build packs, each rarity as likely as `PACK_ODDS` (the Pension's clover helps the rare ones) */

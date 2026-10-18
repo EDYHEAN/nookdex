@@ -224,13 +224,25 @@
   padding-bottom: 6px;
 }
 
-.slides img {
+.slides img,
+.slides video,
+.slideVideo {
   flex: none;
   width: 82%;
   aspect-ratio: 4 / 5;
   border-radius: 8px;
   scroll-snap-align: center;
   box-shadow: 0 0 0 2px #2b2230;
+  object-fit: cover;
+}
+
+/* a video slide still downloading */
+.slideVideo {
+  display: grid;
+  place-items: center;
+  background: #2b2230;
+  color: #f4ecdc;
+  font-size: 40px;
 }
 
 .story img {
