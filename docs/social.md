@@ -17,6 +17,9 @@ copied on the way). Change the editorial line here, not in the routine's prompt.
 - To work on it: `git fetch origin social && git worktree add ../social social`, write the post, commit, push the
   `social` branch. Read card data from `main` (`public/sets/…`, `src/data/catalog*.json`, `public/history/…`).
 - Posts made by hand (Claude in a local session) are `"prerendered": true`: their files are in `renders/` already.
+  Their carousel may mix pictures and videos (`slide-02.mp4`…, 4:5, a few seconds each: Instagram takes both in one
+  post); the studio plays and shares them with the pictures. Gameplay clips are filmed frame by frame from the game
+  (`window.nookboy` driven by hand, Playwright screenshots, ffmpeg), as for the Nook Survivors post of 2026-10-18.
 
 ## The week
 

@@ -273,6 +273,9 @@ function PostCard({ post, open, onOpen, done, onToggle }: { post: Post; open: bo
   useEffect(() => () => {
     if (videoUrl) URL.revokeObjectURL(videoUrl);
   }, [videoUrl]);
+  // the videos of a carousel, played from the downloaded files too
+  const slideUrls = useMemo(() => slides?.map((f) => (f.type === "video/mp4" ? URL.createObjectURL(f) : null)) ?? [], [slides]);
+  useEffect(() => () => slideUrls.forEach((u) => u && URL.revokeObjectURL(u)), [slideUrls]);
   const [note, setNote] = useState<string | null>(null);
   const isToday = post.date === today();
   const allDone = post.platforms.every((p) => done.has(`${post.id}|${p}`));
@@ -357,9 +360,19 @@ function PostCard({ post, open, onOpen, done, onToggle }: { post: Post; open: bo
           {post.note && <p className={styles.note}>{post.note}</p>}
           {post.slides.length > 0 && (
             <div className={`${styles.slides} ${post.format === "story" ? styles.story : ""}`}>
-              {post.slides.map((s) => (
-                <img key={s} src={SOCIAL_RENDERS + s} alt="" loading="lazy" />
-              ))}
+              {post.slides.map((s, i) =>
+                s.endsWith(".mp4") ? (
+                  slideUrls[i] ? (
+                    <video key={s} src={slideUrls[i]!} autoPlay muted loop playsInline />
+                  ) : (
+                    <span key={s} className={styles.slideVideo}>
+                      ▶
+                    </span>
+                  )
+                ) : (
+                  <img key={s} src={SOCIAL_RENDERS + s} alt="" loading="lazy" />
+                ),
+              )}
             </div>
           )}
           {(post.photos?.length ?? 0) > 0 && (
