@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-17T15:57:12.269Z",
+ "updated": "2026-10-18T05:08:48.984Z",
  "posts": [
   {
    "id": "2026-10-08-bienvenue",
@@ -359,6 +359,27 @@
    "tiktok": "2026-10-20-30-ans/tiktok.mp4"
   },
   {
+   "id": "2026-10-20-tiktok-lugia",
+   "date": "2026-10-20",
+   "time": "18:30",
+   "platforms": [
+    "tiktok",
+    "reels"
+   ],
+   "kind": "fact",
+   "format": "post",
+   "title": "TikTok : les 5 Lugia les plus chers",
+   "note": "Vidéo TikTok + Reel (même vidéo). Un son tendance dans l'appli.",
+   "caption": "Les 5 Lugia les plus chers 🌊 Le n°1 écrase tout le monde : plus que les quatre autres réunis.\n\nTu en as un dans ton classeur ? 👇\n\n#pokemontcg #lugia #cartespokemon #pokemonfr #pokemoncards",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": "2026-10-20-tiktok-lugia/tiktok.mp4"
+  },
+  {
    "id": "2026-10-21-chaos-ascendant-top5",
    "date": "2026-10-21",
    "time": null,
@@ -435,6 +456,31 @@
    ],
    "photos": [],
    "tiktokAs": "video",
+   "video": null,
+   "tiktok": null
+  },
+  {
+   "id": "2026-10-25-tiktok-chats",
+   "date": "2026-10-25",
+   "time": "18:30",
+   "platforms": [
+    "tiktok"
+   ],
+   "kind": "fun",
+   "format": "post",
+   "title": "TikTok : la team Miaouss",
+   "note": "Carrousel photo TikTok (mode photo). Un son tendance.",
+   "caption": "La team Miaouss, Persian et Miascarade 🐱 Swipe jusqu'au bout pour voir ce que vaut la plus chère.\n\nTu prends laquelle ? 👇\n\n#pokemontcg #miaouss #persian #cartespokemon #pokemonfr",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [],
+   "photos": [
+    "2026-10-25-tiktok-chats/photo-01.jpg",
+    "2026-10-25-tiktok-chats/photo-02.jpg",
+    "2026-10-25-tiktok-chats/photo-03.jpg",
+    "2026-10-25-tiktok-chats/photo-04.jpg"
+   ],
+   "tiktokAs": "photos",
    "video": null,
    "tiktok": null
   },
