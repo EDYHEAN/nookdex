@@ -20,6 +20,8 @@ export const CHANGELOG: Release[] = [
       { fr: "En salon : pose ce que tu donnes et ce que tu reçois, le tapis te dit si l'échange est équitable.", en: "At a fair: lay what you give and what you get, the mat tells you if the trade is fair." },
       { fr: "L'état et les cartes gradées (PSA, CGC…) comptent dans le prix.", en: "Condition and graded cards (PSA, CGC…) count in the price." },
       { fr: "« Échanger » sur une carte de ta collection, « Échange accepté » met ta collection à jour.", en: "\"Trade\" on a card you own; \"Trade done\" updates your collection." },
+      { fr: "Nook Survivors : repartir d'une vague, c'est un build tout prêt à choisir parmi 3 (les légendaires sont rares).", en: "Nook Survivors: starting from a wave means picking a ready-made build out of 3 (legendary ones are rare)." },
+      { fr: "Kecleon échange une capacité ou un objet contre une des 3 qu'il te propose, au même niveau.", en: "Kecleon swaps a move or an item for one of the 3 he offers, at the same level." },
     ],
   },
   {

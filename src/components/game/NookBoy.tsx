@@ -5,7 +5,7 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PENSION, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, type Elem, type Lang } from "@/lib/game/data";
+import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, type Elem, type Lang } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
 import { Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickX, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
@@ -373,8 +373,26 @@ export default function NookBoy({ origin, onClose }: Props) {
       return void openLadder((board + (b === "left" ? -1 : 1) + BOARDS.length) % BOARDS.length);
     }
     if (p === "title" && screen === "daily" && (b === "a" || b === "start")) return startRun("daily");
+    if (p === "shop" && eng.swapMode) {
+      // the swap: what you give (and Keep it all after it), then the three to take
+      const n = eng.swapList.length + (eng.swapMode === "give" ? 1 : 0);
+      if (b === "left" || b === "up") {
+        gsfx.move();
+        setCursor((c) => (c + n - 1) % n);
+      } else if (b === "right" || b === "down") {
+        gsfx.move();
+        setCursor((c) => (c + 1) % n);
+      } else if (b === "a" && cursor < eng.swapList.length) {
+        setCursor(0);
+        eng.swapPick(cursor);
+      } else if (b === "b" || (b === "a" && cursor >= eng.swapList.length)) {
+        setCursor(eng.offers.length + 2);
+        eng.swapCancel();
+      }
+      return;
+    }
     if (p === "shop") {
-      const n = eng.offers.length + 3;
+      const n = eng.offers.length + 4;
       if (b === "left" || b === "up") {
         gsfx.move();
         setCursor((c) => (c + n - 1) % n);
@@ -385,7 +403,10 @@ export default function NookBoy({ origin, onClose }: Props) {
         if (cursor < eng.offers.length) eng.buy(cursor);
         else if (cursor === eng.offers.length) eng.buyHeal();
         else if (cursor === eng.offers.length + 1) eng.shopReroll();
-        else {
+        else if (cursor === eng.offers.length + 2) {
+          setCursor(0);
+          eng.swapOpen();
+        } else {
           setCursor(0);
           eng.leaveShop();
         }
@@ -857,7 +878,9 @@ export default function NookBoy({ origin, onClose }: Props) {
         <div className={styles.level}>
           <h2>
             {/* before the first second: the Pension's backpack */}
-            {g.time !== g.startAt
+            {g.choices[0]?.kind === "pack"
+              ? t("CHOISIS TON BUILD", "PICK YOUR BUILD")
+              : g.time !== g.startAt
               ? `${t("NIVEAU", "LEVEL")} ${g.level - g.pendingLevels + 1} !`
               : g.startAt > 0
                 ? t(`DÉPART · ENCORE ${g.pendingLevels}`, `HEAD START · ${g.pendingLevels} LEFT`)
@@ -865,9 +888,31 @@ export default function NookBoy({ origin, onClose }: Props) {
           </h2>
           <div className={styles.cards}>
             {g.choices.map((c, i) => {
+              const pack = c.kind === "pack" ? PACKS.find((x) => x.id === c.id) : undefined;
+              if (pack)
+                return (
+                  <button
+                    key={pack.id}
+                    className={`${styles.card} ${styles.packCard} ${i === cursor ? styles.on : ""} ${styles[`r_${pack.rarity}`]}`}
+                    onPointerEnter={() => i !== cursor && (gsfx.move(), setCursor(i))}
+                    onClick={() => g.choose(c)}
+                  >
+                    <span className={styles.cardTag}>{i + 1} · BUILD</span>
+                    <span className={styles.rarity}>{say(RARITY[pack.rarity].name, lang)}</span>
+                    <span className={styles.cardName}>{say(pack.name, lang)}</span>
+                    <span className={styles.packList}>
+                      {pack.moves.map((id) => (
+                        <i key={id} className={styles[`t_${MOVES.find((m) => m.id === id)!.type}`]}>
+                          {say(MOVES.find((m) => m.id === id)!.name, lang)}
+                        </i>
+                      ))}
+                    </span>
+                    <span className={styles.packItems}>{pack.items.map((id) => say(ITEMS.find((x) => x.id === id)!.name, lang)).join(" · ")}</span>
+                  </button>
+                );
               const move = c.kind === "move" || c.kind === "evolve" ? MOVES.find((m) => m.id === c.id) : undefined;
               const def = move ?? (c.kind === "item" ? ITEMS.find((it) => it.id === c.id) : c.kind === "bonus" ? BONUSES.find((b) => b.id === c.id) : undefined);
-              const tag = { move: t("CAPACITÉ", "MOVE"), item: t("OBJET", "ITEM"), heal: t("SOIN", "HEAL"), evolve: t("ÉVOLUTION", "EVOLUTION"), bonus: "BONUS" }[c.kind];
+              const tag = { move: t("CAPACITÉ", "MOVE"), item: t("OBJET", "ITEM"), heal: t("SOIN", "HEAL"), evolve: t("ÉVOLUTION", "EVOLUTION"), bonus: "BONUS", pack: "BUILD" }[c.kind];
               // an evolution says what it's made of: the move and its item
               const recipe = move?.evo && `${say(MOVES.find((m) => m.id === move.evo!.from)!.name, lang)} + ${say(ITEMS.find((it) => it.id === move.evo!.item)!.name, lang)}`;
               return (
@@ -920,19 +965,62 @@ export default function NookBoy({ origin, onClose }: Props) {
             : g.setup.daily?.mod.noCenter
               ? t("Bienvenue ! Les vagues attendent, prends ton temps.", "Welcome! The waves will wait, take your time.")
               : t("Bienvenue ! Ton Pokémon est soigné. Les vagues attendent.", "Welcome! Your Pokémon is healed. The waves will wait.");
+      const swapping = g.swapMode;
       return (
         <div className={styles.shop}>
           <div className={styles.awning} />
           <div className={styles.shopHead}>
             <Mini dex={352} label="Kecleon" big />
             <p className={styles.bubble}>
-              <b>KECLEON</b> {say2}
+              <b>KECLEON</b>{" "}
+              {swapping === "give"
+                ? t(`Tu me laisses quoi ? Ça te coûtera ${g.swapPrice} or.`, `What will you leave me? That's ${g.swapPrice} gold.`)
+                : swapping === "take"
+                  ? t("Marché conclu ! Prends-en un, au même niveau.", "Deal! Take one, at the same level.")
+                  : say2}
             </p>
             <span className={styles.goldPill}>
               {g.gold} {t("or", "gold")}
             </span>
           </div>
-          <div className={styles.goods}>
+          {swapping === "give" && (
+            <div className={styles.swapGrid}>
+              {g.swapList.map((c, i) => {
+                const def = c.kind === "move" ? MOVES.find((m) => m.id === c.id) : ITEMS.find((x) => x.id === c.id);
+                return (
+                  <button
+                    key={`${c.kind}${c.id}`}
+                    className={`${i === cursor ? styles.on : ""} ${c.rarity ? styles[`r_${c.rarity}`] : ""}`}
+                    onPointerEnter={() => i !== cursor && (gsfx.move(), setCursor(i))}
+                    onClick={() => g.swapPick(i)}
+                  >
+                    <span>{def ? say(def.name, lang) : ""}</span>
+                    <i>{"●".repeat(c.level)}</i>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {swapping === "take" && (
+            <div className={styles.goods}>
+              {g.swapList.map((c, i) => (
+                <Good
+                  key={`${c.kind}${c.id}`}
+                  c={c}
+                  on={i === cursor}
+                  sold={false}
+                  price={0}
+                  label="✓"
+                  poor={false}
+                  lang={lang}
+                  t={t}
+                  onHover={() => i !== cursor && (gsfx.move(), setCursor(i))}
+                  onPick={() => (setCursor(0), g.swapPick(i))}
+                />
+              ))}
+            </div>
+          )}
+          {!swapping && <div className={styles.goods}>
             {g.offers.map((o, i) => (
               <Good
                 key={i}
@@ -947,19 +1035,23 @@ export default function NookBoy({ origin, onClose }: Props) {
                 onPick={() => g.buy(i)}
               />
             ))}
-          </div>
+          </div>}
           <div className={styles.counter}>
-            {(
-              [
-                [t("Baie Sitrus ♥+50%", "Sitrus Berry ♥+50%"), g.healPrice, () => g.buyHeal()],
-                [t("Relancer", "Reroll"), g.rerollPrice, () => g.shopReroll()],
-                [t("Reprendre ▶", "Back to it ▶"), null, () => (setCursor(0), g.leaveShop())],
-              ] as const
+            {(swapping === "give"
+              ? ([[t("Garder tout", "Keep it all"), null, () => (setCursor(g.offers.length + 2), g.swapCancel())]] as const)
+              : swapping === "take"
+                ? []
+                : ([
+                    [t("Baie ♥+50%", "Berry ♥+50%"), g.healPrice, () => g.buyHeal()],
+                    [t("Relancer", "Reroll"), g.rerollPrice, () => g.shopReroll()],
+                    [t("Échanger", "Swap"), g.swapPrice, () => (setCursor(0), g.swapOpen())],
+                    [t("Reprendre ▶", "Back to it ▶"), null, () => (setCursor(0), g.leaveShop())],
+                  ] as const)
             ).map(([label, price, go], k) => (
               <button
                 key={k}
-                className={`${cursor === g.offers.length + k ? styles.on : ""} ${price != null && g.gold < price ? styles.cardDim : ""}`}
-                onPointerEnter={() => setCursor(g.offers.length + k)}
+                className={`${cursor === (swapping ? g.swapList.length : g.offers.length) + k ? styles.on : ""} ${price != null && g.gold < price ? styles.cardDim : ""}`}
+                onPointerEnter={() => setCursor((swapping ? g.swapList.length : g.offers.length) + k)}
                 onClick={go}
               >
                 {label}
@@ -1424,6 +1516,8 @@ function Good(props: {
   on: boolean;
   sold: boolean;
   price: number;
+  /** said on the tag instead of the price */
+  label?: string;
   poor: boolean;
   lang: Lang;
   t: (fr: string, en: string) => string;
@@ -1433,14 +1527,14 @@ function Good(props: {
   const { c, lang, t } = props;
   const move = c.kind === "move" || c.kind === "evolve" ? MOVES.find((m) => m.id === c.id) : undefined;
   const def = move ?? (c.kind === "item" ? ITEMS.find((it) => it.id === c.id) : c.kind === "bonus" ? BONUSES.find((b) => b.id === c.id) : undefined);
-  const tag = { move: t("CAPACITÉ", "MOVE"), item: t("OBJET", "ITEM"), heal: t("SOIN", "HEAL"), evolve: t("ÉVOLUTION", "EVOLUTION"), bonus: "BONUS" }[c.kind];
+  const tag = { move: t("CAPACITÉ", "MOVE"), item: t("OBJET", "ITEM"), heal: t("SOIN", "HEAL"), evolve: t("ÉVOLUTION", "EVOLUTION"), bonus: "BONUS", pack: "BUILD" }[c.kind];
   return (
     <button
       className={`${styles.good} ${props.on ? styles.on : ""} ${c.rarity ? styles[`r_${c.rarity}`] : ""} ${props.sold ? styles.sold : props.poor ? styles.cardDim : ""}`}
       onPointerEnter={props.onHover}
       onClick={props.onPick}
     >
-      <span className={`${styles.tagPrice} ${props.poor && !props.sold ? styles.tagPoor : ""}`}>{props.sold ? t("VENDU", "SOLD") : props.price}</span>
+      <span className={`${styles.tagPrice} ${props.poor && !props.sold ? styles.tagPoor : ""}`}>{props.sold ? t("VENDU", "SOLD") : (props.label ?? props.price)}</span>
       <span className={styles.cardTag}>{tag}</span>
       {c.rarity && <span className={styles.rarity}>{say(RARITY[c.rarity].name, lang)}</span>}
       <span className={styles.cardName}>{def ? say(def.name, lang) : t("Baie Sitrus", "Sitrus Berry")}</span>

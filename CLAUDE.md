@@ -297,10 +297,12 @@ doesn't show.
   the "Centenaire" trophy and the run goes on), titans walk among the foes past 100 (`BEYOND`), every 10th wave is a
   giga boss of the daily challenge's, Mega Mewtwo Y the 200th (won when it falls). **Start tiers**: a run may start at 25,
   50 … 175 once that wave was reached (`TIERS`, `tierLevel`, `tierPicks` in the engine): the level of that far,
-  evolved, and a draft of cards; its clock starts there (the ladder's time check holds) and the ladder shows "↱50"
+  evolved, a card per level (up to 48), all of them as a build pack picked out of 3 (`PACKS` in lib/game/data: 15 builds of
+  4 moves + 4 items, drawn by rarity, legendaries rare and broken, Johan 2026-10-18: luck, not a build menu; the moves raised and evolved first, then the items); a ramp then (`RAMP`: foes trickle in, the full crowd after 60 s, the tier's boss after 30 s, 3 s
+  untouchable at first, Johan 2026-10-18: cornered at once otherwise); its clock starts there (the ladder's time check holds) and the ladder shows "↱50"
   (`start`, `game_submit2` v4). The old
   daily (`dailyOf`, a wave to reach) ran until 2026-10-14; the **daily challenge** below replaced it. A moment after each boss falls, a **break**: the field is cleared, then the
-  Pokémon Center's heal (no screen: forgetting moves was dropped, Johan 2026-10-13), the levels won, Kecleon's stall (cards, heal, reroll: prices up 8 % a wave),
+  Pokémon Center's heal (no screen: forgetting moves was dropped, Johan 2026-10-13), the levels won, Kecleon's stall (cards, heal, reroll, swap: give a move or an item, take one of 3 drawn at its level; prices up 12 % a wave),
   a 3-2-1. Statuses and combos: `COMBOS` in lib/game/data.
 - Rewards: Supabase `game_rewards` (docs/supabase.sql, given by hand with an insert, read by the player only), e.g.
   `skin-mewtwo`: **Mewtwo**, a fifth Pokémon on the starter screen (`MEWTWO` in lib/game/data, `roster` in the engine),

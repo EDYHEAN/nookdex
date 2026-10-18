@@ -276,6 +276,43 @@ export const ITEMS: ItemDef[] = [
   { id: "spoon", rarity: "rare", name: ["Cuillère Tordue", "Twisted Spoon"], desc: ["Brûlures et poisons +30 % plus forts.", "Burns and poisons 30% stronger."] },
 ];
 
+/**
+ * Build packs (Johan, 2026-10-18): a start tier offers 3 of them, drawn by rarity, instead of a draft of single cards.
+ * Each one is four moves and four items that play together (their combos, their evolutions); the commons work, the
+ * legendaries are the broken ones and rarely come up. All get the same number of cards (the tier's): a pack is a
+ * start as strong as a run played that far, its rarity only says how well its cards play together.
+ */
+export type PackId =
+  | "wildfire" | "mud" | "venom" | "bulwark" | "woods" | "storm" | "floe" | "charmer" | "swarm" | "molten" | "critical"
+  | "tempest" | "wisp" | "nightmare" | "eclipse";
+export interface PackDef {
+  id: PackId;
+  rarity: Rarity;
+  name: Txt;
+  moves: MoveId[];
+  items: ItemId[];
+}
+export const PACKS: PackDef[] = [
+  { id: "wildfire", rarity: "common", name: ["Brasier", "Wildfire"], moves: ["flamethrower", "firespin", "twister", "toxic"], items: ["band", "sash", "scarf", "root"] },
+  { id: "mud", rarity: "common", name: ["Bourbier", "Mudslide"], moves: ["bubble", "quake", "rocks", "bone"], items: ["lens", "root", "eviolite", "hpup"] },
+  { id: "venom", rarity: "common", name: ["Venin", "Venom"], moves: ["toxic", "sludge", "psychic", "future"], items: ["eviolite", "lens", "spoon", "root"] },
+  { id: "bulwark", rarity: "common", name: ["Rempart", "Bulwark"], moves: ["protect", "gigadrain", "quick", "rocks"], items: ["helmet", "leftovers", "eviolite", "hpup"] },
+  { id: "woods", rarity: "common", name: ["Sous-bois", "Undergrowth"], moves: ["leaf", "sleep", "gigadrain", "solar"], items: ["root", "leftovers", "claw", "share"] },
+  { id: "storm", rarity: "rare", name: ["Orage", "Thunderstorm"], moves: ["bubble", "thunder", "discharge", "surf"], items: ["magnet", "leftovers", "claw", "band"] },
+  { id: "floe", rarity: "rare", name: ["Banquise", "Ice Floe"], moves: ["bubble", "ice", "icebeam", "aura"], items: ["claw", "band", "root", "leftovers"] },
+  { id: "charmer", rarity: "rare", name: ["Charmeur", "Charmer"], moves: ["dazzle", "darkpulse", "psychic", "swift"], items: ["shellbell", "scarf", "band", "claw"] },
+  { id: "swarm", rarity: "rare", name: ["Essaim", "Swarm"], moves: ["xscissor", "toxic", "sludge", "bone"], items: ["eviolite", "spoon", "lens", "belt"] },
+  { id: "molten", rarity: "epic", name: ["Métal en fusion", "Molten Metal"], moves: ["flashcannon", "firespin", "flamethrower", "protect"], items: ["lifeorb", "sash", "band", "lens"] },
+  { id: "critical", rarity: "epic", name: ["Coup critique", "Critical Hit"], moves: ["swift", "aura", "bone", "xscissor"], items: ["scarf", "band", "lens", "belt"] },
+  { id: "tempest", rarity: "epic", name: ["Tempête", "Tempest"], moves: ["bubble", "thunder", "twister", "hyper"], items: ["magnet", "band", "claw", "lens"] },
+  // the broken ones: burns and poisons that Hex and Poltergeist feed on (a friend's build), sleep and Ghost, charm and Dark
+  { id: "wisp", rarity: "legendary", name: ["Feu follet", "Will-o'-Wisp"], moves: ["flamethrower", "toxic", "firespin", "hex"], items: ["spoon", "kingsrock", "band", "sash"] },
+  { id: "nightmare", rarity: "legendary", name: ["Cauchemar", "Nightmare"], moves: ["sleep", "hex", "future", "shadow"], items: ["kingsrock", "lens", "claw", "belt"] },
+  { id: "eclipse", rarity: "legendary", name: ["Éclipse", "Eclipse"], moves: ["dazzle", "darkpulse", "future", "psychic"], items: ["shellbell", "lens", "lifeorb", "belt"] },
+];
+/** how likely a pack of each rarity is (shared among the packs of that rarity) */
+export const PACK_ODDS: Record<Rarity, number> = { common: 52, rare: 28, epic: 16, legendary: 4 };
+
 /** when there's nothing left to learn or raise: boosts that stack forever */
 export type BonusId = "protein" | "ppup" | "sitrus";
 
