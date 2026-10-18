@@ -39,6 +39,8 @@ export const tierPicks = (tier: number) => tierLevel(tier) - 1;
  */
 const RAMP = 60;
 const BOSS_LATE = 30;
+/** the most one blow takes, a share of the max HP */
+const HIT_CAP = 0.3;
 /** the daily challenge's Pokémon won with (dex of their first form), for "defi-week": per device */
 const DEFI_WINS_KEY = "nookdex:defi-wins";
 
@@ -2618,6 +2620,9 @@ export class Game {
       return;
     }
     dmg *= (1 - 0.07 * this.itemLevel("eviolite")) * (1 - 0.025 * this.perm("armor"));
+    // never more than 30 % of the max HP a blow (Johan, 2026-10-18: past wave 60 any touch was a one-shot, and running
+    // through the crowd happens all the time): a run wears down, it doesn't end on one bump
+    dmg = Math.min(dmg, this.maxHp * HIT_CAP);
     // Focus Sash: a fatal blow leaves 1 HP, then it needs a while
     const sash = this.itemLevel("sash");
     if (sash && this.hp - dmg <= 0 && this.hp > 1 && this.cur.sashCd <= 0) {

@@ -206,6 +206,86 @@
   font-size: 26px;
 }
 
+/* the cards held like a hand once they don't fit (useHand): each one a slice of the next, the hovered one on top */
+.lay.hand {
+  display: grid;
+  grid-auto-rows: auto;
+  justify-content: center;
+  align-content: center;
+  gap: 14px 0;
+  overflow: visible;
+}
+
+.hand > * {
+  justify-self: start;
+}
+
+.hand .card {
+  height: var(--ch);
+}
+
+/* the + slot: a round button in the zone's corner, out of the hand */
+.hand .add {
+  position: absolute;
+  z-index: 4;
+  right: 6px;
+  bottom: 2px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border-style: solid;
+  background: rgba(30, 60, 52, 0.92);
+  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.35);
+  place-items: center;
+  gap: 0;
+  padding: 0;
+}
+
+/* the cross drawn, dead centre (the pixel font's + sat low in the circle) */
+.hand .add i {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  font-size: 0;
+}
+
+.hand .add i::before,
+.hand .add i::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  border-radius: 1px;
+  background: var(--paper);
+}
+
+.hand .add i::before {
+  width: 18px;
+  height: 4px;
+}
+
+.hand .add i::after {
+  width: 4px;
+  height: 18px;
+}
+
+.hand .card:hover,
+.hand .card:focus-visible {
+  z-index: 3;
+}
+
+/* only the price of the card on top (the zone's sum says the rest) */
+.hand .card .price {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.hand .card:hover .price,
+.hand .card:nth-last-child(2) .price {
+  opacity: 1;
+}
+
 /* the weight of the trade, between the zones: the verdict, and a bar on the painted band */
 .weigh {
   position: absolute;
