@@ -974,9 +974,28 @@ export class Game {
   get healPrice() {
     return Math.round(25 * this.priceUp);
   }
+  /**
+   * a card still takes: the stall's were drawn when it opened, and two new moves bought with one slot free made a fifth
+   * (found by a check of 2026-10-18), a swap may take away the move an offer raises
+   */
+  canTake(c: Choice) {
+    if (c.kind === "move") {
+      const m = this.moves.find((x) => x.id === c.id);
+      return m ? m.level < MAX_LEVEL : this.moves.length < MAX_MOVES;
+    }
+    if (c.kind === "item") {
+      const it = this.items.find((x) => x.id === c.id);
+      return it ? it.level < MAX_LEVEL : this.items.length < MAX_ITEMS;
+    }
+    if (c.kind === "evolve") {
+      const d = MOVES.find((x) => x.id === c.id)!;
+      return this.moves.some((m) => m.id === d.evo!.from && m.level >= MAX_LEVEL) && this.itemLevel(d.evo!.item) > 0;
+    }
+    return true;
+  }
   buy(i: number) {
     const o = this.offers[i];
-    if (this.phase !== "shop" || !o || o.sold || this.gold < o.price) return gsfx.back();
+    if (this.phase !== "shop" || !o || o.sold || this.gold < o.price || !this.canTake(o.choice)) return gsfx.back();
     this.gold -= o.price;
     o.sold = true;
     unlock("game-shop");
