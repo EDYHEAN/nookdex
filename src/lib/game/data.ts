@@ -296,16 +296,17 @@ export const PACKS: PackDef[] = [
   { id: "wildfire", rarity: "common", name: ["Brasier", "Wildfire"], moves: ["flamethrower", "firespin", "twister", "toxic"], items: ["band", "sash", "scarf", "root"] },
   { id: "mud", rarity: "common", name: ["Bourbier", "Mudslide"], moves: ["bubble", "quake", "rocks", "bone"], items: ["lens", "root", "eviolite", "hpup"] },
   { id: "venom", rarity: "common", name: ["Venin", "Venom"], moves: ["toxic", "sludge", "psychic", "future"], items: ["eviolite", "lens", "spoon", "root"] },
-  { id: "bulwark", rarity: "common", name: ["Rempart", "Bulwark"], moves: ["protect", "gigadrain", "quick", "rocks"], items: ["helmet", "leftovers", "eviolite", "hpup"] },
+  { id: "bulwark", rarity: "common", name: ["Rempart", "Bulwark"], moves: ["protect", "gigadrain", "quake", "flashcannon"], items: ["helmet", "leftovers", "eviolite", "lifeorb"] },
   { id: "woods", rarity: "common", name: ["Sous-bois", "Undergrowth"], moves: ["leaf", "sleep", "gigadrain", "solar"], items: ["root", "leftovers", "claw", "share"] },
-  { id: "storm", rarity: "rare", name: ["Orage", "Thunderstorm"], moves: ["bubble", "thunder", "discharge", "surf"], items: ["magnet", "leftovers", "claw", "band"] },
+  { id: "storm", rarity: "legendary", name: ["Orage", "Thunderstorm"], moves: ["bubble", "thunder", "discharge", "surf"], items: ["magnet", "leftovers", "claw", "band"] },
   { id: "floe", rarity: "rare", name: ["Banquise", "Ice Floe"], moves: ["bubble", "ice", "icebeam", "aura"], items: ["claw", "band", "root", "leftovers"] },
   { id: "charmer", rarity: "rare", name: ["Charmeur", "Charmer"], moves: ["dazzle", "darkpulse", "psychic", "swift"], items: ["shellbell", "scarf", "band", "claw"] },
   { id: "swarm", rarity: "rare", name: ["Essaim", "Swarm"], moves: ["xscissor", "toxic", "sludge", "bone"], items: ["eviolite", "spoon", "lens", "belt"] },
   { id: "molten", rarity: "epic", name: ["Métal en fusion", "Molten Metal"], moves: ["flashcannon", "firespin", "flamethrower", "protect"], items: ["lifeorb", "sash", "band", "lens"] },
   { id: "critical", rarity: "epic", name: ["Coup critique", "Critical Hit"], moves: ["swift", "aura", "bone", "xscissor"], items: ["scarf", "band", "lens", "belt"] },
   { id: "tempest", rarity: "epic", name: ["Tempête", "Tempest"], moves: ["bubble", "thunder", "twister", "hyper"], items: ["magnet", "band", "claw", "lens"] },
-  // the broken ones: burns and poisons that Hex and Poltergeist feed on (a friend's build), sleep and Ghost, charm and Dark
+  // the broken ones: soaked foes and lightning (the safest of all, 2026-10-18), burns and poisons that Hex and Poltergeist
+  // feed on (a friend's build), sleep and Ghost, charm and Dark
   { id: "wisp", rarity: "legendary", name: ["Feu follet", "Will-o'-Wisp"], moves: ["flamethrower", "toxic", "firespin", "hex"], items: ["spoon", "kingsrock", "band", "sash"] },
   { id: "nightmare", rarity: "legendary", name: ["Cauchemar", "Nightmare"], moves: ["sleep", "hex", "future", "shadow"], items: ["kingsrock", "lens", "claw", "belt"] },
   { id: "eclipse", rarity: "legendary", name: ["Éclipse", "Eclipse"], moves: ["dazzle", "darkpulse", "future", "psychic"], items: ["shellbell", "lens", "lifeorb", "belt"] },

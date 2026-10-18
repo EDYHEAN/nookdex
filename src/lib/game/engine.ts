@@ -31,7 +31,13 @@ const BEYOND_DMG = 0.3;
  * picks then (2 Proteins for a PP Up): without them a wave-125 start knocked out 2 foes in 9 s.
  */
 export const TIERS = [25, 50, 75, 100, 125, 150, 175];
-export const tierLevel = (tier: number) => Math.round(1.6 * tier);
+/**
+ * The level a start tier gives: about a played run's by then (the ladder, 2026-10-18: ~60 at wave 25, ~120 at 50, 148 at
+ * 92, the XP curve steepening), wave 25 a little under (a friend found it right with its pack), past 100 as before (no run
+ * went that far yet). Wave 50 at 80 was too weak: 40 levels short is 40 boosts short.
+ */
+const TIER_LEVEL: Record<number, number> = { 25: 42, 50: 110, 75: 140, 100: 165, 125: 200, 150: 240, 175: 280 };
+export const tierLevel = (tier: number) => TIER_LEVEL[tier] ?? Math.round(1.6 * tier);
 export const tierPicks = (tier: number) => tierLevel(tier) - 1;
 /**
  * A start tier's ramp (Johan, 2026-10-18: dropped into wave 25 at its full rate, the crowd closed in at once): the foes
