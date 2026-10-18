@@ -139,10 +139,13 @@ export default function NookBoy({ origin, onClose }: Props) {
         gfx.setPalette(PALETTES[o.palette] ?? PALETTES[0]);
         const eng = new Game(gfx, lang);
         eng.configure(o.fire, o.manual);
+        let was = eng.phase;
         eng.onChange = () => {
           setPhase(eng.phase);
           setRev((r) => r + 1);
-          if (eng.phase === "levelup") setCursor(0);
+          // a new menu starts on its first card (the stall kept the last screen's cursor)
+          if (eng.phase === "levelup" || (eng.phase === "shop" && was !== "shop")) setCursor(0);
+          was = eng.phase;
         };
         setG(eng);
         // dev: the engine at hand in the console (and for screenshots)
@@ -385,7 +388,8 @@ export default function NookBoy({ origin, onClose }: Props) {
       } else if (b === "a" && cursor < eng.swapList.length) {
         setCursor(0);
         eng.swapPick(cursor);
-      } else if (b === "b" || (b === "a" && cursor >= eng.swapList.length)) {
+      } else if (eng.swapMode === "give" && (b === "b" || (b === "a" && cursor >= eng.swapList.length))) {
+        // back out only before paying: once paid, one of the three is taken
         setCursor(eng.offers.length + 2);
         eng.swapCancel();
       }
@@ -1028,7 +1032,7 @@ export default function NookBoy({ origin, onClose }: Props) {
                 on={i === cursor}
                 sold={o.sold}
                 price={o.price}
-                poor={g.gold < o.price}
+                poor={g.gold < o.price || !g.canTake(o.choice)}
                 lang={lang}
                 t={t}
                 onHover={() => i !== cursor && (gsfx.move(), setCursor(i))}
