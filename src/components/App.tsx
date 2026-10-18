@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { APP_VERSION } from "@/data/changelog";
 import { MAX_BINDERS, shelfBinders } from "@/lib/binders";
@@ -86,6 +87,10 @@ export function App() {
   const [entered, setEntered] = useState(returningFromSignIn || backFromShop);
   /** the loader started melting away: the room shows through */
   const [revealed, setRevealed] = useState(false);
+  // Landed on a page over the room (a notebook page, a card's page, from a search engine): the loader doesn't wait for
+  // its « Appuie pour entrer » behind it (Johan, 2026-10-18: the notebook over a waiting loader looked broken).
+  const pathname = usePathname();
+  const overPage = pathname !== "/" && pathname !== "/en";
   const profile = useStore((s) => s.profile);
   const cloud = useCloud();
   const trade = useTradeMat();
@@ -266,7 +271,8 @@ export function App() {
     !devBypass &&
     (!profile || (welcome && !userBinders.length));
 
-  const calm = entered && !busy && !tour && !showWelcome;
+  // a page over the room (notebook, card page) isn't calm either: the road log waits for it to close
+  const calm = entered && !busy && !tour && !showWelcome && !overPage;
   useTrophyWatch(entered);
   useEffect(() => {
     if (!news || !calm) return;
@@ -564,7 +570,7 @@ export function App() {
           v{APP_VERSION}
         </button>
       )}
-      {!entered && <Loader onLeave={() => setRevealed(true)} onEnter={() => setEntered(true)} />}
+      {!entered && <Loader auto={overPage} onLeave={() => setRevealed(true)} onEnter={() => setEntered(true)} />}
       {/* on a phone, the full-screen grain layers are memory a binder or the OS needs (their paper has its own grain) */}
       <Grain off={compact && busy} />
     </>

@@ -4,8 +4,8 @@
 import { unlock } from "@/lib/trophyStore";
 import { gsfx, music } from "./audio";
 import {
-  BONUSES, BOSSES, COMBOS, ITEMS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, WAVE_SECONDS, WILD, xpFor,
-  DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type Starter, type Wild,
+  BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, WAVE_SECONDS, WILD, xpFor,
+  DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
 } from "./data";
 import { DEFI_DAYS, DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
@@ -25,12 +25,19 @@ const BEYOND_DMG = 0.3;
 /**
  * The start tiers (Johan, 2026-10-17: not the first 50 waves all over again): a classic or coop run may start at a tier
  * reached before (its wave, its boss), the Pokémon at about the level a run has there, evolved, and a draft of cards to
- * pick first. A draft of tier ÷ 5 left it far behind a played run (40-odd cards by wave 50); tuned with a bot (2026-10-17)
- * so a start lands a bit behind a run played that far, the 48 cards a full build and its evolutions take.
+ * pick first. A card per level, as a run played that far (a friend's feedback, 2026-10-18: 11 cards at wave 25, against
+ * the 50-odd of a run, couldn't hold its boss), up to the 48 a full build and its evolutions take. All of them come at
+ * once as a build pack picked out of 3 (`PACKS`), no card by card after it (Johan, 2026-10-18).
  */
 export const TIERS = [25, 50, 75, 100, 125, 150, 175];
 export const tierLevel = (tier: number) => Math.round(1.6 * tier);
-export const tierPicks = (tier: number) => Math.min(48, Math.round(0.45 * tier));
+export const tierPicks = (tier: number) => Math.min(48, tierLevel(tier) - 1);
+/**
+ * A start tier's ramp (Johan, 2026-10-18: dropped into wave 25 at its full rate, the crowd closed in at once): the foes
+ * come slowly at first, at the wave's full rate after RAMP seconds, and the tier's boss after BOSS_LATE.
+ */
+const RAMP = 60;
+const BOSS_LATE = 30;
 /** the daily challenge's Pokémon won with (dex of their first form), for "defi-week": per device */
 const DEFI_WINS_KEY = "nookdex:defi-wins";
 
@@ -89,9 +96,10 @@ export interface Input {
 }
 
 export interface Choice {
-  /** evolve: a move at its last level and its item make a stronger move; bonus: what's left once all is learnt */
-  kind: "move" | "item" | "heal" | "evolve" | "bonus";
-  id?: MoveId | ItemId | BonusId;
+  /** evolve: a move at its last level and its item make a stronger move; bonus: what's left once all is learnt; pack: a
+   * start tier's build */
+  kind: "move" | "item" | "heal" | "evolve" | "bonus" | "pack";
+  id?: MoveId | ItemId | BonusId | PackId;
   rarity?: Rarity;
   /** the level it goes to (1 = new) */
   level: number;
@@ -288,6 +296,8 @@ export class Player {
   moves: { id: MoveId; level: number; cd: number; active: number }[] = [];
   items: { id: ItemId; level: number }[] = [];
   pendingLevels: number = 0;
+  /** a start tier's build pack still to pick: the cards it takes out of the pending ones */
+  pack: number = 0;
   choices: Choice[] = [];
   evo: { from: number; to: number; t: number; cancelled: boolean } | null = null;
   evoBlocked: number = 0;
@@ -596,6 +606,15 @@ export class Game {
   /** Kecleon on the field, and its offers once you meet it */
   offers: ShopOffer[] = [];
   shopRerolls = 0;
+  /**
+   * Kecleon's swap (Johan, 2026-10-18): give up a move or an item ("give": what you have), then take one of 3 drawn of
+   * the same kind ("take"), at the level of the one given. Drawn, never chosen from the whole list: a broken build
+   * stays luck. Dearer each time at the same stall.
+   */
+  swapMode: "give" | "take" | null = null;
+  swapList: Choice[] = [];
+  private swapFrom: Choice | null = null;
+  shopSwaps = 0;
   /** the break after a boss is on (Center, levels, shop, then the 3-2-1) */
   private inBreak = false;
   private shopDone = false;
@@ -616,6 +635,8 @@ export class Game {
   private charmed = 0;
   /** the run's clock at its start: 0, or a start tier's (the draft's cards are picked then) */
   startAt = 0;
+  /** a start tier's boss, on its way (the time it comes, 0: none) */
+  private bossDue = 0;
   private titanWave = 0;
   /** the daily challenge: the wave's foes still to come, the next group's wait, the pause between two waves */
   private defiLeft = 0;
@@ -768,7 +789,7 @@ export class Game {
     this.inBreak = false;
     Object.assign(this, {
       time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1, titanT: 4, titanWave: 0,
-      bossAlive: null, breakAt: 0, shake: 0, flash: 0, dyingT: 0, defiLeft: setup.defi ? DEFI_QUOTA[0] : 0, defiGroupT: 1, defiGap: 0, defiTitans: 0, endAt: 0,
+      bossAlive: null, bossDue: 0, breakAt: 0, shake: 0, flash: 0, dyingT: 0, defiLeft: setup.defi ? DEFI_QUOTA[0] : 0, defiGroupT: 1, defiGap: 0, defiTitans: 0, endAt: 0,
     });
     // a start tier: the run's clock starts at its wave (whose boss waits, frozen, while the draft is picked)
     const from = setup.daily || setup.defi ? 1 : (setup.start ?? 1);
@@ -798,6 +819,9 @@ export class Game {
         p.level = tierLevel(from);
         while (s.evolves[p.stage] && p.level >= s.evolves[p.stage][1]) p.dex = s.evolves[p.stage++][0];
         p.pendingLevels += tierPicks(from);
+        p.pack = tierPicks(from);
+        // a moment to get going before the first foes reach you
+        p.invuln = 3;
       }
       p.maxHp = this.computeMaxHp();
       p.hp = p.maxHp;
@@ -825,9 +849,53 @@ export class Game {
   /** the player picked a level-up reward */
   choose(c: Choice | undefined) {
     if (this.phase !== "levelup" || !c || !this.canChoose) return;
+    if (c.kind === "pack") {
+      const def = PACKS.find((x) => x.id === c.id)!;
+      this.applyPack(def, this.cur.pack);
+      this.pendingLevels -= this.cur.pack;
+      this.cur.pack = 0;
+      if (def.rarity === "legendary") this.flash = 0.8;
+      gsfx.evolveDone();
+      return this.afterLevel();
+    }
     this.apply(c);
     this.pendingLevels--;
     this.afterLevel();
+  }
+
+  /** a build pack: its moves and items learnt, the moves raised to the top and evolved, then the items, as far as n cards go */
+  private applyPack(def: PackDef, n: number) {
+    const steps: Choice[] = [...def.moves.map((id) => ({ kind: "move" as const, id, level: 1 })), ...def.items.map((id) => ({ kind: "item" as const, id, level: 1 }))];
+    for (let l = 2; l <= MAX_LEVEL; l++) for (const id of def.moves) steps.push({ kind: "move", id, level: l });
+    for (const d of MOVES) if (d.evo && def.moves.includes(d.evo.from) && def.items.includes(d.evo.item)) steps.push({ kind: "evolve", id: d.id, level: MAX_LEVEL });
+    for (let l = 2; l <= MAX_LEVEL; l++) for (const id of def.items) steps.push({ kind: "item", id, level: l });
+    for (const c of steps) {
+      if (n <= 0) break;
+      // a card the Pension's backpack already gave: only what still fits
+      if (c.kind === "move" && !this.moves.some((m) => m.id === c.id) && (c.level > 1 || this.moves.length >= MAX_MOVES)) continue;
+      if (c.kind === "move" && (this.moves.find((m) => m.id === c.id)?.level ?? 0) >= c.level) continue;
+      if (c.kind === "item" && !this.items.some((x) => x.id === c.id) && (c.level > 1 || this.items.length >= MAX_ITEMS)) continue;
+      if (c.kind === "item" && (this.items.find((x) => x.id === c.id)?.level ?? 0) >= c.level) continue;
+      if (c.kind === "evolve" && !this.moves.some((m) => m.id === MOVES.find((d) => d.id === c.id)!.evo!.from && m.level >= MAX_LEVEL)) continue;
+      this.apply(c);
+      n--;
+    }
+  }
+
+  /** 3 build packs, each rarity as likely as `PACK_ODDS` (the Pension's clover helps the rare ones) */
+  private drawPacks(n: number): Choice[] {
+    const pool = [...PACKS];
+    const luck = (r: Rarity) => (r === "common" ? 1 : 1 + 0.1 * this.perm("luck"));
+    const weight = (d: PackDef) => (PACK_ODDS[d.rarity] * luck(d.rarity)) / PACKS.filter((x) => x.rarity === d.rarity).length;
+    const out: Choice[] = [];
+    while (out.length < n && pool.length) {
+      let r = this.cardRng() * pool.reduce((a, d) => a + weight(d), 0);
+      let i = 0;
+      while (i < pool.length - 1 && (r -= weight(pool[i])) > 0) i++;
+      const d = pool.splice(i, 1)[0];
+      out.push({ kind: "pack", id: d.id, rarity: d.rarity, level: 0 });
+    }
+    return out;
   }
 
   /** a card's effect, from a level-up or from the shop */
@@ -881,6 +949,8 @@ export class Game {
 
   private openShop() {
     this.shopRerolls = 0;
+    this.shopSwaps = 0;
+    this.swapMode = null;
     this.offers = this.makeOffers();
     this.release();
     gsfx.coin();
@@ -925,14 +995,87 @@ export class Game {
     gsfx.coin();
     this.onChange();
   }
+  get swapPrice() {
+    return Math.round(60 * (1 + this.shopSwaps) * this.priceUp);
+  }
+  /** the stall's swap: first what you'd give */
+  swapOpen() {
+    if (this.phase !== "shop" || this.swapMode || this.gold < this.swapPrice || !this.moves.length) return gsfx.back();
+    const rarity = (id: string) => (MOVES.find((d) => d.id === id) ?? ITEMS.find((d) => d.id === id))!.rarity;
+    this.swapList = [
+      ...this.moves.map((m) => ({ kind: "move" as const, id: m.id, level: m.level, rarity: rarity(m.id) })),
+      ...this.items.map((x) => ({ kind: "item" as const, id: x.id, level: x.level, rarity: rarity(x.id) })),
+    ];
+    this.swapMode = "give";
+    gsfx.move();
+    this.onChange();
+  }
+  /** back out before paying (once paid, one of the three must be taken) */
+  swapCancel() {
+    if (this.swapMode !== "give") return;
+    this.swapMode = null;
+    gsfx.back();
+    this.onChange();
+  }
+  swapPick(i: number) {
+    const c = this.swapList[i];
+    if (this.phase !== "shop" || !c) return;
+    if (this.swapMode === "give") {
+      const list = this.drawSwap(c);
+      if (!list.length || this.gold < this.swapPrice) return gsfx.back();
+      this.gold -= this.swapPrice;
+      this.shopSwaps++;
+      this.swapFrom = c;
+      this.swapList = list;
+      this.swapMode = "take";
+      gsfx.coin();
+      return this.onChange();
+    }
+    if (this.swapMode !== "take" || !this.swapFrom) return;
+    const from = this.swapFrom;
+    if (from.kind === "move") {
+      const k = this.moves.findIndex((m) => m.id === from.id);
+      if (k >= 0) this.moves[k] = { id: c.id as MoveId, level: from.level, cd: 0.5, active: 0 };
+    } else {
+      const k = this.items.findIndex((x) => x.id === from.id);
+      if (k >= 0) this.items[k] = { id: c.id as ItemId, level: from.level };
+    }
+    this.maxHp = this.computeMaxHp();
+    this.hp = Math.min(this.hp, this.maxHp);
+    this.swapMode = null;
+    this.swapFrom = null;
+    unlock("game-shop");
+    gsfx.learn();
+    this.onChange();
+  }
+  /** 3 moves (or items) not had, by rarity like the level-up cards; an evolved move is given for a plain one */
+  private drawSwap(from: Choice): Choice[] {
+    const luck = (r: Rarity) => (r === "common" ? 1 : 1 + 0.1 * this.perm("luck"));
+    const pool: Choice[] =
+      from.kind === "move"
+        ? MOVES.filter((d) => !d.evo && !this.moves.some((m) => m.id === d.id)).map((d) => ({ kind: "move", id: d.id, level: from.level, rarity: d.rarity }))
+        : ITEMS.filter((d) => !this.items.some((x) => x.id === d.id)).map((d) => ({ kind: "item", id: d.id, level: from.level, rarity: d.rarity }));
+    const out: Choice[] = [];
+    while (out.length < 3 && pool.length) {
+      const w = pool.map((c) => RARITY[c.rarity!].weight * luck(c.rarity!));
+      let r = this.cardRng() * w.reduce((a, b) => a + b, 0);
+      let i = 0;
+      while (i < pool.length - 1 && (r -= w[i]) > 0) i++;
+      out.push(pool.splice(i, 1)[0]);
+    }
+    return out;
+  }
   leaveShop() {
-    if (this.phase !== "shop") return;
+    if (this.phase !== "shop" || this.swapMode === "take") return;
+    this.swapMode = null;
     gsfx.ok();
     // in coop, the second player's turn at the stall (the gold is shared)
     const next = this.players[this.cur.id + 1];
     if (next) {
       this.cur = next;
       this.shopRerolls = 0;
+      this.shopSwaps = 0;
+      this.swapMode = null;
       this.offers = this.makeOffers();
       return this.onChange();
     }
@@ -997,7 +1140,7 @@ export class Game {
   }
 
   private offerChoices() {
-    this.choices = this.drawChoices(3);
+    this.choices = this.cur.pack ? this.drawPacks(3) : this.drawChoices(3);
     this.choiceAt = performance.now();
     this.release();
     this.set("levelup");
@@ -1083,6 +1226,10 @@ export class Game {
     else {
       const wave = Math.min(MAX_WAVE, 1 + Math.floor(this.time / WAVE_SECONDS));
       if (wave !== this.wave) this.newWave(wave);
+      if (this.bossDue && this.time >= this.bossDue) {
+        this.bossDue = 0;
+        this.spawnBoss(this.wave - (this.wave % 5));
+      }
     }
     if (this.breakAt && this.time >= this.breakAt) {
       this.breakAt = 0;
@@ -1263,23 +1410,12 @@ export class Game {
     if (wave >= 30) unlock("game-wave30");
     if (wave >= 150) unlock("game-wave150");
     gsfx.waveStart();
-    if (wave % 5 === 0) {
-      const round = Math.floor((wave / 5 - 1) / BOSSES.length);
-      // past wave 100, every 10th: a giga boss of the daily challenge's (Mega Mewtwo Y for the 200th, the last)
-      const giga = wave > BEYOND && wave % 10 === 0;
-      const b = giga ? DEFI_DAYS[wave >= MAX_WAVE ? 0 : ((wave / 10 - 11) % (DEFI_DAYS.length - 1)) + 1].giga : BOSSES[(wave / 5 - 1) % BOSSES.length];
-      const mult = (1 + round * 2) * (1 + wave * 0.02);
-      const hp = giga ? GIGA_HP * mult * (wave >= MAX_WAVE ? 1.25 : 1) : b.hp * mult;
-      const a = Math.random() * Math.PI * 2;
-      const e = this.makeEnemy(b.dex, this.x + Math.cos(a) * 170, this.y + Math.sin(a) * 150);
-      Object.assign(e, { boss: b, hp, max: hp, speed: b.speed, dmg: b.dmg * (1 + round * 0.5) * (1 + wave * 0.04), r: b.r, actT: 3, n: 0, final: wave >= MAX_WAVE });
-      this.enemies.push(e);
-      this.bossAlive = e;
-      this.showBanner(`${this.name(b.dex)}`, giga ? this.tr(`GIGA BOSS · ${b.title[0]}`, `GIGA BOSS · ${b.title[1]}`) : this.tr(b.title[0], b.title[1]));
-      if (giga) this.shake = 12;
-      gsfx.boss();
-      music.boss(true);
-    } else if (wave === 11) {
+    if (wave % 5 === 0 && this.startAt > 0 && this.time === this.startAt) {
+      // a start tier: its boss comes once the ramp is under way
+      this.bossDue = this.time + BOSS_LATE;
+      this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), this.tr(`le boss arrive dans ${BOSS_LATE} s`, `the boss comes in ${BOSS_LATE} s`));
+    } else if (wave % 5 === 0) this.spawnBoss(wave);
+    else if (wave === 11) {
       // a joke wave: a shoal of Magikarp splashing about
       for (let i = 0; i < 40; i++) this.spawnOne(129, i / 40);
       this.showBanner(this.tr("VAGUE 11", "WAVE 11"), this.tr("une horde de Magicarpe ?!", "a shoal of Magikarp?!"));
@@ -1290,6 +1426,25 @@ export class Game {
       this.showBanner(this.tr("DEFI REUSSI !", "CHALLENGE MET!"), this.tr(`+${dailyReward(wave, true)} or, et plus si tu tiens`, `+${dailyReward(wave, true)} gold, more if you hold on`));
     // a Chansey runs by sometimes: catch it if you can
     this.treasureAt = wave >= 3 && Math.random() < 0.45 ? this.time + rand(5, 25) : -1;
+  }
+
+  /** a fifth wave's boss: past wave 100, every 10th is a giga boss of the daily challenge's (Mega Mewtwo Y for the 200th) */
+  private spawnBoss(wave: number) {
+    const round = Math.floor((wave / 5 - 1) / BOSSES.length);
+    // past wave 100, every 10th: a giga boss of the daily challenge's (Mega Mewtwo Y for the 200th, the last)
+    const giga = wave > BEYOND && wave % 10 === 0;
+    const b = giga ? DEFI_DAYS[wave >= MAX_WAVE ? 0 : ((wave / 10 - 11) % (DEFI_DAYS.length - 1)) + 1].giga : BOSSES[(wave / 5 - 1) % BOSSES.length];
+    const mult = (1 + round * 2) * (1 + wave * 0.02);
+    const hp = giga ? GIGA_HP * mult * (wave >= MAX_WAVE ? 1.25 : 1) : b.hp * mult;
+    const a = Math.random() * Math.PI * 2;
+    const e = this.makeEnemy(b.dex, this.x + Math.cos(a) * 170, this.y + Math.sin(a) * 150);
+    Object.assign(e, { boss: b, hp, max: hp, speed: b.speed, dmg: b.dmg * (1 + round * 0.5) * (1 + wave * 0.04), r: b.r, actT: 3, n: 0, final: wave >= MAX_WAVE });
+    this.enemies.push(e);
+    this.bossAlive = e;
+    this.showBanner(`${this.name(b.dex)}`, giga ? this.tr(`GIGA BOSS · ${b.title[0]}`, `GIGA BOSS · ${b.title[1]}`) : this.tr(b.title[0], b.title[1]));
+    if (giga) this.shake = 12;
+    gsfx.boss();
+    music.boss(true);
   }
 
   /* ---------------- the daily challenge's waves (lib/game/defi) ---------------- */
@@ -2526,8 +2681,11 @@ export class Game {
     if (this.endAt) return;
     if (this.setup.defi) return this.spawnDefi(dt);
     const alive = this.enemies.length;
-    const cap = Math.min(260, 120 + this.wave * 6);
-    const rate = (0.6 + 0.3 * this.wave + 0.012 * this.wave * this.wave) * (this.bossAlive ? 0.5 : 1) * (this.setup.daily?.mod.spawn ?? 1);
+    // a start tier's ramp: a trickle at first, the wave's full crowd after RAMP seconds
+    const k = this.startAt > 0 ? Math.min(1, (this.time - this.startAt) / RAMP) : 1;
+    const cap = Math.min(260, 120 + this.wave * 6) * (0.15 + 0.85 * k);
+    const rate =
+      (0.6 + 0.3 * this.wave + 0.012 * this.wave * this.wave) * (this.bossAlive ? 0.5 : 1) * (this.setup.daily?.mod.spawn ?? 1) * (0.06 + 0.94 * k * k);
     this.spawnAcc += rate * dt;
     const pool = this.wildPool;
     while (this.spawnAcc >= 1) {

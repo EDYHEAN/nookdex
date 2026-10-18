@@ -56,7 +56,8 @@ function assetsToPreload() {
 const L = SCENE.logo;
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 
-export function Loader({ onLeave, onEnter }: { onLeave: () => void; onEnter: () => void }) {
+/** `auto`: a page is open over the room, the room goes in by itself once loaded (no sound: there was no tap yet) */
+export function Loader({ auto = false, onLeave, onEnter }: { auto?: boolean; onLeave: () => void; onEnter: () => void }) {
   const [progress, setProgress] = useState(0);
   /** The logo is painted: only then the room's pictures start, so on a slow phone they don't hold the logo back */
   const [logoShown, setLogoShown] = useState(false);
@@ -114,14 +115,22 @@ export function Loader({ onLeave, onEnter }: { onLeave: () => void; onEnter: () 
     return () => clearInterval(t);
   }, []);
 
-  const enter = () => {
+  const enter = (quiet = false) => {
     if (!ready || leaving) return;
-    sfx.boot();
-    sfx.coverOpen();
+    if (!quiet) {
+      sfx.boot();
+      sfx.coverOpen();
+    }
     setLeaving(true);
     onLeave();
     setTimeout(onEnter, 700);
   };
+
+  useEffect(() => {
+    if (!auto || !ready) return;
+    const t = setTimeout(() => enter(true), 0);
+    return () => clearTimeout(t);
+  });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -137,7 +146,7 @@ export function Loader({ onLeave, onEnter }: { onLeave: () => void; onEnter: () 
   const ballBox = { x: b.x - b.r - 4, y: b.y - b.r - 4, s: b.r * 2 + 8 };
 
   return (
-    <div className={`${styles.loader} ${leaving ? styles.leaving : ""}`} onClick={enter}>
+    <div className={`${styles.loader} ${leaving ? styles.leaving : ""}`} onClick={() => enter()}>
       <div className={styles.art} style={{ aspectRatio: `${L.width} / ${L.height}` }}>
         <img
           className={styles.paper}
@@ -185,7 +194,7 @@ export function Loader({ onLeave, onEnter }: { onLeave: () => void; onEnter: () 
             </>
           ) : (
             <>
-              <button className={styles.start} onClick={enter}>
+              <button className={styles.start} onClick={() => enter()}>
                 {en ? "▶ Press to enter" : "▶ Appuie pour entrer"}
               </button>
               <p className={styles.small}>{en ? "sound is part of the fun · turn the volume up" : "le son est de la partie · pense à monter le volume"}</p>
