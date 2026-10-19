@@ -745,11 +745,12 @@
 }
 
 
+/* under its feet: above the head, the first row's would sit on the title */
 .pickRow button.on::after {
-  content: "▼";
+  content: "▲";
   position: absolute;
   left: 50%;
-  top: -8px;
+  bottom: -12px;
   translate: -50% 0;
   color: var(--c3);
   text-shadow: 1px 1px var(--c0);
