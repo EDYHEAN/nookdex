@@ -1,0 +1,153 @@
+{
+  "_": "Sealed Pokémon TCG products on amazon.fr (affiliate, lib/amazon, lib/amazonShop): the /invitations-amazon page, the set pages and the release calendar show them. A group per set (setId: its FR catalog id) or per line of products. A product: its ASIN (amazon.fr/dp/<asin>), else a search (q) until Amazon lists it; pic: a Poképédia page or file (\"Fichier:…\") whose official picture scripts/fetch-amazon-pics.mjs downloads into public/amazon/ (src/data/amazon-pics.json), else the group's. Kept up to date by the blog routine (docs/blog.md).",
+  "updated": "2026-10-19",
+  "groups": [
+    {
+      "id": "me06",
+      "setId": "me06",
+      "name": "Méga-Évolution Règne Delta",
+      "code": "ME06",
+      "date": "2026-11-06",
+      "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Rayquaza.png",
+      "products": [
+        { "kind": "etb", "name": "Coffret Dresseur d'élite Méga-Rayquaza", "q": "Pokémon Coffret Dresseur d'élite Règne Delta", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Règne Delta.png" },
+        { "kind": "display", "name": "Display 36 boosters", "q": "Pokémon Display Règne Delta" },
+        { "kind": "bundle", "name": "Bundle 6 boosters", "q": "Pokémon Bundle Règne Delta", "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Sarmuraï.png" },
+        { "kind": "tripack", "name": "Tripack Otaria", "q": "Pokémon Tripack Règne Delta", "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Golemastoc.png" }
+      ]
+    },
+    {
+      "id": "30th",
+      "setId": "30th",
+      "name": "30ᵉ Anniversaire",
+      "code": "30TH",
+      "date": "2026-09-16",
+      "pic": "Fichier:Booster 30e Anniversaire.png",
+      "products": [
+        { "asin": "B0H8SVJL9F", "kind": "etb", "name": "Coffret Dresseur d'élite 30 ans", "pic": "Coffret Dresseur d'élite 30e Anniversaire" },
+        { "asin": "B0H8T1LY94", "kind": "bundle", "name": "Bundle 6 boosters" },
+        { "asin": "B0H8T2SB33", "kind": "box", "name": "Coffret Amphinobi-ex", "pic": "Coffret 30e Anniversaire Amphinobi-ex" },
+        { "asin": "B0H8SZN9HV", "kind": "box", "name": "Coffret Nymphali-ex", "pic": "Coffret 30e Anniversaire Nymphali-ex" },
+        { "asin": "B0H8T2L8BL", "kind": "collection", "name": "Collection Poster 30 ans", "pic": "Collection poster 30e Anniversaire" },
+        { "asin": "B0H8SRZH3N", "kind": "collection", "name": "Collection Classeur 30 ans" },
+        { "asin": "B0H8T8M5WW", "kind": "blister", "name": "Blister 2 boosters Évoli" },
+        { "asin": "B0H8T3VGFN", "kind": "pokebox", "name": "Pokébox Amphinobi" },
+        { "asin": "B0H8SYBZKN", "kind": "pokebox", "name": "Pokébox Nymphali" },
+        { "asin": "B0H8SVLTJ9", "kind": "collection", "name": "Collection Autocollant Lucario" },
+        { "asin": "B0H8T4N6PP", "kind": "collection", "name": "Collection Autocollant Noadkoko" },
+        { "asin": "B0H8T2YD2S", "kind": "tin", "name": "Mini Tin Pikachu (Jour)" },
+        { "asin": "B0H8T6L1SF", "kind": "tin", "name": "Mini Tin Mentali (Jour)" },
+        { "asin": "B0H8TF4B9B", "kind": "tin", "name": "Mini Tin Mew (Jour)" },
+        { "asin": "B0H8SYFCS2", "kind": "tin", "name": "Mini Tin Lokhlass (Jour)" },
+        { "asin": "B0H8T8W4T2", "kind": "tin", "name": "Mini Tin Sulfura (Jour)" },
+        { "asin": "B0H8T5GX22", "kind": "tin", "name": "Mini Tin Pikachu (Nuit)" },
+        { "asin": "B0H8T86JNR", "kind": "tin", "name": "Mini Tin Noctali (Nuit)" },
+        { "asin": "B0H8SX7LQH", "kind": "tin", "name": "Mini Tin Mewtwo (Nuit)" },
+        { "asin": "B0H8T1XPT2", "kind": "tin", "name": "Mini Tin Électhor (Nuit)" },
+        { "asin": "B0H8T3Y1FJ", "kind": "tin", "name": "Mini Tin Amphinobi (Nuit)" }
+      ]
+    },
+    {
+      "id": "pokebox-mega-forces",
+      "setId": null,
+      "name": "Pokébox Méga Forces",
+      "pic": "Fichier:Booster Méga-Évolution Nuit Noire Méga-Darkrai.png",
+      "products": [
+        { "asin": "B0H5KMLT3F", "kind": "pokebox", "name": "Pokébox Méga-Dracolosse-ex" },
+        { "asin": "B0H5K8QGTL", "kind": "pokebox", "name": "Pokébox Méga-Darkrai-ex" },
+        { "asin": "B0H5KKZDQC", "kind": "pokebox", "name": "Pokébox Méga-Zeraora-ex" }
+      ]
+    },
+    {
+      "id": "me05",
+      "setId": "me05",
+      "name": "Méga-Évolution Nuit Noire",
+      "code": "ME05",
+      "date": "2026-07-17",
+      "pic": "Fichier:Booster Méga-Évolution Nuit Noire Méga-Darkrai.png",
+      "products": [
+        { "asin": "B0GZL4L9DS", "kind": "etb", "name": "Coffret Dresseur d'élite", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Nuit Noire.png" },
+        { "asin": "B0GZL2NT3Q", "kind": "display", "name": "Display 18 boosters" },
+        { "asin": "B0GZL5Y3P6", "kind": "bundle", "name": "Bundle 6 boosters", "pic": "Fichier:Booster Méga-Évolution Nuit Noire Méga-Zeraora.png" },
+        { "asin": "B0GZLFCR67", "kind": "tripack", "name": "Tripack Opermine", "pic": "Tripack ME05 Opermine" }
+      ]
+    },
+    {
+      "id": "me04",
+      "setId": "me04",
+      "name": "Méga-Évolution Chaos Ascendant",
+      "code": "ME04",
+      "date": "2026-05-22",
+      "pic": "Fichier:Booster Méga-Évolution Chaos Ascendant Méga-Amphinobi.png",
+      "products": [
+        { "asin": "B0GSST5GW1", "kind": "etb", "name": "Coffret Dresseur d'élite", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Chaos Ascendant.png" },
+        { "asin": "B0GSSCWMTV", "kind": "display", "name": "Demi-display 18 boosters" },
+        { "asin": "B0GSSH754N", "kind": "bundle", "name": "Bundle 6 boosters", "pic": "Fichier:Booster Méga-Évolution Chaos Ascendant Méga-Floette.png" },
+        { "asin": "B0GSSW2HQJ", "kind": "tripack", "name": "Tripack Reptincel", "pic": "Tripack ME04 Reptincel" }
+      ]
+    },
+    {
+      "id": "me03",
+      "setId": "me03",
+      "name": "Méga-Évolution Équilibre Parfait",
+      "code": "ME03",
+      "date": "2026-03-27",
+      "pic": "Fichier:Booster Méga-Évolution Équilibre Parfait Méga-Zygarde.png",
+      "products": [
+        { "asin": "B0GGJ29HSD", "kind": "etb", "name": "Coffret Dresseur d'élite", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Équilibre Parfait.png" },
+        { "asin": "B0GGJ7JF7J", "kind": "bundle", "name": "Bundle 6 boosters" },
+        { "asin": "B0GGJ11H9Y", "kind": "tripack", "name": "Tripack Germignon", "pic": "Tripack ME03 Germignon" }
+      ]
+    },
+    {
+      "id": "premiers-partenaires",
+      "setId": null,
+      "name": "Premiers Partenaires",
+      "code": "FP",
+      "pic": "Collection Illustration Premiers Partenaires Série 3",
+      "products": [
+        { "asin": "B0GZLGG7JN", "kind": "collection", "name": "Collection Illustration Série 2", "pic": "Collection Illustration Premiers Partenaires Série 2" },
+        { "asin": "B0H3PRH89L", "kind": "collection", "name": "Collection Illustration Série 3", "pic": "Collection Illustration Premiers Partenaires Série 3" }
+      ]
+    },
+    {
+      "id": "me02.5",
+      "setId": "me02.5",
+      "name": "Méga-Évolution Héros Transcendants",
+      "code": "ME2.5",
+      "date": "2026-01-30",
+      "pic": "Fichier:Booster Méga-Évolution Héros Transcendants.png",
+      "products": [
+        { "asin": "B0G3YH3QN4", "kind": "etb", "name": "Coffret Dresseur d'élite", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Héros Transcendants.png" },
+        { "asin": "B0G4NRRK4H", "kind": "bundle", "name": "Bundle 6 boosters" },
+        { "asin": "B0FX1C7CCY", "kind": "collection", "name": "Collection Poster Premium Méga-Gardevoir", "pic": "Collection poster Premium Méga-Évolution Héros Transcendants Méga-Gardevoir" },
+        { "asin": "B0G7HTRNP1", "kind": "box", "name": "Coffret Méga-Méganium-ex", "pic": "Coffret Méga-Évolution Héros Transcendants Méga-Méganium-ex" },
+        { "asin": "B0G7HH545R", "kind": "box", "name": "Coffret Méga-Aligatueur-ex", "pic": "Coffret Méga-Évolution Héros Transcendants Méga-Aligatueur-ex" },
+        { "asin": "B0G4NRBTVC", "kind": "tripack", "name": "Tripack Autocollant Fantominus", "pic": "Collection autocollant réajustable Méga-Évolution Héros Transcendants Fantominus" },
+        { "asin": "B0G7HM82GS", "kind": "tripack", "name": "Tripack Autocollant Dodoala", "pic": "Collection autocollant réajustable Méga-Évolution Héros Transcendants Dodoala" }
+      ]
+    },
+    {
+      "id": "me02",
+      "setId": "me02",
+      "name": "Méga-Évolution Flammes Fantasmagoriques",
+      "code": "ME02",
+      "date": "2025-11-14",
+      "pic": "Fichier:Booster Méga-Évolution Flammes Fantasmagoriques Méga-Dracaufeu X.png",
+      "products": [
+        { "asin": "B0FTFZMJGG", "kind": "bundle", "name": "Bundle 6 boosters" }
+      ]
+    },
+    {
+      "id": "me01",
+      "setId": "me01",
+      "name": "Méga-Évolution",
+      "code": "ME01",
+      "date": "2025-09-26",
+      "pic": "Coffret Dresseur d'élite Méga-Évolution",
+      "products": [
+        { "asin": "B0FL7RXXKN", "kind": "etb", "name": "Coffret Dresseur d'élite Méga-Gardevoir" }
+      ]
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cardGallery, formatDate, num } from "@/lib/blog";
 import { AMAZON_NOTICE, amazonSearch, inShops } from "@/lib/amazon";
+import { shopOfSet } from "@/lib/amazonShop";
 import { keyOf } from "@/lib/cardLang";
 import { type PageLang, SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
 import { cardSlug } from "@/lib/cardPages";
@@ -12,6 +13,7 @@ import type { CardData } from "@/lib/types";
 import blog from "./Blog.module.css";
 import legal from "./LegalPage.module.css";
 import { LegalPage } from "./LegalPage";
+import { ShopShelf } from "./ShopShelf";
 import styles from "./SetPages.module.css";
 
 /**
@@ -67,6 +69,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
   const logo = p.set.logo ? `${p.set.logo}.png` : null;
   /** "186/195": the number as printed on the card */
   const numOf = (c: CardData) => num(c, p.data);
+  const shop = shopOfSet(p.set.id);
   const gallery = await cardGallery(
     p.top.slice(0, 8).map((c) => keyOf(lang, c.id)),
     lang,
@@ -145,8 +148,16 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
           </p>
         )}
 
-        {/* a French set still in the shops (out within two years): its sealed products on Amazon (affiliate, lib/amazon) */}
-        {fr && inShops(p.set.releaseDate) && (
+        <p className={blog.cta}>
+          <Link href={fr ? "/" : "/en"} className={legal.cta}>
+            {t(`Coche tes cartes de ${name} sur le bureau ${SITE_NAME} ▶`, `Tick your ${name} cards on the ${SITE_NAME} desk ▶`)}
+          </Link>
+        </p>
+
+        {/* a French set's sealed products on Amazon (affiliate, lib/amazonShop): its cards with their pictures, else a search
+            while it's still in the shops (out within two years) */}
+        {fr && shop && <ShopShelf group={shop} max={4} title={`Boosters et coffrets ${name} sur Amazon`} />}
+        {fr && !shop && inShops(p.set.releaseDate) && (
           <p className={styles.other}>
             <a href={amazonSearch(`Pokémon ${name} booster`)} target="_blank" rel="sponsored noopener">
               Boosters, coffrets et displays de {name} sur Amazon ↗
@@ -155,12 +166,6 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
             <small>{AMAZON_NOTICE}</small>
           </p>
         )}
-
-        <p className={blog.cta}>
-          <Link href={fr ? "/" : "/en"} className={legal.cta}>
-            {t(`Coche tes cartes de ${name} sur le bureau ${SITE_NAME} ▶`, `Tick your ${name} cards on the ${SITE_NAME} desk ▶`)}
-          </Link>
-        </p>
 
         {gallery && (
           <>

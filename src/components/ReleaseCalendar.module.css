@@ -43,6 +43,11 @@
   align-items: start;
 }
 
+/* a coming set's products on Amazon (ShopShelf): under it, the whole width */
+.item > .shop {
+  grid-column: 1 / -1;
+}
+
 .item h3 {
   margin: 4px 0 2px;
   font-family: var(--font-vt), monospace;

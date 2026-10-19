@@ -74,6 +74,17 @@ Amazon](https://www.amazon.fr/s?k=Pok%C3%A9mon+R%C3%A8gne+Delta)` (the site adds
 One link a post at most, never for single cards (those are Cardmarket), never in English posts, and the post then says
 « En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises. » on its last line.
 Advise checking that the seller is Amazon itself: sealed Pokémon is often resold far above its price there.
+Better than a search: link the set's products on `/invitations-amazon#<set id>` (cards with their official pictures).
+
+### Keeping the Amazon products up to date (`src/data/amazon-products.json`)
+
+The products shown on /invitations-amazon, the set pages and the calendar. On each run, when a French set or product is
+announced or released: add its group (`id` = `setId` = its TCGdex id, e.g. `me07`; `name`, `code`, `date`) or its
+products: `kind` (etb, display, bundle, tripack, box, collection, blister, pokebox, tin), `name` (short, the French
+packaging's words), `asin` once amazon.fr lists it (`amazon.fr/dp/<ASIN>`, from the product page's address: never
+guess one), else `q` (a search). `pic`: its Poképédia page title or file (`Fichier:…`), else the group's `pic` (a
+booster of the set) is shown; the daily prices Action downloads the missing pictures. Bump `updated`. A group whose set
+came out more than two years ago can go.
 
 ## Shape of a post
 

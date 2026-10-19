@@ -253,6 +253,14 @@ doesn't show.
   a line on the set pages of sets out within two years, one link at most in a French blog post (docs/blog.md; the tag and
   `rel="sponsored"` added by `tagAmazonLinks`). The program's sentence (`AMAZON_NOTICE`) on each of those pages and on
   /a-propos. The account closes without 3 sales in its first 180 days. Never for single cards (Cardmarket).
+- The products (Johan, 2026-10-19: put them forward, a call to action wherever they show): `src/data/amazon-products.json`
+  (a group per set, `setId` = its FR id; a product = `asin` -> amazon.fr/dp, else a search), `lib/amazonShop`, cards drawn by
+  `ShopShelf` (official picture, kind, name, a big yellow button: « Demander l'invitation », Amazon sells sealed Pokémon
+  by invitation; « Précommander » before the release). On `/invitations-amazon` (a notebook tab, French only, FAQ), on a
+  set's page (its 4 most looked-for) and under a coming set in the calendar. Pictures: the official ones from Poképédia
+  (`scripts/fetch-amazon-pics.mjs` -> `public/amazon/`, `src/data/amazon-pics.json`; the daily prices Action fetches the
+  missing ones; `lib/shop` is the skins shop, not this). The blog routine keeps the products up to date (docs/blog.md).
+  Clicks counted by page (`watchAmazonClicks`, Supabase `amazon_clicks`, the weekly report).
 
 ## Sharing a binder
 
