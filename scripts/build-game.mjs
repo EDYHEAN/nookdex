@@ -50,6 +50,9 @@ const ROSTER = {
   143: [...PLAYER_LITE, "Faint"],
   // ...and its giga bosses, wave 10: Mega forms drawn twice as big (see FORMS)
   ...Object.fromEntries([10006, 10065, 10080, 10115, 10142].map((n) => [n, BOSS])),
+  // the starters to unlock and their evolutions (lib/game/data UNLOCK_STARTERS); Dragonair and Dragonite are bosses too
+  ...Object.fromEntries([32, 33, 34, 74, 75, 76, 173, 35, 36, 147].map((n) => [n, PLAYER_LITE])),
+  ...Object.fromEntries([148, 149].map((n) => [n, [...PLAYER_LITE, "Faint"]])),
 };
 
 // PMD rows: Down, DownRight, Right, UpRight, Up, UpLeft, Left, DownLeft. The last three are mirrors: the game flips them.

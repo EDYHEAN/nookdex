@@ -4,7 +4,7 @@
 import { unlock } from "@/lib/trophyStore";
 import { gsfx, music } from "./audio";
 import {
-  BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, WILD, BIOMES, BIOME_WAVES, WEATHERS, type WeatherId, waveAt, waveLength, waveStart, xpFor,
+  BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, UNLOCK_STARTERS, WILD, BIOMES, BIOME_WAVES, WEATHERS, type WeatherId, waveAt, waveLength, waveStart, xpFor,
   DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
 } from "./data";
 import { DEFI_DAYS, DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
@@ -65,7 +65,7 @@ const BOSS_LATE_HP = 0.03;
 /** the most one blow takes, a share of the max HP */
 const HIT_CAP = 0.3;
 /** the daily challenge's Pokémon won with (dex of their first form), for "defi-week": per device */
-const DEFI_WINS_KEY = "nookdex:defi-wins";
+export const DEFI_WINS_KEY = "nookdex:defi-wins";
 
 /** what a run is played with: the Pension's levels (none in the daily), the daily's rule */
 export interface RunSetup {
@@ -151,8 +151,9 @@ export interface RunStats {
   start: number;
   starter: number;
   dex: number;
-  /** the second player's Pokémon, in coop */
+  /** the second player's Pokémon, in coop (and the starter it was) */
   dex2?: number;
+  starter2?: number;
 }
 
 interface Enemy {
@@ -207,7 +208,8 @@ interface Enemy {
 }
 
 interface Shot {
-  kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe" | "blast" | "bubble" | "scald" | "bone" | "sludge" | "aura" | "psycut" | "gball" | "ice" | "psyorb" | "blade";
+  kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe" | "blast" | "bubble" | "scald" | "bone" | "sludge" | "aura" | "psycut" | "gball" | "ice" | "psyorb" | "blade"
+    | "rock" | "fairy" | "dragon";
   x: number;
   y: number;
   vx: number;
@@ -347,10 +349,12 @@ export class Player {
   sigT = 2;
   /** Gengar sunk into the shadows (Phantom Force): how long until it bursts out */
   phaseT = 0;
-  /** the daily challenge's talents: Teleport's and Rest's wait, Rest's sleep, Extreme Speed's dash damage */
+  /** the daily challenge's talents: Teleport's and Rest's wait, Rest's sleep, Extreme Speed's (and Rollout's) dash */
   sigCd = 0;
   restT = 0;
   dashDmg = 0;
+  dashElem: Elem = "fire";
+  dashSpeed = 340;
   /** Focus Sash: when it can save them again */
   sashCd = 0;
   /** knocked out in a coop run, waiting for a partner to get them up */
@@ -687,11 +691,20 @@ export class Game {
   private menuT = 0;
   private wanderers: { dex: number; x: number; y: number; vx: number; t: number }[] = [];
   selected = 0;
-  /** who can be picked: the four starters, and Mewtwo or Gengar for the players given them (game_rewards) */
-  roster: Starter[] = STARTERS;
-  setRoster(rewards: string[]) {
-    this.roster = [...STARTERS, ...REWARD_STARTERS.filter((s) => rewards.includes(s.reward!))];
+  /**
+   * Who's on the starter screen: the four starters, Mewtwo or Gengar for the players given them (game_rewards), then the
+   * four to unlock (a silhouette until they are: `unlocked`, their dex numbers)
+   */
+  roster: Starter[] = [...STARTERS, ...UNLOCK_STARTERS];
+  private unlocked = new Set<number>();
+  setRoster(rewards: string[], unlocked: number[]) {
+    this.roster = [...STARTERS, ...REWARD_STARTERS.filter((s) => rewards.includes(s.reward!)), ...UNLOCK_STARTERS];
+    this.unlocked = new Set(unlocked);
     if (this.selected >= this.roster.length) this.selected = 0;
+  }
+  locked(i: number) {
+    const s = this.roster[i];
+    return !!s?.unlock && !this.unlocked.has(s.dex);
   }
 
   constructor(gfx: Gfx, lang: Lang) {
@@ -827,6 +840,7 @@ export class Game {
 
   /** a run: i is the starter (and i2 the second player's, in coop) */
   start(i: number, setup: RunSetup = { mode: "classic", perm: {} }, i2?: number) {
+    if (!setup.daily && !setup.defi && (this.locked(i) || (i2 != null && this.locked(i2)))) return;
     this.setup = setup;
     this.cardRng = setup.daily ? seeded(dailyOf(setup.daily.day).seed) : setup.defi ? seeded(setup.defi.seed) : Math.random;
     // a run's gold starts at 0 (Johan, 2026-10-17: a full purse bought Kecleon's whole stall early on), all of it goes to the purse
@@ -1416,7 +1430,7 @@ export class Game {
     this.lastStats = {
       mode: this.setup.mode, day: daily?.day ?? this.setup.defi?.day, gold: this.gold, dailyBonus: daily ? dailyReward(this.wave, met) : 0, dailyWon: met, won,
       wave: this.setup.defi && won ? DEFI_WAVES + 1 : this.wave, kills: this.kills, level: Math.max(...this.players.map((p) => p.level)), seconds: Math.floor(this.time), start: (this.setup.start ?? 1) > 1 && !this.setup.daily && !this.setup.defi ? this.setup.start! : 1,
-      starter: this.players[0].starter.dex, dex: this.players[0].dex, dex2: this.players[1]?.dex,
+      starter: this.players[0].starter.dex, dex: this.players[0].dex, dex2: this.players[1]?.dex, starter2: this.players[1]?.starter.dex,
     };
     music.stop();
     this.set("over");
@@ -1783,6 +1797,45 @@ export class Game {
       for (let i = 0; i < n; i++) {
         const a = Math.atan2(ay, ax) + (i - (n - 1) / 2) * 0.35;
         this.shoot("gball", ox, oy, Math.cos(a), Math.sin(a), 170, 4, dmg, 1 + this.stage, 1.3, "ghost", target);
+      }
+      gsfx.shoot("shadow");
+    } else if (b.kind === "jab") {
+      // Poison Jab: a thrust in front that poisons, wider with each evolution
+      const reach = (34 + this.stage * 7) * this.area;
+      const angle = Math.atan2(ay, ax);
+      const half = 0.5 + this.stage * 0.15;
+      this.fx.push({ kind: "punch", x: this.x, y: this.y - 8, t: 0, life: 0.2, a: angle, r: reach, elem: "poison" });
+      if (this.stage) this.fx.push({ kind: "punch", x: this.x, y: this.y - 8, t: -0.07, life: 0.2, a: angle, r: reach * 0.75, elem: "poison" });
+      for (const e of this.around(this.x, this.y, reach + 12)) {
+        const da = Math.abs(((Math.atan2(e.y - this.y, e.x - this.x) - angle + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+        if (da >= half || dist2(e.x, e.y, this.x, this.y) >= (reach + e.r) ** 2) continue;
+        this.damage(e, dmg, ax * 80, ay * 80, "poison");
+        this.poisonFoe(e, dmg * 0.3, 3);
+      }
+      gsfx.shoot("whip");
+    } else if (b.kind === "rock") {
+      // Rock Throw: heavy stones that burst where they land, one more with each evolution
+      const n = 1 + this.stage;
+      for (let i = 0; i < n; i++) {
+        const a = Math.atan2(ay, ax) + (i - (n - 1) / 2) * 0.3;
+        this.shoot("rock", ox, oy, Math.cos(a), Math.sin(a), 140, 4 + this.stage, dmg, 0, 1, "ground");
+      }
+      gsfx.shoot("whip");
+    } else if (b.kind === "fairy") {
+      // Fairy Wind: sparkles that seek the closest foes and charm them (Fairy), one more with each evolution
+      const n = 1 + this.stage;
+      const targets = this.nearestN(this.x, this.y, n, 190);
+      for (let i = 0; i < n; i++) {
+        const a = Math.atan2(ay, ax) + (i - (n - 1) / 2) * 0.5;
+        this.shoot("fairy", ox, oy, Math.cos(a), Math.sin(a), 170, 3, dmg, 0, 1.5, "fairy", targets[i] ?? targets[0] ?? null);
+      }
+      gsfx.shoot("bolt");
+    } else if (b.kind === "dragon") {
+      // Dragon Rage: a dragon's breath that goes through the line, two of them once Dragonite
+      const n = this.stage === 2 ? 2 : 1;
+      for (let i = 0; i < n; i++) {
+        const a = Math.atan2(ay, ax) + (i - (n - 1) / 2) * 0.16;
+        this.shoot("dragon", ox, oy, Math.cos(a), Math.sin(a), 200, 4 + this.stage, dmg, 1 + this.stage, 1, "dragon");
       }
       gsfx.shoot("shadow");
     } else {
@@ -2279,28 +2332,39 @@ export class Game {
     const sig = this.starter.sig;
     if (sig === "psystrike") this.stepPsystrike(dt);
     else if (sig === "phantom") this.stepPhantom(dt);
-    else if (sig === "speed" || sig === "ere" || (sig === "rage" && this.dex === 130)) this.stepTalent(dt);
+    else if (sig === "speed" || sig === "ere" || sig === "rollout" || sig === "wish" || (sig === "rage" && this.dex === 130)) this.stepTalent(dt);
   }
 
-  /** the daily challenge's talents that come back on their own: Extreme Speed, Icy Surf, Gyarados's Hyper Beam */
+  /** the talents that come back on their own: Extreme Speed, Icy Surf, Gyarados's Hyper Beam, Rollout, Wish */
   private stepTalent(dt: number) {
     const p = this.cur;
     p.sigT -= dt;
     if (p.sigT > 0) return;
     const sig = this.starter.sig;
-    if (!this.nearest(this.x, this.y, sig === "speed" ? 150 : 200)) {
+    if (!this.nearest(this.x, this.y, sig === "speed" || sig === "rollout" ? 150 : 200) && !(sig === "wish" && this.hp < this.maxHp)) {
       p.sigT = 0.3;
       return;
     }
-    if (sig === "speed") {
-      // a dash through the pack where it aims, burning what it crosses
-      p.sigT = (this.stage ? 2.4 : 3.5) * this.haste;
-      this.dashT = 0.26;
+    if (sig === "speed" || sig === "rollout") {
+      // a dash through the pack where it aims: Extreme Speed burns what it crosses; Rollout, longer and slower, crushes it
+      const roll = sig === "rollout";
+      p.sigT = (roll ? (this.stage === 2 ? 3.5 : this.stage ? 4.2 : 5) : this.stage ? 2.4 : 3.5) * this.haste;
+      this.dashT = roll ? 0.5 : 0.26;
+      p.dashSpeed = roll ? 240 : 340;
+      p.dashElem = roll ? "ground" : "fire";
       this.dashV = { ...this.aimV };
       this.dashHit = new Set();
-      p.dashDmg = (24 + 5 * this.level) * this.power;
-      this.invuln = Math.max(this.invuln, 0.4);
-      gsfx.shoot("ember");
+      p.dashDmg = (roll ? 30 + 6 * this.level : 24 + 5 * this.level) * this.power;
+      this.invuln = Math.max(this.invuln, roll ? 0.65 : 0.4);
+      if (roll) gsfx.quake();
+      else gsfx.shoot("ember");
+    } else if (sig === "wish") {
+      // Wish: a part of its HP back, and a pink flash that charms all around it (Clefable: more often)
+      p.sigT = (this.stage === 2 ? 7 : this.stage ? 8.5 : 10) * this.haste;
+      this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.2);
+      this.fx.push({ kind: "ring", x: this.x, y: this.y, t: 0, life: 0.5, r: 90 * this.area, elem: "fairy", hit: new Set(), dmg: (10 + 2 * this.level) * this.power });
+      for (let i = 0; i < 10; i++) this.part(this.x + rand(-8, 8), this.y - rand(0, 18), rand(-20, 20), -rand(20, 50), "fairy2", 0.6, 2, 0, "spark");
+      gsfx.heal();
     } else if (sig === "ere") {
       // a wave that soaks everything around, then a cold one that freezes the wet
       p.sigT = 6.5 * this.haste;
@@ -2453,22 +2517,24 @@ export class Game {
     this.trail = this.trail.filter((t) => t.t < 0.25);
     if (this.dashT <= 0) return;
     this.dashT -= dt;
-    this.x += this.dashV.x * 340 * dt;
-    this.y += this.dashV.y * 340 * dt;
+    // a talent's dash (Extreme Speed, Rollout) has its own speed and type; Quick Attack's is plain
+    const talent = this.cur.dashDmg;
+    const elem: Elem = talent ? this.cur.dashElem : "normal";
+    const speed = talent ? this.cur.dashSpeed : 340;
+    this.x += this.dashV.x * speed * dt;
+    this.y += this.dashV.y * speed * dt;
     this.trail.push({ x: this.x, y: this.y, dir: this.dir, t: 0 });
     const m = this.moves.find((x) => x.id === "quick");
     const L = m?.level ?? 1;
-    // Extreme Speed (Growlithe's talent) burns; Quick Attack doesn't
-    const talent = this.cur.dashDmg;
     for (const e of this.around(this.x, this.y, talent ? 20 : 16)) {
       if (this.dashHit.has(e)) continue;
       this.dashHit.add(e);
-      this.damage(e, talent || (20 + 8 * L) * this.power, this.dashV.x * 120, this.dashV.y * 120, talent ? "fire" : "normal");
+      this.damage(e, talent || (20 + 8 * L) * this.power, this.dashV.x * 120, this.dashV.y * 120, elem);
     }
-    if (talent && Math.random() < 0.8) this.part(this.x + rand(-4, 4), this.y - rand(0, 10), -this.dashV.x * 30, -rand(10, 30), "fire2", 0.4, 2, 0, "puff");
+    if (talent && Math.random() < 0.8) this.part(this.x + rand(-4, 4), this.y - rand(0, 10), -this.dashV.x * 30, -rand(10, 30), TYPE_FX[elem][1], 0.4, 2, 0, "puff");
     if (this.dashT <= 0 && talent) {
-      // it lands in a burst of flames that pushes the pack back
-      this.fx.push({ kind: "ring", x: this.x, y: this.y, t: 0, life: 0.3, r: 44 * this.area, elem: "fire", hit: new Set(), dmg: talent * 0.6 });
+      // it lands in a burst (of flames, of stones) that pushes the pack back
+      this.fx.push({ kind: "ring", x: this.x, y: this.y, t: 0, life: 0.3, r: 44 * this.area, elem, hit: new Set(), dmg: talent * 0.6 });
       this.invuln = Math.max(this.invuln, 0.6);
       this.cur.dashDmg = 0;
     }
@@ -2676,6 +2742,14 @@ export class Game {
     if (sig === "rest" && from && !from.dead) this.damage(from, (10 + 3 * this.level) * this.power, (from.x - this.x) * 4, (from.y - this.y) * 4, "normal", true);
     // Lapras's shell, Gyarados's glare
     if (sig === "ere" || (sig === "rage" && this.dex === 130)) dmg *= 0.75;
+    // Poison Point: who touches Nidoran is poisoned, and a poisoned foe hits softer
+    if (sig === "poisonpoint" && from && !from.dead) {
+      if (from.poisonT > 0) dmg *= 0.7;
+      this.poisonFoe(from, (6 + 2 * this.level) * this.power, 4);
+    }
+    // Geodude's rock body; Dragon Dance's scales, at full HP
+    dmg *= this.starter.armor ?? 1;
+    if (sig === "dragondance" && this.hp >= this.maxHp * 0.98) dmg *= 0.5;
     const helmet = this.itemLevel("helmet");
     if (from && helmet && !from.dead) this.damage(from, (20 + 12 * helmet) * this.power, (from.x - this.x) * 4, (from.y - this.y) * 4, "ground", true);
     const protect = this.moves.find((m) => m.id === "protect" && m.cd <= 0);
@@ -3245,7 +3319,7 @@ export class Game {
     for (const s of this.shots) {
       s.t += dt;
       s.life -= dt;
-      if ((s.kind === "leaf" || s.kind === "swift" || s.kind === "aura" || s.kind === "gball" || s.kind === "psyorb") && s.target) {
+      if ((s.kind === "leaf" || s.kind === "swift" || s.kind === "aura" || s.kind === "gball" || s.kind === "psyorb" || s.kind === "fairy") && s.target) {
         if (s.target.dead) s.target = this.nearest(s.x, s.y, 120);
         if (s.target) {
           const dx = s.target.x - s.x, dy = s.target.y - 8 - s.y;
@@ -3289,13 +3363,15 @@ export class Game {
       if (s.kind === "ember" && Math.random() < 0.5) this.part(s.x, s.y, rand(-8, 8), rand(-14, 0), "fire2", 0.25, 1, 0, "dot");
       if ((s.kind === "shadow" || s.kind === "gball") && Math.random() < 0.6) this.part(s.x + rand(-s.r, s.r), s.y + rand(-s.r, s.r), 0, -8, "ghost2", 0.4, 1, 0, "dot");
       if (s.kind === "swift" && Math.random() < 0.4) this.part(s.x, s.y, 0, 0, "gold", 0.3, 1, 0, "spark");
+      if (s.kind === "fairy" && Math.random() < 0.5) this.part(s.x + rand(-2, 2), s.y + rand(-2, 2), 0, -4, "fairy2", 0.35, 1, 0, "spark");
+      if (s.kind === "dragon" && Math.random() < 0.6) this.part(s.x + rand(-3, 3), s.y + rand(-3, 3), -s.vx * 0.1, -s.vy * 0.1, "dragon2", 0.3, 1, 0, "dot");
       for (const e of this.around(s.x, s.y + 8, s.r + 12)) {
         if (s.life <= 0) break;
         if (s.hit!.has(e) || e.alpha < 0.5) continue;
         if (dist2(s.x, s.y + 8, e.x, e.y) > (s.r + e.r) ** 2) continue;
         s.hit!.add(e);
         const sp = Math.hypot(s.vx, s.vy) || 1;
-        const kb = s.kind === "water" ? 90 : s.kind === "shadow" ? 20 : s.kind === "bone" ? 60 : 30;
+        const kb = s.kind === "water" ? 90 : s.kind === "shadow" ? 20 : s.kind === "bone" || s.kind === "rock" ? 60 : 30;
         this.damage(e, s.dmg, (s.vx / sp) * kb, (s.vy / sp) * kb, s.elem, s.kind === "flame");
         // Scald: soaked and burnt at once
         if (s.kind === "scald") {
@@ -3310,6 +3386,12 @@ export class Game {
           // the fireball bursts
           this.fx.push({ kind: "boom", x: s.x, y: s.y, t: 0, life: 0.25, r: 14 * this.area, elem: "fire" });
           for (const o of this.around(s.x, s.y + 8, 16 * this.area)) if (o !== e) this.damage(o, s.dmg * 0.5, 0, 0, "fire", true);
+        }
+        if (s.kind === "rock") {
+          // the stone shatters: its shards hit what's around
+          this.fx.push({ kind: "boom", x: s.x, y: s.y, t: 0, life: 0.25, r: 18 * this.area, elem: "ground" });
+          for (const o of this.around(s.x, s.y + 8, 20 * this.area)) if (o !== e) this.damage(o, s.dmg * 0.5, 0, 0, "ground", true);
+          for (let i = 0; i < 4; i++) this.part(s.x, s.y, rand(-50, 50), rand(-60, -10), "ground2", 0.35, 1, 160, "dot");
         }
         if (s.kind === "water") for (let i = 0; i < 3; i++) this.part(s.x, s.y, rand(-40, 40), rand(-50, 0), "water2", 0.3, 1, 140, "dot");
         if (s.pierce-- <= 0) s.life = 0;
@@ -4056,6 +4138,25 @@ export class Game {
       case "psyorb":
         pix(ctx, g, PIX.orb, x, y, 0, { a: "psy", b: "psy2" });
         break;
+      case "rock":
+        // Rock Throw: a stone tumbling a quarter at a time (bigger once evolved)
+        pix(ctx, g, s.r > 4 ? PIX.orb : PIX.pebble, x, y, Math.floor(s.t * 10) % 4, { a: "ground", b: "ground2" });
+        break;
+      case "fairy":
+        // Fairy Wind: a pink star, turning
+        pix(ctx, g, PIX.star, x, y, Math.floor(s.t * 10) % 2, { y: "fairy", w: "fairy2" });
+        break;
+      case "dragon": {
+        // Dragon Rage: a blue flame in its glow
+        ctx.fillStyle = g.c.dragon;
+        ctx.globalAlpha = 0.35 + 0.15 * Math.sin(s.t * 24);
+        ctx.beginPath();
+        ctx.arc(x, y, s.r + 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        pix(ctx, g, PIX.orb, x, y, 0, { a: "dragon", b: "dragon2" });
+        break;
+      }
       case "ice":
         // a shard of ice, pointing where it flies
         pix(ctx, g, PIX.blade, x, y, dir4(s.vx, s.vy), { p: "ice", P: "ice2" });
@@ -4193,8 +4294,8 @@ export class Game {
         break;
       }
       case "punch": {
-        // a blow: an arc of force bursting out in front
-        const [c1, c2] = TYPE_FX.fight;
+        // a blow: an arc of force bursting out in front (Fighting's, Poison Jab's)
+        const [c1, c2] = TYPE_FX[f.elem ?? "fight"];
         ctx.globalAlpha = 1 - k;
         ctx.strokeStyle = g.c[c1];
         ctx.lineWidth = 3;
@@ -4806,8 +4907,9 @@ export class Game {
       ctx.fillRect(0, 0, SW, SH);
       ctx.globalAlpha = 1;
       this.roster.forEach((s, i) => {
-        const x = pickX(i, this.roster.length), y = 118;
+        const { x, y } = pickAt(i, this.roster);
         const sel = i === this.selected;
+        const locked = this.locked(i);
         if (sel) {
           ctx.fillStyle = g.c.gold;
           ctx.globalAlpha = 0.25;
@@ -4818,9 +4920,15 @@ export class Game {
         ctx.globalAlpha = 0.35;
         ellipse(ctx, x, y + 14, 10, 4);
         ctx.globalAlpha = 1;
-        const name: AnimName = sel ? "Walk" : "Idle";
+        // a starter still to unlock: its silhouette, standing still
+        const name: AnimName = sel && !locked ? "Walk" : "Idle";
         const dex = s.dex;
-        g.sprite(ctx, dex, name, frameAt(anim(dex, name), this.menuT * (sel ? 1.4 : 1)), sel ? 0 : 0, x, y + 6 - (sel ? Math.abs(Math.sin(this.menuT * 6)) * 3 : 0), { scale: 2 });
+        g.sprite(ctx, dex, name, locked ? 0 : frameAt(anim(dex, name), this.menuT * (sel ? 1.4 : 1)), 0, x, y + 6 - (sel && !locked ? Math.abs(Math.sin(this.menuT * 6)) * 3 : 0), {
+          scale: 2,
+          dark: locked,
+          alpha: locked && !sel ? 0.75 : undefined,
+        });
+        if (locked) g.text(ctx, "?", x, y - 18, sel ? "gold" : "ui", { align: "center", scale: 2 });
       });
     }
   }
@@ -5046,7 +5154,16 @@ function pix(ctx: CanvasRenderingContext2D, g: Gfx, rows: PixArt, x: number, y: 
 const dir4 = (vx: number, vy: number) => (Math.abs(vx) >= Math.abs(vy) ? (vx >= 0 ? 0 : 2) : vy >= 0 ? 1 : 3);
 
 /** the starter screen: where the i-th of n Pokémon stands */
-export const pickX = (i: number, n: number) => Math.round(SW / 2 + (i - (n - 1) / 2) * (n > 5 ? 52 : n > 4 ? 60 : 72));
+/**
+ * Where a starter stands on the starter screen (its feet, about): the four starters and the rewards on the first row,
+ * the ones to unlock on the second
+ */
+export const pickAt = (i: number, roster: Starter[]) => {
+  const s = roster[i];
+  const row = roster.filter((o) => !o.unlock === !s.unlock);
+  const n = row.length, k = row.indexOf(s);
+  return { x: Math.round(SW / 2 + (k - (n - 1) / 2) * (n > 5 ? 52 : n > 4 ? 60 : 68)), y: s.unlock ? 124 : 66 };
+};
 
 function segDist(px: number, py: number, ax: number, ay: number, bx: number, by: number) {
   const dx = bx - ax, dy = by - ay;

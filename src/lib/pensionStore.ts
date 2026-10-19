@@ -41,6 +41,22 @@ export function reachWave(wave: number) {
   if (wave > bestWave(levels)) usePension.setState({ levels: { ...levels, wave } });
 }
 
+/**
+ * What opens the starters to unlock (lib/game/data UNLOCK_STARTERS, `unlockProgress`), kept among the levels too, merged
+ * the same way: the best classic or coop wave with each starter (`w<dex>`, the waves played: a start tier's own aren't),
+ * and the days a daily challenge was won (`defis`).
+ */
+export function reachStarterWave(dex: number, wave: number) {
+  const { levels } = usePension.getState();
+  if (wave > (levels[`w${dex}`] ?? 0)) usePension.setState({ levels: { ...levels, [`w${dex}`]: wave } });
+}
+/** a day's daily challenge won (its first win only), or at least this many (the wins kept before the count existed) */
+export function wonDefi(atLeast?: number) {
+  const { levels } = usePension.getState();
+  const n = atLeast ?? (levels.defis ?? 0) + 1;
+  if (n > (levels.defis ?? 0)) usePension.setState({ levels: { ...levels, defis: n } });
+}
+
 /** a level bought with the purse */
 export function buyLevel(id: string, cost: number) {
   const { levels, gold } = usePension.getState();

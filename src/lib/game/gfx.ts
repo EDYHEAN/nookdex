@@ -212,7 +212,7 @@ export class Gfx {
   }
 
   /** a Pokémon's frame, its feet's centre at (x, y) */
-  sprite(ctx: CanvasRenderingContext2D, dex: number, name: AnimName, frame: number, dir: number, x: number, y: number, opts?: { white?: boolean; alpha?: number; scale?: number }) {
+  sprite(ctx: CanvasRenderingContext2D, dex: number, name: AnimName, frame: number, dir: number, x: number, y: number, opts?: { white?: boolean; dark?: boolean; alpha?: number; scale?: number }) {
     const a = anim(dex, name);
     const row = Math.min(dir <= 4 ? dir : 8 - dir, a.rows - 1);
     const flip = dir > 4 && a.rows > 1;
@@ -221,9 +221,24 @@ export class Gfx {
     const sy = a.y + row * (a.h + 1);
     if (opts?.alpha != null) ctx.globalAlpha = opts.alpha;
     ctx.setTransform(flip ? -s : s, 0, 0, s, Math.round(x), Math.round(y));
-    ctx.drawImage(opts?.white ? this.white : this.atlas, sx, sy, a.w, a.h, -a.cx, -a.cy, a.w, a.h);
+    if (opts?.dark) ctx.drawImage(this.shadowOf(sx, sy, a.w, a.h), 0, 0, a.w, a.h, -a.cx, -a.cy, a.w, a.h);
+    else ctx.drawImage(opts?.white ? this.white : this.atlas, sx, sy, a.w, a.h, -a.cx, -a.cy, a.w, a.h);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (opts?.alpha != null) ctx.globalAlpha = 1;
+  }
+
+  /** one frame as a dark silhouette (a starter still to unlock), drawn on a scratch canvas: a whole dark atlas would weigh ~40 MB */
+  private scratch?: HTMLCanvasElement;
+  private shadowOf(sx: number, sy: number, w: number, h: number) {
+    const c = (this.scratch ??= canvas(w, h));
+    if (c.width < w || c.height < h) Object.assign(c, { width: Math.max(c.width, w), height: Math.max(c.height, h) });
+    const x = c.getContext("2d")!;
+    x.globalCompositeOperation = "copy";
+    x.drawImage(this.source, sx, sy, w, h, 0, 0, w, h);
+    x.globalCompositeOperation = "source-in";
+    x.fillStyle = this.c.ink;
+    x.fillRect(0, 0, w, h);
+    return c;
   }
 
   /** pixel text, 3x5 glyphs with a one-pixel outline; returns its width */

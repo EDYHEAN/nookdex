@@ -363,7 +363,8 @@ begin
   if p_mode not in ('classic', 'daily', 'coop', 'defi') then raise exception 'unknown mode'; end if;
   if p_mode in ('daily', 'defi') and (p_day is null or p_day < utc - 1 or p_day > utc + 1) then raise exception 'not today'; end if;
   if p_kills < 0 or p_kills > p_seconds * 40 + 40 or p_level < 1 or p_level > 600
-     or p_starter not in (1, 4, 7, 25, 94, 150, 63, 133, 58, 131, 129, 66, 143)
+     -- the four starters, Mewtwo and Gengar, the daily challenge's Pokémon, the starters to unlock (2026-10-19)
+     or p_starter not in (1, 4, 7, 25, 94, 150, 63, 133, 58, 131, 129, 66, 143, 32, 74, 173, 147)
      or p_start not in (1, 25, 50, 75, 100, 125, 150, 175) or p_start > p_wave or (p_start > 1 and p_mode not in ('classic', 'coop')) then
     raise exception 'implausible score';
   end if;
