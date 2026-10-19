@@ -5,7 +5,7 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, type Txt, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, type Elem, type Lang } from "@/lib/game/data";
+import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, type Txt, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, waveStart, type Elem, type Lang } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
 import { Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickX, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
@@ -1206,7 +1206,7 @@ export default function NookBoy({ origin, onClose }: Props) {
               <span>{t("Temps", "Time")}</span>
               <b>
                 {/* the time played: a start tier's skipped waves are on the run's clock, not on the player's */}
-                {fmtTime(run.seconds - (run.start - 1) * 30)}
+                {fmtTime(run.seconds - waveStart(run.start))}
               </b>
             </p>
             <p>
