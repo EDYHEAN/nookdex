@@ -655,6 +655,30 @@
   "extra": true
  },
  {
+  "id": "2024sv",
+  "serie": "mc",
+  "serieName": "McDonald's Collection",
+  "name": "McDonald's Collection 2024",
+  "code": "MCD24",
+  "logo": null,
+  "releaseDate": "2024-12-04",
+  "total": 15,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2023sv",
+  "serie": "mc",
+  "serieName": "McDonald's Collection",
+  "name": "McDonald's Collection 2023",
+  "code": "MCD23",
+  "logo": null,
+  "releaseDate": "2023-08-01",
+  "total": 15,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "svp",
   "serie": "sv",
   "serieName": "Scarlet & Violet",
@@ -663,6 +687,30 @@
   "logo": null,
   "releaseDate": "2023-03-31",
   "total": 192,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2022swsh",
+  "serie": "mc",
+  "serieName": "McDonald's Collection",
+  "name": "McDonald's Collection 2022",
+  "code": "MCD22",
+  "logo": null,
+  "releaseDate": "2022-08-03",
+  "total": 15,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2021swsh",
+  "serie": "mc",
+  "serieName": "McDonald's Collection",
+  "name": "McDonald's Collection 2021",
+  "code": "MCD21",
+  "logo": null,
+  "releaseDate": "2021-02-09",
+  "total": 25,
   "subs": [],
   "extra": true
  },
@@ -859,6 +907,18 @@
   "extra": true
  },
  {
+  "id": "2017sm",
+  "serie": "mc",
+  "serieName": "McDonald's Collection",
+  "name": "McDonald's Collection 2017",
+  "code": "MCD17",
+  "logo": null,
+  "releaseDate": "2017-08-03",
+  "total": 12,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "sm2",
   "serie": "sm",
   "serieName": "Sun & Moon",
@@ -931,6 +991,18 @@
   "extra": true
  },
  {
+  "id": "2016xy",
+  "serie": "mc",
+  "serieName": "McDonald's Collection",
+  "name": "McDonald's Collection 2016",
+  "code": "MCD16",
+  "logo": null,
+  "releaseDate": "2016-08-20",
+  "total": 12,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "xy11",
   "serie": "xy",
   "serieName": "XY",
@@ -999,6 +1071,18 @@
   "logo": "https://assets.tcgdex.net/en/xy/xy9/logo",
   "releaseDate": "2016-02-03",
   "total": 126,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2015xy",
+  "serie": "mc",
+  "serieName": "McDonald's Collection",
+  "name": "McDonald's Collection 2015",
+  "code": "MCD15",
+  "logo": null,
+  "releaseDate": "2015-11-27",
+  "total": 12,
   "subs": [],
   "extra": true
  },
@@ -1131,6 +1215,18 @@
   "logo": "https://assets.tcgdex.net/en/xy/xy3/logo",
   "releaseDate": "2014-08-13",
   "total": 114,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2014xy",
+  "serie": "mc",
+  "serieName": "McDonald's Collection",
+  "name": "McDonald's Collection 2014",
+  "code": "MCD14",
+  "logo": null,
+  "releaseDate": "2014-05-23",
+  "total": 12,
   "subs": [],
   "extra": true
  },
@@ -1291,6 +1387,18 @@
   "extra": true
  },
  {
+  "id": "2012bw",
+  "serie": "mc",
+  "serieName": "McDonald's Collection",
+  "name": "McDonald's Collection 2012",
+  "code": "MCD12",
+  "logo": null,
+  "releaseDate": "2012-06-15",
+  "total": 12,
+  "subs": [],
+  "extra": true
+ },
+ {
   "id": "bw5",
   "serie": "bw",
   "serieName": "Black & White",
@@ -1359,6 +1467,18 @@
   "logo": "https://assets.tcgdex.net/en/bw/bw2/logo",
   "releaseDate": "2011-08-31",
   "total": 98,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "2011bw",
+  "serie": "mc",
+  "serieName": "McDonald's Collection",
+  "name": "McDonald's Collection 2011",
+  "code": "MCD11",
+  "logo": null,
+  "releaseDate": "2011-06-17",
+  "total": 12,
   "subs": [],
   "extra": true
  },
