@@ -6,7 +6,9 @@ name: Chiffres de la semaine
 
 on:
   schedule:
-    - cron: "0 6 * * 1" # le lundi à 6 h UTC
+    # le lundi à 2 h 17 UTC : GitHub retarde ses tâches programmées (jusqu'à 3 h, surtout à l'heure pile), la routine du
+    # rapport passe à 7 h 30 (le 2026-10-19, prévu à 6 h, il n'avait toujours pas tourné à 7 h 45)
+    - cron: "17 2 * * 1"
   workflow_dispatch:
 
 permissions:
