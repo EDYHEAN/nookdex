@@ -105,3 +105,40 @@ Title card logo for an animated film, the word "PokéPocket" (exactly this spell
 ```text
 Retro video game title screen logo, the word "PokéPocket" (exact spelling with the accent) in chunky bold custom letters with a gold-orange-pink sunset gradient, thick dark purple outline and hard drop shadow, slightly arched like an arcade title. The "o" of "Pocket" is a small red and white capture ball. Nothing else: no pocket, no card, no other object, no decoration. Flat pure green #00B140 background, no other text.
 ```
+
+## 5. Les posters du mur (une planche 4×2, 2026-10-19)
+
+Le poster au-dessus du bureau devient au choix du joueur (clic dessus → une fenêtre de vignettes, choix gardé dans la
+sauvegarde). Gemini ne peint que **l'illustration intérieure** de chaque poster, à plat, de face ; le script la colle dans le
+cadre du poster actuel (même papier, même scotch, même lumière). Illustration intérieure du poster actuel : environ
+250×335 px dans `img/scene.jpg`, soit du **3:4 en portrait**. Rien de Pokémon dessus (la Poké Ball s'en va).
+
+Joins `img/scene.jpg` comme référence de style. Format de l'image : le plus grand possible, paysage.
+
+```text
+[STYLE de la bible ci-dessus]
+
+A sheet of 8 small painted posters, arranged in a neat grid of 4 columns and 2 rows on a plain pure white background,
+with even white gaps between them. Each poster is a flat rectangle seen perfectly from the front, portrait format 3:4,
+all exactly the same size, its painting filling it edge to edge: no paper border, no frame, no tape, no shadow, no
+perspective. Each one is an art print a teenager would pin above the desk, painted in the same gouache style and the same
+palette as the attached room (deep night blues, warm peach lights, honey woods, muted lavender and teal).
+Row 1, left to right:
+1. a deep blue starry night sky with a big glowing full moon above dark rolling hills, a few shooting stars;
+2. a narrow city street in the rain at dusk, glowing warm shop windows, reflections on the wet cobblestones, two small umbrellas;
+3. snowy mountains reflected in a still lake at sunrise, pink and gold sky, a tiny wooden pier;
+4. a black-and-white tuxedo cat hanging by its front paws from a tree branch, looking worried and funny, soft green background.
+Row 2, left to right:
+5. a vintage advertisement for a grey handheld game console with a green screen, floating among sparkles and stars, retro 1990s mood;
+6. a cozy trading card fair seen from above: wooden tables covered with cards, open card binders, small booster packs, people's hands browsing;
+7. an old parchment world map with colored pins and a red string connecting them, a small compass rose;
+8. a river path lined with blooming cherry trees in spring, petals drifting, a small red bridge.
+No text, no letters, no numbers, no logos, no brand names, no Pokémon or game characters, no grid lines.
+
+Use the attached reference image ONLY for painting technique, rendering, color and light. Do not copy its content or layout.
+```
+
+Ensuite : la découpe (détection des 8 rectangles sur le blanc, comme `build-trophies`), le collage dans le cadre du poster
+(perspective et inclinaison du poster actuel), le sélecteur dans la pièce. Prochaines étapes notées : **ta carte préférée
+au mur** (le scan d'une carte de ta collection dans le cadre), posters gagnés par des trophées, posters saisonniers
+(boutique).
