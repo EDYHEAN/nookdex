@@ -5,7 +5,7 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, type Txt, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, waveStart, type Elem, type Lang } from "@/lib/game/data";
+import { BIOMES, BIOME_WAVES, BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, WEATHERS, type Txt, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, waveStart, type Elem, type Lang } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
 import { Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickX, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
@@ -1550,6 +1550,8 @@ function statsOf(g: Game, t: (fr: string, en: string) => string): [string, strin
     [t("Vitesse", "Speed"), pct(g.speed / g.starter.speed - 1), false],
     [t("Coups reçus", "Damage taken"), pct(g.guard - 1), false],
     [t("PV max", "Max HP"), `${Math.round(g.maxHp)}`, false],
+    [t("Terrain", "Field"), t(g.biome.name[0], g.biome.name[1]), false],
+    ...(g.weather ? [[t("Météo", "Weather"), t(WEATHERS[g.weather].name[0], WEATHERS[g.weather].name[1]), false] as [string, string, boolean]] : []),
   ];
 }
 
@@ -1560,6 +1562,7 @@ const GUIDE_TABS: Txt[] = [
   ["Combos", "Combos"],
   ["Évolutions", "Evolutions"],
   ["Objets", "Items"],
+  ["Météo", "Weather"],
 ];
 /** what the Game Boy's screen holds without scrolling (the statuses' rows run on two lines) */
 const guideRowsPer = (tab: number) => (tab === 0 ? 8 : 10);
@@ -1576,7 +1579,21 @@ function guideRows(tab: number, lang: Lang): [string, string][] {
       say(m.name, lang),
       `= ${say(MOVES.find((x) => x.id === m.evo!.from)!.name, lang)} ${lang === "fr" ? "niv. 5" : "lv 5"} + ${say(ITEMS.find((x) => x.id === m.evo!.item)!.name, lang)}`,
     ]);
-  return ITEMS.map((it) => [say(it.name, lang), say(it.desc, lang)]);
+  if (tab === 3) return ITEMS.map((it) => [say(it.name, lang), say(it.desc, lang)]);
+  // the weather, then the fields in their order (a new one every 10 waves)
+  return [
+    ...(Object.values(WEATHERS).map((w) => [say(w.name, lang), say(w.does, lang)]) as [string, string][]),
+    ...BIOMES.map((b, i) => {
+      const from = i * BIOME_WAVES + 1;
+      const brings = (Object.keys(b.weather) as (keyof typeof WEATHERS)[]).map((w) => say(WEATHERS[w].name, lang).toLowerCase());
+      return [
+        say(b.name, lang),
+        lang === "fr"
+          ? `vagues ${from} à ${from + BIOME_WAVES - 1}, puis tous les 60${brings.length ? ` · ${brings.join(", ")}` : ""}`
+          : `waves ${from} to ${from + BIOME_WAVES - 1}, then every 60${brings.length ? ` · ${brings.join(", ")}` : ""}`,
+      ] as [string, string];
+    }),
+  ];
 }
 const guidePages = (tab: number) => Math.max(1, Math.ceil(guideRows(tab, "fr").length / guideRowsPer(tab)));
 

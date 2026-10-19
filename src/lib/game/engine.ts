@@ -4,7 +4,7 @@
 import { unlock } from "@/lib/trophyStore";
 import { gsfx, music } from "./audio";
 import {
-  BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, WILD, waveAt, waveLength, waveStart, xpFor,
+  BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, WILD, BIOMES, BIOME_WAVES, WEATHERS, type WeatherId, waveAt, waveLength, waveStart, xpFor,
   DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
 } from "./data";
 import { DEFI_DAYS, DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
@@ -283,7 +283,7 @@ interface Part {
   color: ColorKey;
   size: number;
   grav: number;
-  kind: "dot" | "puff" | "leaf" | "spark" | "rain" | "petal" | "firefly";
+  kind: "dot" | "puff" | "leaf" | "spark" | "rain" | "petal" | "firefly" | "hail" | "sand";
 }
 
 interface Num {
@@ -661,6 +661,8 @@ export class Game {
   private charmed = 0;
   /** the run's clock at its start: 0, or a start tier's (the draft's cards are picked then) */
   startAt = 0;
+  /** the wave's weather (none in the daily challenge) */
+  weather: WeatherId | null = null;
   /** a start tier's boss, on its way (the time it comes, 0: none) */
   private bossDue = 0;
   private titanWave = 0;
@@ -834,7 +836,7 @@ export class Game {
     this.inBreak = false;
     Object.assign(this, {
       time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1, titanT: 4, titanWave: 0,
-      bossAlive: null, bossDue: 0, breakAt: 0, shake: 0, flash: 0, dyingT: 0, defiLeft: setup.defi ? DEFI_QUOTA[0] : 0, defiGroupT: 1, defiGap: 0, defiTitans: 0, endAt: 0,
+      bossAlive: null, bossDue: 0, weather: null, breakAt: 0, shake: 0, flash: 0, dyingT: 0, defiLeft: setup.defi ? DEFI_QUOTA[0] : 0, defiGroupT: 1, defiGap: 0, defiTitans: 0, endAt: 0,
     });
     // a start tier: the run's clock starts at its wave (whose boss waits, frozen, while the draft is picked)
     const from = setup.daily || setup.defi ? 1 : (setup.start ?? 1);
@@ -1508,6 +1510,12 @@ export class Game {
       this.showBanner(this.tr("DEFI REUSSI !", "CHALLENGE MET!"), this.tr(`+${dailyReward(wave, true)} or, et plus si tu tiens`, `+${dailyReward(wave, true)} gold, more if you hold on`));
     // a Chansey runs by sometimes: catch it if you can
     this.treasureAt = wave >= 3 && Math.random() < 0.45 ? this.time + rand(5, 25) : -1;
+    // the weather; a new field says its name (unless a boss or another banner has the wave)
+    this.rollWeather();
+    const fresh = wave > 1 && (wave - 1) % BIOME_WAVES === 0 && wave % 5 !== 0 && wave !== SLOT5_WAVE + 1 && wave !== BEYOND + 1;
+    const w = this.weather ? WEATHERS[this.weather] : null;
+    if (fresh) this.showBanner(this.tr(this.biome.name[0], this.biome.name[1]).toUpperCase(), w ? this.tr(`${w.name[0]} : ${w.does[0]}`, `${w.name[1]}: ${w.does[1]}`) : this.tr(`vague ${wave}`, `wave ${wave}`));
+    else if (w && !this.bannerSub) this.bannerSub = this.tr(`${w.name[0]} : ${w.does[0]}`, `${w.name[1]}: ${w.does[1]}`);
   }
 
   /** a fifth wave's boss: past wave 100, every 10th is a giga boss of the daily challenge's (Mega Mewtwo Y for the 200th) */
@@ -2515,7 +2523,7 @@ export class Game {
       e.burnT = 3;
       e.burnDps = Math.max(e.burnDps, base * 0.12 * (1 + 0.3 * this.itemLevel("spoon")));
     }
-    if (elem === "ice" && e.wetT > 0 && !e.boss) e.sleepT = Math.max(e.sleepT, 1.2);
+    if (elem === "ice" && e.wetT > 0 && !e.boss) e.sleepT = Math.max(e.sleepT, this.weather === "hail" ? 2 : 1.2);
     // Fairy charms (a titan, not for long; a boss, never); Dark makes foes flinch now and then
     if (elem === "fairy" && !e.boss) {
       if (e.charmT <= 0 && ++this.charmed === 100) unlock("game-charm");
@@ -2525,7 +2533,7 @@ export class Game {
     const crit = Math.random() < this.crit;
     const day = this.setup.daily?.mod.elem;
     const boost = day && (elem === day[0] || (day[0] === "water" && elem === "elec")) ? day[1] : 1;
-    const dmg = Math.max(1, Math.round(base * mul * boost * (crit ? this.critMul : 1) * rand(0.9, 1.1)));
+    const dmg = Math.max(1, Math.round(base * mul * boost * this.weatherMul(elem) * (crit ? this.critMul : 1) * rand(0.9, 1.1)));
     if (mul > 1) {
       unlock("game-combo");
       for (let i = 0; i < 5; i++) this.part(e.x, e.y - 10, rand(-40, 40), rand(-60, -10), "gold", 0.4, 2, 60, "spark");
@@ -2777,7 +2785,9 @@ export class Game {
     while (this.spawnAcc >= 1) {
       this.spawnAcc--;
       if (alive >= cap) continue;
-      const dex = pick(pool);
+      // the biome's own come up more (among the wave's)
+      const local = pool.filter((d) => this.biome.foes.includes(d));
+      const dex = local.length && Math.random() < 0.45 ? pick(local) : pick(pool);
       // sometimes a whole group comes from one side
       if (Math.random() < 0.08) {
         const f = Math.random();
@@ -3614,7 +3624,26 @@ export class Game {
     if (this.phase === "play" && Math.random() < 0.25) this.ambient(false);
   }
 
-  /** the time of day changes with the waves: day, dusk, night (rain, fireflies), dawn */
+  /** the field of the wave: a new one every 10 waves (the daily challenge and the menus stay in the meadow) */
+  get biome() {
+    if (this.setup.defi || this.setup.daily || this.phase === "title" || this.phase === "select") return BIOMES[0];
+    return BIOMES[Math.floor((this.wave - 1) / BIOME_WAVES) % BIOMES.length];
+  }
+  /** a move's strength in the wave's weather */
+  private weatherMul(elem: Elem) {
+    return this.weather ? (WEATHERS[this.weather].mul[elem] ?? 1) : 1;
+  }
+  /** the wave's weather, drawn from its biome's chances */
+  private rollWeather() {
+    this.weather = null;
+    if (this.setup.defi || this.setup.daily || this.wave < 3) return;
+    let r = Math.random();
+    for (const [id, p] of Object.entries(this.biome.weather) as [WeatherId, number][]) {
+      if ((r -= p) < 0) return void (this.weather = id);
+    }
+  }
+
+  /** the time of day changes with the waves: day, dusk, night (fireflies), dawn */
   get timeOfDay() {
     const c = ((this.wave - 1) % 8) + Math.min(1, Math.max(0, (this.time - waveStart(this.wave)) / waveLength(this.wave)));
     return c;
@@ -3631,10 +3660,14 @@ export class Game {
   private ambient(menu: boolean) {
     const cx = menu ? SW / 2 : this.cam.x, cy = menu ? SH / 2 : this.cam.y;
     const n = this.night;
+    // the weather's own: light and see-through, never over what matters
+    const w = menu ? null : this.weather;
+    if (w === "rain" && Math.random() < 0.9) this.part(cx + rand(-SW / 2, SW / 2) + 30, cy - SH / 2 - 4, -40, 260, "water2", 1.1, 1, 0, "rain");
+    if (w === "hail" && Math.random() < 0.45) this.part(cx + rand(-SW / 2, SW / 2) + 20, cy - SH / 2 - 4, -24, 150, "ice2", 2, 1, 0, "hail");
+    if (w === "sand" && Math.random() < 0.7) this.part(cx - SW / 2 - 4, cy + rand(-SH / 2, SH / 2), rand(200, 260), rand(10, 30), "ground2", 1.6, 1, 0, "sand");
     if (n > 0.6) {
-      if (Math.random() < 0.9) this.part(cx + rand(-SW / 2, SW / 2) + 30, cy - SH / 2 - 4, -40, 260, "water2", 1.1, 1, 0, "rain");
       if (Math.random() < 0.1) this.part(cx + rand(-SW / 2, SW / 2), cy + rand(-SH / 2, SH / 2), rand(-6, 6), rand(-6, 6), "elec", 3, 1, 0, "firefly");
-    } else if (Math.random() < 0.12) this.part(cx + rand(-SW / 2, SW / 2), cy - SH / 2 - 4, rand(-12, 4), rand(10, 18), Math.random() < 0.5 ? "flowerA" : "grassFx", 9, 1, 0, Math.random() < 0.5 ? "petal" : "leaf");
+    } else if (!w && this.biome.id === "meadow" && Math.random() < 0.12) this.part(cx + rand(-SW / 2, SW / 2), cy - SH / 2 - 4, rand(-12, 4), rand(10, 18), Math.random() < 0.5 ? "flowerA" : "grassFx", 9, 1, 0, Math.random() < 0.5 ? "petal" : "leaf");
   }
 
   /* ---------------- spatial grid ---------------- */
@@ -3844,6 +3877,8 @@ export class Game {
     const g = this.gfx;
     const tx0 = Math.floor(-ox / TILE), ty0 = Math.floor(-oy / TILE);
     const sway = Math.floor(this.animT * 2) % 2;
+    const b = this.biome;
+    const tiles = g.tilesFor(b.id, b.colors);
     for (let ty = ty0; ty <= ty0 + SH / TILE + 1; ty++)
       for (let tx = tx0; tx <= tx0 + SW / TILE + 1; tx++) {
         const h = hash(tx, ty);
@@ -3852,7 +3887,7 @@ export class Game {
         let tile: number = h < 0.6 ? T.plain : h < 0.82 ? T.plain2 : h < 0.92 ? T.tuft : h < 0.96 ? T.clover : T.pebble;
         if (patch > 0.86 && h < 0.85) tile = T.tall + ((sway + tx) % 2);
         else if (patch < 0.12 && h < 0.5) tile = (h < 0.25 ? T.flowerA : T.flowerB) + ((sway + tx + ty) % 2);
-        ctx.drawImage(g.tiles, tile * TILE, 0, TILE, TILE, tx * TILE + ox, ty * TILE + oy, TILE, TILE);
+        ctx.drawImage(tiles, tile * TILE, 0, TILE, TILE, tx * TILE + ox, ty * TILE + oy, TILE, TILE);
       }
   }
 
@@ -4475,6 +4510,16 @@ export class Game {
           ctx.fillRect(x, y, 1, 4);
           ctx.globalAlpha = 1;
           break;
+        case "hail":
+          ctx.globalAlpha = 0.7;
+          ctx.fillRect(x, y, 2, 2);
+          ctx.globalAlpha = 1;
+          break;
+        case "sand":
+          ctx.globalAlpha = 0.35;
+          ctx.fillRect(x, y, 5, 1);
+          ctx.globalAlpha = 1;
+          break;
         case "firefly":
           ctx.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(p.life * 3));
           ctx.fillRect(x, y, 1, 1);
@@ -4504,6 +4549,13 @@ export class Game {
       ctx.globalCompositeOperation = "multiply";
       ctx.fillStyle = g.c.night;
       ctx.globalAlpha = n * 0.42;
+      ctx.fillRect(0, 0, SW, SH);
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1;
+    } else if (this.weather === "sun") {
+      ctx.globalCompositeOperation = "soft-light";
+      ctx.fillStyle = g.c.fire2;
+      ctx.globalAlpha = 0.25;
       ctx.fillRect(0, 0, SW, SH);
       ctx.globalCompositeOperation = "source-over";
       ctx.globalAlpha = 1;
