@@ -13,7 +13,7 @@ import { setMuted, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
 import { useTrophyWatch } from "@/lib/useTrophyWatch";
-import { funnelStep, funnelVisit } from "@/lib/funnel";
+import { funnelStep, funnelVisit, watchAmazonClicks } from "@/lib/funnel";
 import { closeTrade, useTradeMat } from "@/lib/trade";
 import { isCompact, useViewport } from "@/lib/useViewport";
 import { BinderView } from "./binder/BinderView";
@@ -98,6 +98,7 @@ export function App() {
   const binderCount = useStore((s) => s.binders.length);
   const copyCount = useStore((s) => Object.values(s.collection).reduce((n, c) => n + c.length, 0));
   useEffect(funnelVisit, []);
+  useEffect(watchAmazonClicks, []);
   useEffect(() => void (profile && funnelStep("profile")), [profile]);
   useEffect(() => void (binderCount && funnelStep("binder")), [binderCount]);
   useEffect(() => void (copyCount >= 10 && funnelStep("cards10")), [copyCount]);

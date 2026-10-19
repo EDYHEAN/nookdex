@@ -1,5 +1,5 @@
 // The week's numbers, for the Monday report (Johan, 2026-10-17): the funnel by first source (lib/funnel.ts), the
-// accounts and who comes back (Supabase, counts only: funnel_stats, growth_stats, activity_stats in docs/supabase.sql),
+// accounts and who comes back (Supabase, counts only: funnel_stats, growth_stats, activity_stats, amazon_stats in docs/supabase.sql),
 // and Google Search Console (clicks and impressions by day, top queries and pages, this week against the one before).
 // Writes docs/reports/data/<YYYY-MM-DD>.json; the weekly routine reads it and writes docs/reports/<YYYY-MM-DD>.md.
 // Run by .github/workflows/analytics.yml (GSC_SERVICE_ACCOUNT: the service account's JSON key, read-only on the site).
@@ -73,6 +73,8 @@ const report = {
   date: today,
   funnel: { week: await rpc("funnel_stats", { p_since: day(ago(7)) }), all: await rpc("funnel_stats", {}) },
   accounts: { byDay: await rpc("growth_stats", { p_days: 60 }), totals: await rpc("activity_stats") },
+  // clicks on the Amazon affiliate links, by page (lib/funnel watchAmazonClicks); the sales are in Amazon's dashboard
+  amazon: { week: await rpc("amazon_stats", { p_since: day(ago(7)) }), all: await rpc("amazon_stats", {}) },
   search: await search().catch((e) => ({ error: String(e) })),
 };
 

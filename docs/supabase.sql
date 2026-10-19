@@ -499,3 +499,44 @@ revoke all on function public.activity_stats() from public;
 grant execute on function public.growth_stats(integer) to anon, authenticated;
 grant execute on function public.activity_stats() to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- Clicks on the Amazon affiliate links (2026-10-19, lib/funnel watchAmazonClicks): a count per day and page kind, nothing
+-- else. Written by amazon_click only, read as totals by amazon_stats (the weekly report). The sales are in Amazon's dashboard.
+create table if not exists public.amazon_clicks (
+  day    date not null,
+  place  text not null,
+  clicks integer not null default 0,
+  primary key (day, place)
+);
+alter table public.amazon_clicks enable row level security;
+revoke all on public.amazon_clicks from anon, authenticated;
+
+create or replace function public.amazon_click(p_place text)
+returns void
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  insert into public.amazon_clicks (day, place, clicks)
+  values ((now() at time zone 'utc')::date, left(coalesce(nullif(btrim(p_place), ''), 'home'), 40), 1)
+  on conflict (day, place) do update set clicks = public.amazon_clicks.clicks + 1
+$$;
+
+create or replace function public.amazon_stats(p_since date default null)
+returns table (place text, clicks bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select c.place, sum(c.clicks) from public.amazon_clicks c
+  where p_since is null or c.day >= p_since
+  group by c.place order by 2 desc
+$$;
+
+revoke all on function public.amazon_click(text) from public;
+revoke all on function public.amazon_stats(date) from public;
+grant execute on function public.amazon_click(text) to anon, authenticated;
+grant execute on function public.amazon_stats(date) to anon, authenticated;
+notify pgrst, 'reload schema';
