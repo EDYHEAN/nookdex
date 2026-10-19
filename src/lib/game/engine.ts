@@ -45,6 +45,12 @@ export const tierPicks = (tier: number) => tierLevel(tier) - 1;
  */
 const RAMP = 60;
 const BOSS_LATE = 30;
+/**
+ * The shortest a move's cooldown gets, a share of its own (Quick Claw, PP Ups, the Pension): past it the screen is a
+ * blur and the frame rate drops. 0.4 until 2026-10-18 (a friend: "past a point the moves stop speeding up"), and the PP
+ * Ups kept coming once it was reached: they're no longer offered there.
+ */
+const HASTE_FLOOR = 0.3;
 /** the most one blow takes, a share of the max HP */
 const HIT_CAP = 0.3;
 /** the daily challenge's Pokémon won with (dex of their first form), for "defi-week": per device */
@@ -749,7 +755,11 @@ export class Game {
     return this.starter.speed * (1 + 0.08 * this.itemLevel("scarf")) * (1 + this.stage * 0.04) * (1 + 0.015 * this.perm("speed"));
   }
   get haste() {
-    return Math.max(0.4, (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste * (1 - 0.015 * this.perm("haste")));
+    return Math.max(HASTE_FLOOR, (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste * (1 - 0.015 * this.perm("haste")));
+  }
+  /** the cooldowns can't get shorter: a PP Up would do nothing */
+  get hasteMaxed() {
+    return (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste * (1 - 0.015 * this.perm("haste")) <= HASTE_FLOOR;
   }
   get area() {
     return (1 + 0.1 * this.itemLevel("root")) * (1 + this.stage * 0.08);
@@ -890,7 +900,7 @@ export class Game {
       n--;
     }
     // the build full: what a run picks from then on
-    for (let k = 0; n > 0; k++, n--) this.apply({ kind: "bonus", id: k % 3 === 2 ? "ppup" : "protein", level: 0 });
+    for (let k = 0; n > 0; k++, n--) this.apply({ kind: "bonus", id: k % 3 === 2 && !this.hasteMaxed ? "ppup" : "protein", level: 0 });
   }
 
   /** 3 build packs, each rarity as likely as `PACK_ODDS` (the Pension's clover helps the rare ones) */
@@ -1209,7 +1219,7 @@ export class Game {
       weights.splice(i, 1);
     }
     // everything learnt and raised: boosts that stack, and a berry
-    for (const b of BONUSES) if (out.length < n) out.push({ kind: "bonus", id: b.id, level: 0, rarity: "common" });
+    for (const b of BONUSES) if (out.length < n && !(b.id === "ppup" && this.hasteMaxed)) out.push({ kind: "bonus", id: b.id, level: 0, rarity: "common" });
     return out;
   }
 

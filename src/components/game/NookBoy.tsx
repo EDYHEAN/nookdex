@@ -1449,6 +1449,7 @@ function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string
         ) : (
           <p className={styles.dim}>{t("aucune pour l'instant", "none yet")}</p>
         )}
+        {g.hasteMaxed && <p className={styles.dim}>{t("⚡ vitesse max atteinte", "⚡ top speed reached")}</p>}
         <p className={styles.recapTitle}>{t("OBJETS", "ITEMS")}</p>
         {g.items.length ? (
           g.items.map((it) => (
