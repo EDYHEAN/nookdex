@@ -133,6 +133,17 @@ doesn't show.
   skipped, waits for the player on the key gestures. Replayable from the shelf notebook. Renaming or removing a
   `data-tour` attribute breaks a step.
 
+## The poster
+
+- The poster above the desk is the player's pick (Johan, 2026-10-19), clicked through like the lava lamp (`POSTER_*` in
+  PaintedRoom, kept on the device: localStorage `nookdex:poster`); the first, a moonlit night, replaces the painted Poké
+  Ball. Gemini paints only the artworks, on one sheet (`img/posters.jpg`, prompt in docs/prompts-gemini.md §5);
+  `scripts/build-posters.mjs` cuts them, covers a painted brand, and pastes each into the poster of each plate (night,
+  day): inside the artwork's own shape (its torn corner and the tape kept), projected onto its corners, lit like the paper
+  around it -> `public/scene/posters/<id>-{night,day,thumb}.webp`, `src/data/posters.json`. A new sheet: same grid, ids in
+  the script's `IDS`, the brand cover measured again if needed. Next ideas: your favourite card on the wall, posters won
+  by trophies, seasonal ones in the shop.
+
 ## The box
 
 - The purple box on the top shelf, by the Poké Ball (`BOX` in PaintedRoom, `room/Box.tsx`), holds the cards no binder

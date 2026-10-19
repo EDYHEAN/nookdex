@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import POSTERS from "@/data/posters.json";
 import { type CSSProperties, memo, useEffect, useMemo, useRef, useState } from "react";
 import { MAX_BINDERS, SHELF_SLOTS, boxOf, pocketsOf, shelfBinders, shelfPageCount, wantsOf } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
@@ -87,6 +88,32 @@ const readPage = () => {
     return Number(localStorage.getItem(PAGE_KEY)) || 0;
   } catch {
     return 0;
+  }
+};
+/**
+ * The poster above the desk (Johan, 2026-10-19): the player's pick, clicked through like the lava lamp. Each one is pasted
+ * into the painted poster by scripts/build-posters.mjs (its torn corner and tape kept, lit like the paper around it), for
+ * the night plate and the day one; the first replaces the painted Poké Ball. Kept on this device.
+ */
+const POSTER_BOX = POSTERS.box;
+const POSTER_HIT = { x: 1105, y: 195, w: 300, h: 470 };
+const POSTER_NAMES: Record<string, [string, string]> = {
+  moon: ["Nuit de lune", "Moonlit night"],
+  rain: ["Pluie en ville", "City rain"],
+  lake: ["Lac de montagne", "Mountain lake"],
+  cat: ["Accroche-toi !", "Hang in there!"],
+  nookboy: ["La NookBoy", "The NookBoy"],
+  fair: ["Le salon des cartes", "The card fair"],
+  map: ["Carte du monde", "World map"],
+  sakura: ["Cerisiers en fleurs", "Cherry blossoms"],
+};
+const POSTER_KEY = "nookdex:poster";
+const readPoster = () => {
+  try {
+    const id = localStorage.getItem(POSTER_KEY);
+    return id && POSTERS.ids.includes(id) ? id : POSTERS.ids[0];
+  } catch {
+    return POSTERS.ids[0];
   }
 };
 /** the Game Boy by the mug, and its little screen: the NookBoy game */
@@ -185,6 +212,9 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
   const [returning, setReturning] = useState<string | null>(null);
   const [petting, setPetting] = useState(0);
   const [lavaIdx, setLavaIdx] = useState(0);
+  const [poster, setPoster] = useState(readPoster);
+  /** a glint across the poster each time it changes (none on load) */
+  const [posterGlint, setPosterGlint] = useState(0);
   // a skin put on or taken off: the lamp starts again on the first colour of its cycle
   const [themesSeen, setThemesSeen] = useState(lavaThemes);
   if (themesSeen !== lavaThemes) {
@@ -373,7 +403,20 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
           {/* low priority: the loader's logo is fetched first */}
           <img className={styles.plate} src={sceneImg("plate.webp")} alt="" draggable={false} fetchPriority="low" />
           {/* the same room on a sunny afternoon, faded in over the rainy night */}
+          {/* the poster above the desk, on the night plate under the day one (they fade together) */}
+          <span className={styles.poster} style={place(POSTER_BOX)} aria-hidden>
+            <img src={sceneImg(`posters/${poster}-night.webp`)} alt="" draggable={false} fetchPriority="low" />
+          </span>
           <img className={`${styles.plate} ${styles.dayPlate} ${daytime ? "" : styles.off}`} src={sceneImg("day.webp")} alt="" draggable={false} fetchPriority="low" />
+          <span className={`${styles.poster} ${styles.dayPlate} ${daytime ? "" : styles.off}`} style={place(POSTER_BOX)} aria-hidden>
+            <img src={sceneImg(`posters/${poster}-day.webp`)} alt="" draggable={false} fetchPriority="low" />
+          </span>
+          {/* a new poster catches the light (drawn again for each one) */}
+          {posterGlint > 0 && (
+            <span key={posterGlint} className={styles.poster} style={place(POSTER_BOX)} aria-hidden>
+              <i className={styles.posterGlint} style={{ maskImage: `url(${sceneImg(`posters/${poster}-night.webp`)})`, WebkitMaskImage: `url(${sceneImg(`posters/${poster}-night.webp`)})` }} />
+            </span>
+          )}
 
           {/* the sky behind the glass: night city in the rain, or sunny afternoon */}
           <div className={styles.sky} style={{ ...place(SCENE.window), maskImage: windowMask, WebkitMaskImage: windowMask }}>
@@ -731,6 +774,29 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
               // back to the first colour: they were all seen
               if (n === 0) unlock("rainbow");
               showTip(SCENE.lava.x + SCENE.lava.w / 2, SCENE.lava.y, tr("Lampe à lave", "Lava lamp"), tr(lavaThemes[n].name, lavaThemes[n].nameEn));
+            }}
+          />
+          <button
+            className={styles.hotspot}
+            style={place(POSTER_HIT)}
+            aria-label={tr("Le poster : en changer", "The poster: change it")}
+            onPointerEnter={() => {
+              sfx.hover();
+              const [fr, en] = POSTER_NAMES[poster] ?? ["", ""];
+              showTip(POSTER_HIT.x + POSTER_HIT.w / 2, POSTER_HIT.y, tr(fr, en), tr("clic : un autre poster", "click: another poster"));
+            }}
+            onPointerLeave={() => setTip(null)}
+            onClick={() => {
+              const ids = POSTERS.ids;
+              const next = ids[(ids.indexOf(poster) + 1) % ids.length];
+              sfx.pop();
+              setPoster(next);
+              setPosterGlint((n) => n + 1);
+              try {
+                localStorage.setItem(POSTER_KEY, next);
+              } catch {}
+              const [fr, en] = POSTER_NAMES[next] ?? ["", ""];
+              showTip(POSTER_HIT.x + POSTER_HIT.w / 2, POSTER_HIT.y, tr(fr, en), `${ids.indexOf(next) + 1}/${ids.length}`);
             }}
           />
           {/* before the lamp: where the lamp's arm crosses the board, the lamp wins */}
