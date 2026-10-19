@@ -68,13 +68,13 @@ Then rotate, about one of each kind per month:
 
 ## Amazon links (French posts only)
 
-NookDex is an Amazon.fr affiliate (`lib/amazon`). A French post about a set that is coming out or still in the shops
-may end its buying advice with one link to its sealed products, as a search: `[Boosters et coffrets de Règne Delta sur
-Amazon](https://www.amazon.fr/s?k=Pok%C3%A9mon+R%C3%A8gne+Delta)` (the site adds the tag and `rel="sponsored"` itself).
-One link a post at most, never for single cards (those are Cardmarket), never in English posts, and the post then says
-« En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises. » on its last line.
-Advise checking that the seller is Amazon itself: sealed Pokémon is often resold far above its price there.
-Better than a search: link the set's products on `/invitations-amazon#<set id>` (cards with their official pictures).
+NookDex is an Amazon.fr affiliate (`lib/amazon`). Every French post about a set that is coming out or still in the
+shops has a section « ## Où acheter <set> ? » (« Où précommander » before its release), just before « Questions
+fréquentes »: one or two sentences (Amazon sells it by invitation, free to ask, at the public price; check it's
+« Expédié et vendu par Amazon »), then the line `::amazon[<group id>]` on its own: the site draws that set's products
+there (official pictures, a button each, the program's sentence under them) from `src/data/amazon-products.json` (add
+the group first if it isn't there, see below). A plain link elsewhere in the text may point to `/invitations-amazon`.
+Never for single cards (those are Cardmarket), never in English posts (`::amazon` draws nothing there).
 
 ### Keeping the Amazon products up to date (`src/data/amazon-products.json`)
 

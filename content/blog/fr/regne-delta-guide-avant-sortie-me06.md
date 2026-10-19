@@ -40,6 +40,12 @@ L'idée rappelle les cartes LÉGENDE de l'époque HeartGold & SoulSilver. Côté
 
 Les produits habituels sont attendus : boosters, display de 36 boosters, bundle, coffret Dresseur d'élite et coffret Build & Battle. Le contenu et les prix exacts de la gamme française n'étaient pas encore détaillés officiellement au moment d'écrire ces lignes, donc je ne donne pas de prix.
 
+## Où précommander Règne Delta ?
+
+Les coffrets et boosters arrivent sur Amazon, souvent vendus sur invitation : demande la tienne dès que la fiche s'ouvre, c'est gratuit. Vérifie que le produit est « Expédié et vendu par Amazon » pour le payer au prix public.
+
+::amazon[me06]
+
 ## Faut-il l'attendre ?
 
 Si tu collectionnes les Méga-ex ou Rayquaza, oui, surtout pour les illustrations spéciales. Si tu veux juste un set complet, patiente quelques semaines : les prix de lancement redescendent en général après les premiers jours.

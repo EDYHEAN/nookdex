@@ -53,6 +53,12 @@ Tout est brillant et chaque pack a son Pikachu : le plaisir de l'ouverture est g
 
 Côté prix, patience : Cardmarket n'a pas encore de tendance pour ces cartes, et son guide mélange toutes les langues. On met à jour dès que les chiffres tombent.
 
+## Où acheter le 30ᵉ Anniversaire ?
+
+Amazon vend toute la gamme du 30ᵉ Anniversaire sur invitation (coffret Dresseur d'élite, bundle, coffrets, Mini Tins), au prix public. Demande-la sur la fiche du produit, c'est gratuit.
+
+::amazon[30th]
+
 ## Questions fréquentes
 
 ### Quand sort le set 30ᵉ Anniversaire du JCC Pokémon ?

@@ -260,7 +260,9 @@ doesn't show.
   set's page (its 4 most looked-for) and under a coming set in the calendar. Pictures: the official ones from Poképédia
   (`scripts/fetch-amazon-pics.mjs` -> `public/amazon/`, `src/data/amazon-pics.json`; the daily prices Action fetches the
   missing ones; `lib/shop` is the skins shop, not this). The blog routine keeps the products up to date (docs/blog.md).
-  Clicks counted by page (`watchAmazonClicks`, Supabase `amazon_clicks`, the weekly report).
+  Clicks counted by page (`watchAmazonClicks`, Supabase `amazon_clicks`, the weekly report). A tracking id per place
+  (`AMAZON_TAGS`: invit, extension, calendrier, blog; Amazon's reports split the sales by them). In a French blog post,
+  `::amazon[<group id>]` draws the cards (« Où acheter … ? » section, docs/blog.md).
 
 ## Sharing a binder
 

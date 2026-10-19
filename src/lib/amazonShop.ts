@@ -1,6 +1,6 @@
 import data from "@/data/amazon-products.json";
 import pics from "@/data/amazon-pics.json";
-import { AMAZON_TAG, amazonSearch } from "./amazon";
+import { amazonProduct, amazonSearch, type AmazonPlace } from "./amazon";
 
 /**
  * Sealed Pokémon TCG products on amazon.fr (Johan, 2026-10-19: put the products forward, with their official picture and
@@ -46,7 +46,8 @@ export const KIND_LABEL: Record<ShopKind, string> = {
   tin: "Mini Tin",
 };
 
-export const productHref = (p: ShopProduct) => (p.asin ? `https://www.amazon.fr/dp/${p.asin}?tag=${AMAZON_TAG}` : amazonSearch(p.q ?? `Pokémon ${p.name}`));
+/** its page on amazon.fr (else a search), with the tracking id of the place it shows on */
+export const productHref = (p: ShopProduct, place: AmazonPlace) => (p.asin ? amazonProduct(p.asin, place) : amazonSearch(p.q ?? `Pokémon ${p.name}`, place));
 
 const PICS = pics as Record<string, { src: string; w: number; h: number }>;
 export const productPic = (p: ShopProduct, g: ShopGroup) => (p.pic && PICS[p.pic]) || (g.pic && PICS[g.pic]) || null;

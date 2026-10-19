@@ -56,6 +56,12 @@ En additionnant la tendance de chacune des 122 cartes (une version de chaque, sa
 
 Le reste est très abordable : les 38 communes et les 26 peu communes valent **2,10 €** à elles toutes. Sans les secrètes du haut, finir le set est un projet de week-end.
 
+## Où acheter Chaos Ascendant ?
+
+Amazon vend le coffret Dresseur d'élite, le demi-display et le bundle de Chaos Ascendant sur invitation, au prix public. Demande-la sur la fiche du produit, c'est gratuit.
+
+::amazon[me04]
+
 ## Questions fréquentes
 
 ### Quelle est la carte la plus chère de Chaos Ascendant ?

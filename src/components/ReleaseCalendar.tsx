@@ -170,7 +170,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
                     {r.post && <Link href={`/blog/${r.post}`}>{t("Lire le guide →", "Read the guide →")}</Link>}
                     {/* French page: its boosters and boxes to preorder (Amazon affiliate, lib/amazon), as cards below once known */}
                     {fr && r.region === "intl" && r.kind !== "event" && !shopOf(r) && (
-                      <a href={amazonSearch(`Pokémon ${r.name}`)} target="_blank" rel="sponsored noopener">
+                      <a href={amazonSearch(`Pokémon ${r.name}`, "calendrier")} target="_blank" rel="sponsored noopener">
                         Précommander sur Amazon ↗
                       </a>
                     )}
@@ -183,7 +183,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
                 </div>
                 {shopOf(r) && (
                   <div className={styles.shop}>
-                    <ShopShelf group={shopOf(r)!} max={4} notice={false} />
+                    <ShopShelf group={shopOf(r)!} place="calendrier" max={4} notice={false} />
                   </div>
                 )}
               </li>
