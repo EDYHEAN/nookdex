@@ -28,6 +28,7 @@ export const CHANGELOG: Release[] = [
       { fr: "Le classement montre le top 50, page par page.", en: "The ladder shows the top 50, page by page." },
       { fr: "Les attaques peuvent aller plus vite, et plus de PP Plus inutile une fois la vitesse max atteinte.", en: "Moves can go faster, and no useless PP Up once top speed is reached." },
       { fr: "Nook Survivors : un guide dans le menu (statuts, combos, évolutions, objets) et tes stats en direct dans la pause.", en: "Nook Survivors: a guide in the menu (statuses, combos, evolutions, items) and your live stats in the pause." },
+      { fr: "Après la vague 50 : une 5e capacité et un 5e objet, des titans, des boss plus coriaces ; ton starter attire les attaques de son type.", en: "Past wave 50: a 5th move and a 5th item, titans, tougher bosses; your starter draws moves of its own type." },
     ],
   },
   {

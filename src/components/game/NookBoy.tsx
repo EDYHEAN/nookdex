@@ -589,11 +589,11 @@ export default function NookBoy({ origin, onClose }: Props) {
       }
       const eng = g;
       const b = KEYS[e.code];
-      if (b || /^Digit[1-4]$/.test(e.code) || e.code === "KeyM") e.preventDefault();
+      if (b || /^Digit[1-5]$/.test(e.code) || e.code === "KeyM") e.preventDefault();
       set(e.code, true);
       if (e.repeat) return;
       if (e.code === "KeyR" && eng.phase === "levelup") return eng.reroll();
-      if (/^Digit[1-4]$/.test(e.code)) {
+      if (/^Digit[1-5]$/.test(e.code)) {
         const n = +e.code.slice(5) - 1;
         if (eng.phase === "levelup") eng.choose(eng.choices[n]);
         else eng.castKey(n);
@@ -1031,8 +1031,8 @@ export default function NookBoy({ origin, onClose }: Props) {
               {t(`R : relancer les cartes (${g.rerolls})`, `R: reroll the cards (${g.rerolls})`)}
             </p>
           )}
-          {g.moves.length >= 4 && g.choices.every((c) => c.kind !== "move" || c.level > 1) && (
-            <p className={styles.keys}>{t(`${nameOf(g.dex)} connaît déjà 4 capacités.`, `${nameOf(g.dex)} already knows 4 moves.`)}</p>
+          {g.moves.length >= g.moveSlots && g.choices.every((c) => c.kind !== "move" || c.level > 1) && (
+            <p className={styles.keys}>{t(`${nameOf(g.dex)} connaît déjà ${g.moveSlots} capacités.`, `${nameOf(g.dex)} already knows ${g.moveSlots} moves.`)}</p>
           )}
         </div>
       );
