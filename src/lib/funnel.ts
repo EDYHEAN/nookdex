@@ -106,6 +106,29 @@ export function funnelVisit() {
   void ping(s).catch(() => {});
 }
 
+/**
+ * A click on an Amazon link (the affiliate links, lib/amazon): counted by day and by the page it was on (its first path
+ * segment: calendrier-des-sorties, extensions, blog), nothing else (Supabase amazon_click). The sales are in Johan's
+ * Amazon dashboard (no API for it); this says which links get clicked.
+ */
+export function watchAmazonClicks() {
+  const on = (e: MouseEvent) => {
+    if (!(e.target as Element | null)?.closest?.('a[href*="amazon.fr"]') || !live()) return;
+    const place = (location.pathname.split("/")[1] || "home").slice(0, 40);
+    void supabase.rpc("amazon_click", { p_place: place }).then(
+      () => {},
+      () => {},
+    );
+  };
+  // a middle click opens the link too
+  document.addEventListener("click", on, true);
+  document.addEventListener("auxclick", on, true);
+  return () => {
+    document.removeEventListener("click", on, true);
+    document.removeEventListener("auxclick", on, true);
+  };
+}
+
 /** A step reached: sent once per device. */
 export function funnelStep(step: FunnelStep) {
   if (!live() || !device()) return;
