@@ -317,6 +317,24 @@ export const PACK_ODDS: Record<Rarity, number> = { common: 52, rare: 28, epic: 1
 /** when there's nothing left to learn or raise: boosts that stack forever */
 export type BonusId = "protein" | "ppup" | "sitrus";
 
+/** The states a foe can be put in, for the guide (Johan, 2026-10-18: players asked how statuses and combos work) */
+export const STATUSES: { name: Txt; by: Txt; does: Txt }[] = [
+  { name: ["Mouillé", "Wet"], by: ["Eau", "Water"], does: ["4 s. Électrik, Glace et Sol frappent plus fort.", "4 s. Electric, Ice and Ground hit harder."] },
+  { name: ["Brûlé", "Burnt"], by: ["Feu", "Fire"], does: ["3 s, perd des PV chaque seconde.", "3 s, loses HP every second."] },
+  { name: ["Empoisonné", "Poisoned"], by: ["Poison", "Poison"], does: ["Perd des PV chaque seconde.", "Loses HP every second."] },
+  { name: ["Endormi / gelé", "Asleep / frozen"], by: ["Plante, Glace", "Grass, Ice"], does: ["Ne bouge plus. Glace sur un mouillé : gelé net.", "Can't move. Ice on a wet foe: frozen solid."] },
+  { name: ["Ralenti", "Slowed"], by: ["Vent Glace, Coup d'Jus…", "Icy Wind, Discharge…"], does: ["Avance deux fois moins vite.", "Moves half as fast."] },
+  { name: ["Charmé", "Charmed"], by: ["Fée", "Fairy"], does: ["Attaque ses voisins au lieu de toi.", "Attacks its neighbours instead of you."] },
+  { name: ["Flanche", "Flinch"], by: ["Ténèbres", "Dark"], does: ["3 fois sur 10, figé un instant.", "3 times in 10, frozen for a moment."] },
+];
+/** what the statuses feed, for the guide */
+export const STATUS_NOTES: Txt[] = [
+  ["Châtiment et Poltergeist frappent fort les ennemis qui ont un statut.", "Hex and Poltergeist hit foes with a status hard."],
+  ["Cuillère Tordue : brûlures et poisons +30 %.", "Twisted Spoon: burns and poisons +30%."],
+  ["Roche Royale : tes coups peuvent endormir.", "King's Rock: your hits may put foes to sleep."],
+  ["Les boss ne dorment, ne gèlent, ni ne ralentissent jamais.", "Bosses are never put to sleep, frozen or slowed."],
+];
+
 /**
  * Combos: a hit of one type on a foe in a state. Water wets, fire burns, Toxic poisons, Sleep Powder and Blizzard put to
  * sleep; the right type next does more. Shown in the pause screen.

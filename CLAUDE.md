@@ -268,7 +268,7 @@ doesn't show.
   candies → levels → 3 cards (31 moves of 17 types, auto-cast or keys 1-4, 4 at most; 17 held items; once all is maxed,
   stacking bonuses). A move at level 5 + its item (`evo` in lib/game/data) offers its evolution first (16 of them).
   Statuses (wet, burnt, poisoned, asleep/frozen, slowed, charmed: Fairy, the foe goes for its neighbours; Dark makes them
-  flinch) and `COMBOS` (17; the pause lists the run's own) are what the moves play on (Hex, Poltergeist hit the statused).
+  flinch) and `COMBOS` (17; the pause lists the run's own and its live stats, `statsOf`; the menu's « Guide » lists statuses, combos, evolutions and items, `STATUSES` in lib/game/data) are what the moves play on (Hex, Poltergeist hit the statused).
   A cooldown never gets under 30 % of its own (`HASTE_FLOOR`; no PP Up offered once there, « vitesse max » in the pause). A blow takes at most 30 % of the max HP (`HIT_CAP`, Johan 2026-10-18: no one-shot, running through the crowd wears down). Foes' HP and damage grow with the square of the wave up to 100, in a straight line past it, and the XP curve steepens
   past level 15 (Johan, 2026-10-12: wave 23 was too easy). Balance is tuned with a god-mode bot driving `window.nookboy`
   through Playwright (damage taken per second / max HP, a boss's time to fall, a move's damage per second alone). Score

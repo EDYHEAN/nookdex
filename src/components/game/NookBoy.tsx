@@ -5,7 +5,7 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, type Elem, type Lang } from "@/lib/game/data";
+import { BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, type Txt, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, type Elem, type Lang } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
 import { Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickX, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
@@ -25,7 +25,7 @@ interface Props {
   onClose: () => void;
 }
 
-type Screen = "boot" | "menu" | "ladder" | "options" | "credits" | "daily";
+type Screen = "boot" | "menu" | "ladder" | "options" | "credits" | "daily" | "guide";
 
 /** the ladder's boards */
 /** a ladder page: what the Game Boy screen holds without scrolling */
@@ -41,7 +41,7 @@ const defiNow = () => today() >= DEFI_FROM;
 const boardOf = (i: number) => (BOARDS[i].mode === "daily" && defiNow() ? { ...BOARDS[i], mode: "defi" as Mode } : BOARDS[i]);
 const fmtTime = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
 /** the title menu's entries, by screen: where B comes back to */
-const MENU_INDEX: Partial<Record<Screen, number>> = { daily: 2, ladder: 3, options: 5, credits: 6 };
+const MENU_INDEX: Partial<Record<Screen, number>> = { daily: 2, ladder: 3, guide: 5, options: 6, credits: 7 };
 type Button = "up" | "down" | "left" | "right" | "a" | "b" | "start" | "select";
 
 interface Options {
@@ -101,6 +101,8 @@ export default function NookBoy({ origin, onClose }: Props) {
   const [sent, setSent] = useState<"idle" | "sending" | "error" | number>("idle");
   const [ladder, setLadder] = useState<Score[] | null | "loading">("loading");
   const [ladderPage, setLadderPage] = useState(0);
+  /** the guide's tab and page */
+  const [guide, setGuide] = useState({ tab: 0, page: 0 });
   const [board, setBoard] = useState(0);
   /** the Pension's screen, open over the menu or the game over: it spends the purse */
   const [pension, setPension] = useState(false);
@@ -340,6 +342,7 @@ export default function NookBoy({ origin, onClose }: Props) {
           { label: t("Défi du jour", "Daily challenge"), go: () => (gsfx.ok(), setScreen("daily")) },
           { label: t("Classement", "Ladder"), go: () => (gsfx.ok(), setScreen("ladder"), void openLadder()) },
           { label: t(`Pension · ${purse} or`, `Pension · ${purse} gold`), go: openPension },
+          { label: t("Guide", "Guide"), go: () => (gsfx.ok(), setGuide({ tab: 0, page: 0 }), setScreen("guide")) },
           { label: t("Options", "Options"), go: () => (gsfx.ok(), setCursor(0), setScreen("options")) },
           { label: t("Crédits", "Credits"), go: () => (gsfx.ok(), setScreen("credits")) },
           { label: t("Ranger la console", "Put it away"), go: () => (gsfx.back(), onClose()) },
@@ -384,6 +387,17 @@ export default function NookBoy({ origin, onClose }: Props) {
         setCursor(4);
       }
       return;
+    }
+    if (p === "title" && screen === "guide" && (b === "left" || b === "right")) {
+      gsfx.move();
+      return setGuide((gd) => ({ tab: (gd.tab + (b === "left" ? -1 : 1) + GUIDE_TABS.length) % GUIDE_TABS.length, page: 0 }));
+    }
+    if (p === "title" && screen === "guide" && (b === "up" || b === "down")) {
+      const pages = guidePages(guide.tab);
+      const next = Math.min(pages - 1, Math.max(0, guide.page + (b === "up" ? -1 : 1)));
+      if (next === guide.page) return gsfx.back();
+      gsfx.move();
+      return setGuide({ ...guide, page: next });
     }
     if (p === "title" && screen === "ladder" && (b === "up" || b === "down")) return turnLadder(b === "up" ? -1 : 1);
     if (p === "title" && screen === "ladder" && (b === "left" || b === "right")) {
@@ -785,6 +799,45 @@ export default function NookBoy({ origin, onClose }: Props) {
             </ul>
             <p className={styles.keys} onClick={() => press("b")}>
               {t("Entrée : jouer · B : retour", "Enter: play · B: back")}
+            </p>
+          </div>
+        );
+      }
+      if (screen === "guide") {
+        const pages = guidePages(guide.tab);
+        const turn = (d: number) => press(d < 0 ? "up" : "down");
+        return (
+          <div className={styles.page}>
+            <h2>{t("GUIDE", "GUIDE")}</h2>
+            <div className={styles.tabs}>
+              {GUIDE_TABS.map((tb, i) => (
+                <button key={i} className={i === guide.tab ? styles.on : ""} onClick={() => (gsfx.move(), setGuide({ tab: i, page: 0 }))}>
+                  {say(tb, lang)}
+                </button>
+              ))}
+            </div>
+            <div className={`${styles.box} ${styles.guide}`} onWheel={(e) => Math.abs(e.deltaY) > 8 && turn(e.deltaY)}>
+              {guideRows(guide.tab, lang).slice(guide.page * guideRowsPer(guide.tab), (guide.page + 1) * guideRowsPer(guide.tab)).map((r, i) => (
+                <p key={i}>
+                  <b>{r[0]}</b> {r[1]}
+                </p>
+              ))}
+              {pages > 1 && (
+                <p className={styles.lPages}>
+                  <button disabled={guide.page === 0} onClick={() => turn(-1)}>
+                    ▲
+                  </button>
+                  <span>
+                    {guide.page + 1}/{pages}
+                  </span>
+                  <button disabled={guide.page >= pages - 1} onClick={() => turn(1)}>
+                    ▼
+                  </button>
+                </p>
+              )}
+            </div>
+            <p className={styles.keys} onClick={() => press("b")}>
+              {t("◀ ▶ rubrique · ▲ ▼ pages · B : retour", "◀ ▶ section · ▲ ▼ pages · B: back")}
             </p>
           </div>
         );
@@ -1449,7 +1502,6 @@ function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string
         ) : (
           <p className={styles.dim}>{t("aucune pour l'instant", "none yet")}</p>
         )}
-        {g.hasteMaxed && <p className={styles.dim}>{t("⚡ vitesse max atteinte", "⚡ top speed reached")}</p>}
         <p className={styles.recapTitle}>{t("OBJETS", "ITEMS")}</p>
         {g.items.length ? (
           g.items.map((it) => (
@@ -1460,6 +1512,15 @@ function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string
         ) : (
           <p className={styles.dim}>{t("aucun pour l'instant", "none yet")}</p>
         )}
+      </div>
+      <div className={styles.box}>
+        <p className={styles.recapTitle}>{t("STATS", "STATS")}</p>
+        {statsOf(g, t).map(([k, v, max]) => (
+          <p key={k} className={styles.stat}>
+            {k} <i>{v}</i>
+            {max && <b className={styles.statMax}>MAX</b>}
+          </p>
+        ))}
       </div>
       <div className={`${styles.box} ${styles.recapCombos}`}>
         <p className={styles.recapTitle}>{t("TES COMBOS", "YOUR COMBOS")}</p>
@@ -1477,6 +1538,47 @@ function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string
     </div>
   );
 }
+
+/** the run's numbers, live, in the pause (Johan, 2026-10-18: "am I capped or not?"): label, value, at its cap */
+function statsOf(g: Game, t: (fr: string, en: string) => string): [string, string, boolean][] {
+  const pct = (v: number) => `${v >= 0 ? "+" : "−"}${Math.round(Math.abs(v) * 100)} %`;
+  return [
+    [t("Dégâts", "Damage"), `×${g.power.toFixed(1)}`, false],
+    [t("Recharge", "Cooldown"), pct(g.haste - 1), g.hasteMaxed],
+    [t("Critique", "Crit"), `${Math.round(g.crit * 100)} % ×${g.critMul.toFixed(2)}`, false],
+    [t("Zone", "Area"), pct(g.area - 1), false],
+    [t("Vitesse", "Speed"), pct(g.speed / g.starter.speed - 1), false],
+    [t("Coups reçus", "Damage taken"), pct(g.guard - 1), false],
+    [t("PV max", "Max HP"), `${Math.round(g.maxHp)}`, false],
+  ];
+}
+
+/* ---------------- the guide (menu) ---------------- */
+
+const GUIDE_TABS: Txt[] = [
+  ["Statuts", "Statuses"],
+  ["Combos", "Combos"],
+  ["Évolutions", "Evolutions"],
+  ["Objets", "Items"],
+];
+/** what the Game Boy's screen holds without scrolling (the statuses' rows run on two lines) */
+const guideRowsPer = (tab: number) => (tab === 0 ? 8 : 10);
+/** a tab's rows: a bold head, then its text */
+function guideRows(tab: number, lang: Lang): [string, string][] {
+  if (tab === 0)
+    return [
+      ...STATUSES.map((s) => [`${say(s.name, lang)} (${say(s.by, lang)})`, say(s.does, lang)] as [string, string]),
+      ...STATUS_NOTES.map((n) => ["★", say(n, lang)] as [string, string]),
+    ];
+  if (tab === 1) return COMBOS.map((c) => [`×${c.mul}`, say(c.name, lang)]);
+  if (tab === 2)
+    return MOVES.filter((m) => m.evo).map((m) => [
+      say(m.name, lang),
+      `= ${say(MOVES.find((x) => x.id === m.evo!.from)!.name, lang)} ${lang === "fr" ? "niv. 5" : "lv 5"} + ${say(ITEMS.find((x) => x.id === m.evo!.item)!.name, lang)}`,
+    ]);
+  return ITEMS.map((it) => [say(it.name, lang), say(it.desc, lang)]);
+}
+const guidePages = (tab: number) => Math.max(1, Math.ceil(guideRows(tab, "fr").length / guideRowsPer(tab)));
 
 /** which types put a foe in each state (a dark hit makes it flinch: asleep for a moment) */
 const STATUS_BY: Record<(typeof COMBOS)[number]["on"], Elem[]> = { wet: ["water"], burn: ["fire"], poison: ["poison"], sleep: ["grass", "ice", "dark"], charm: ["fairy"] };

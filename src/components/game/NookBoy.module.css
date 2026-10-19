@@ -1846,3 +1846,44 @@
   font-style: normal;
   font-size: 9px;
 }
+
+/* the guide (menu): a page of rows, its head in bold */
+.guide {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  overflow: hidden;
+  font: 12px/12px var(--font-vt), monospace;
+}
+
+.guide p {
+  margin: 0;
+}
+
+.guide b {
+  color: var(--c1);
+}
+
+.guide .lPages {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: auto;
+  color: var(--c1);
+}
+
+/* the pause's live numbers: a stat at its cap says so */
+.stat {
+  white-space: nowrap;
+}
+
+.statMax {
+  margin-left: 3px;
+  padding: 0 2px;
+  border-radius: 2px;
+  background: var(--c0);
+  color: var(--c3);
+  font: 6px/9px var(--font-press), monospace;
+}
