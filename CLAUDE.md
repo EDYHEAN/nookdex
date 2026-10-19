@@ -256,7 +256,7 @@ doesn't show.
 
 ## Tips (support)
 
-- `SUPPORT_URL` (`lib/site.ts`, Johan's PayPal.me). The cat asks once the player owns 10 cards, in the calm room
+- `SUPPORT_URL` (`lib/site.ts`, buymeacoffee.com/nookdex since 2026-10-19, PayPal.me before). The cat asks once the player owns 10 cards, in the calm room
   (nothing open, no tour, on `/` or `/en`), 20 s into the visit at the earliest: a pop-in on a computer, a strip at the
   bottom on a phone (`room/SupportCat.tsx`). Then it waits 21 days (180 after a tip); per device, localStorage
   `nookdex:support-next`, outside the save. Also linked from the shelf notebook and `/a-propos`.
