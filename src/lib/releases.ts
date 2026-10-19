@@ -26,6 +26,8 @@ export interface Release {
   out?: boolean;
   /** the blog post about it (published), in the page's language */
   post?: string;
+  /** its TCGdex id (a set): its products on Amazon (lib/amazonShop) */
+  setId?: string;
 }
 
 /** setId: the TCGdex id the set will have, so it shows once when it reaches the catalog */
@@ -48,6 +50,7 @@ export function releases(lang: PageLang, today = new Date().toISOString().slice(
     note: fr ? i.noteFr : i.noteEn,
     source: i.source,
     post: postOf(i),
+    setId: i.setId,
   }));
   const yearAgo = new Date(Date.parse(`${today}T12:00:00Z`) - 365 * 86_400_000).toISOString().slice(0, 10);
   const recent = (sets: CatalogSet[]) => sets.filter((s) => !s.extra && s.releaseDate && s.releaseDate <= today && s.releaseDate >= yearAgo);

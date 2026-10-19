@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { formatDate } from "@/lib/blog";
 import { AMAZON_NOTICE, amazonSearch } from "@/lib/amazon";
+import { SHOP_PATH, shopOfSet } from "@/lib/amazonShop";
 import { daysUntil, type Release, releases } from "@/lib/releases";
 import { SET_PAGES_ROOT, type PageLang } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { LegalPage } from "./LegalPage";
+import { ShopShelf } from "./ShopShelf";
+import legal from "./LegalPage.module.css";
 import styles from "./ReleaseCalendar.module.css";
 
 /** The release calendar: French page /calendrier-des-sorties, English one /en/release-calendar (hreflang twins). */
@@ -37,6 +40,8 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
   const { upcoming, past, updated } = releases(lang);
   const kind = (r: Release) =>
     r.kind === "set" ? t("Extension", "Set") : r.kind === "product" ? t("Coffret", "Product") : t("Événement", "Event");
+  /** a coming set's products on Amazon (French page only: the affiliate tag pays on amazon.fr) */
+  const shopOf = (r: Release) => (fr && r.region === "intl" && r.setId ? shopOfSet(r.setId) : undefined);
   const region = (r: Release) => (r.region === "jp" ? t("Japon", "Japan") : t("France et monde", "Worldwide"));
   const day = (d: string) => new Date(`${d}T12:00:00Z`);
   const nextSet = upcoming.find((r) => r.kind === "set" && r.region === "intl");
@@ -126,6 +131,13 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           {fr ? "EN · In English" : "FR · En français"}
         </Link>
       </p>
+      {fr && (
+        <p>
+          <Link href={SHOP_PATH} className={legal.cta}>
+            Les invitations Amazon du moment ▶
+          </Link>
+        </p>
+      )}
 
       {!upcoming.length && (
         <>
@@ -156,8 +168,8 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
                   {r.note && <p>{r.note}</p>}
                   <p className={styles.links}>
                     {r.post && <Link href={`/blog/${r.post}`}>{t("Lire le guide →", "Read the guide →")}</Link>}
-                    {/* French page: its boosters and boxes to preorder (Amazon affiliate, lib/amazon) */}
-                    {fr && r.region === "intl" && r.kind !== "event" && (
+                    {/* French page: its boosters and boxes to preorder (Amazon affiliate, lib/amazon), as cards below once known */}
+                    {fr && r.region === "intl" && r.kind !== "event" && !shopOf(r) && (
                       <a href={amazonSearch(`Pokémon ${r.name}`)} target="_blank" rel="sponsored noopener">
                         Précommander sur Amazon ↗
                       </a>
@@ -169,6 +181,11 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
                     )}
                   </p>
                 </div>
+                {shopOf(r) && (
+                  <div className={styles.shop}>
+                    <ShopShelf group={shopOf(r)!} max={4} notice={false} />
+                  </div>
+                )}
               </li>
             );
           })}

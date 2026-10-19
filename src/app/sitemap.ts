@@ -36,6 +36,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // the calendar moves with each announcement (the blog routine)
     { url: `${SITE_URL}/calendrier-des-sorties`, changeFrequency: "weekly", priority: 0.8, alternates: calendar },
     { url: `${SITE_URL}/en/release-calendar`, changeFrequency: "weekly", priority: 0.8, alternates: calendar },
+    // the sealed products on amazon.fr, kept up to date with each release
+    { url: `${SITE_URL}/invitations-amazon`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITE_URL}/a-propos`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/blog`, lastModified: posts[0]?.date, changeFrequency: "weekly", priority: 0.7 },
     ...posts.map((p) => {
