@@ -38,6 +38,8 @@ export const TIERS = [25, 50, 75, 100, 125, 150, 175];
  */
 const TIER_LEVEL: Record<number, number> = { 25: 42, 50: 110, 75: 140, 100: 165, 125: 200, 150: 240, 175: 280 };
 export const tierLevel = (tier: number) => TIER_LEVEL[tier] ?? Math.round(1.6 * tier);
+/** the types that put a foe in each state (the combos' first half) */
+const STATE_BY: Record<(typeof COMBOS)[number]["on"], Elem[]> = { wet: ["water"], burn: ["fire"], poison: ["poison"], sleep: ["grass", "ice", "dark"], charm: ["fairy"] };
 export const tierPicks = (tier: number) => tierLevel(tier) - 1;
 /**
  * A start tier's ramp (Johan, 2026-10-18: dropped into wave 25 at its full rate, the crowd closed in at once): the foes
@@ -51,6 +53,15 @@ const BOSS_LATE = 30;
  * Ups kept coming once it was reached: they're no longer offered there.
  */
 const HASTE_FLOOR = 0.3;
+/**
+ * The late game (Clément, 2026-10-18: past a point only Proteins, PP Ups and berries came up): a 5th move and a 5th item
+ * once the 50th boss has fallen, titans among the foes from wave 50 (past 100 they come more often), bosses tougher as
+ * the waves go (they fell in a few seconds late in a run).
+ */
+const SLOT5_WAVE = 50;
+const TITANS_FROM = 50;
+/** a boss's extra HP a wave past the 25th, up to 50 waves of it (x2.5: x4 at wave 100 left a start there stuck on it) */
+const BOSS_LATE_HP = 0.03;
 /** the most one blow takes, a share of the max HP */
 const HIT_CAP = 0.3;
 /** the daily challenge's Pokémon won with (dex of their first form), for "defi-week": per device */
@@ -764,6 +775,13 @@ export class Game {
   get area() {
     return (1 + 0.1 * this.itemLevel("root")) * (1 + this.stage * 0.08);
   }
+  /** moves and items held at most: a 5th of each past the 50th wave (classic and coop) */
+  get moveSlots() {
+    return MAX_MOVES + (!this.setup.defi && !this.setup.daily && this.wave > SLOT5_WAVE ? 1 : 0);
+  }
+  get itemSlots() {
+    return MAX_ITEMS + (!this.setup.defi && !this.setup.daily && this.wave > SLOT5_WAVE ? 1 : 0);
+  }
   /** the share of a blow that lands (Eviolite, the Pension's shell), before the HIT_CAP */
   get guard() {
     return (1 - 0.07 * this.itemLevel("eviolite")) * (1 - 0.025 * this.perm("armor"));
@@ -895,9 +913,9 @@ export class Game {
     for (const c of steps) {
       if (n <= 0) break;
       // a card the Pension's backpack already gave: only what still fits
-      if (c.kind === "move" && !this.moves.some((m) => m.id === c.id) && (c.level > 1 || this.moves.length >= MAX_MOVES)) continue;
+      if (c.kind === "move" && !this.moves.some((m) => m.id === c.id) && (c.level > 1 || this.moves.length >= this.moveSlots)) continue;
       if (c.kind === "move" && (this.moves.find((m) => m.id === c.id)?.level ?? 0) >= c.level) continue;
-      if (c.kind === "item" && !this.items.some((x) => x.id === c.id) && (c.level > 1 || this.items.length >= MAX_ITEMS)) continue;
+      if (c.kind === "item" && !this.items.some((x) => x.id === c.id) && (c.level > 1 || this.items.length >= this.itemSlots)) continue;
       if (c.kind === "item" && (this.items.find((x) => x.id === c.id)?.level ?? 0) >= c.level) continue;
       if (c.kind === "evolve" && !this.moves.some((m) => m.id === MOVES.find((d) => d.id === c.id)!.evo!.from && m.level >= MAX_LEVEL)) continue;
       this.apply(c);
@@ -1003,11 +1021,11 @@ export class Game {
   canTake(c: Choice) {
     if (c.kind === "move") {
       const m = this.moves.find((x) => x.id === c.id);
-      return m ? m.level < MAX_LEVEL : this.moves.length < MAX_MOVES;
+      return m ? m.level < MAX_LEVEL : this.moves.length < this.moveSlots;
     }
     if (c.kind === "item") {
       const it = this.items.find((x) => x.id === c.id);
-      return it ? it.level < MAX_LEVEL : this.items.length < MAX_ITEMS;
+      return it ? it.level < MAX_LEVEL : this.items.length < this.itemSlots;
     }
     if (c.kind === "evolve") {
       const d = MOVES.find((x) => x.id === c.id)!;
@@ -1190,6 +1208,17 @@ export class Game {
     this.set("levelup");
   }
 
+  /** how much more often a move of this type comes up for this starter: its own type, then the types it combos with */
+  private affinity(type: Elem, rarity: Rarity) {
+    const own = this.starter.type;
+    // its own type twice as likely, a rare or epic one as likely as a rare (fire and electric moves are rare or epic)
+    if (type === own) return 2 * Math.max(1, 0.6 / RARITY[rarity].weight);
+    // a combo of the two: one puts the state, the other hits it
+    const sets = (e: Elem) => (Object.keys(STATE_BY) as (keyof typeof STATE_BY)[]).filter((s) => STATE_BY[s].includes(e));
+    const pairs = COMBOS.some((c) => (c.by === type && sets(own).includes(c.on)) || (c.by === own && sets(type).includes(c.on)));
+    return pairs ? 1.35 : 1;
+  }
+
   /** n cards: the evolutions ready first, then by rarity; boosts once everything is learnt */
   private drawChoices(n: number): Choice[] {
     const pool: Choice[] = [];
@@ -1203,14 +1232,15 @@ export class Game {
     for (const m of MOVES) {
       if (m.evo) continue;
       const has = this.moves.find((x) => x.id === m.id);
-      if (!(has ? has.level < MAX_LEVEL : this.moves.length < MAX_MOVES)) continue;
+      if (!(has ? has.level < MAX_LEVEL : this.moves.length < this.moveSlots)) continue;
       pool.push({ kind: "move", id: m.id, level: (has?.level ?? 0) + 1, rarity: m.rarity });
-      // what you have comes back more; new moves too while the four slots aren't full
-      weights.push(RARITY[m.rarity].weight * luck(m.rarity) * (has ? 1.6 : this.moves.length < 2 ? 2.5 : 1));
+      // what you have comes back more; new moves too while the four slots aren't full; the starter's own type and the
+      // types that combo with it come up more (Clément, 2026-10-18: a Charmander run should lean on fire)
+      weights.push(RARITY[m.rarity].weight * luck(m.rarity) * (has ? 1.6 : this.moves.length < 2 ? 2.5 : 1) * this.affinity(m.type, m.rarity));
     }
     for (const it of ITEMS) {
       const has = this.items.find((x) => x.id === it.id);
-      if (!(has ? has.level < MAX_LEVEL : this.items.length < MAX_ITEMS)) continue;
+      if (!(has ? has.level < MAX_LEVEL : this.items.length < this.itemSlots)) continue;
       pool.push({ kind: "item", id: it.id, level: (has?.level ?? 0) + 1, rarity: it.rarity });
       weights.push(RARITY[it.rarity].weight * luck(it.rarity) * (has ? 1.6 : 1));
     }
@@ -1463,6 +1493,10 @@ export class Game {
       // a joke wave: a shoal of Magikarp splashing about
       for (let i = 0; i < 40; i++) this.spawnOne(129, i / 40);
       this.showBanner(this.tr("VAGUE 11", "WAVE 11"), this.tr("une horde de Magicarpe ?!", "a shoal of Magikarp?!"));
+    } else if (wave === SLOT5_WAVE + 1 && this.startAt < SLOT5_WAVE * WAVE_SECONDS) {
+      this.showBanner(this.tr("5E CAPACITE !", "5TH MOVE!"), this.tr("et un 5e objet : de quoi aller plus loin", "and a 5th item: room to go further"));
+      gsfx.evolveDone();
+      this.flash = 0.5;
     } else if (wave === BEYOND + 1) this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), this.tr("au-delà : les titans arrivent", "beyond: the titans are coming"));
     else this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), "");
     // the daily met: its banner wins over the others
@@ -1478,7 +1512,8 @@ export class Game {
     // past wave 100, every 10th: a giga boss of the daily challenge's (Mega Mewtwo Y for the 200th, the last)
     const giga = wave > BEYOND && wave % 10 === 0;
     const b = giga ? DEFI_DAYS[wave >= MAX_WAVE ? 0 : ((wave / 10 - 11) % (DEFI_DAYS.length - 1)) + 1].giga : BOSSES[(wave / 5 - 1) % BOSSES.length];
-    const mult = (1 + round * 2) * (1 + wave * 0.02);
+    // past wave 25 they grow tougher still: late in a run they fell in a few seconds
+    const mult = (1 + round * 2) * (1 + wave * 0.02) * (1 + Math.min(50, Math.max(0, wave - 25)) * BOSS_LATE_HP);
     const hp = giga ? GIGA_HP * mult * (wave >= MAX_WAVE ? 1.25 : 1) : b.hp * mult;
     const a = Math.random() * Math.PI * 2;
     const e = this.makeEnemy(b.dex, this.x + Math.cos(a) * 170, this.y + Math.sin(a) * 150);
@@ -2746,10 +2781,12 @@ export class Game {
       } else this.spawnOne(dex);
     }
     // past wave 100, titans walk among the crowd, more and more often (a third as many while a boss is out)
-    if (this.wave > BEYOND) {
+    if (this.wave > TITANS_FROM) {
       this.titanT -= dt;
       if (this.titanT <= 0) {
-        this.titanT = Math.max(4, 14 - (this.wave - BEYOND) * 0.1) * (this.bossAlive ? 3 : 1);
+        // one every ~25 s at wave 50, every ~14 s at 100, then more and more often
+        const every = this.wave > BEYOND ? Math.max(4, 14 - (this.wave - BEYOND) * 0.1) : 25 - (this.wave - TITANS_FROM) * 0.22;
+        this.titanT = every * (this.bossAlive ? 3 : 1);
         const a = Math.random() * Math.PI * 2, d = VIEW_R + 20;
         const p = pick(this.alive().length ? this.alive() : this.players);
         this.enemies.push(this.makeEnemy(pick(pool), p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, true));

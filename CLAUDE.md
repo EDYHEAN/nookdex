@@ -295,7 +295,9 @@ doesn't show.
   reached) from the menu or the game over. The best classic/coop wave is kept among the Pension's levels as `wave`
   (`bestWave`, merged the same way). A click beside the console mid-run only pauses it.
 - **Beyond wave 100** (Johan, 2026-10-17): classic and coop runs go on to wave 200 (`MAX_WAVE`; the 100th boss gives
-  the "Centenaire" trophy and the run goes on), titans walk among the foes past 100 (`BEYOND`), every 10th wave is a
+  the "Centenaire" trophy and the run goes on), titans walk among the foes from wave 50 (`TITANS_FROM`, more often past 100: `BEYOND`), a 5th move and item slot once the 50th
+  boss has fallen (`SLOT5_WAVE`, `moveSlots`), bosses up to x2.5 HP past wave 25 (`BOSS_LATE_HP`), the starter's type twice as likely in the
+  draws and the types it combos with a bit more (`affinity`; Clément, 2026-10-18: the late game was only boosts), every 10th wave is a
   giga boss of the daily challenge's, Mega Mewtwo Y the 200th (won when it falls). **Start tiers**: a run may start at 25,
   50 … 175 once that wave was reached (`TIERS`, `tierLevel`, `tierPicks` in the engine): the level a played run has there
   (`TIER_LEVEL`, from the ladder: 42 at 25, 110 at 50; 80 at 50 was too weak, a friend 2026-10-18),
