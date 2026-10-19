@@ -66,4 +66,4 @@ export const LEGAL = {
 export const MANAGED_PAYMENTS = process.env.NEXT_PUBLIC_STRIPE_MANAGED !== "off";
 
 /** Tips for the project (the cat's bowl, the about pages). */
-export const SUPPORT_URL = "https://paypal.me/JohanTrigeard";
+export const SUPPORT_URL = "https://buymeacoffee.com/nookdex";

@@ -54,7 +54,7 @@ function Fr() {
       <p>
         {SITE_NAME} est gratuit et sans pub. Si le bureau te plaît et que tu veux aider à payer le serveur, tu peux remplir la gamelle du chat :{" "}
         <a href={SUPPORT_URL} target="_blank" rel="noopener">
-          un petit don sur PayPal ♥
+          un café sur Buy Me a Coffee ♥
         </a>
         . Merci ! Et pour suivre les nouveautés du bureau :{" "}
         <a href={INSTAGRAM_URL} target="_blank" rel="noopener">
@@ -123,7 +123,7 @@ function En() {
       <p>
         {SITE_NAME} is free and ad-free. If you like the desk and want to help pay for the server, you can fill the cat&apos;s bowl:{" "}
         <a href={SUPPORT_URL} target="_blank" rel="noopener">
-          a small tip on PayPal ♥
+          a coffee on Buy Me a Coffee ♥
         </a>
         . Thank you! And to follow what&apos;s new on the desk:{" "}
         <a href={INSTAGRAM_URL} target="_blank" rel="noopener">
