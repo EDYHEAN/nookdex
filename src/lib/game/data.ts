@@ -465,6 +465,52 @@ export const waveStart = (w: number) => {
 /** the wave at a moment of the run */
 export const waveAt = (t: number) => (t < waveStart(25) ? 1 + Math.floor(t / 15) : t < waveStart(50) ? 25 + Math.floor((t - waveStart(25)) / 20) : 50 + Math.floor((t - waveStart(50)) / WAVE_SECONDS));
 
+/* ---------------- biomes and weather (Johan, 2026-10-19: variety, never at the cost of reading the field) ---------------- */
+
+export type WeatherId = "rain" | "sun" | "hail" | "sand";
+/** a wave's weather: what it does to the moves' types (the foes have none), said in the wave's banner and the pause */
+export const WEATHERS: Record<WeatherId, { name: Txt; does: Txt; mul: Partial<Record<Elem, number>> }> = {
+  rain: { name: ["Pluie", "Rain"], does: ["Eau +25 %, Feu -20 %", "Water +25%, Fire -20%"], mul: { water: 1.25, fire: 0.8 } },
+  sun: { name: ["Grand soleil", "Harsh sun"], does: ["Feu +25 %, Plante +10 %, Eau -20 %", "Fire +25%, Grass +10%, Water -20%"], mul: { fire: 1.25, grass: 1.1, water: 0.8 } },
+  hail: { name: ["Grêle", "Hail"], does: ["Glace +25 %, les mouillés gèlent plus longtemps", "Ice +25%, wet foes freeze longer"], mul: { ice: 1.25 } },
+  sand: { name: ["Tempête de sable", "Sandstorm"], does: ["Sol +25 %, Acier +15 %", "Ground +25%, Steel +15%"], mul: { ground: 1.25, steel: 1.15 } },
+};
+
+export type BiomeId = "meadow" | "beach" | "forest" | "cave" | "snow" | "volcano";
+/**
+ * The field changes every 10 waves, round and round: the ground's colours (the tiles are drawn from them), the wild
+ * Pokémon met more often there (among those of the wave), the weather it brings (the chance of each, else none).
+ */
+export const BIOMES: { id: BiomeId; name: Txt; colors?: Record<string, string>; foes: number[]; weather: Partial<Record<WeatherId, number>> }[] = [
+  { id: "meadow", name: ["La prairie", "The meadow"], foes: [], weather: { rain: 0.15, sun: 0.15 } },
+  {
+    id: "beach", name: ["La plage", "The beach"], foes: [54, 129, 27, 74],
+    colors: { grass: "#e8d39a", grassDark: "#d4bb7c", grassLight: "#f4e4b4", blade: "#b89a5a", flowerA: "#f7d9d0", flowerB: "#fff1c9", pebble: "#c7b49a", grassFx: "#9cd4e8" },
+    weather: { rain: 0.3, sun: 0.2 },
+  },
+  {
+    id: "forest", name: ["La forêt", "The forest"], foes: [43, 123, 15, 41, 13],
+    colors: { grass: "#5d8c4f", grassDark: "#476f3e", grassLight: "#74a35f", blade: "#355a33", flowerA: "#e4685a", flowerB: "#f2e3b4", pebble: "#8a8c78" },
+    weather: { rain: 0.35 },
+  },
+  {
+    id: "cave", name: ["La grotte", "The cave"], foes: [41, 42, 74, 75, 76, 92, 93],
+    colors: { grass: "#7c7486", grassDark: "#625b6c", grassLight: "#938aa0", blade: "#4c4656", flowerA: "#9fe4ff", flowerB: "#d8b6ff", pebble: "#a8a0b4", grassFx: "#9fe4ff" },
+    weather: { sand: 0.2 },
+  },
+  {
+    id: "snow", name: ["La neige", "The snow"], foes: [],
+    colors: { grass: "#dfe9f1", grassDark: "#c3d1de", grassLight: "#f4f9fd", blade: "#93a9bd", flowerA: "#bfe3ff", flowerB: "#ffffff", pebble: "#aab8c6", grassFx: "#bfe3ff" },
+    weather: { hail: 0.45 },
+  },
+  {
+    id: "volcano", name: ["Le volcan", "The volcano"], foes: [58, 59, 76, 111, 112],
+    colors: { grass: "#6b4a42", grassDark: "#523630", grassLight: "#85594d", blade: "#3a2724", flowerA: "#ff8a3d", flowerB: "#ffd36e", pebble: "#9a8075", grassFx: "#ff8a3d" },
+    weather: { sun: 0.45, sand: 0.15 },
+  },
+];
+export const BIOME_WAVES = 10;
+
 /* ---------------- bosses, every 5 waves ---------------- */
 
 export type BossMove = "slam" | "charge" | "radial" | "aimed" | "teleport" | "beam" | "strikes"

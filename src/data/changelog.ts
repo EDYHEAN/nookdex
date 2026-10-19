@@ -30,6 +30,7 @@ export const CHANGELOG: Release[] = [
       { fr: "Nook Survivors : un guide dans le menu (statuts, combos, évolutions, objets) et tes stats en direct dans la pause.", en: "Nook Survivors: a guide in the menu (statuses, combos, evolutions, items) and your live stats in the pause." },
       { fr: "Après la vague 50 : une 5e capacité et un 5e objet, des titans, des boss plus coriaces ; ton starter attire les attaques de son type.", en: "Past wave 50: a 5th move and a 5th item, titans, tougher bosses; your starter draws moves of its own type." },
       { fr: "Vagues plus courtes au début (15 s, puis 20 s dès la vague 25) : on entre plus vite dans le vif.", en: "Shorter waves early on (15 s, then 20 s from wave 25): into the action sooner." },
+      { fr: "Six terrains (prairie, plage, forêt, grotte, neige, volcan) et la météo : pluie, soleil, grêle, sable changent la force des types.", en: "Six fields (meadow, beach, forest, cave, snow, volcano) and weather: rain, sun, hail, sand change the types' strength." },
     ],
   },
   {

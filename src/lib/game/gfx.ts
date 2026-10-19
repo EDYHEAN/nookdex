@@ -166,6 +166,8 @@ export class Gfx {
   palette = PALETTES[0];
   c: Record<ColorKey, string> = { ...COLORS };
   tiles: HTMLCanvasElement;
+  /** each biome's ground, drawn once per palette */
+  private biomeTiles = new Map<string, HTMLCanvasElement>();
   private fonts = new Map<string, HTMLCanvasElement>();
   private cache = new Map<string, { atlas: HTMLCanvasElement | HTMLImageElement; white: HTMLCanvasElement }>();
 
@@ -191,7 +193,22 @@ export class Gfx {
     this.atlas = got.atlas;
     this.white = got.white;
     this.tiles = makeTiles(this.c);
+    this.biomeTiles.clear();
     this.fonts.clear();
+  }
+
+  /** a biome's ground: the grass tiles drawn in its colours (through the palette's shades, if it has some) */
+  tilesFor(id: string, colors?: Record<string, string>) {
+    if (!colors) return this.tiles;
+    let t = this.biomeTiles.get(id);
+    if (!t) {
+      const shades = this.palette.shades;
+      const c = { ...this.c };
+      for (const [k, v] of Object.entries(colors)) c[k as ColorKey] = shades ? shades[shadeOf(lum(v))] : v;
+      t = makeTiles(c);
+      this.biomeTiles.set(id, t);
+    }
+    return t;
   }
 
   /** a Pokémon's frame, its feet's centre at (x, y) */

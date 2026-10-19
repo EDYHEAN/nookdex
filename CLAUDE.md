@@ -328,6 +328,11 @@ doesn't show.
   a `Player` (`players`, `cur`); the Game's accessors reach the current one, switched to whoever acts (their move, a
   foe's nearest target, who picks up, the screen drawn: `draw(ctx, viewer)`). A downed player is got up by standing by
   them 3 s; both down = game over. Menus show on the screen of the player they're for.
+- **Fields and weather** (Johan, 2026-10-19: variety without hurting readability): a new field every 10 waves, round and round
+  (`BIOMES` in lib/game/data: meadow, beach, forest, cave, snow, volcano; the grass tiles redrawn in its colours, `Gfx.tilesFor`;
+  its own wild Pokémon more often among the wave's), and a weather drawn per wave from the field's chances (`WEATHERS`: rain,
+  sun, hail, sand, each a ±20-25 % on some types; light particles; named in the wave's banner, the pause and the guide). Never in
+  the daily challenge. Night has no rain of its own any more: rain is a weather.
 - Sounds: the room's synth (`synth` in lib/sound, muted with it); the room's radio pauses while the console is out.
 
 ## Social posts (Instagram, TikTok)
