@@ -246,6 +246,14 @@ doesn't show.
 - `src/proxy.ts` tags `/en…`, `/extensions…` and `/calendrier-des-sorties` with their language (`x-nookdex-lang`), which `serverLang` reads before
   the cookie: `<html lang>` and metadata follow the address there.
 
+## Amazon affiliate
+
+- Club Partenaires Amazon.fr (Johan, 2026-10-19), tag `nookdex-21` (`lib/amazon`): searches on amazon.fr for sealed products, on
+  French pages only (the tag pays on amazon.fr): « Précommander sur Amazon » on the calendar's coming sets and products,
+  a line on the set pages of sets out within two years, one link at most in a French blog post (docs/blog.md; the tag and
+  `rel="sponsored"` added by `tagAmazonLinks`). The program's sentence (`AMAZON_NOTICE`) on each of those pages and on
+  /a-propos. The account closes without 3 sales in its first 180 days. Never for single cards (Cardmarket).
+
 ## Sharing a binder
 
 - "Partager ↗" in a set binder's header (once it holds a card) opens `binder/ShareSheet.tsx`: a progress picture drawn by

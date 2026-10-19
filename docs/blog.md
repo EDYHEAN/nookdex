@@ -66,6 +66,15 @@ Then rotate, about one of each kind per month:
 - `pricesUpdated` in a set file: the date to quote ("d'après la tendance Cardmarket du 2 octobre 2026").
 - Cardmarket's guide mixes every language of a card: say it whenever a French price is discussed.
 
+## Amazon links (French posts only)
+
+NookDex is an Amazon.fr affiliate (`lib/amazon`). A French post about a set that is coming out or still in the shops
+may end its buying advice with one link to its sealed products, as a search: `[Boosters et coffrets de Règne Delta sur
+Amazon](https://www.amazon.fr/s?k=Pok%C3%A9mon+R%C3%A8gne+Delta)` (the site adds the tag and `rel="sponsored"` itself).
+One link a post at most, never for single cards (those are Cardmarket), never in English posts, and the post then says
+« En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises. » on its last line.
+Advise checking that the seller is Amazon itself: sealed Pokémon is often resold far above its price there.
+
 ## Shape of a post
 
 ```markdown

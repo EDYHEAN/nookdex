@@ -4,6 +4,7 @@ import { Marked, type Token } from "marked";
 import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
 import rawJa from "@/data/catalog-ja.json";
+import { tagAmazonLinks } from "./amazon";
 import { bareId, currencyOf, langOfKey, type CardLang } from "./cardLang";
 import { setFile } from "./setFiles";
 import { setPagePath } from "./setPath";
@@ -212,8 +213,8 @@ export async function renderPost(post: Post) {
   let i = 0;
   const md = post.body.replace(RUN, () => `${blocks[i++]}\n\n`);
   const html = new Marked({ gfm: true }).parse(md, { async: false });
-  // wide tables scroll sideways on a phone instead of squeezing their columns
-  return html.replace(/<table>/g, '<div class="blog-table"><table>').replace(/<\/table>/g, "</table></div>");
+  // wide tables scroll sideways on a phone instead of squeezing their columns; amazon.fr links carry our tag (lib/amazon)
+  return tagAmazonLinks(html.replace(/<table>/g, '<div class="blog-table"><table>').replace(/<\/table>/g, "</table></div>"));
 }
 
 /* ---------- FAQ: the "## Questions fréquentes" section, for the FAQPage structured data ---------- */
