@@ -264,7 +264,8 @@ doesn't show.
 ## NookBoy (the game in the Game Boy)
 
 - The Game Boy painted by the mug (`GAMEBOY` in PaintedRoom) runs Nook Survivors, a survivors-like (a name of our own: no brand in the game's title): a starter (Bulbasaur,
-  Charmander, Squirtle, Pikachu; they evolve mid-run) against waves of wild Pokémon, 30 s a wave, a boss every 5th,
+  Charmander, Squirtle, Pikachu; they evolve mid-run) against waves of wild Pokémon (15 s a wave up to 24, 20 s to 49, then 30 s: `waveLength` / `waveStart` / `waveAt` in lib/game/data, XP and
+  gold scaled up on short waves so a wave gives as much; Clément 2026-10-18), a boss every 5th,
   candies → levels → 3 cards (31 moves of 17 types, auto-cast or keys 1-4, 4 at most; 17 held items; once all is maxed,
   stacking bonuses). A move at level 5 + its item (`evo` in lib/game/data) offers its evolution first (16 of them).
   Statuses (wet, burnt, poisoned, asleep/frozen, slowed, charmed: Fairy, the foe goes for its neighbours; Dark makes them
@@ -283,7 +284,7 @@ doesn't show.
   trimmed and packed by `npm run build-game` (`scripts/build-game.mjs`, cache `.cache/`), which also writes
   `src/data/game-sprites.json` and the room's loop. A new Pokémon: add its dex number to the script's ROSTER, run it.
 - Ladder: Supabase `game_scores` behind `game_top2` / `game_submit2` (v4 at the end of docs/supabase.sql: plausibility
-  checks, a wave lasts 30 s, up to wave 200, one run per name every 20 s, best run per name), open to everyone, account
+  checks, the short waves' timing (v5), up to wave 200, one run per name every 20 s, best run per name), open to everyone, account
   or not. A board per mode
   (classic, daily then defi, coop) and period (the month's season, the daily's UTC day, all time); `game_top` / `game_submit` are
   the v1 the client falls back on.

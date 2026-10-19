@@ -450,7 +450,20 @@ export const RETIRE: Record<number, number> = {
   10: 8, 13: 8, 16: 11, 19: 12, 41: 14, 29: 15, 32: 15, 21: 17, 43: 17, 23: 23, 27: 23, 52: 23, 56: 24, 54: 25, 58: 27, 74: 27, 81: 28,
 };
 
+/** a wave's length from wave 50 on */
 export const WAVE_SECONDS = 30;
+/**
+ * Shorter waves early on (Clément, 2026-10-18: the first ones dragged): 15 s up to wave 24, 20 s from 25 to 49, then 30 s.
+ * The ladder's time check (game_submit2 v5 in docs/supabase.sql) follows the same steps.
+ */
+export const waveLength = (w: number) => (w < 25 ? 15 : w < 50 ? 20 : WAVE_SECONDS);
+/** when wave w starts, in seconds of play */
+export const waveStart = (w: number) => {
+  const a = Math.min(w, 25) - 1, b = Math.max(0, Math.min(w, 50) - 25), c = Math.max(0, w - 50);
+  return a * 15 + b * 20 + c * WAVE_SECONDS;
+};
+/** the wave at a moment of the run */
+export const waveAt = (t: number) => (t < waveStart(25) ? 1 + Math.floor(t / 15) : t < waveStart(50) ? 25 + Math.floor((t - waveStart(25)) / 20) : 50 + Math.floor((t - waveStart(50)) / WAVE_SECONDS));
 
 /* ---------------- bosses, every 5 waves ---------------- */
 

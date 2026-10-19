@@ -346,7 +346,7 @@ $$;
 
 drop function if exists public.game_submit2(text, integer, integer, integer, integer, integer, text, date);
 drop function if exists public.game_submit2(text, integer, integer, integer, integer, integer, text, date, integer);
-create function public.game_submit2(p_name text, p_wave integer, p_kills integer, p_level integer, p_starter integer, p_seconds integer, p_mode text, p_day date default null, p_start integer default 1)
+create or replace function public.game_submit2(p_name text, p_wave integer, p_kills integer, p_level integer, p_starter integer, p_seconds integer, p_mode text, p_day date default null, p_start integer default 1)
 returns integer
 language plpgsql
 volatile
@@ -372,7 +372,10 @@ begin
     if p_wave < 1 or p_wave > 11 or p_seconds < (p_wave - 1) * 6 or p_seconds > 3600 or (p_wave = 11 and p_seconds < 90) then
       raise exception 'implausible score';
     end if;
-  elsif p_wave < 1 or p_wave > top or p_seconds < (p_wave - 1) * 30
+  -- v5 (2026-10-19): waves last 15 s up to 24, 20 s from 25 to 49, then 30 s (lib/game/data waveStart); the most a run
+  -- may take stays the 30 s rule's, so a client from before the change is still let in
+  elsif p_wave < 1 or p_wave > top
+     or p_seconds < (least(p_wave, 25) - 1) * 15 + greatest(0, least(p_wave, 50) - 25) * 20 + greatest(0, p_wave - 50) * 30
      or (p_wave < top and p_seconds > p_wave * 30 + 5) then
     raise exception 'implausible score';
   end if;

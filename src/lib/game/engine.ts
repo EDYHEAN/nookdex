@@ -4,7 +4,7 @@
 import { unlock } from "@/lib/trophyStore";
 import { gsfx, music } from "./audio";
 import {
-  BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, WAVE_SECONDS, WILD, xpFor,
+  BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, WILD, waveAt, waveLength, waveStart, xpFor,
   DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
 } from "./data";
 import { DEFI_DAYS, DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
@@ -795,11 +795,15 @@ export class Game {
   get magnet() {
     return 56 * (1 + 0.4 * this.itemLevel("magnet")) * (1 + 0.08 * this.perm("magnet"));
   }
+  /** a short wave gives as much as a 30 s one (XP, gold): the levels a run has at a wave stay what they were */
+  private get pace() {
+    return this.setup.defi ? 1 : 30 / waveLength(this.wave);
+  }
   get xpMul() {
-    return (1 + 0.12 * this.itemLevel("share")) * (1 + 0.03 * this.perm("xp")) * (this.setup.daily?.mod.xp ?? 1) * (this.setup.defi ? 1.8 : 1) * (this.dex === 129 ? 1.5 : 1);
+    return this.pace * (1 + 0.12 * this.itemLevel("share")) * (1 + 0.03 * this.perm("xp")) * (this.setup.daily?.mod.xp ?? 1) * (this.setup.defi ? 1.8 : 1) * (this.dex === 129 ? 1.5 : 1);
   }
   get goldMul() {
-    return (1 + 0.06 * this.perm("gold")) * (this.setup.daily?.mod.gold ?? 1);
+    return this.pace * (1 + 0.06 * this.perm("gold")) * (this.setup.daily?.mod.gold ?? 1);
   }
   private computeMaxHp() {
     return Math.round(
@@ -834,7 +838,7 @@ export class Game {
     });
     // a start tier: the run's clock starts at its wave (whose boss waits, frozen, while the draft is picked)
     const from = setup.daily || setup.defi ? 1 : (setup.start ?? 1);
-    this.startAt = (from - 1) * WAVE_SECONDS;
+    this.startAt = waveStart(from);
     if (from > 1) this.time = this.startAt;
     if (from > 1) unlock("game-tier");
     if (from >= 175) unlock("game-tier175");
@@ -1298,7 +1302,7 @@ export class Game {
     // a new wave every 30 s, every fifth one brings a boss (up to the 100th); the daily challenge's when the last foe falls
     if (this.setup.defi) this.stepDefi(dt);
     else {
-      const wave = Math.min(MAX_WAVE, 1 + Math.floor(this.time / WAVE_SECONDS));
+      const wave = Math.min(MAX_WAVE, waveAt(this.time));
       if (wave !== this.wave) this.newWave(wave);
       if (this.bossDue && this.time >= this.bossDue) {
         this.bossDue = 0;
@@ -1493,7 +1497,7 @@ export class Game {
       // a joke wave: a shoal of Magikarp splashing about
       for (let i = 0; i < 40; i++) this.spawnOne(129, i / 40);
       this.showBanner(this.tr("VAGUE 11", "WAVE 11"), this.tr("une horde de Magicarpe ?!", "a shoal of Magikarp?!"));
-    } else if (wave === SLOT5_WAVE + 1 && this.startAt < SLOT5_WAVE * WAVE_SECONDS) {
+    } else if (wave === SLOT5_WAVE + 1 && this.startAt < waveStart(SLOT5_WAVE + 1)) {
       this.showBanner(this.tr("5E CAPACITE !", "5TH MOVE!"), this.tr("et un 5e objet : de quoi aller plus loin", "and a 5th item: room to go further"));
       gsfx.evolveDone();
       this.flash = 0.5;
@@ -3612,7 +3616,7 @@ export class Game {
 
   /** the time of day changes with the waves: day, dusk, night (rain, fireflies), dawn */
   get timeOfDay() {
-    const c = ((this.wave - 1) % 8) + Math.min(1, ((this.time % WAVE_SECONDS) / WAVE_SECONDS) * 1);
+    const c = ((this.wave - 1) % 8) + Math.min(1, Math.max(0, (this.time - waveStart(this.wave)) / waveLength(this.wave)));
     return c;
   }
   private get night() {
@@ -4579,7 +4583,7 @@ export class Game {
     } else if (this.wave >= MAX_WAVE) {
       g.text(ctx, this.tr(`VAGUE ${MAX_WAVE} · FINALE`, `WAVE ${MAX_WAVE} · FINAL`), SW / 2, 8, "gold", { align: "center" });
     } else {
-      const left = Math.ceil(WAVE_SECONDS - (this.time % WAVE_SECONDS));
+      const left = Math.max(0, Math.ceil(waveStart(this.wave + 1) - this.time));
       g.text(ctx, this.tr(`VAGUE ${this.wave}`, `WAVE ${this.wave}`), SW / 2, 8, "gold", { align: "center" });
       g.text(ctx, `0:${String(left).padStart(2, "0")}`, SW / 2, 15, left <= 5 ? "hpLow" : "uiDim", { align: "center" });
     }
