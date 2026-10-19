@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatDate } from "@/lib/blog";
+import { AMAZON_NOTICE, amazonSearch } from "@/lib/amazon";
 import { daysUntil, type Release, releases } from "@/lib/releases";
 import { SET_PAGES_ROOT, type PageLang } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
@@ -155,6 +156,12 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
                   {r.note && <p>{r.note}</p>}
                   <p className={styles.links}>
                     {r.post && <Link href={`/blog/${r.post}`}>{t("Lire le guide →", "Read the guide →")}</Link>}
+                    {/* French page: its boosters and boxes to preorder (Amazon affiliate, lib/amazon) */}
+                    {fr && r.region === "intl" && r.kind !== "event" && (
+                      <a href={amazonSearch(`Pokémon ${r.name}`)} target="_blank" rel="sponsored noopener">
+                        Précommander sur Amazon ↗
+                      </a>
+                    )}
                     {r.source && (
                       <a className={styles.source} href={r.source} target="_blank" rel="noopener">
                         {t("Source", "Source")} ↗
@@ -207,6 +214,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
         {t(`Calendrier mis à jour le ${formatDate(updated, "fr")}.`, `Calendar updated ${formatDate(updated, "en")}.`)}{" "}
         <Link href={SET_PAGES_ROOT[lang]}>{t("Toutes les extensions et leurs prix →", "Every set and its prices →")}</Link>
       </p>
+      {fr && <p className={styles.updated}>{AMAZON_NOTICE}</p>}
     </LegalPage>
   );
 }

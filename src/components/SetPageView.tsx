@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cardGallery, formatDate, num } from "@/lib/blog";
+import { AMAZON_NOTICE, amazonSearch, inShops } from "@/lib/amazon";
 import { keyOf } from "@/lib/cardLang";
 import { type PageLang, SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
 import { cardSlug } from "@/lib/cardPages";
@@ -141,6 +142,17 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
             <Link href={p.other.path} hrefLang={p.other.lang}>
               {fr ? `EN · ${p.other.name}: the English cards and their TCGplayer prices` : `FR · ${p.other.name} : les cartes françaises et leurs prix Cardmarket`}
             </Link>
+          </p>
+        )}
+
+        {/* a French set still in the shops (out within two years): its sealed products on Amazon (affiliate, lib/amazon) */}
+        {fr && inShops(p.set.releaseDate) && (
+          <p className={styles.other}>
+            <a href={amazonSearch(`Pokémon ${name} booster`)} target="_blank" rel="sponsored noopener">
+              Boosters, coffrets et displays de {name} sur Amazon ↗
+            </a>
+            <br />
+            <small>{AMAZON_NOTICE}</small>
           </p>
         )}
 

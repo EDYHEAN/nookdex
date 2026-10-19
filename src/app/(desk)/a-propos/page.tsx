@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { serverLang } from "@/lib/serverLang";
+import { AMAZON_NOTICE } from "@/lib/amazon";
 import { LegalPage } from "@/components/LegalPage";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL, TIKTOK_HANDLE, TIKTOK_URL, SITE_DESCRIPTION, SITE_DESCRIPTION_EN, SITE_NAME, SUPPORT_URL } from "@/lib/site";
 import styles from "@/components/LegalPage.module.css";
@@ -71,6 +72,10 @@ function Fr() {
       <p>
         Un projet de fan, fait par un collectionneur. Données des cartes : <a href="https://tcgdex.dev">TCGdex</a>. Prix : Cardmarket et TCGplayer.{" "}
         {SITE_NAME} n&apos;a aucun lien avec Nintendo, Creatures, GAME FREAK ou The Pokémon Company.
+      </p>
+      <p>
+        Les liens vers Amazon (boosters et coffrets, dans le calendrier des sorties et les pages d&apos;extension) sont des liens
+        affiliés : ils ne changent rien à ton prix. {AMAZON_NOTICE}
       </p>
 
       <p>
