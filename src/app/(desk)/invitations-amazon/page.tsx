@@ -93,7 +93,7 @@ export default function InvitationsAmazon() {
                 {page && <Link href={page}>Les cartes de l&apos;extension et leurs prix →</Link>}
               </p>
             )}
-            <ShopShelf group={g} notice={false} />
+            <ShopShelf group={g} place="invit" notice={false} />
           </div>
         );
       })}

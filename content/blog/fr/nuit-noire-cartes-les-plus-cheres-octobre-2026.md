@@ -54,6 +54,12 @@ En additionnant la tendance de chacune des 120 cartes (une version de chaque, sa
 
 Bref, un set « sans les secrètes du haut » est très abordable. Ce sont les 7 cartes du haut du tableau qui font toute la différence.
 
+## Où acheter Nuit Noire ?
+
+Pour ouvrir des boosters, Amazon vend le coffret Dresseur d'élite, le display et le bundle de Nuit Noire sur invitation, au prix public. Demande-la sur la fiche du produit, c'est gratuit.
+
+::amazon[me05]
+
 ## Questions fréquentes
 
 ### Quelle est la carte la plus chère de Nuit Noire ?

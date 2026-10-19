@@ -156,10 +156,10 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
 
         {/* a French set's sealed products on Amazon (affiliate, lib/amazonShop): its cards with their pictures, else a search
             while it's still in the shops (out within two years) */}
-        {fr && shop && <ShopShelf group={shop} max={4} title={`Boosters et coffrets ${name} sur Amazon`} />}
+        {fr && shop && <ShopShelf group={shop} place="extension" max={4} title={`Boosters et coffrets ${name} sur Amazon`} />}
         {fr && !shop && inShops(p.set.releaseDate) && (
           <p className={styles.other}>
-            <a href={amazonSearch(`Pokémon ${name} booster`)} target="_blank" rel="sponsored noopener">
+            <a href={amazonSearch(`Pokémon ${name} booster`, "extension")} target="_blank" rel="sponsored noopener">
               Boosters, coffrets et displays de {name} sur Amazon ↗
             </a>
             <br />

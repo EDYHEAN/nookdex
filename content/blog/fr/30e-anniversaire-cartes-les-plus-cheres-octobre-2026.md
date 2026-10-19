@@ -58,6 +58,12 @@ Le set contient aussi 30 cartes classiques venues de toute l'histoire du jeu. La
 
 En additionnant un exemplaire de chaque carte « normale » de la liste anglaise (communes, rares, doubles rares, illustrations rares, illustrations spéciales rares, 2 Futuristic Rare et les Pikachu Rare), on arrive à environ **696 $**. Les illustrations spéciales rares pèsent à elles seules **453 $**, les deux Futuristic Rare **103 $**. Avec les 30 rééditions classiques, ajoute environ **782 $**. Les trois Mew RGB, elles, ajouteraient **15 062 $** à elles seules.
 
+## Où acheter le 30ᵉ Anniversaire ?
+
+Pour tenter les Mew RGB toi-même, Amazon vend le coffret Dresseur d'élite, le bundle et les coffrets du 30ᵉ Anniversaire sur invitation, au prix public. Demande-la sur la fiche du produit, c'est gratuit.
+
+::amazon[30th]
+
 ## Questions fréquentes
 
 ### Quelle est la carte la plus chère du 30ᵉ Anniversaire ?

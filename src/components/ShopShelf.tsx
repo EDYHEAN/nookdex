@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AMAZON_NOTICE } from "@/lib/amazon";
+import { AMAZON_NOTICE, type AmazonPlace } from "@/lib/amazon";
 import { KIND_LABEL, SHOP_PATH, byInterest, productHref, productPic, type ShopGroup } from "@/lib/amazonShop";
 import styles from "./ShopShelf.module.css";
 
@@ -8,7 +8,20 @@ import styles from "./ShopShelf.module.css";
  * (Johan, 2026-10-19: put the products forward, a call to action wherever they show). The whole card is the link.
  * French pages only. `max` shows the first few (the most looked for) and a link to the full page.
  */
-export function ShopShelf({ group, max, title, notice = true }: { group: ShopGroup; max?: number; title?: string; notice?: boolean }) {
+export function ShopShelf({
+  group,
+  place,
+  max,
+  title,
+  notice = true,
+}: {
+  group: ShopGroup;
+  /** where it shows: its Amazon tracking id */
+  place: AmazonPlace;
+  max?: number;
+  title?: string;
+  notice?: boolean;
+}) {
   const all = byInterest(group.products);
   const shown = max ? all.slice(0, max) : all;
   const today = new Date().toISOString().slice(0, 10);
@@ -21,7 +34,7 @@ export function ShopShelf({ group, max, title, notice = true }: { group: ShopGro
           const pic = productPic(p, group);
           return (
             <li key={p.asin ?? p.name}>
-              <a className={styles.card} href={productHref(p)} target="_blank" rel="sponsored noopener">
+              <a className={styles.card} href={productHref(p, place)} target="_blank" rel="sponsored noopener">
                 <span className={styles.pic}>
                   {pic ? <img src={pic.src} width={pic.w} height={pic.h} alt={`${KIND_LABEL[p.kind]} ${group.name}`} loading="lazy" /> : null}
                 </span>

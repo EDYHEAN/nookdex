@@ -4,7 +4,8 @@ import { Marked, type Token } from "marked";
 import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
 import rawJa from "@/data/catalog-ja.json";
-import { tagAmazonLinks } from "./amazon";
+import { AMAZON_NOTICE, tagAmazonLinks } from "./amazon";
+import { KIND_LABEL, SHOP_PATH, byInterest, productHref, productPic, shopGroups } from "./amazonShop";
 import { bareId, currencyOf, langOfKey, type CardLang } from "./cardLang";
 import { setFile } from "./setFiles";
 import { setPagePath } from "./setPath";
@@ -200,6 +201,30 @@ export async function cardGallery(keys: string[], lang: BlogLang) {
   return items.length ? `<div class="blog-gallery">${items.join("")}</div>` : "";
 }
 
+/**
+ * `::amazon[<group id>]` on its own line: that set's sealed products on amazon.fr (lib/amazonShop), as cards with their
+ * official picture and a button, the most looked-for 4 and a link to the rest; the program's sentence under them. French
+ * posts only (the affiliate tag pays on amazon.fr): nothing in an English one.
+ */
+const AMAZON_LINE = /^::amazon\[([^\]]+)\][ \t]*$/gm;
+function amazonShelf(id: string, lang: BlogLang) {
+  const g = shopGroups.find((x) => x.id === id);
+  if (!g || lang !== "fr") return "";
+  const all = byInterest(g.products);
+  const soon = !!g.date && g.date > new Date().toISOString().slice(0, 10);
+  const cards = all.slice(0, 4).map((p) => {
+    const pic = productPic(p, g);
+    const img = pic ? `<img src="${pic.src}" width="${pic.w}" height="${pic.h}" alt="${esc(`${KIND_LABEL[p.kind]} ${g.name}`)}" loading="lazy">` : "";
+    return (
+      `<a class="blog-shop-card" href="${esc(productHref(p, "blog"))}" target="_blank" rel="sponsored noopener">` +
+      `<span class="blog-shop-pic">${img}</span><span class="blog-shop-kind">${esc(KIND_LABEL[p.kind])}</span>` +
+      `<b>${esc(p.name)}</b><span class="blog-shop-go">${soon ? "Précommander" : p.asin ? "Demander l'invitation" : "Voir sur Amazon"}</span></a>`
+    );
+  });
+  const more = all.length > 4 ? `<a href="${SHOP_PATH}#${esc(g.id)}">Les ${all.length} produits ${esc(g.name)} sur Amazon →</a> · ` : "";
+  return `<div class="blog-shop">${cards.join("")}</div><p class="blog-shop-note">${more}${esc(AMAZON_NOTICE)}</p>`;
+}
+
 /** The post's HTML: Markdown (the routine's own text, from this repo) with its cards drawn from the site's data. */
 export async function renderPost(post: Post) {
   // a run of ::card lines (blank lines between them allowed) is one block: a single card, or a gallery
@@ -211,7 +236,7 @@ export async function renderPost(post: Post) {
     }),
   );
   let i = 0;
-  const md = post.body.replace(RUN, () => `${blocks[i++]}\n\n`);
+  const md = post.body.replace(RUN, () => `${blocks[i++]}\n\n`).replace(AMAZON_LINE, (_, id: string) => `${amazonShelf(id.trim(), post.lang)}\n\n`);
   const html = new Marked({ gfm: true }).parse(md, { async: false });
   // wide tables scroll sideways on a phone instead of squeezing their columns; amazon.fr links carry our tag (lib/amazon)
   return tagAmazonLinks(html.replace(/<table>/g, '<div class="blog-table"><table>').replace(/<\/table>/g, "</table></div>"));
@@ -223,7 +248,7 @@ const FAQ_TITLE = /^(faq|questions fréquentes|vos questions|tes questions|frequ
 
 const plain = (s: string) =>
   s
-    .replace(/::card\[[^\]]+\]/g, "")
+    .replace(/::(card|amazon)\[[^\]]+\]/g, "")
     .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
     .replace(/[*_`>#|]/g, "")
