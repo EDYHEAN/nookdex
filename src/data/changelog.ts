@@ -26,6 +26,7 @@ export const CHANGELOG: Release[] = [
       { fr: "Repartir de la vague 50 ou plus te donne le niveau d'une vraie partie arrivée là ; le build Orage devient légendaire.", en: "Starting from wave 50 or more gives you the level of a real run that far; the Thunderstorm build turns legendary." },
       { fr: "Le tapis d'échange tient autant de cartes que tu veux : elles se rangent en éventail.", en: "The trade mat holds as many cards as you like: they fan out." },
       { fr: "Le classement montre le top 50, page par page.", en: "The ladder shows the top 50, page by page." },
+      { fr: "Les attaques peuvent aller plus vite, et plus de PP Plus inutile une fois la vitesse max atteinte.", en: "Moves can go faster, and no useless PP Up once top speed is reached." },
     ],
   },
   {
