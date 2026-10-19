@@ -764,6 +764,10 @@ export class Game {
   get area() {
     return (1 + 0.1 * this.itemLevel("root")) * (1 + this.stage * 0.08);
   }
+  /** the share of a blow that lands (Eviolite, the Pension's shell), before the HIT_CAP */
+  get guard() {
+    return (1 - 0.07 * this.itemLevel("eviolite")) * (1 - 0.025 * this.perm("armor"));
+  }
   get crit() {
     return 0.05 + 0.07 * this.itemLevel("lens") + 0.015 * this.perm("crit");
   }
