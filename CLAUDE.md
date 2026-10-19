@@ -341,6 +341,11 @@ doesn't show.
   its own wild Pokémon more often among the wave's), and a weather drawn per wave from the field's chances (`WEATHERS`: rain,
   sun, hail, sand, each a ±20-25 % on some types; light particles; named in the wave's banner, the pause and the guide). Never in
   the daily challenge. Night has no rain of its own any more: rain is a weather.
+- **Starters to unlock** (Johan, 2026-10-19): `UNLOCK_STARTERS` in lib/game/data, the starter screen's second row (a silhouette
+  and what opens it until then): Nidoran♂ (Poison, wave 30 with Bulbasaur), Geodude (Ground, wave 30 with Squirtle), Cleffa
+  (Fairy, 3 daily challenges won), Dratini (Dragon, wave 75 with any). Progress rides in the Pension's levels: `w<dex>` the
+  best wave with a starter (waves played, not a start tier's), `defis` the days a daily challenge was won (`unlockProgress`).
+  The ladder takes their dex (`game_submit2`).
 - Sounds: the room's synth (`synth` in lib/sound, muted with it); the room's radio pauses while the console is out.
 
 ## Social posts (Instagram, TikTok)

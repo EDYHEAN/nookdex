@@ -41,14 +41,21 @@ export const NAMES: Record<number, Txt> = {
   10150: ["Méga-Mewtwo Y", "Mega Mewtwo Y"], 10094: ["Méga-Ectoplasma", "Mega Gengar"], 10006: ["Méga-Dracaufeu X", "Mega Charizard X"],
   10065: ["Méga-Alakazam", "Mega Alakazam"], 10080: ["Méga-Flagadoss", "Mega Slowbro"], 10115: ["Méga-Kangourex", "Mega Kangaskhan"],
   10142: ["Méga-Ptéra", "Mega Aerodactyl"],
+  // the starters to unlock
+  33: ["Nidorino", "Nidorino"], 34: ["Nidoking", "Nidoking"], 173: ["Mélo", "Cleffa"], 35: ["Mélofée", "Clefairy"], 36: ["Mélodelfe", "Clefable"],
 };
 
 export type BasicKind = "whip" | "ember" | "water" | "bolt" | "psycut" | "shadowball"
   // the daily challenge's Pokémon (lib/game/defi)
-  | "swift" | "icy" | "splash" | "punch" | "slam" | "psyorb";
+  | "swift" | "icy" | "splash" | "punch" | "slam" | "psyorb"
+  // the starters to unlock
+  | "jab" | "rock" | "fairy" | "dragon";
 export type Basic = { kind: BasicKind; name: Txt; every: number; dmg: number };
-/** what a Pokémon does on its own, outside the 4 slots: Mewtwo, Gengar, and each Pokémon of the daily challenge */
-export type Sig = "psystrike" | "phantom" | "adapt" | "speed" | "ere" | "rage" | "counter" | "rest" | "teleport";
+/** what a Pokémon does on its own, outside the 4 slots: Mewtwo, Gengar, each Pokémon of the daily challenge, the starters to unlock */
+export type Sig = "psystrike" | "phantom" | "adapt" | "speed" | "ere" | "rage" | "counter" | "rest" | "teleport"
+  | "poisonpoint" | "rollout" | "wish" | "dragondance";
+/** what opens a starter: a wave reached (with one starter, or any), or daily challenges won (on as many days) */
+export type Unlock = { wave: number; with?: number } | { defis: number };
 
 export interface Starter {
   dex: number;
@@ -70,8 +77,12 @@ export interface Starter {
   hpPerLevel?: number;
   /** a move of its own, always there, outside the 4 slots */
   sig?: Sig;
-  /** that move, told on the daily challenge's screen */
+  /** that move, told on the daily challenge's screen (and the starter screen) */
   talent?: { name: Txt; desc: Txt };
+  /** a starter to unlock: what opens it (shown as a silhouette until then) */
+  unlock?: Unlock;
+  /** damage taken, x (Geodude's rock body) */
+  armor?: number;
 }
 
 export type Elem =
@@ -170,6 +181,80 @@ export const GENGAR: Starter = {
 
 /** the characters given by hand (game_rewards), after the four starters on the select screen */
 export const REWARD_STARTERS: Starter[] = [MEWTWO, GENGAR];
+
+/**
+ * Four more starters, won by playing (Johan, 2026-10-19), of types the first four don't cover; none of the daily
+ * challenge's Pokémon nor the rewards. Each has its basic attack, a talent of its own and evolves mid-run. On the starter
+ * screen's second row, a silhouette with what opens it until then. Their progress rides in the Pension's levels
+ * (pensionStore: `w<dex>` the best wave with a starter, `defis` the days a daily challenge was won).
+ */
+export const UNLOCK_STARTERS: Starter[] = [
+  {
+    // in the thick of it: every blow poisons, and the poisoned hit it less
+    dex: 32,
+    evolves: [[33, 12], [34, 26]],
+    hp: 130,
+    speed: 62,
+    hpPerLevel: 3,
+    basic: { kind: "jab", name: ["Direct Toxik", "Poison Jab"], every: 0.5, dmg: 14 },
+    blurb: ["Au corps à corps. Empoisonne tout, et tient bon.", "Up close. Poisons everything, and holds on."],
+    type: "poison",
+    sig: "poisonpoint",
+    talent: { name: ["Point Poison", "Poison Point"], desc: ["Qui le touche est empoisonné. Coups des empoisonnés -30 %.", "Whoever touches it is poisoned. Poisoned foes hit 30% softer."] },
+    unlock: { wave: 30, with: 1 },
+  },
+  {
+    // slow, but it rolls through the crowd now and then, untouchable
+    dex: 74,
+    evolves: [[75, 12], [76, 26]],
+    hp: 150,
+    speed: 50,
+    hpPerLevel: 3,
+    armor: 0.8,
+    basic: { kind: "rock", name: ["Jet-Pierres", "Rock Throw"], every: 0.7, dmg: 17 },
+    blurb: ["Un roc lent. Roule à travers la foule.", "A slow rock. Rolls right through the crowd."],
+    type: "ground",
+    sig: "rollout",
+    talent: { name: ["Roulade", "Rollout"], desc: ["Fonce en boule à travers les ennemis, intouchable. Coups reçus -20 %.", "Rolls through the foes, untouchable. Hits taken -20%."] },
+    unlock: { wave: 30, with: 7 },
+  },
+  {
+    // its sparkles charm the foes (they go for each other), and a wish heals it now and then
+    dex: 173,
+    evolves: [[35, 12], [36, 26]],
+    hp: 100,
+    speed: 66,
+    basic: { kind: "fairy", name: ["Vent Féérique", "Fairy Wind"], every: 0.6, dmg: 8 },
+    blurb: ["Charme les ennemis : ils se battent entre eux.", "Charms the foes: they fight each other."],
+    type: "fairy",
+    sig: "wish",
+    talent: { name: ["Vœu", "Wish"], desc: ["Toutes les 10 s, soigne 20 % des PV et charme autour.", "Every 10 s, heals 20% HP and charms all around."] },
+    unlock: { defis: 3 },
+  },
+  {
+    // weak at first, then stronger with every level: the late game's
+    dex: 147,
+    evolves: [[148, 14], [149, 30]],
+    hp: 100,
+    speed: 64,
+    power: 0.8,
+    growth: 0.018,
+    basic: { kind: "dragon", name: ["Draco-Rage", "Dragon Rage"], every: 0.55, dmg: 13 },
+    blurb: ["Faible au début, redoutable sur la fin.", "Weak at first, fearsome late on."],
+    type: "dragon",
+    sig: "dragondance",
+    talent: { name: ["Danse Draco", "Dragon Dance"], desc: ["+1,8 % de dégâts par niveau. PV pleins : coups reçus -50 %.", "+1.8% damage a level. At full HP: hits taken -50%."] },
+    unlock: { wave: 75 },
+  },
+];
+/** how far a starter's unlock is, from the Pension's levels (`wave` the best wave with any): [done, needed] */
+export const unlockProgress = (u: Unlock, levels: Record<string, number>): [number, number] =>
+  "defis" in u ? [levels.defis ?? 0, u.defis] : [(u.with ? levels[`w${u.with}`] : levels.wave) ?? 0, u.wave];
+export const unlockedStarters = (levels: Record<string, number>) =>
+  UNLOCK_STARTERS.filter((s) => {
+    const [have, need] = unlockProgress(s.unlock!, levels);
+    return have >= need;
+  }).map((s) => s.dex);
 
 /* ---------------- moves (auto-cast on their cooldown, or keys 1-4) and held items ---------------- */
 

@@ -5,13 +5,13 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BIOMES, BIOME_WAVES, BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, WEATHERS, type Txt, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, waveStart, type Elem, type Lang } from "@/lib/game/data";
+import { BIOMES, BIOME_WAVES, BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, WEATHERS, type Txt, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, unlockProgress, unlockedStarters, waveStart, type Elem, type Lang, type Unlock } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
-import { Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickX, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
+import { DEFI_WINS_KEY, Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickAt, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
 import { lastName, myRewards, submitScore, topScores, type Period, type Score } from "@/lib/game/scores";
-import { bestWave, buyLevel, reachWave, setGold, usePension } from "@/lib/pensionStore";
+import { bestWave, buyLevel, reachStarterWave, reachWave, setGold, usePension, wonDefi } from "@/lib/pensionStore";
 import { unlock } from "@/lib/trophyStore";
 import { startAmbient, stopAmbient } from "@/lib/sound";
 import { useStore } from "@/lib/store";
@@ -166,9 +166,18 @@ export default function NookBoy({ origin, onClose }: Props) {
   useEffect(() => g?.setLang(lang), [g, lang]);
   useEffect(() => {
     void myRewards().then(setRewards);
+    // the daily challenges won before they were counted: at least one a Pokémon won with
+    try {
+      const wins: unknown = JSON.parse(localStorage.getItem(DEFI_WINS_KEY) ?? "[]");
+      if (Array.isArray(wins) && wins.length) wonDefi(wins.length);
+    } catch {}
   }, []);
-  // Mewtwo, Gengar: Pokémon of their own for the players given them (game_rewards "skin-mewtwo", "skin-gengar")
-  useEffect(() => g?.setRoster(rewards), [g, rewards]);
+  // Mewtwo, Gengar: Pokémon of their own for the players given them (game_rewards "skin-mewtwo", "skin-gengar"); the
+  // starters to unlock, open once their goal is met
+  const unlocked = useMemo(() => unlockedStarters(levels), [levels]);
+  useEffect(() => g?.setRoster(rewards, unlocked), [g, rewards, unlocked]);
+  /** the starters this run's end opened, for the game over */
+  const [fresh, setFresh] = useState<number[]>([]);
 
   // The boot: the logo slides down, "ding", then the menu.
   useEffect(() => {
@@ -258,6 +267,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     setSent("idle");
     setPension(false);
     setBonusTaken(false);
+    setFresh([]);
     unlock("game-first");
     settled.current = false;
     const st = usePension.getState();
@@ -276,6 +286,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (!g || settled.current) return;
     settled.current = true;
     const st = usePension.getState();
+    const before = unlockedStarters(st.levels);
     let gold = st.gold + g.gold;
     const run = g.lastStats;
     if (g.phase === "over" && run?.mode === "daily" && st.dailyPaid !== run.day) {
@@ -290,10 +301,18 @@ export default function NookBoy({ origin, onClose }: Props) {
         gold += DEFI_WIN_GOLD;
         usePension.setState({ dailyPaid: run.day ?? null });
         setBonusTaken(true);
+        wonDefi();
       }
     }
     setGold(gold);
-    if (g.setup.mode === "classic" || g.setup.mode === "coop") reachWave(run?.wave ?? g.wave);
+    if (g.setup.mode === "classic" || g.setup.mode === "coop") {
+      reachWave(run?.wave ?? g.wave);
+      // each starter's best wave (the engine's: the console may be put away mid-run), if it played past its start tier
+      if (g.wave > (g.setup.start ?? 1)) for (const p of g.players) reachStarterWave(p.starter.dex, g.wave);
+    }
+    const opened = unlockedStarters(usePension.getState().levels).filter((d) => !before.includes(d));
+    setFresh(opened);
+    if (opened.length) gsfx.evolveDone();
   };
   const openPension = () => {
     gsfx.ok();
@@ -318,6 +337,13 @@ export default function NookBoy({ origin, onClose }: Props) {
   /** the start tiers reached (1 = from the start), and the next one: shown locked, something to aim at */
   const tiers = [1, ...TIERS.filter((w) => bestWave(levels) >= w)];
   const nextTier = TIERS.find((w) => bestWave(levels) < w);
+  /** what opens a starter, and how far the player is: "Atteins la vague 30 avec Bulbizarre · record V22" */
+  const unlockText = (u: Unlock) => {
+    const [have, need] = unlockProgress(u, levels);
+    if ("defis" in u) return t(`Gagne ${need} défis du jour · ${have}/${need}`, `Win ${need} daily challenges · ${have}/${need}`);
+    const goal = u.with ? t(`Atteins la vague ${need} avec ${nameOf(u.with)}`, `Reach wave ${need} with ${nameOf(u.with)}`) : t(`Atteins la vague ${need}`, `Reach wave ${need}`);
+    return have ? `${goal} · ${t("record", "best")} ${t("V", "W")}${have}` : goal;
+  };
   const capOf = (d: (typeof PENSION)[number]) => (rank2 ? pensionMax2(d) : d.max);
   const buyPension = (i: number) => {
     const d = PENSION[i];
@@ -491,7 +517,8 @@ export default function NookBoy({ origin, onClose }: Props) {
       } else if (b === "left" || b === "right") {
         gsfx.move();
         eng.select(eng.selected + (b === "left" ? -1 : 1));
-      } else if ((b === "a" || b === "start") && selectMode === "coop" && coopFirst == null) {
+      } else if ((b === "a" || b === "start") && eng.locked(eng.selected)) gsfx.back();
+      else if ((b === "a" || b === "start") && selectMode === "coop" && coopFirst == null) {
         gsfx.ok();
         setCoopFirst(eng.selected);
       } else if (b === "a" || b === "start") startRun(selectMode);
@@ -905,7 +932,7 @@ export default function NookBoy({ origin, onClose }: Props) {
               <button
                 key={st.dex}
                 className={i === g.selected ? styles.on : ""}
-                style={{ left: pickX(i, g.roster.length) - 32 }}
+                style={{ left: pickAt(i, g.roster).x - 32, top: pickAt(i, g.roster).y - 46 }}
                 onPointerEnter={() => {
                   if (g.selected === i) return;
                   gsfx.move();
@@ -921,11 +948,22 @@ export default function NookBoy({ origin, onClose }: Props) {
               {nameOf(s.dex)} <span className={styles.type}>{say(s.basic.name, lang)}</span>
               {s.reward && <span className={styles.legend}>{t("LÉGENDAIRE", "LEGENDARY")}</span>}
             </p>
-            <p>{say(s.blurb, lang)}</p>
-            <p className={styles.dim}>
-              {t("PV", "HP")} {s.hp} · {t("vitesse", "speed")} {s.speed} · {t("évolue", "evolves")}{" "}
-              {s.evolves.map(([d, l]) => `${nameOf(d)} (${t("N.", "lv")}${l})`).join(", ")}
-            </p>
+            {/* the ones to unlock: their talent says more than a blurb (and there's room for one only) */}
+            {s.unlock && s.talent ? (
+              <p>
+                <b>{say(s.talent.name, lang)}</b> · {say(s.talent.desc, lang)}
+              </p>
+            ) : (
+              <p>{say(s.blurb, lang)}</p>
+            )}
+            {s.unlock && g.locked(g.selected) ? (
+              <p className={styles.lockLine}>🔒 {unlockText(s.unlock)}</p>
+            ) : (
+              <p className={styles.dim}>
+                {t("PV", "HP")} {s.hp} · {t("vitesse", "speed")} {s.speed} · {t("évolue", "evolves")}{" "}
+                {s.evolves.map(([d, l]) => `${nameOf(d)} (${t("N.", "lv")}${l})`).join(", ")}
+              </p>
+            )}
           </div>
           {/* where the run starts: the tiers reached, the next one locked (shown once the player is getting there) */}
           {(tiers.length > 1 || bestWave(levels) >= 15) && (
@@ -1231,6 +1269,12 @@ export default function NookBoy({ origin, onClose }: Props) {
                 <b className={styles.goldText}>+{run.gold}</b>
               </p>
             )}
+            {fresh.map((d) => (
+              <p key={d} className={styles.fresh}>
+                <span>{t("Nouveau Pokémon !", "New Pokémon!")}</span>
+                <b>{nameOf(d)}</b>
+              </p>
+            ))}
           </div>
           {typeof sent === "number" ? (
             <>
