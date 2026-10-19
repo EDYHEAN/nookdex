@@ -52,7 +52,13 @@ function sourceOf() {
   return SOURCES.find(([re]) => re.test(host))?.[1] ?? host.slice(0, 40);
 }
 
-const live = () => process.env.NODE_ENV === "production" && location.hostname.endsWith("nookdex.com");
+/**
+ * A search engine rendering the page runs its scripts too: Googlebot crawling the card pages counted as 817 new
+ * "direct" devices in a week (report of 2026-10-19, all en-US, landing on a card page, never back). Robots aren't counted.
+ */
+const ROBOT = /bot|crawl|spider|slurp|headless|lighthouse|preview|facebookexternalhit|embedly|bingpreview/i;
+const live = () =>
+  process.env.NODE_ENV === "production" && location.hostname.endsWith("nookdex.com") && !navigator.webdriver && !ROBOT.test(navigator.userAgent);
 
 function device(): string | null {
   try {
