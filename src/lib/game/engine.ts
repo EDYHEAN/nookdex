@@ -5,7 +5,7 @@ import { unlock } from "@/lib/trophyStore";
 import { gsfx, music } from "./audio";
 import {
   BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, UNLOCK_STARTERS, WILD, BIOMES, BIOME_WAVES, WEATHERS, type WeatherId, waveLength, waveQuota, waveRate, waveStart, xpFor, WAVE_HURRY,
-  AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, type AffixId, PARAGONS, PARAGON_WAVE, type ParagonId, PACTS, PACT_WAVE, type PactId, DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
+  AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, type AffixId, PARAGONS, PARAGON_WAVE, type ParagonId, PACTS, PACT_WAVE, type PactId, SHINY, SHINY_BOOST, SHINY_ODDS, DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
 } from "./data";
 import { DEFI_DAYS, DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
@@ -400,6 +400,8 @@ export class Player {
   frenzy = 1;
   /** the time since a blow last landed (the Metronome) */
   calmT = 0;
+  /** a shiny run: its sprite, and much stronger (data SHINY_BOOST) */
+  shiny = false;
   constructor(id: number) {
     this.id = id;
   }
@@ -832,7 +834,7 @@ export class Game {
     return this.cur.paragons.includes(id);
   }
   get power() {
-    return this.cur.frenzy * (1 + Math.min(1, this.cur.calmT / 10) * 0.06 * this.itemLevel("metronome")) * (1 + 0.02 * this.perm("power")) * (this.setup.daily?.mod.playerDmg ?? 1) * (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower) * (this.starter.power ?? 1) * (1 + (this.starter.growth ?? 0) * (this.level - 1)) * this.defiPower;
+    return (this.cur.shiny ? SHINY_BOOST.power : 1) * this.cur.frenzy * (1 + Math.min(1, this.cur.calmT / 10) * 0.06 * this.itemLevel("metronome")) * (1 + 0.02 * this.perm("power")) * (this.setup.daily?.mod.playerDmg ?? 1) * (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower) * (this.starter.power ?? 1) * (1 + (this.starter.growth ?? 0) * (this.level - 1)) * this.defiPower;
   }
   /** the daily challenge is quicker and stronger (x1.5); Eevee grows with each wave cleared, Machop when it hurts */
   private get defiPower() {
@@ -841,7 +843,7 @@ export class Game {
     return 1.5 * (sig === "adapt" ? 1 + 0.1 * (this.wave - 1) : 1) * (sig === "counter" && this.hp < this.maxHp * 0.5 ? 1.3 : 1);
   }
   get speed() {
-    return this.starter.speed * (1 + 0.08 * this.itemLevel("scarf")) * (1 + this.stage * 0.04) * (1 + 0.015 * this.perm("speed"));
+    return this.starter.speed * (this.cur.shiny ? SHINY_BOOST.speed : 1) * (1 + 0.08 * this.itemLevel("scarf")) * (1 + this.stage * 0.04) * (1 + 0.015 * this.perm("speed"));
   }
   /** the shortest cooldowns get: lower with Ultimate haste */
   private get hasteFloor() {
@@ -882,7 +884,7 @@ export class Game {
     return this.setup.defi ? 1 : 30 / waveLength(this.wave);
   }
   get xpMul() {
-    return this.pace * (1 + 0.12 * this.itemLevel("share")) * (1 + 0.03 * this.perm("xp")) * (this.setup.daily?.mod.xp ?? 1) * (this.setup.defi ? 1.8 : 1) * (this.dex === 129 ? 1.5 : 1) * (this.beyond ? BEYOND_XP : 1);
+    return this.pace * (1 + 0.12 * this.itemLevel("share")) * (1 + 0.03 * this.perm("xp")) * (this.setup.daily?.mod.xp ?? 1) * (this.setup.defi ? 1.8 : 1) * (this.dex === 129 ? 1.5 : 1) * (this.beyond ? BEYOND_XP : 1) * (this.cur.shiny ? SHINY_BOOST.xp : 1);
   }
   /** past wave 100 in a classic or coop run */
   private get beyond() {
@@ -894,7 +896,7 @@ export class Game {
   private computeMaxHp() {
     return Math.round(
       (this.starter.hp + this.stage * 30 + 20 * this.itemLevel("hpup") + (this.level - 1) * (this.starter.hpPerLevel ?? 2)) * (1 - 0.03 * this.itemLevel("lifeorb")) * (1 + 0.04 * this.perm("hp")) *
-        (1 + this.cur.bonusHp) * (this.has("giant") ? 1.4 : 1),
+        (1 + this.cur.bonusHp) * (this.has("giant") ? 1.4 : 1) * (this.cur.shiny ? SHINY_BOOST.hp : 1),
     );
   }
 
@@ -945,6 +947,8 @@ export class Game {
       const p = new Player(id);
       Object.assign(p, { starter: s, dex: s.dex, x: id * 24, y: 0, cam: { x: id * 24, y: 0 }, invuln: 1 });
       this.cur = p;
+      // now and then a shiny (never in the daily challenge, the same for everyone)
+      p.shiny = !setup.defi && !setup.daily && Math.random() < SHINY_ODDS;
       p.rerolls = this.perm("reroll");
       p.revives = this.perm("revive");
       // the Pension's backpack: cards to pick before the first foe
@@ -968,9 +972,23 @@ export class Game {
     // its boss and its music come with it
     else if (from > 1) this.newWave(from);
     else this.showBanner(this.tr("VAGUE 1", "WAVE 1"), this.tr("des Pokémon sauvages approchent", "wild Pokémon are coming"));
+    if (this.players.some((p) => p.shiny)) this.shinyBurst();
     gsfx.waveStart();
     this.set("play");
     if (this.cur.pendingLevels > 0) this.offerChoices();
+  }
+
+  /** a shiny run's start: it says so, in a shower of stars */
+  shinyBurst() {
+    const p = this.players.find((q) => q.shiny);
+    if (!p) return;
+    this.flash = 1;
+    for (let i = 0; i < 50; i++) this.part(p.x + rand(-6, 6), p.y - 10, rand(-1, 1) * 110, rand(-1, 1) * 110, i % 2 ? "gold" : "white", 1.2, 2, 0, "spark");
+    this.showBanner(
+      this.tr(`${this.name(p.dex).toUpperCase()} SHINY !`, `SHINY ${this.name(p.dex).toUpperCase()}!`),
+      this.tr("1 chance sur 40 : dégâts et PV x1,5", "1 chance in 40: damage and HP x1.5"),
+    );
+    gsfx.evolveDone();
   }
 
   pause(on: boolean) {
@@ -1520,6 +1538,8 @@ export class Game {
       const regen = 0.3 * this.itemLevel("leftovers") + 0.25 * this.perm("regen");
       if (regen && !p.down) p.hp = Math.min(p.maxHp, p.hp + regen * dt);
       p.hurtFlash = Math.max(0, p.hurtFlash - dt * 4);
+      // a shiny twinkles
+      if (p.shiny && !p.down && Math.random() < 0.12) this.part(p.x + rand(-9, 9), p.y - rand(4, 22), 0, -12, Math.random() < 0.5 ? "gold" : "white", 0.5, 1, 0, "spark");
       // the camera trails the player a little
       p.cam.x += (p.x - p.cam.x) * 0.15;
       p.cam.y += (p.y - p.cam.y) * 0.15;
@@ -4449,9 +4469,14 @@ export class Game {
       }
   }
 
+  /** the sprite a player's Pokémon is drawn with: its shiny one in a shiny run (when the atlas has it) */
+  private lookOf(dex: number) {
+    return this.cur.shiny && mon(SHINY + dex) ? SHINY + dex : dex;
+  }
+
   private drawPlayer(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
     const g = this.gfx;
-    const look = this.dex;
+    const look = this.lookOf(this.dex);
     if (this.phase === "dying" || this.cur.down) {
       const a = anim(look, "Faint");
       g.sprite(ctx, look, "Faint", frameAt(a, this.cur.down ? 9 : this.dyingT, false), this.dir, this.x + ox, this.y + oy - 8);
@@ -5402,10 +5427,12 @@ export class Game {
       // the classic flicker between the two shapes, faster and faster
       const speed = 2 + e.t * e.t * 3;
       const showNew = !e.cancelled && Math.floor(e.t * speed) % 2 === 1 && e.t > 0.8;
-      g.sprite(ctx, showNew ? e.to : e.from, "Idle", frameAt(anim(e.from, "Idle"), this.animT), 0, x, y, { white: e.t > 0.6 && !e.cancelled, scale: 2 });
+      const show = this.lookOf(showNew ? e.to : e.from);
+      g.sprite(ctx, show, "Idle", frameAt(anim(show, "Idle"), this.animT), 0, x, y, { white: e.t > 0.6 && !e.cancelled, scale: 2 });
     } else {
-      const a = anim(e.to, "Pose");
-      g.sprite(ctx, e.to, "Pose", frameAt(a, e.t - 3.2, a.d.length > 1 && animSeconds(a) < 1.8), 0, x, y, { scale: 2 });
+      const to = this.lookOf(e.to);
+      const a = anim(to, "Pose");
+      g.sprite(ctx, to, "Pose", frameAt(a, e.t - 3.2, a.d.length > 1 && animSeconds(a) < 1.8), 0, x, y, { scale: 2 });
     }
     if (Math.random() < 0.4) this.part(this.x + rand(-30, 30), this.y + 20, 0, -rand(20, 50), "gold", 1, 1, 0, "spark");
     this.drawParts(ctx, ox, oy);

@@ -54,6 +54,13 @@ const ROSTER = {
   ...Object.fromEntries([32, 33, 34, 74, 75, 76, 173, 35, 36, 147].map((n) => [n, PLAYER_LITE])),
   ...Object.fromEntries([148, 149].map((n) => [n, [...PLAYER_LITE, "Faint"]])),
 };
+/**
+ * Shiny starters (Johan, 2026-10-20: now and then a run starts shiny): SpriteCollab's shiny of every starter and its
+ * evolutions, as 20000 + its id (Mega Mewtwo Y is 30150); the game draws it instead when the run is shiny.
+ */
+const SHINY = 20000;
+for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 25, 26, 150, 10150, 94, 10094, 32, 33, 34, 74, 75, 76, 173, 35, 36, 147, 148, 149])
+  ROSTER[SHINY + n] = PLAYER;
 
 // PMD rows: Down, DownRight, Right, UpRight, Up, UpLeft, Left, DownLeft. The last three are mirrors: the game flips them.
 const ROWS = 5;
@@ -62,6 +69,8 @@ const ATLAS_W = 2048;
 const pad = (n) => String(n).padStart(4, "0");
 /** forms: their folder on SpriteCollab */
 const FORMS = { 10150: "0150/0002", 10094: "0094/0001", 10006: "0006/0001", 10065: "0065/0001", 10080: "0080/0002", 10115: "0115/0001", 10142: "0142/0001" };
+/** a Pokémon's folder: its form's, its shiny's (under its form, "0001") */
+const folderOf = (dex) => (dex >= SHINY ? `${FORMS[dex - SHINY] ?? `${pad(dex - SHINY)}/0000`}/0001` : (FORMS[dex] ?? pad(dex)));
 
 async function cached(url, file, binary) {
   const p = path.join(CACHE, file);
@@ -127,7 +136,7 @@ const creditNames = new Map(
 
 for (const [dexStr, wanted] of Object.entries(ROSTER)) {
   const dex = +dexStr;
-  const dir = FORMS[dex] ?? pad(dex);
+  const dir = folderOf(dex);
   const xml = await cached(`${RAW}/${dir}/AnimData.xml`, `${dir}/AnimData.xml`);
   const anims = parseAnims(xml);
   const cr = await cached(`${RAW}/${dir}/credits.txt`, `${dir}/credits.txt`).catch(() => "");
@@ -135,7 +144,7 @@ for (const [dexStr, wanted] of Object.entries(ROSTER)) {
     const id = line.split("\t")[1]?.trim();
     if (!id) continue;
     const who = creditNames.get(id) || (id.startsWith("<@") ? "anonymous" : id);
-    credits.set(who, (credits.get(who) ?? new Set()).add(dex));
+    credits.set(who, (credits.get(who) ?? new Set()).add(dex >= SHINY ? dex - SHINY : dex));
   }
   mons[dex] = { anims: {} };
   for (const name of wanted) {
@@ -149,7 +158,7 @@ for (const [dexStr, wanted] of Object.entries(ROSTER)) {
     const cols = Math.round(info.width / a.w);
     const rows = Math.min(ROWS, Math.round(info.height / a.h));
     const box = unionBox(data, info, a.w, a.h, cols, rows);
-    strips.push({ dex, name, png, a, cols, rows, box });
+    strips.push({ dex, name, png, a, cols, rows, box, data, info });
   }
   process.stdout.write(`${dex} `);
 }
@@ -173,14 +182,17 @@ for (const s of strips) {
 }
 const ATLAS_H = y + shelfH;
 
-const composites = [];
+// the frames copied straight into one raw buffer (a sharp composite of thousands of tiles stalled once the shinies came in)
+const atlas = Buffer.alloc(ATLAS_W * ATLAS_H * 4);
 for (const s of strips) {
   for (let r = 0; r < s.rows; r++)
     for (let c = 0; c < s.cols; c++) {
-      const tile = await sharp(s.png)
-        .extract({ left: c * s.a.w + s.box.x, top: r * s.a.h + s.box.y, width: s.box.w, height: s.box.h })
-        .toBuffer();
-      composites.push({ input: tile, left: s.at.x + c * (s.box.w + 1), top: s.at.y + r * (s.box.h + 1) });
+      const sx = c * s.a.w + s.box.x, sy = r * s.a.h + s.box.y;
+      const dx = s.at.x + c * (s.box.w + 1), dy = s.at.y + r * (s.box.h + 1);
+      for (let yy = 0; yy < s.box.h; yy++) {
+        const from = ((sy + yy) * s.info.width + sx) * 4;
+        s.data.copy(atlas, ((dy + yy) * ATLAS_W + dx) * 4, from, from + s.box.w * 4);
+      }
     }
   mons[s.dex].anims[s.name] = {
     x: s.at.x,
@@ -204,8 +216,7 @@ for (const m of Object.values(mons)) {
 
 const out = path.join(ROOT, "public", "game");
 await fs.mkdir(out, { recursive: true });
-await sharp({ create: { width: ATLAS_W, height: ATLAS_H, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
-  .composite(composites)
+await sharp(atlas, { raw: { width: ATLAS_W, height: ATLAS_H, channels: 4 } })
   .png({ palette: true, colors: 256, effort: 10, compressionLevel: 9 })
   .toFile(path.join(out, "sprites.png"));
 

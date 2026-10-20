@@ -526,6 +526,15 @@ export const PACTS: { id: PactId; name: Txt; curse: Txt; gift: Txt }[] = [
 ];
 export const PACT_WAVE = 10;
 
+/**
+ * A shiny run (Johan, 2026-10-20: "stats de fou et sprite"): now and then a classic or coop run starts with its starter
+ * shiny, SpriteCollab's shiny sprite (scripts/build-game: 20000 + its dex number) and much stronger. Never in the daily
+ * challenge: the same for everyone there.
+ */
+export const SHINY = 20000;
+export const SHINY_ODDS = 1 / 40;
+export const SHINY_BOOST = { power: 1.5, hp: 1.5, speed: 1.15, xp: 1.25 };
+
 export const MAX_MOVES = 4;
 export const MAX_ITEMS = 4;
 export const MAX_LEVEL = 5;
