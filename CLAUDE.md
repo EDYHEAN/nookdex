@@ -106,7 +106,8 @@ doesn't show.
 - Funnel (`lib/funnel.ts`, 2026-10-17: since the welcome asks no account, the players without one were invisible): a
   random id per device (localStorage `nookdex:device`, redrawn after 13 months), its first source (utm_source, else the
   referrer's site by one name: instagram, linkedin, google…, else "direct"; a player from before it: "existing"), its
-  landing page, the days it came back and its steps (profile, binder, cards10, account, game). Supabase `funnel` behind
+  landing page, the days it came back and its steps (profile, binder, cards10, account, game). Short links for posts add the
+  source: `/reddit`, `/en/reddit`, `/facebook`, `/en/facebook` (next.config `redirects`; a new place: add one there). Supabase `funnel` behind
   `funnel_ping` (writes) and `funnel_stats(since)` (counts by source), docs/supabase.sql; production on nookdex.com only.
   Nothing personal, nothing tied to the account (/confidentialite says so). Vercel Analytics' referrers (Johan's dashboard,
   no API) give the visits; this gives what they do.
