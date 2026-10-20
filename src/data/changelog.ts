@@ -13,6 +13,19 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.16",
+    date: "2026-10-20",
+    title: { fr: "Nook Survivors : jusqu'à 300", en: "Nook Survivors: on to 300" },
+    items: [
+      { fr: "Vide la vague, la suivante arrive aussitôt ; vite fait, un Super Bonbon.", en: "Clear the wave and the next one comes at once; fast, a Rare Candy." },
+      { fr: "Les boss se battent seuls, avec des affixes : bouclier, téléporteur, renforts…", en: "Bosses fight alone, with affixes: shield, blinker, backup…" },
+      { fr: "Cartes Paragon dès la vague 75 : des règles uniques, comme Écho ou Détonation.", en: "Paragon cards from wave 75: one-off rules, like Echo or Detonation." },
+      { fr: "Les pactes de Kecleon : un malus jusqu'au boss contre un gros cadeau.", en: "Kecleon's pacts: a curse until the boss for a big gift." },
+      { fr: "Un boss vaincu lâche parfois sa Poké Ball : il se bat à tes côtés.", en: "A beaten boss sometimes drops its Poké Ball: it fights by your side." },
+      { fr: "11 nouvelles capacités, 3 objets, 5 combos et 3 builds de départ.", en: "11 new moves, 3 items, 5 combos and 3 starting builds." },
+      { fr: "300 vagues, départs jusqu'à la 275, et après la 100 les bonbons viennent tout seuls.", en: "300 waves, starts up to 275, and past 100 candies come to you." },    ],
+  },
+  {
     version: "0.15",
     date: "2026-10-17",
     title: { fr: "Le tapis d'échange", en: "The trade mat" },

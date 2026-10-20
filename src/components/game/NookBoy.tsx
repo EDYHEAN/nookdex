@@ -1708,6 +1708,9 @@ function statsOf(g: Game, t: (fr: string, en: string) => string): [string, strin
     [t("PV max", "Max HP"), `${Math.round(g.maxHp)}`, false],
     [t("Terrain", "Field"), t(g.biome.name[0], g.biome.name[1]), false],
     ...(g.weather ? [[t("Météo", "Weather"), t(WEATHERS[g.weather].name[0], WEATHERS[g.weather].name[1]), false] as [string, string, boolean]] : []),
+    ...(g.allies.some((a) => a.owner === g.cur.id)
+      ? [[t("Alliés", "Allies"), g.allies.filter((a) => a.owner === g.cur.id).map((a) => g.name(a.dex)).join(", "), false] as [string, string, boolean]]
+      : []),
     ...(g.pact ? [[t("Pacte", "Pact"), t(PACTS.find((x) => x.id === g.pact)!.curse[0], PACTS.find((x) => x.id === g.pact)!.curse[1]), false] as [string, string, boolean]] : []),
   ];
 }
@@ -1766,6 +1769,12 @@ function guideRows(tab: number, lang: Lang): [string, string][] {
       [fr ? "Énervé" : "Enraged", fr ? `Après ${ENRAGE_AFTER} s, tout boss frappe plus fort.` : `After ${ENRAGE_AFTER} s, any boss hits harder.`],
       ["★", fr ? `Cartes Paragon : dès la vague ${PARAGON_WAVE}, une seule de chaque.` : `Paragon cards: from wave ${PARAGON_WAVE}, one of each.`],
       ...PARAGONS.map((p) => [say(p.name, lang), say(p.desc, lang)] as [string, string]),
+      [
+        fr ? "Poké Ball" : "Poké Ball",
+        fr
+          ? "Un boss vaincu lâche parfois sa Poké Ball : il se bat à tes côtés. 1 allié, 2 dès la vague 100, 3 dès la 200."
+          : "A beaten boss sometimes drops its Poké Ball: it fights by your side. 1 ally, 2 from wave 100, 3 from 200.",
+      ],
       ["★", fr ? "Pactes de Kecleon : un malus jusqu'au boss, un gros cadeau tout de suite." : "Kecleon's pacts: a curse until the boss, a big gift right away."],
       ...PACTS.map((p) => [say(p.name, lang), `${say(p.curse, lang)} → ${say(p.gift, lang)}`] as [string, string]),
     ];

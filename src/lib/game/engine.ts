@@ -226,7 +226,7 @@ interface Enemy {
 
 interface Shot {
   kind: "ember" | "water" | "leaf" | "shadow" | "swift" | "flame" | "foe" | "blast" | "bubble" | "scald" | "bone" | "sludge" | "aura" | "psycut" | "gball" | "ice" | "psyorb" | "blade"
-    | "rock" | "fairy" | "dragon";
+    | "rock" | "fairy" | "dragon" | "ally";
   x: number;
   y: number;
   vx: number;
@@ -245,8 +245,25 @@ interface Shot {
   pool?: { r: number; dps: number };
 }
 
+/**
+ * A boss caught in a Poké Ball (Johan, 2026-10-20: "why not, as long as it isn't broken"): it follows its player and fires
+ * at the closest foe in its type, about as strong as one good move; it takes no blows. One at a time, two from wave 100,
+ * three from 200; a new one takes the oldest's place.
+ */
+interface Ally {
+  dex: number;
+  elem: Elem;
+  owner: number;
+  x: number;
+  y: number;
+  dir: number;
+  t: number;
+  cd: number;
+}
+
 interface Pickup {
-  kind: "candy" | "oran" | "rare" | "magnet" | "egg" | "coin";
+  /** ball: a boss's Poké Ball (its value is the boss's dex number) */
+  kind: "candy" | "oran" | "rare" | "magnet" | "egg" | "coin" | "ball";
   x: number;
   y: number;
   /** pop-out arc */
@@ -381,6 +398,8 @@ export class Player {
   paragons: ParagonId[] = [];
   bonusHp = 0;
   frenzy = 1;
+  /** the time since a blow last landed (the Metronome) */
+  calmT = 0;
   constructor(id: number) {
     this.id = id;
   }
@@ -691,6 +710,8 @@ export class Game {
   private charmed = 0;
   /** a Detonation's blast going off (its own K.O.s don't blow up) */
   private blasting = false;
+  /** the bosses caught (classic and coop) */
+  allies: Ally[] = [];
   /** the run's clock at its start: 0, or a start tier's (the draft's cards are picked then) */
   startAt = 0;
   /** the wave's weather (none in the daily challenge) */
@@ -811,7 +832,7 @@ export class Game {
     return this.cur.paragons.includes(id);
   }
   get power() {
-    return this.cur.frenzy * (1 + 0.02 * this.perm("power")) * (this.setup.daily?.mod.playerDmg ?? 1) * (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower) * (this.starter.power ?? 1) * (1 + (this.starter.growth ?? 0) * (this.level - 1)) * this.defiPower;
+    return this.cur.frenzy * (1 + Math.min(1, this.cur.calmT / 10) * 0.06 * this.itemLevel("metronome")) * (1 + 0.02 * this.perm("power")) * (this.setup.daily?.mod.playerDmg ?? 1) * (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower) * (this.starter.power ?? 1) * (1 + (this.starter.growth ?? 0) * (this.level - 1)) * this.defiPower;
   }
   /** the daily challenge is quicker and stronger (x1.5); Eevee grows with each wave cleared, Machop when it hurts */
   private get defiPower() {
@@ -868,7 +889,7 @@ export class Game {
     return !this.setup.defi && this.wave > BEYOND;
   }
   get goldMul() {
-    return this.pace * (1 + 0.06 * this.perm("gold")) * (this.setup.daily?.mod.gold ?? 1);
+    return this.pace * (1 + 0.06 * this.perm("gold")) * (1 + 0.15 * this.itemLevel("amulet")) * (this.setup.daily?.mod.gold ?? 1);
   }
   private computeMaxHp() {
     return Math.round(
@@ -899,7 +920,7 @@ export class Game {
     this.offers = [];
     this.shopRerolls = 0;
     this.inBreak = false;
-    Object.assign(this, { pact: null, pactOffer: null, pactShown: false, pactKept: false });
+    Object.assign(this, { pact: null, pactOffer: null, pactShown: false, pactKept: false, allies: [] });
     Object.assign(this, {
       time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1, titanT: 4, titanWave: 0,
       bossAlive: null, bossDue: 0, weather: null, breakAt: 0, shake: 0, flash: 0, dyingT: 0, defiLeft: setup.defi ? DEFI_QUOTA[0] : 0, defiGroupT: 1, defiGap: 0, defiTitans: 0, endAt: 0,
@@ -1455,6 +1476,7 @@ export class Game {
     this.buildGrid();
     this.eachAlive((p) => {
       p.sashCd = Math.max(0, p.sashCd - dt);
+      p.calmT += dt;
       // Frenzy (a Paragon card): +2 % a foe close by, up to +50 %
       p.frenzy = this.has("frenzy") ? 1 + Math.min(0.5, 0.02 * this.around(p.x, p.y, 70).length) : 1;
       this.stepDash(dt);
@@ -1482,6 +1504,7 @@ export class Game {
     this.cur = this.alive()[0] ?? this.players[0];
     this.spawn(dt);
     this.stepEnemies(dt);
+    this.stepAllies(dt);
     this.stepShots(dt);
     this.stepFoes(dt);
     this.stepFx(dt);
@@ -1608,7 +1631,9 @@ export class Game {
    * enough to be all out by 60 % of the wave's length.
    */
   private fillWave(w: number) {
-    const boss = w % 5 === 0;
+    // a start tier's first wave is a boss's, but the boss comes after BOSS_LATE: a full crowd meanwhile
+    const tierStart = this.startAt > 0 && this.time === this.startAt;
+    const boss = w % 5 === 0 && !tierStart;
     const spawnMod = this.setup.daily?.mod.spawn ?? 1;
     const n = boss ? Math.min(40, 8 + Math.floor(w / 4)) : w === 11 ? 0 : Math.round(waveQuota(w) * spawnMod * (this.pact === "horde" ? 1.6 : 1));
     Object.assign(this, {
@@ -2387,6 +2412,119 @@ export class Game {
         gsfx.shoot("whip");
         break;
       }
+      case "dragonbreath": {
+        // three breaths in a fan where it aims, through two foes each
+        const base = Math.atan2(this.aimV.y, this.aimV.x);
+        for (let i = -1; i <= 1; i++) this.shoot("dragon", this.x, this.y - 8, Math.cos(base + i * 0.3), Math.sin(base + i * 0.3), 170, 4, (18 + 7 * L) * pw, 2, 1.2, "dragon");
+        gsfx.fire();
+        break;
+      }
+      case "airslash": {
+        const n = 4 + L;
+        const a0 = Math.random() * Math.PI * 2;
+        for (let i = 0; i < n; i++) {
+          const a = a0 + (i / n) * Math.PI * 2;
+          this.shoot("blade", this.x, this.y - 8, Math.cos(a), Math.sin(a), 180, 4, (8 + 3 * L) * pw, 1, 1.1, "fly");
+        }
+        gsfx.shoot("whip");
+        break;
+      }
+      case "drainpunch":
+      case "crunch": {
+        // a blow (or bites) on the closest: Drain Punch heals with each one
+        const punch = m.id === "drainpunch";
+        const targets = this.nearestN(this.x, this.y, punch ? 1 + Math.floor(L / 3) : 2 + Math.floor(L / 2), (punch ? 70 : 90) * this.area);
+        if (!targets.length) {
+          m.cd = 0.3;
+          return;
+        }
+        const elem: Elem = punch ? "fight" : "dark";
+        for (const t of targets) {
+          const a = Math.atan2(t.y - this.y, t.x - this.x);
+          this.fx.push({ kind: "punch", x: this.x, y: this.y - 8, t: 0, life: 0.2, a, r: Math.hypot(t.x - this.x, t.y - this.y), elem });
+          this.damage(t, (punch ? 30 + 12 * L : 12 + 5 * L) * pw, Math.cos(a) * 120, Math.sin(a) * 120, elem);
+          if (punch) this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.01 * (1 + L / 5));
+        }
+        if (punch) gsfx.heal();
+        gsfx.shoot("whip");
+        break;
+      }
+      case "bugbuzz":
+        this.fx.push({ kind: "ring", x: this.x, y: this.y, t: 0, life: 0.5, r: (70 + 10 * L) * this.area, elem: "bug", hit: new Set(), dmg: (14 + 7 * L) * pw });
+        gsfx.wave();
+        break;
+      case "hurricane":
+        for (let i = -1; i <= 1; i++) {
+          const a = Math.atan2(this.aimV.y, this.aimV.x) + i * 0.9;
+          this.fx.push({
+            kind: "tornado", x: this.x + Math.cos(a) * 24, y: this.y + Math.sin(a) * 24, vx: Math.cos(a) * 45, vy: Math.sin(a) * 45,
+            t: 0, life: 4, r: 46 * this.area, dmg: 28 * pw, tick: 0, elem: "fly",
+          });
+        }
+        gsfx.wave();
+        break;
+      case "outrage": {
+        // a crown of dragon flames, turning a little each time
+        for (let i = 0; i < 12; i++) {
+          const a = this.time * 0.7 + (i / 12) * Math.PI * 2;
+          this.shoot("dragon", this.x, this.y - 8, Math.cos(a), Math.sin(a), 150, 5, 70 * pw, 3, 1.3, "dragon");
+        }
+        this.shake = Math.max(this.shake, 2);
+        gsfx.fire();
+        break;
+      }
+      case "aeroblast": {
+        const a0 = this.time * 2.1;
+        for (let i = 0; i < 10; i++) {
+          const a = a0 + (i / 10) * Math.PI * 2;
+          this.shoot("blade", this.x, this.y - 8, Math.cos(a), Math.sin(a), 220, 5, 40 * pw, 999, 1.2, "fly");
+        }
+        gsfx.shoot("whip");
+        break;
+      }
+      case "focuspunch": {
+        // the toughest foe close by takes it (a boss first), and the blow shakes those around it
+        const near = this.nearestN(this.x, this.y, 10, 110 * this.area);
+        if (!near.length) {
+          m.cd = 0.3;
+          return;
+        }
+        const t = near.reduce((a, b) => (b.boss || b.hp > a.hp ? b : a));
+        const a = Math.atan2(t.y - this.y, t.x - this.x);
+        this.fx.push({ kind: "punch", x: this.x, y: this.y - 8, t: 0, life: 0.25, a, r: Math.hypot(t.x - this.x, t.y - this.y), elem: "fight" });
+        this.damage(t, 320 * pw, Math.cos(a) * 200, Math.sin(a) * 200, "fight");
+        this.fx.push({ kind: "ring", x: t.x, y: t.y, t: 0, life: 0.3, r: 40 * this.area, elem: "fight", hit: new Set([t]), dmg: 80 * pw });
+        this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.03);
+        this.shake = Math.max(this.shake, 5);
+        gsfx.boom();
+        break;
+      }
+      case "nightslash": {
+        // always a crit: the crit's multiplier on top
+        const targets = this.nearestN(this.x, this.y, 6, 200);
+        if (!targets.length) {
+          m.cd = 0.3;
+          return;
+        }
+        for (const t of targets) {
+          const a = Math.atan2(t.y - this.y, t.x - this.x);
+          this.shoot("blade", this.x, this.y - 8, Math.cos(a), Math.sin(a), 230, 4, 38 * pw * this.critMul, 2, 1.2, "dark", t);
+        }
+        gsfx.shoot("whip");
+        break;
+      }
+      case "megahorn": {
+        const R = 150 * this.area;
+        for (const e of this.around(this.x, this.y, R)) {
+          this.poisonFoe(e, 12 * pw, 4);
+          this.damage(e, 75 * pw, (e.x - this.x) * 0.8, (e.y - this.y) * 0.8, "bug", true);
+        }
+        this.fx.push({ kind: "ring", x: this.x, y: this.y, t: 0, life: 0.55, r: R, elem: "bug" });
+        this.fx.push({ kind: "ring", x: this.x, y: this.y, t: -0.15, life: 0.55, r: R * 0.7, elem: "poison" });
+        this.shake = Math.max(this.shake, 3);
+        gsfx.wave();
+        break;
+      }
       // ---- the evolved moves ----
       case "moonblast": {
         // the moon falls where the foes are thickest; it heals a little
@@ -2800,7 +2938,11 @@ export class Game {
     if (elem === "dark" && !e.boss && Math.random() < 0.3) e.sleepT = Math.max(e.sleepT, 0.5);
     const crit = Math.random() < this.crit;
     const day = this.setup.daily?.mod.elem;
-    const boost = (day && (elem === day[0] || (day[0] === "water" && elem === "elec")) ? day[1] : 1) * ((e.boss || e.titan) && this.has("hunter") ? 1.5 : 1);
+    const statused = e.wetT > 0 || e.burnT > 0 || e.poisonT > 0 || e.sleepT > 0 || e.charmT > 0;
+    const boost =
+      (day && (elem === day[0] || (day[0] === "water" && elem === "elec")) ? day[1] : 1) *
+      ((e.boss || e.titan) && this.has("hunter") ? 1.5 : 1) *
+      (statused ? 1 + 0.12 * this.itemLevel("razorfang") : 1);
     const dmg = Math.max(1, Math.round(base * mul * boost * this.weatherMul(elem) * (crit ? this.critMul : 1) * rand(0.9, 1.1)));
     if (mul > 1) {
       unlock("game-combo");
@@ -2884,6 +3026,8 @@ export class Game {
       this.flash = 0.8;
       // a Rare Candy; past wave 100, three (the levels come slowly up there)
       for (let i = 0; i < (this.beyond ? 3 : 1); i++) this.drop("rare", e.x + i * 8, e.y - i * 4, 0);
+      // now and then its Poké Ball, flying to you (never a giga boss's: they're twice as big)
+      if (!e.boss.giga && !this.setup.daily && Math.random() < 0.3) this.pickups.push({ kind: "ball", x: e.x, y: e.y, z: 0.1, vz: 90, value: e.dex, pull: true, t: 0 });
       this.drop("oran", e.x + 8, e.y, 0);
       for (let i = 0; i < 14; i++) this.drop("candy", e.x + rand(-20, 20), e.y + rand(-20, 20), 8);
       for (let i = 0; i < 10; i++) this.drop("coin", e.x + rand(-24, 24), e.y + rand(-24, 24), 2 + Math.floor(this.wave / 4));
@@ -3014,6 +3158,7 @@ export class Game {
       gsfx.shield();
     }
     this.hp -= dmg;
+    this.cur.calmT = 0;
     // a little less breathing room as the waves go on
     this.invuln = Math.max(0.45, 0.8 - this.wave * 0.012);
     if (sig === "counter") {
@@ -3600,7 +3745,7 @@ export class Game {
     for (const s of this.shots) {
       s.t += dt;
       s.life -= dt;
-      if ((s.kind === "leaf" || s.kind === "swift" || s.kind === "aura" || s.kind === "gball" || s.kind === "psyorb" || s.kind === "fairy") && s.target) {
+      if ((s.kind === "leaf" || s.kind === "swift" || s.kind === "aura" || s.kind === "gball" || s.kind === "psyorb" || s.kind === "fairy" || s.kind === "ally") && s.target) {
         if (s.target.dead) s.target = this.nearest(s.x, s.y, 120);
         if (s.target) {
           const dx = s.target.x - s.x, dy = s.target.y - 8 - s.y;
@@ -3927,7 +4072,53 @@ export class Game {
     } else if (p.kind === "magnet") {
       gsfx.rare();
       for (const q of this.pickups) if (q.kind === "candy") q.pull = true;
-    }
+    } else if (p.kind === "ball") this.addAlly(p.value);
+  }
+
+  /** a boss caught: it joins its player (the oldest of theirs leaves once they have as many as they may) */
+  private addAlly(dex: number) {
+    const b = BOSSES.find((x) => x.dex === dex);
+    if (!b) return;
+    const max = 1 + (this.wave >= 100 ? 1 : 0) + (this.wave >= 200 ? 1 : 0);
+    const mine = this.allies.filter((a) => a.owner === this.cur.id);
+    if (mine.length >= max) this.allies.splice(this.allies.indexOf(mine[0]), 1);
+    this.allies.push({ dex, elem: b.shot, owner: this.cur.id, x: this.x, y: this.y, dir: 0, t: 0, cd: 1 });
+    this.flash = 0.6;
+    for (let i = 0; i < 20; i++) this.part(this.x, this.y - 10, rand(-60, 60), rand(-70, 10), "white", 0.6, 2, 60, "spark");
+    gsfx.evolveDone();
+    this.showBanner(this.tr(`${this.name(dex)} REJOINT L'ÉQUIPE !`, `${this.name(dex)} JOINS THE TEAM!`), this.tr("il se bat à tes côtés", "it fights by your side"));
+  }
+
+  /** the allies follow their player round, and fire at the closest foe in their type */
+  private stepAllies(dt: number) {
+    if (!this.allies.length) return;
+    const keep = this.cur;
+    this.allies.forEach((a, i) => {
+      const p = this.players[a.owner];
+      if (!p) return;
+      a.t += dt;
+      const mine = this.allies.filter((o) => o.owner === a.owner);
+      const ang = (mine.indexOf(a) / mine.length) * Math.PI * 2 + this.time * 0.4 + i;
+      const tx = p.x + Math.cos(ang) * 24, ty = p.y + Math.sin(ang) * 18;
+      const dx = tx - a.x, dy = ty - a.y, d = Math.hypot(dx, dy);
+      if (d > 1) {
+        const sp = Math.min(d * 5, 170) * dt;
+        a.x += (dx / d) * sp;
+        a.y += (dy / d) * sp;
+        if (d > 4) a.dir = dirOf(dx, dy);
+      }
+      a.cd -= dt;
+      if (a.cd > 0 || p.down) return;
+      const t = this.nearest(a.x, a.y, 150);
+      if (!t) return;
+      a.cd = 1;
+      this.cur = p;
+      const ux = t.x - a.x, uy = t.y - 8 - a.y, ul = Math.hypot(ux, uy) || 1;
+      a.dir = dirOf(ux, uy);
+      // about a level-5 plain move's damage a second (Swift's ~150 x power): useful, never the build
+      this.shoot("ally", a.x, a.y - 10, ux / ul, uy / ul, 190, 4, (60 + 0.6 * this.wave) * this.power, 0, 1.4, a.elem, t);
+    });
+    this.cur = keep;
   }
 
   private gainXp(v: number) {
@@ -4112,6 +4303,7 @@ export class Game {
     ctx.globalAlpha = 0.28;
     for (const e of this.enemies) if (!e.dead || e.deadT < 0.2) ellipse(ctx, e.x + ox, e.y + oy, e.r * (e.boss ? 1.1 : 1.05) * (1 - e.z / 90), e.r * 0.45);
     for (const p of this.players) ellipse(ctx, p.x + ox, p.y + oy, 7, 3);
+    for (const a of this.allies) ellipse(ctx, a.x + ox, a.y + oy, 6, 2.5);
     ctx.globalAlpha = 1;
     this.drawPickups(ctx, ox, oy);
     for (const p of this.players) this.as(p, () => this.drawGroundOf(ctx, ox, oy));
@@ -4120,6 +4312,8 @@ export class Game {
     const bodies: { y: number; draw: () => void }[] = [];
     for (const e of this.enemies) bodies.push({ y: e.y, draw: () => this.drawEnemy(ctx, e, ox, oy) });
     for (const p of this.players) bodies.push({ y: p.y, draw: () => this.as(p, () => this.drawPlayer(ctx, ox, oy)) });
+    // the allies, smaller than the bosses they were
+    for (const a of this.allies) bodies.push({ y: a.y, draw: () => g.sprite(ctx, a.dex, "Walk", frameAt(anim(a.dex, "Walk"), a.t), a.dir, a.x + ox, a.y + oy - 8, { scale: 0.7 }) });
     this.drawBodies(ctx, bodies, ox, oy);
   }
 
@@ -4447,6 +4641,16 @@ export class Game {
         pix(ctx, g, PIX.orb, x, y, 0, { a: "dragon", b: "dragon2" });
         break;
       }
+      case "ally":
+        // an ally's shot: an orb of its type in its glow
+        ctx.fillStyle = g.c[c1];
+        ctx.globalAlpha = 0.3 + 0.15 * Math.sin(s.t * 20);
+        ctx.beginPath();
+        ctx.arc(x, y, s.r + 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        pix(ctx, g, PIX.orb, x, y, 0, { a: c1, b: c2 });
+        break;
       case "ice":
         // a shard of ice, pointing where it flies
         pix(ctx, g, PIX.blade, x, y, dir4(s.vx, s.vy), { p: "ice", P: "ice2" });
@@ -4861,6 +5065,18 @@ export class Game {
         // the Rare Candy: blue with its golden band and wrappers, twinkling
         pix(ctx, g, PIX.rare, x, y);
         if (Math.floor(p.t * 6) % 2) star(ctx, x + 5, y - 4, p.t, g.c.gold, g.c.white);
+      } else if (p.kind === "ball") {
+        // a boss's Poké Ball, wobbling
+        const w = Math.round(Math.sin(p.t * 9));
+        ctx.fillStyle = g.c.ink;
+        ctx.beginPath();
+        ctx.arc(x + w, y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = g.c.hpLow;
+        ctx.fillRect(x + w - 3, y - 4, 7, 4);
+        ctx.fillStyle = g.c.white;
+        ctx.fillRect(x + w - 3, y + 1, 7, 3);
+        ctx.fillRect(x + w, y - 1, 1, 1);
       } else {
         ctx.fillStyle = g.c.ink;
         ctx.fillRect(x - 4, y - 4, 8, 7);

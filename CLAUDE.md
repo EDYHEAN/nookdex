@@ -308,10 +308,10 @@ doesn't show.
   a Rare Candy if cleared with a third of its time left from wave 25); its length (15 s up to 24, 20 s to 49, then 30 s:
   `waveLength`) is only the most it lasts. A boss's wave is a few guards then the boss alone, over when it falls (no
   clock: it enrages after `ENRAGE_AFTER` s). A boss every 5th,
-  candies → levels → 3 cards (31 moves of 17 types, auto-cast or keys 1-4, 4 at most; 17 held items; once all is maxed,
-  stacking bonuses). A move at level 5 + its item (`evo` in lib/game/data) offers its evolution first (16 of them).
+  candies → levels → 3 cards (36 moves of 17 types, auto-cast or keys 1-4, 4 at most; 20 held items; once all is maxed,
+  stacking bonuses). A move at level 5 + its item (`evo` in lib/game/data) offers its evolution first (22 of them).
   Statuses (wet, burnt, poisoned, asleep/frozen, slowed, charmed: Fairy, the foe goes for its neighbours; Dark makes them
-  flinch) and `COMBOS` (17; the pause lists the run's own and its live stats, `statsOf`; the menu's « Guide » lists statuses, combos, evolutions and items, `STATUSES` in lib/game/data) are what the moves play on (Hex, Poltergeist hit the statused).
+  flinch) and `COMBOS` (22; the pause lists the run's own and its live stats, `statsOf`; the menu's « Guide » lists statuses, combos, evolutions and items, `STATUSES` in lib/game/data) are what the moves play on (Hex, Poltergeist hit the statused).
   A cooldown never gets under 30 % of its own (`HASTE_FLOOR`; no PP Up offered once there, « vitesse max » in the pause). A blow takes at most 30 % of the max HP (`HIT_CAP`, Johan 2026-10-18: no one-shot, running through the crowd wears down). Foes' HP and damage grow with the square of the wave up to 100, in a straight line past it, and the XP curve steepens
   past level 15 (Johan, 2026-10-12: wave 23 was too easy). Balance is tuned with a god-mode bot driving `window.nookboy`
   through Playwright (damage taken per second / max HP, a boss's time to fall, a move's damage per second alone). Score
@@ -347,7 +347,8 @@ doesn't show.
   own rules (Johan, 2026-10-20, all in the guide's « Au-delà » tab): boss **affixes** (`AFFIXES`: shield, swift,
   regenerator, leader, blinker; one from wave 50, two from 150), **Paragon cards** (`PARAGONS`, from wave 75, one of each,
   among the level-up cards and at Kecleon's), **Kecleon's pacts** (`PACTS`, from wave 10: a curse until the next boss falls
-  for a big gift at once). **Start tiers**: a run may start at 25,
+  for a big gift at once), **allies** (a boss sometimes drops its Poké Ball: it follows and fires in its type, about one
+  plain move's damage; 1, 2 from wave 100, 3 from 200; never a giga boss). **Start tiers**: a run may start at 25,
   50 … 275 once that wave was reached (`TIERS`, `tierLevel`, `tierPicks` in the engine): the level a played run has there
   (`TIER_LEVEL`, from the ladder: 42 at 25, 110 at 50; 80 at 50 was too weak, a friend 2026-10-18),
   evolved, a card per level (past a full build: stacking boosts), all of them as a build pack picked out of 3 (`PACKS` in lib/game/data: 15 builds of
