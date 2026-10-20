@@ -158,8 +158,8 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   pourrait la contester et se faire rembourser). Le reçu Stripe porte « NookDex · objet · TVA non applicable, art. 293 B
   du CGI » (description du paiement).
   Les CGV et les mentions légales disent que Johan vend. Fait par Johan : la variable dans Vercel, les reçus Stripe (e-mails
-  aux clients : paiements réussis, remboursements), son téléphone masqué sur les reçus. **Reste : un médiateur de la
-  consommation** (obligatoire, à mettre dans `LEGAL.mediator`, les CGV le citent). À 10 000 € de ventes par an vers
+  aux clients : paiements réussis, remboursements), son téléphone masqué sur les reçus. Médiateur de la consommation
+  (obligatoire) : SMP, dans `LEGAL.mediator`, cité par les CGV (convention à signer, voir « Reste à faire »). À 10 000 € de ventes par an vers
   d'autres pays de l'UE, la TVA de chaque pays (guichet OSS) devient due.
 
 **Fait le 2026-10-16**
@@ -185,6 +185,11 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   carnet de l'étagère et le texte de l'accueil ; vie privée mise à jour (achats, Stripe/Link, 10 ans de compta).
 
 **Reste à faire**
+- **Signer la convention du médiateur SMP** (demande #309572) et payer sa facture (30 € TTC) : reçues, pas encore signées
+  au 2026-10-20. Obligatoire dès qu'on vend à des particuliers (une vente réelle le 2026-10-16).
+- **Numéro de TVA demandé par Stripe** (Paramètres → Entreprise → État du compte, « indispensable pour certains moyens de
+  paiement comme les cartes bancaires ») : question posée au support le 2026-10-20 (obligatoire sans Managed Payments ?
+  restriction du compte ?). Laissé vide en attendant.
 - Pas de téléphone dans les mentions légales pour l'instant (Johan, 2026-10-16), bien que la LCEN le demande à une
   personne physique : à ajouter dans `LEGAL` s'il prend un numéro à part.
 - Les liens sur la page de paiement Stripe (2026-10-16, en complétant le compte) : politique de confidentialité
