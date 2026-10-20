@@ -1,5 +1,7 @@
 # Le mail du rapport de la semaine : quand la routine du lundi pose docs/reports/<date>.html sur main, il part vers
 # contact@nookdex.com via Brevo (expéditeur contact@nookdex.com). Secret : BREVO_API_KEY (la même clé que le site).
+# Les ventes de la boutique et les dons y sont ajoutés à l'envoi, lus sur Stripe (jamais écrits dans le dépôt, public) :
+# secrets STRIPE_SHOP_KEY et STRIPE_TIPS_KEY, des clés restreintes en lecture seule (« Balance » et « Checkout Sessions »).
 # Lancement à la main (renvoyer le dernier) : onglet « Actions » > « Mail du rapport » > « Run workflow ».
 name: Mail du rapport
 
@@ -24,4 +26,6 @@ jobs:
       - name: Envoyer
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          STRIPE_SHOP_KEY: ${{ secrets.STRIPE_SHOP_KEY }}
+          STRIPE_TIPS_KEY: ${{ secrets.STRIPE_TIPS_KEY }}
         run: node scripts/report-mail.mjs
