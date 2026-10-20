@@ -103,6 +103,8 @@ export default function NookBoy({ origin, onClose }: Props) {
   const [ladderPage, setLadderPage] = useState(0);
   /** the guide's tab and page */
   const [guide, setGuide] = useState({ tab: 0, page: 0 });
+  /** the guide opened from the pause (Johan, 2026-10-20: what goes with what, mid-run) */
+  const [pauseGuide, setPauseGuide] = useState(false);
   const [board, setBoard] = useState(0);
   /** the Pension's screen, open over the menu or the game over: it spends the purse */
   const [pension, setPension] = useState(false);
@@ -414,16 +416,24 @@ export default function NookBoy({ origin, onClose }: Props) {
       }
       return;
     }
-    if (p === "title" && screen === "guide" && (b === "left" || b === "right")) {
+    const inGuide = (p === "title" && screen === "guide") || (p === "paused" && pauseGuide);
+    if (inGuide && (b === "left" || b === "right")) {
       gsfx.move();
       return setGuide((gd) => ({ tab: (gd.tab + (b === "left" ? -1 : 1) + GUIDE_TABS.length) % GUIDE_TABS.length, page: 0 }));
     }
-    if (p === "title" && screen === "guide" && (b === "up" || b === "down")) {
+    if (inGuide && (b === "up" || b === "down")) {
       const pages = guidePages(guide.tab);
       const next = Math.min(pages - 1, Math.max(0, guide.page + (b === "up" ? -1 : 1)));
       if (next === guide.page) return gsfx.back();
       gsfx.move();
       return setGuide({ ...guide, page: next });
+    }
+    if (p === "paused" && pauseGuide) {
+      if (b === "b" || b === "a" || b === "start") {
+        gsfx.back();
+        setPauseGuide(false);
+      }
+      return;
     }
     if (p === "title" && screen === "ladder" && (b === "up" || b === "down")) return turnLadder(b === "up" ? -1 : 1);
     if (p === "title" && screen === "ladder" && (b === "left" || b === "right")) {
@@ -540,11 +550,12 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (p === "paused") {
       if (b === "up" || b === "down") {
         gsfx.move();
-        setCursor((c) => (c + 1) % 2);
+        setCursor((c) => (c + (b === "up" ? 2 : 1)) % 3);
       } else if (b === "start" || b === "b" || (b === "a" && cursor === 0)) {
         gsfx.ok();
         eng.pause(false);
-      } else if (b === "a" && cursor === 1) {
+      } else if (b === "a" && cursor === 1) openPauseGuide();
+      else if (b === "a" && cursor === 2) {
         gsfx.back();
         eng.giveUp();
       }
@@ -572,6 +583,53 @@ export default function NookBoy({ origin, onClose }: Props) {
     setSent("idle");
     if (run.mode === "daily" || run.mode === "defi") startRun("daily");
     else g.toSelect();
+  };
+
+  /** the guide, from the menu or from the pause: its keys line says where B goes back to */
+  const guideView = (back: [string, string]) => {
+    const pages = guidePages(guide.tab);
+    const turn = (d: number) => press(d < 0 ? "up" : "down");
+    return (
+      <div className={styles.page}>
+        <h2>{t("GUIDE", "GUIDE")}</h2>
+        <div className={styles.tabs}>
+          {GUIDE_TABS.map((tb, i) => (
+            <button key={i} className={i === guide.tab ? styles.on : ""} onClick={() => (gsfx.move(), setGuide({ tab: i, page: 0 }))}>
+              {say(tb, lang)}
+            </button>
+          ))}
+        </div>
+        <div className={`${styles.box} ${styles.guide}`} onWheel={(e) => Math.abs(e.deltaY) > 8 && turn(e.deltaY)}>
+          {guideRows(guide.tab, lang).slice(guide.page * guideRowsPer(guide.tab), (guide.page + 1) * guideRowsPer(guide.tab)).map((r, i) => (
+            <p key={i}>
+              <b>{r[0]}</b> {r[1]}
+            </p>
+          ))}
+          {pages > 1 && (
+            <p className={styles.lPages}>
+              <button disabled={guide.page === 0} onClick={() => turn(-1)}>
+                ▲
+              </button>
+              <span>
+                {guide.page + 1}/{pages}
+              </span>
+              <button disabled={guide.page >= pages - 1} onClick={() => turn(1)}>
+                ▼
+              </button>
+            </p>
+          )}
+        </div>
+        <p className={styles.keys} onClick={() => press("b")}>
+          {t(`◀ ▶ rubrique · ▲ ▼ pages · B : ${back[0]}`, `◀ ▶ section · ▲ ▼ pages · B: ${back[1]}`)}
+        </p>
+      </div>
+    );
+  };
+
+  const openPauseGuide = () => {
+    gsfx.ok();
+    setGuide({ tab: 0, page: 0 });
+    setPauseGuide(true);
   };
 
   const quitRun = () => {
@@ -846,45 +904,7 @@ export default function NookBoy({ origin, onClose }: Props) {
           </div>
         );
       }
-      if (screen === "guide") {
-        const pages = guidePages(guide.tab);
-        const turn = (d: number) => press(d < 0 ? "up" : "down");
-        return (
-          <div className={styles.page}>
-            <h2>{t("GUIDE", "GUIDE")}</h2>
-            <div className={styles.tabs}>
-              {GUIDE_TABS.map((tb, i) => (
-                <button key={i} className={i === guide.tab ? styles.on : ""} onClick={() => (gsfx.move(), setGuide({ tab: i, page: 0 }))}>
-                  {say(tb, lang)}
-                </button>
-              ))}
-            </div>
-            <div className={`${styles.box} ${styles.guide}`} onWheel={(e) => Math.abs(e.deltaY) > 8 && turn(e.deltaY)}>
-              {guideRows(guide.tab, lang).slice(guide.page * guideRowsPer(guide.tab), (guide.page + 1) * guideRowsPer(guide.tab)).map((r, i) => (
-                <p key={i}>
-                  <b>{r[0]}</b> {r[1]}
-                </p>
-              ))}
-              {pages > 1 && (
-                <p className={styles.lPages}>
-                  <button disabled={guide.page === 0} onClick={() => turn(-1)}>
-                    ▲
-                  </button>
-                  <span>
-                    {guide.page + 1}/{pages}
-                  </span>
-                  <button disabled={guide.page >= pages - 1} onClick={() => turn(1)}>
-                    ▼
-                  </button>
-                </p>
-              )}
-            </div>
-            <p className={styles.keys} onClick={() => press("b")}>
-              {t("◀ ▶ rubrique · ▲ ▼ pages · B : retour", "◀ ▶ section · ▲ ▼ pages · B: back")}
-            </p>
-          </div>
-        );
-      }
+      if (screen === "guide") return guideView(["retour", "back"]);
       if (screen === "ladder")
         return (
           <div className={styles.page}>
@@ -1052,6 +1072,7 @@ export default function NookBoy({ origin, onClose }: Props) {
               const tag = { move: t("CAPACITÉ", "MOVE"), item: t("OBJET", "ITEM"), heal: t("SOIN", "HEAL"), evolve: t("ÉVOLUTION", "EVOLUTION"), bonus: "BONUS", pack: "BUILD" }[c.kind];
               // an evolution says what it's made of: the move and its item
               const recipe = move?.evo && `${say(MOVES.find((m) => m.id === move.evo!.from)!.name, lang)} + ${say(ITEMS.find((it) => it.id === move.evo!.item)!.name, lang)}`;
+              const hint = evoHint(c, g, lang);
               return (
                 <button
                   key={`${c.kind}${c.id}`}
@@ -1076,6 +1097,12 @@ export default function NookBoy({ origin, onClose }: Props) {
                             : `${"●".repeat(c.level)}${"○".repeat(5 - c.level)}`}
                   </span>
                   <span className={styles.cardDesc}>{def ? say(def.desc, lang) : t("Soigne 40 % de tes PV.", "Heals 40% of your HP.")}</span>
+                  {hint && (
+                    <span className={`${styles.cardEvo} ${hint.has ? styles.cardEvoHas : ""}`}>
+                      ✦ {t("avec", "with")} {hint.with} → {hint.to}
+                      {hint.has && " ✓"}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -1204,14 +1231,20 @@ export default function NookBoy({ origin, onClose }: Props) {
         </div>
       );
     }
+    if (phase === "paused" && pauseGuide) return guideView(["pause", "pause"]);
     if (phase === "paused")
       return (
         <div className={styles.pause}>
           <Recap g={g} lang={lang} t={t} />
           <ul className={`${styles.box} ${styles.menu}`}>
             <li className={styles.menuTitle}>PAUSE</li>
-            {[t("Reprendre", "Resume"), t("Abandonner", "Give up")].map((l, i) => (
-              <li key={l} className={i === cursor ? styles.on : ""} onPointerEnter={() => setCursor(i)} onClick={() => (i ? g.giveUp() : g.pause(false))}>
+            {[t("Reprendre", "Resume"), t("Guide", "Guide"), t("Abandonner", "Give up")].map((l, i) => (
+              <li
+                key={l}
+                className={i === cursor ? styles.on : ""}
+                onPointerEnter={() => setCursor(i)}
+                onClick={() => (i === 2 ? g.giveUp() : i === 1 ? openPauseGuide() : g.pause(false))}
+              >
                 {l}
               </li>
             ))}
@@ -1611,6 +1644,25 @@ function statsOf(g: Game, t: (fr: string, en: string) => string): [string, strin
     [t("Terrain", "Field"), t(g.biome.name[0], g.biome.name[1]), false],
     ...(g.weather ? [[t("Météo", "Weather"), t(WEATHERS[g.weather].name[0], WEATHERS[g.weather].name[1]), false] as [string, string, boolean]] : []),
   ];
+}
+
+/**
+ * What a level-up card evolves with (Johan, 2026-10-20: a newcomer couldn't tell which item goes with which move): a
+ * move names its item, an item its move (the one the player has first), and ✓ when the other half is already there.
+ */
+function evoHint(c: Choice, g: Game, lang: Lang): { with: string; to: string; has: boolean } | null {
+  if (c.kind === "move") {
+    const evo = MOVES.find((d) => d.evo?.from === c.id);
+    if (!evo) return null;
+    return { with: say(ITEMS.find((x) => x.id === evo.evo!.item)!.name, lang), to: say(evo.name, lang), has: g.items.some((x) => x.id === evo.evo!.item) };
+  }
+  if (c.kind === "item") {
+    const evos = MOVES.filter((d) => d.evo?.item === c.id);
+    const evo = evos.find((d) => g.moves.some((m) => m.id === d.evo!.from)) ?? evos[0];
+    if (!evo) return null;
+    return { with: say(MOVES.find((m) => m.id === evo.evo!.from)!.name, lang), to: say(evo.name, lang), has: g.moves.some((m) => m.id === evo.evo!.from) };
+  }
+  return null;
 }
 
 /* ---------------- the guide (menu) ---------------- */

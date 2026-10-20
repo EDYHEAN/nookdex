@@ -1421,6 +1421,18 @@
   font: 12px/12px var(--font-vt), monospace;
 }
 
+/* what the card evolves with; bolder once the other half is in the build */
+.cardEvo {
+  margin-top: auto;
+  font: 11px/11px var(--font-vt), monospace;
+  color: var(--c1);
+}
+
+.cardEvoHas {
+  color: var(--c0);
+  font-weight: bold;
+}
+
 .screen[data-palette="color"] .t_fire { --tc: #ff8a3d; }
 .screen[data-palette="color"] .t_water { --tc: #5fb8ff; }
 .screen[data-palette="color"] .t_elec { --tc: #ffd23d; }
