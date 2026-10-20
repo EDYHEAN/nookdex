@@ -13,6 +13,8 @@ import styles from "./Tour.module.css";
  * (a spotlight on elements tagged data-tour="…"), with a short note right next to it.
  * Some steps wait for the player to do the thing (click the grey card, open the OS…): learning by doing.
  * It can't be skipped, but it never gets stuck: a target that can't be found lets the player go on.
+ * It ends back in the binder, open, with the card it had the player tick (Johan, 2026-10-20: it used to have them remove
+ * it, and end on the closed desk with an empty collection).
  */
 
 interface Step {
@@ -77,8 +79,8 @@ function placeNote(hole: Box | null, w: number, h: number) {
   return { left: clampX(cx - w / 2), top: vh - h - 12 };
 }
 
-/** The steps (only the texts depend on the account and the language). */
-function buildSteps(email: string | null, en: boolean): Step[] {
+/** The steps (only the texts depend on the account and the language). `reopen` puts the tour's binder back on the desk. */
+function buildSteps(email: string | null, en: boolean, reopen?: () => void): Step[] {
   const t = (fr: ReactNode, english: ReactNode) => (en ? english : fr);
   return [
     {
@@ -125,14 +127,13 @@ function buildSteps(email: string | null, en: boolean): Step[] {
       target: ["remove-card"],
       text: t(
         <>
-          🔍 Variante, état, prix payé : tout se règle sur la fiche. Pour retirer la carte, <b>maintiens ce bouton</b>.
+          🔍 Variante, état, prix payé : tout se règle sur la fiche. Une carte cochée par erreur ? <b>Maintiens ce bouton</b> pour la
+          retirer.
         </>,
         <>
-          🔍 Variant, condition, price paid: it&apos;s all on the sheet. To remove the card, <b>hold this button</b>.
+          🔍 Variant, condition, price paid: it&apos;s all on the sheet. Ticked one by mistake? <b>Hold this button</b> to remove it.
         </>,
       ),
-      // held long enough: the card is gone, the button with it
-      done: () => !$('[data-tour="remove-card"]'),
       skip: () => !$('[data-tour="inspector"]'),
       leave: () => setTimeout(() => click('[data-tour="inspector-close"]'), 400),
       group: "cards",
@@ -226,17 +227,39 @@ function buildSteps(email: string | null, en: boolean): Step[] {
       target: ["about"],
       text: t(
         <>
-          ✉️ <b>Le carnet</b> : l&apos;histoire du site, et le formulaire de contact si besoin. Le reste, à toi de le découvrir !
+          ✉️ <b>Le carnet</b> : l&apos;histoire du site, et le formulaire de contact si besoin.
         </>,
         <>
-          ✉️ <b>The notebook</b>: the story of the site, and the contact form if you need it. The rest is yours to discover!
+          ✉️ <b>The notebook</b>: the story of the site, and the contact form if you need it.
         </>,
       ),
+      leave: reopen,
+    },
+    {
+      // back in the binder: a set binder's « J'ai tout », else the binder itself
+      target: ["fill-set", "binder"],
+      text: $('[data-tour="fill-set"]')
+        ? t(
+            <>
+              🃏 <b>À toi !</b> Clique sur chaque carte que tu as. Tu as tout le set ? <b>J&apos;ai tout ✓</b> les ajoute d&apos;un coup.
+            </>,
+            <>
+              🃏 <b>Your turn!</b> Click every card you have. Got the whole set? <b>Got &apos;em all ✓</b> adds them at once.
+            </>,
+          )
+        : t(
+            <>
+              🃏 <b>À toi !</b> Remplis ton classeur avec les cartes que tu as. Le reste du bureau, à toi de le découvrir.
+            </>,
+            <>
+              🃏 <b>Your turn!</b> Fill your binder with the cards you have. The rest of the desk is yours to discover.
+            </>,
+          ),
     },
   ];
 }
 
-export function Tour({ onDone }: { onDone: () => void }) {
+export function Tour({ onDone, onReopen }: { onDone: () => void; onReopen?: () => void }) {
   const email = useCloud((c) => c.email);
   const layer = useRef<HTMLDivElement>(null);
   const note = useRef<HTMLDivElement>(null);
@@ -254,7 +277,7 @@ export function Tour({ onDone }: { onDone: () => void }) {
   });
 
   const en = useLang() === "en";
-  const steps = buildSteps(email, en);
+  const steps = buildSteps(email, en, onReopen);
   const step = steps[i];
   const last = i === steps.length - 1;
   const interactive = !!step.done && !lost;

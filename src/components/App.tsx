@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { APP_VERSION } from "@/data/changelog";
 import { MAX_BINDERS, shelfBinders } from "@/lib/binders";
 import { bareId, keyOf } from "@/lib/cardLang";
@@ -25,6 +25,7 @@ import { Grain } from "./fx/Grain";
 import { AboutBook } from "./room/AboutBook";
 import { PaintedRoom } from "./room/PaintedRoom";
 import { RoadLog, markSeen, seenVersion } from "./room/RoadLog";
+import { ImportBar } from "./room/ImportBar";
 import { SavePrompt } from "./room/SavePrompt";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
@@ -56,12 +57,14 @@ export function App() {
   const [open, setOpen] = useState<Open | null>(null);
   /** the open binder covers the room: on a phone, the room behind it is let go */
   const [covered, setCovered] = useState(false);
-  const [computer, setComputer] = useState<{ x: number; y: number; tab?: Tab } | null>(null);
+  const [computer, setComputer] = useState<{ x: number; y: number; tab?: Tab; focusImport?: boolean } | null>(null);
   /** A card sheet over NookDex OS, for a card found there: the list it was found in, walked with the arrows */
   const [sheet, setSheet] = useState<{ keys: string[]; index: number } | null>(null);
   const sheetCard = useSets((s) => (sheet ? s.cards[sheet.keys[sheet.index]] : undefined));
   /** The guided tour, after the first binder is picked (and replayable from the notebook). */
   const [tour, setTour] = useState(false);
+  /** the binder the tour started in: it ends there, open */
+  const tourBinder = useRef<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [about, setAbout] = useState(false);
   const [roadLog, setRoadLog] = useState(false);
@@ -247,9 +250,16 @@ export function App() {
     return useStore.getState().addBinder(choice);
   };
 
+  /** The Pokécardex import (the room's strip, the welcome): the OS's Save tab, scrolled to it. */
+  const openImport = () => {
+    sfx.boot();
+    setComputer({ x: window.innerWidth / 2, y: window.innerHeight / 2, tab: "save", focusImport: true });
+  };
+
   /** The tour: opens the first binder (or the first one on the shelf), lets it settle, then the spotlight starts. */
   const startTour = async (binderId?: string) => {
     const b = binders.find((x) => x.id === binderId) ?? binders[0];
+    tourBinder.current = b?.id ?? null;
     setComputer(null);
     setAbout(false);
     if (b) {
@@ -328,6 +338,7 @@ export function App() {
             key="os"
             origin={computer}
             startTab={computer.tab}
+            focusImport={computer.focusImport}
             paused={!!sheet}
             onClose={() => {
               setSheet(null);
@@ -530,6 +541,7 @@ export function App() {
             onPick={async (choice) => {
               // The first binder: once the welcome card is gone, it opens and the tour starts.
               const id = await addBinder(choice);
+              tourBinder.current = id;
               setTimeout(() => {
                 setOpen({ binderId: id });
                 setTimeout(() => setTour(true), 1300);
@@ -540,9 +552,19 @@ export function App() {
               sfx.boot();
               setComputer({ x: window.innerWidth / 2, y: window.innerHeight / 2, tab: "cards" });
             }}
+            onImport={openImport}
           />
         )}
-      {tour && <Tour onDone={() => setTour(false)} />}
+      {tour && (
+        <Tour
+          onDone={() => setTour(false)}
+          // the tour ends in the binder it started in, open: the player's turn to tick their cards
+          onReopen={() => {
+            const id = tourBinder.current;
+            if (id && useStore.getState().binders.some((b) => b.id === id)) setOpen({ binderId: id });
+          }}
+        />
+      )}
       {/* a trophy won pops in the corner (it waits for the room: the loader, the welcome) */}
       <TrophyToasts
         ready={entered && !showWelcome}
@@ -553,6 +575,7 @@ export function App() {
       />
       {/* a tip for the project, asked by the cat once the player has a few cards (never over a binder, the OS or the tour) */}
       {/* the account, offered once the player without one has a few cards */}
+      {entered && <ImportBar compact={compact} calm={calm && !news} onImport={openImport} />}
       {entered && <SavePrompt compact={compact} calm={calm && !news} onShown={onSaveAsked} />}
       {entered && <SupportCat compact={compact} calm={calm && !news && !saveAsked} />}
       {/* a computer: the cat and its tip tag in the corner of the calm room (a phone has the pop-in only) */}

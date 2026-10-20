@@ -136,7 +136,12 @@ doesn't show.
   any card): `docs/search-plan.md`.
 - Then the guided tour (`src/components/shelf/Tour.tsx`): a spotlight on elements tagged `data-tour="…"`, can't be
   skipped, waits for the player on the key gestures. Replayable from the shelf notebook. Renaming or removing a
-  `data-tour` attribute breaks a step.
+  `data-tour` attribute breaks a step. It ends back in its binder, open, on « J'ai tout » (`fill-set`), the card it had
+  ticked kept (Johan, 2026-10-20: it used to have it removed and end on the closed desk, with 0 cards).
+- The Pokécardex import (`computer/ImportPokecardex`, in NookDex OS → Save) is offered to newcomers on the French site:
+  a link at the welcome's step 2, and a strip in the calm room while they own fewer than 10 cards (`room/ImportBar`,
+  top on a computer, bottom on a phone; closed or used = never again, localStorage `nookdex:pokecardex-bar`). Both open
+  the OS on Save, scrolled to the import (`focusImport`).
 
 ## The poster
 

@@ -85,6 +85,7 @@ export function FillSet({ set }: { set: SetData }) {
       {master.length + full.length > 0 && (
         <button
           className={`${styles.pixelBtn} ${styles.fillBtn}`}
+          data-tour="fill-set"
           aria-expanded={open}
           onClick={(e) => {
             e.stopPropagation();
