@@ -52,6 +52,12 @@ Si tu veux un point de repère, la Double rare de base est autour de 0,50 €, e
 
 ::card[me05-048]
 
+## Où acheter Nuit Noire ?
+
+Pour chercher toi-même ces raretés dans des boosters, Amazon vend le coffret Dresseur d'élite, le display et le bundle de Nuit Noire sur invitation, au prix public. Demande-la sur la fiche du produit, c'est gratuit, et vérifie qu'il est « Expédié et vendu par Amazon ».
+
+::amazon[me05]
+
 ## Questions fréquentes
 
 ### C'est quoi, la différence entre Illustration rare et Illustration spéciale rare ?

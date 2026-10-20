@@ -69,7 +69,8 @@ Then rotate, about one of each kind per month:
 ## Amazon links (French posts only)
 
 NookDex is an Amazon.fr affiliate (`lib/amazon`). Every French post about a set that is coming out or still in the
-shops has a section « ## Où acheter <set> ? » (« Où précommander » before its release), just before « Questions
+shops, and every French post that takes its examples from one (a rarity guide, a buying guide, a Pokémon across sets:
+the set it leans on most; a group in `amazon-products.json` is the test), has a section « ## Où acheter <set> ? » (« Où précommander » before its release), just before « Questions
 fréquentes »: one or two sentences (Amazon sells it by invitation, free to ask, at the public price; check it's
 « Expédié et vendu par Amazon »), then the line `::amazon[<group id>]` on its own: the site draws that set's products
 there (official pictures, a button each, the program's sentence under them) from `src/data/amazon-products.json` (add
