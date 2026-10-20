@@ -1708,6 +1708,7 @@ function statsOf(g: Game, t: (fr: string, en: string) => string): [string, strin
     [t("PV max", "Max HP"), `${Math.round(g.maxHp)}`, false],
     [t("Terrain", "Field"), t(g.biome.name[0], g.biome.name[1]), false],
     ...(g.weather ? [[t("Météo", "Weather"), t(WEATHERS[g.weather].name[0], WEATHERS[g.weather].name[1]), false] as [string, string, boolean]] : []),
+    ...(g.cur.shiny ? [[t("Shiny", "Shiny"), t("dégâts et PV x1,5", "damage and HP x1.5"), false] as [string, string, boolean]] : []),
     ...(g.allies.some((a) => a.owner === g.cur.id)
       ? [[t("Alliés", "Allies"), g.allies.filter((a) => a.owner === g.cur.id).map((a) => g.name(a.dex)).join(", "), false] as [string, string, boolean]]
       : []),
