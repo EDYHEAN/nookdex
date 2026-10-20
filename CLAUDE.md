@@ -189,16 +189,16 @@ doesn't show.
 
 ## Trophies
 
-- `lib/trophies.ts` (the 92: 60 for the desk and the collection, 32 for Nook Survivors won in the game and not needed
+- `lib/trophies.ts` (the 100: 60 for the desk and the collection, 40 for Nook Survivors won in the game and not needed
   for "all"; `factsOf` worked out from the collection), won by `useTrophyWatch` (debounced, waits for the
   cloud) or by `unlock(id)` on a gesture (room easter eggs, OS, share, combo, tip links). Kept in their own store
   (`lib/trophyStore`, localStorage `nookdex:trophies`), ride in the save (`Backup.trophies`) and the cloud, merged and never
   in the conflict fingerprint. Toasts `room/TrophyToast` (4+ at once = one summary), case `room/TrophyCase` from the
   Poké Ball hotspot on the top shelf (`data-tour="trophies"`).
 - Their pictures: painted trinkets drawn by Gemini on white sheets (`img/trophies.jpg` 10×6, `img/trophies-game.jpg` 4×4,
-  `img/trophies-defi.jpg` and `img/trophies-beyond.jpg` 4×2, in the order of `ORDER` / `ORDER_GAME` / `ORDER_GAME2` /
-  `ORDER_GAME3` in `scripts/build-trophies.mjs`), cut out by that script into `public/trophies.webp` + `src/data/trophy-art.json`. A new
-  trophy needs its trinket: a new sheet (same style prompt) and the script run again.
+  `img/trophies-defi.jpg`, `img/trophies-beyond.jpg` and `img/trophies-plus.jpg` 4×2, in the order of `ORDER` / `ORDER_GAME` /
+  `ORDER_GAME2` / `ORDER_GAME3` / `ORDER_GAME4` in `scripts/build-trophies.mjs`), cut out by that script into `public/trophies.webp` + `src/data/trophy-art.json`. A new
+  trophy needs its trinket: a new sheet (same style prompt, docs/defi.md, with the last sheet attached as a reference) and the script run again.
 
 ## Versions and the road log
 

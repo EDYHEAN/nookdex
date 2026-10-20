@@ -94,6 +94,14 @@
     "game-tier175": 88,
     "game-charm": 89,
     "game-types": 90,
-    "game-rank2": 91
+    "game-rank2": 91,
+    "game-shiny": 92,
+    "game-wave300": 93,
+    "game-ally": 94,
+    "game-team": 95,
+    "game-paragon": 96,
+    "game-pact": 97,
+    "game-shield": 98,
+    "game-fast": 99
   }
 }

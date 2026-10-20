@@ -24,7 +24,8 @@ export const CHANGELOG: Release[] = [
       { fr: "Un boss vaincu lâche parfois sa Poké Ball : il se bat à tes côtés.", en: "A beaten boss sometimes drops its Poké Ball: it fights by your side." },
       { fr: "11 nouvelles capacités, 3 objets, 5 combos et 3 builds de départ.", en: "11 new moves, 3 items, 5 combos and 3 starting builds." },
       { fr: "300 vagues, départs jusqu'à la 275, et après la 100 les bonbons viennent tout seuls.", en: "300 waves, starts up to 275, and past 100 candies come to you." },
-      { fr: "Une partie sur 40, ton starter est shiny : son sprite, et des stats de fou.", en: "One run in 40, your starter is shiny: its sprite, and crazy stats." },    ],
+      { fr: "Une partie sur 40, ton starter est shiny : son sprite, et des stats de fou.", en: "One run in 40, your starter is shiny: its sprite, and crazy stats." },
+      { fr: "8 nouveaux trophées Nook Survivors, du Chromatique au Tricentenaire.", en: "8 new Nook Survivors trophies, from Shiny to Tricentennial." },    ],
   },
   {
     version: "0.15",
