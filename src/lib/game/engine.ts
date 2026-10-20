@@ -982,6 +982,7 @@ export class Game {
   shinyBurst() {
     const p = this.players.find((q) => q.shiny);
     if (!p) return;
+    unlock("game-shiny");
     this.flash = 1;
     for (let i = 0; i < 50; i++) this.part(p.x + rand(-6, 6), p.y - 10, rand(-1, 1) * 110, rand(-1, 1) * 110, i % 2 ? "gold" : "white", 1.2, 2, 0, "spark");
     this.showBanner(
@@ -1089,6 +1090,7 @@ export class Game {
     } else if (c.kind === "paragon") {
       const id = c.id as ParagonId;
       if (!this.has(id)) this.cur.paragons.push(id);
+      unlock("game-paragon");
       if (id === "second") this.revives++;
       this.flash = 0.8;
       for (let i = 0; i < 30; i++) this.part(this.x, this.y - 10, rand(-1, 1) * 80, rand(-1, 1) * 80, "psy", 1, 2, 0, "spark");
@@ -1580,6 +1582,7 @@ export class Game {
     if (won && !this.setup.defi) {
       unlock("game-wave100");
       unlock("game-wave200");
+      unlock("game-wave300");
     }
     if (won && this.setup.defi) this.defiWon(this.players[0].starter.dex, Math.floor(this.time));
     const met = !!daily && this.wave >= daily.target;
@@ -1697,7 +1700,10 @@ export class Game {
       this.waveGap = WAVE_GAP;
       // cleared with a third of its time left, from wave 25: a Rare Candy (a level), speed pays
       const fast = this.wave >= 25 && this.waveT < waveLength(this.wave) * 0.67;
-      if (fast) for (const p of this.alive()) this.drop("rare", p.x + rand(-10, 10), p.y - 10, 0);
+      if (fast) {
+        unlock("game-fast");
+        for (const p of this.alive()) this.drop("rare", p.x + rand(-10, 10), p.y - 10, 0);
+      }
       // what lies on the ground comes to you
       for (const p of this.pickups) p.pull = true;
       gsfx.rare();
@@ -2978,6 +2984,7 @@ export class Game {
       e.hp -= dmg - took;
       shielded = true;
       if (e.shield <= 0) {
+        unlock("game-shield");
         e.state = "";
         e.z = 0;
         e.alpha = 1;
@@ -3040,6 +3047,7 @@ export class Game {
       if (this.pact) {
         this.pact = null;
         this.pactKept = true;
+        unlock("game-pact");
       }
       music.boss(false);
       this.shake = 10;
@@ -4103,6 +4111,8 @@ export class Game {
     const mine = this.allies.filter((a) => a.owner === this.cur.id);
     if (mine.length >= max) this.allies.splice(this.allies.indexOf(mine[0]), 1);
     this.allies.push({ dex, elem: b.shot, owner: this.cur.id, x: this.x, y: this.y, dir: 0, t: 0, cd: 1 });
+    unlock("game-ally");
+    if (this.allies.filter((a) => a.owner === this.cur.id).length >= 3) unlock("game-team");
     this.flash = 0.6;
     for (let i = 0; i < 20; i++) this.part(this.x, this.y - 10, rand(-60, 60), rand(-70, 10), "white", 0.6, 2, 60, "spark");
     gsfx.evolveDone();

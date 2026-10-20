@@ -36,12 +36,18 @@ const ORDER_GAME3 = [
   "game-wave150", "game-wave200", "game-giga", "game-tier",
   "game-tier175", "game-charm", "game-types", "game-rank2",
 ];
+/** the late game's new rules and the shinies (2026-10-20), painted in the top 1200 px */
+const ORDER_GAME4 = [
+  "game-shiny", "game-wave300", "game-ally", "game-team",
+  "game-paragon", "game-pact", "game-shield", "game-fast",
+];
 const SHEETS = [
   { src: "img/trophies.jpg", cols: 10, rows: 6, order: ORDER },
   { src: "img/trophies-game.jpg", cols: 4, rows: 4, order: ORDER_GAME },
   { src: "img/trophies-defi.jpg", cols: 4, rows: 2, order: ORDER_GAME2, height: 1300 },
   // the locket's chain is a thin pale gold: the paper inside its loops isn't ringed by dark ink
   { src: "img/trophies-beyond.jpg", cols: 4, rows: 2, order: ORDER_GAME3, height: 1200, anyHole: 400 },
+  { src: "img/trophies-plus.jpg", cols: 4, rows: 2, order: ORDER_GAME4, height: 1200 },
 ];
 
 /** one sheet's trinkets, placed in the sprite from cell offset on */

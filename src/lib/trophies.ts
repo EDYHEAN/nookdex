@@ -167,6 +167,15 @@ export const TROPHIES: Trophy[] = [
   { id: "game-charm", tier: "bronze", cat: "game", name: { fr: "Charmeur", en: "Charmer" }, desc: { fr: "Charme 100 ennemis dans une même partie.", en: "Charm 100 foes in one run." } },
   { id: "game-types", tier: "silver", cat: "game", name: { fr: "Touche-à-tout", en: "Jack of all types" }, desc: { fr: "Fée, Acier, Ténèbres et Insecte dans une même partie.", en: "Fairy, Steel, Dark and Bug in one run." } },
   { id: "game-rank2", tier: "gold", cat: "game", name: { fr: "Pension 5 étoiles", en: "Five-star Pension" }, desc: { fr: "Achète un niveau du 2ᵉ rang de la Pension.", en: "Buy a 2nd-rank level at the Pension." } },
+  // the late game's new rules and the shinies (2026-10-20)
+  { id: "game-shiny", tier: "gold", cat: "game", name: { fr: "Chromatique", en: "Shiny" }, desc: { fr: "Commence une partie avec un starter shiny.", en: "Start a run with a shiny starter." } },
+  { id: "game-wave300", tier: "gold", cat: "game", name: { fr: "Tricentenaire", en: "Tricentennial" }, desc: { fr: "Bats les 300 vagues.", en: "Beat all 300 waves." } },
+  { id: "game-ally", tier: "bronze", cat: "game", name: { fr: "Nouveau copain", en: "New pal" }, desc: { fr: "Un boss rejoint ton équipe.", en: "A boss joins your team." } },
+  { id: "game-team", tier: "gold", cat: "game", name: { fr: "Toute une équipe", en: "A whole team" }, desc: { fr: "Trois alliés à tes côtés en même temps.", en: "Three allies by your side at once." } },
+  { id: "game-paragon", tier: "silver", cat: "game", name: { fr: "Paragon", en: "Paragon" }, desc: { fr: "Prends une carte Paragon.", en: "Take a Paragon card." } },
+  { id: "game-pact", tier: "silver", cat: "game", name: { fr: "Pacte tenu", en: "Pact kept" }, desc: { fr: "Tiens un pacte de Kecleon jusqu'au boss.", en: "Keep a pact of Kecleon's until the boss." } },
+  { id: "game-shield", tier: "bronze", cat: "game", name: { fr: "Brise-bouclier", en: "Shield breaker" }, desc: { fr: "Casse le bouclier d'un boss.", en: "Break a boss's shield." } },
+  { id: "game-fast", tier: "bronze", cat: "game", name: { fr: "Express", en: "Express" }, desc: { fr: "Vide une vague assez vite pour un Super Bonbon.", en: "Clear a wave fast enough for a Rare Candy." } },
 
   // Secrets: no hint but "???" until found
   { id: "night-owl", tier: "silver", cat: "secret", secret: true, name: { fr: "Oiseau de nuit", en: "Night owl" }, desc: { fr: "Au bureau entre minuit et 5 h.", en: "At the desk between midnight and 5 am." } },
