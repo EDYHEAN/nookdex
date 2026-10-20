@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useLang, useT } from "@/lib/lang";
 import { BASE, BUNDLE, BUNDLES, COLLECTIONS, ITEM, ITEMS, buySkin, formatEuros, setShopView, shopView, itemsOf, onSale, useSkins, wear, worthOf, type Bundle, type Item, type Rarity, type Slot } from "@/lib/shop";
-import { MANAGED_PAYMENTS } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import styles from "./Shop.module.css";
 
@@ -223,9 +222,9 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
   const [going, setGoing] = useState<"idle" | "going" | "soon" | "error">("idle");
   const buy = async () => {
     setGoing("going");
-    // Johan sells (no Managed Payments): buying waives withdrawal, as Stripe's page says next to its pay button (nothing
+    // Johan sells: buying waives withdrawal, as Stripe's page says next to its pay button (nothing
     // more in the shop: Johan, 2026-10-16)
-    const r = await buySkin(thing.id, !MANAGED_PAYMENTS);
+    const r = await buySkin(thing.id);
     if (r !== "ok") setGoing(r);
   };
   return (
@@ -485,7 +484,7 @@ export function TryOnBar({ onOpenShop }: { onOpenShop: () => void }) {
     }
     setGoing(true);
     // Johan sells: Buy waives withdrawal, as Stripe's page says next to its pay button
-    const r = await buySkin(id, !MANAGED_PAYMENTS);
+    const r = await buySkin(id);
     if (r === "ok") return;
     // the card tells why (payment not open yet, or an error)
     setGoing(false);

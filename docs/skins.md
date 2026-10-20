@@ -80,7 +80,7 @@ Warwick en sorcier : le chapeau de la planche D1, posé sur sa tête par le code
 ## Où on en est (2026-10-16) : **la boutique est ouverte**
 
 **Lancée le 2026-10-16** (PR #131) : `NEXT_PUBLIC_SHOP=on` dans Vercel, carnet de route 0.13, vente sans Managed
-Payments (`NEXT_PUBLIC_STRIPE_MANAGED=off`), médiateur SMP (demande #309572, convention et facture de 30 € TTC à
+Payments (abandonné le 2026-10-20, voir plus bas), médiateur SMP (demande #309572, convention et facture de 30 € TTC à
 recevoir). Premier vrai achat passé de bout en bout. Les comptes de Johan possèdent tout. L'historique ci-dessous
 raconte comment on en est arrivé là.
 
@@ -146,10 +146,13 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   envoyée par Johan. En attendant : carte saisie à la main, ou réseau Visa/Mastercard choisi dans le Wallet.
   Le chat du support (2026-10-16) : CB n'est pas dans les moyens de Managed Payments ; dossier remonté par e-mail pour
   activer CB sur le compte et demander qu'il marche avec Managed Payments. Réponse attendue par e-mail.
-- **Vendre sans Managed Payments** (en place depuis le 2026-10-16 ; retour à Managed Payments si Stripe règle CB) :
-  `NEXT_PUBLIC_STRIPE_MANAGED=off`
-  dans Vercel (Production) puis un redéploiement. Le code est prêt (`MANAGED_PAYMENTS` dans `lib/site.ts`) : Checkout
-  sans Managed Payments (CB et PayPal s'affichent, 3,5 % de frais en moins). Pas de case à cocher ni de texte dans la
+- **Vendre sans Managed Payments** (depuis le 2026-10-16, seul mode depuis le 2026-10-20) : Checkout classique, Johan vend
+  (CB et PayPal s'affichent, 3,5 % de frais en moins). **Managed Payments abandonné le 2026-10-20** : la réponse du support
+  Stripe (e-mail du 2026-10-20) confirme que PayPal n'y viendra pas, et CB y demande un numéro de TVA (Johan est en
+  franchise). Désactivé par défaut dans le tableau de bord, retiré du code (plus de `MANAGED_PAYMENTS` ni de
+  `NEXT_PUBLIC_STRIPE_MANAGED`) ; la session Checkout dit quand même `managed_payments[enabled]=false`. Le compte demande
+  aussi un « numéro de TVA de l'entreprise » pour le réseau CB : laissé vide (les cartes co-badgées passent par
+  Visa/Mastercard) ; à revoir avec le SIE si les ventes décollent. Pas de case à cocher ni de texte dans la
   boutique (Johan, 2026-10-16 : trop lourd pour un petit site) : la renonciation à la rétractation est dite à côté du bouton
   de paiement de Stripe (`custom_text`), sa date gardée dans les métadonnées du paiement (risque accepté : un acheteur
   pourrait la contester et se faire rembourser). Le reçu Stripe porte « NookDex · objet · TVA non applicable, art. 293 B
@@ -190,8 +193,6 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   (celui du site a une Poké Ball), couleurs `#1d1638` et `#ffe14a`.
 - Retirer un skin quand un achat est remboursé (événement Stripe `charge.refunded`) : pas encore fait, à la main dans
   Supabase en attendant.
-- Si Stripe règle CB avec Managed Payments (dossier remonté le 2026-10-16) : retirer `NEXT_PUBLIC_STRIPE_MANAGED` et
-  redéployer pour y revenir.
 - Ménage : supprimer `Documents/NookDex/halloween-apercu/` (captures temporaires) une fois fini.
 
 ## Paiement : Stripe ou un « merchant of record »
