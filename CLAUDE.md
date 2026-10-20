@@ -114,6 +114,9 @@ doesn't show.
   growth_stats, activity_stats, Search Console with the `GSC_SERVICE_ACCOUNT` secret) writes `docs/reports/data/<date>.json`; the
   Claude routine « Rapport de la semaine NookDex » writes `docs/reports/<date>.md` and its e-mail `<date>.html` (from
   `docs/reports/mail-template.html`); « Mail du rapport » sends that to contact@nookdex.com via Brevo (`BREVO_API_KEY` secret).
+  That e-mail gets the shop's sales and the tips (Buy Me a Coffee's own Stripe account) only as it's sent
+  (`scripts/report-money.mjs`, secrets `STRIPE_SHOP_KEY` / `STRIPE_TIPS_KEY`, read-only restricted keys): the repo is public,
+  money never goes in it.
 - Auth e-mails go through Brevo SMTP as `contact@nookdex.com`; their templates are `docs/emails/*.html` (pasted in
   Supabase → Authentication → Emails → Templates).
 
