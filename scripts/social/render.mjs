@@ -221,15 +221,21 @@ const SLIDES = {
        ${s.ending ? `<p class="lead" style="margin-top:${s.asset ? 22 : "auto"}px">${txt(s.ending)}</p>` : ""}`,
     );
   },
-  /** a themed page: 9 cards (or 4, 6) full screen */
+  /** a themed page: 9 cards (or 4, 6) full screen. Sized by the height too: every card whole, room around them
+   * (Johan, 2026-10-20: 3 rows of 298 px cards ran past 1350 px and cut the bottom row) */
   grid(s, H) {
     const cards = s.cards.map(card);
     const cols = cards.length <= 4 ? 2 : 3;
-    const w = cols === 2 ? 760 : 922;
+    const rows = Math.ceil(cards.length / cols);
+    const gap = 26;
+    const [top, bottom] = [s.label ? 130 : 70, 90];
+    const byHeight = ((H - top - bottom - gap * (rows - 1)) / rows) / 1.375; // TCGdex's high.webp is 600 × 825
+    const cw = Math.floor(Math.min((cols === 2 ? 760 : 900) / cols - gap, byHeight));
+    const [w, h] = [cw * cols + gap * (cols - 1), Math.ceil(cw * 1.375) * rows + gap * (rows - 1)];
     return full(
       cards.filter((_, i) => i % 3 === 0).map((c) => c.hi),
       `${s.label ? `<span class="pill" style="left:40px;top:28px">${txt(s.label)}</span>` : ""}
-       <div class="grid" style="left:${(1080 - w) / 2}px;width:${w}px;top:${s.label ? 110 : 24}px;grid-template-columns:repeat(${cols},1fr);gap:14px">
+       <div class="grid" style="left:${(1080 - w) / 2}px;width:${w}px;top:${Math.round(top + (H - top - bottom - h) / 2)}px;grid-template-columns:repeat(${cols},1fr);gap:${gap}px">
          ${cards.map((c) => `<img class="cardimg" src="${c.hi}">`).join("")}</div>`,
       H,
     );
