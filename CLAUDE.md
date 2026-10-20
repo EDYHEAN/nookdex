@@ -16,6 +16,7 @@ doesn't show.
 - Match the style around: no reformatting (Prettier with default options reflows whole files: don't run it), comments
   that say why, lines up to ~150 chars.
 - Mobile: text fields are ≥ 16 px and the viewport has `maximum-scale=1` (no zoom when typing).
+- Hand-offs between sessions: `docs/sessions/<date>.md` (what was done, what's left for Johan). Read the latest one.
 
 ## How it's built
 
