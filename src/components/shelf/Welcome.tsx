@@ -7,7 +7,7 @@ import { loadSets, neededSets } from "@/lib/catalog";
 import { askPlayers, signIn, signInWithGoogle, useCloud, usePlayers } from "@/lib/cloud";
 import { NAME_PARTS, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
-import { useT } from "@/lib/lang";
+import { useLang, useT } from "@/lib/lang";
 import { isBackup, useStore } from "@/lib/store";
 import { BinderPicker, type BinderChoice } from "./BinderPicker";
 import styles from "./Welcome.module.css";
@@ -18,6 +18,8 @@ interface Props {
   onDone: () => void;
   /** No binder yet: look around every card first (NookDex OS, "All cards") */
   onExplore: () => void;
+  /** "My collection is on Pokécardex": the OS's import, no first binder to pick */
+  onImport: () => void;
 }
 
 /**
@@ -25,11 +27,12 @@ interface Props {
  * back). The account comes later, once the player has a few cards (`room/SavePrompt`). A player coming back on a new
  * device signs in from the nickname card ("already have an account?"); App closes this screen once their save is in.
  */
-export function Welcome({ onPick, onDone, onExplore }: Props) {
+export function Welcome({ onPick, onDone, onExplore, onImport }: Props) {
   const profile = useStore((s) => s.profile);
   const binders = useStore((s) => s.binders);
   const { email, firstName, status } = useCloud();
   const t = useT();
+  const lang = useLang();
   const players = usePlayers((p) => p.count);
   useEffect(askPlayers, []);
   /** "Already have an account?": the sign-in card, for a player coming back */
@@ -341,6 +344,19 @@ export function Welcome({ onPick, onDone, onExplore }: Props) {
                   >
                     {t("Pas encore de collection ? Explore d'abord toutes les cartes ▸", "No collection yet? Look around every card first ▸")}
                   </button>
+                  {lang === "fr" && (
+                    <button
+                      className={styles.explore}
+                      onClick={() => {
+                        sfx.click();
+                        onImport();
+                        finish();
+                      }}
+                      onPointerEnter={sfx.hover}
+                    >
+                      Ta collection est sur Pokécardex ? Importe-la ▸
+                    </button>
+                  )}
                 </>
               }
               onPick={async (choice) => {

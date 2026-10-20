@@ -1,0 +1,71 @@
+/* The Pokécardex import strip: a paper tag at the top of the room (computer, left of the corner buttons), at the bottom on a phone. */
+.bar {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  z-index: 65;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: min(620px, calc(100vw - 340px));
+  padding: 8px 10px 8px 16px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+  color: var(--ink);
+  font-family: var(--font-vt), monospace;
+  font-size: 19px;
+  line-height: 1.15;
+  box-shadow: 5px 6px 0 rgba(20, 12, 28, 0.45);
+  translate: -50% 0;
+}
+
+.phone {
+  top: auto;
+  left: 8px;
+  right: 8px;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: auto;
+  max-width: none;
+  translate: none;
+  font-size: 18px;
+}
+
+.text b {
+  color: var(--ink-red);
+}
+
+.go {
+  flex: none;
+  padding: 7px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 7px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-family: var(--font-press), monospace;
+  font-size: 11px;
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.go:hover {
+  transform: translate(-1px, -2px) rotate(-2deg);
+}
+
+.go:active {
+  transform: scale(0.92);
+}
+
+.close {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 18px;
+  cursor: pointer;
+}

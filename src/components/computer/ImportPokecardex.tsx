@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence } from "motion/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MAX_BINDERS } from "@/lib/binders";
 import { useT } from "@/lib/lang";
 import { type ImportResult, isPokecardex, matchImport, parseCsv } from "@/lib/pokecardex";
@@ -18,9 +18,16 @@ const OFFER = 12;
  * NookDex OS → Save: a pokecardex.com export (CSV) into the collection. The file is read here, in the browser; a report
  * says what was found and what wasn't; the player picks which sets go on the shelf (the rest waits in the box).
  */
-export function ImportPokecardex({ say }: { say: (m: string) => void }) {
+export function ImportPokecardex({ say, focus }: { say: (m: string) => void; focus?: boolean }) {
   const tr = useT();
   const file = useRef<HTMLInputElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+  // opened for it (the room's strip, the welcome): brought into view once the OS has zoomed in, and lit up a moment
+  useEffect(() => {
+    if (!focus) return;
+    const id = setTimeout(() => box.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 700);
+    return () => clearTimeout(id);
+  }, [focus]);
   const [step, setStep] = useState<"idle" | "reading" | "report">("idle");
   const [progress, setProgress] = useState<[number, number]>([0, 0]);
   const [result, setResult] = useState<ImportResult | null>(null);
@@ -82,7 +89,7 @@ export function ImportPokecardex({ say }: { say: (m: string) => void }) {
 
   if (step === "idle")
     return (
-      <div className={styles.importBox}>
+      <div ref={box} className={`${styles.importBox} ${focus ? styles.importFocus : ""}`}>
         <p>
           {tr(
             "Ta collection est sur Pokécardex ? Exporte-la (Mon compte → Exporter ma collection), puis dépose le fichier ici.",

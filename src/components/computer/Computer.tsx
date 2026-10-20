@@ -45,6 +45,8 @@ interface Props {
   /** Opens the box on the shelf (the cards no binder holds) */
   onOpenBox: () => void;
   startTab?: Tab;
+  /** Opened from the Pokécardex strip or the welcome: the Save tab, scrolled to the import */
+  focusImport?: boolean;
 }
 
 interface Entry {
@@ -62,7 +64,7 @@ const langNote = (e: Entry) => {
   return l !== currentLang() ? ` [${langLabel(l, currentLang())}]` : "";
 };
 
-export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinder, onOpenBox, paused, startTab = "home" }: Props) {
+export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinder, onOpenBox, paused, startTab = "home", focusImport }: Props) {
   const tr = useT();
   const collection = useStore((s) => s.collection);
   const binders = useStore((s) => s.binders);
@@ -179,7 +181,7 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
                 {tab === "wish" && <Wishlist entries={entries} onOpen={onOpenBinder} onCopy={copy} say={say} />}
                 {tab === "dupes" && <Dupes entries={entries} onGo={onGoToCard} onCopy={copy} />}
                 {tab === "trade" && <TradeTab />}
-                {tab === "save" && <Save say={say} />}
+                {tab === "save" && <Save say={say} focusImport={focusImport} />}
               </main>
             </div>
           </div>
@@ -561,7 +563,7 @@ function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string)
   );
 }
 
-function Save({ say }: { say: (m: string) => void }) {
+function Save({ say, focusImport }: { say: (m: string) => void; focusImport?: boolean }) {
   const tr = useT();
   const email = useCloud((c) => c.email);
   const collection = useStore((s) => s.collection);
@@ -663,7 +665,7 @@ function Save({ say }: { say: (m: string) => void }) {
           }}
         />
       </div>
-      <ImportPokecardex say={say} />
+      <ImportPokecardex say={say} focus={focusImport} />
       <div className={styles.danger}>
         <p>{tr("Zone rouge", "Danger zone")}</p>
         {arming ? (
