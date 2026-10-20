@@ -412,6 +412,23 @@ export const STATUSES: { name: Txt; by: Txt; does: Txt }[] = [
   { name: ["Charmé", "Charmed"], by: ["Fée", "Fairy"], does: ["Attaque ses voisins au lieu de toi.", "Attacks its neighbours instead of you."] },
   { name: ["Flanche", "Flinch"], by: ["Ténèbres", "Dark"], does: ["3 fois sur 10, figé un instant.", "3 times in 10, frozen for a moment."] },
 ];
+/**
+ * A boss's affix (Johan, 2026-10-20: something new to play late in a run, on the bosses only, the crowd is busy enough):
+ * one from wave 50, two from 150 (classic and coop). Named under its bar and in its banner, listed in the guide.
+ */
+export type AffixId = "shield" | "swift" | "regen" | "summon" | "blink";
+export const AFFIXES: { id: AffixId; name: Txt; short: Txt; does: Txt }[] = [
+  { id: "shield", name: ["Bouclier", "Shield"], short: ["casse son bouclier", "break its shield"], does: ["Casse son bouclier d'abord : il est sonné. Revient si tu le laisses.", "Break its shield first: it's stunned. Comes back if you let it be."] },
+  { id: "swift", name: ["Vif", "Swift"], short: ["rapide", "fast"], does: ["Bouge et attaque plus vite.", "Moves and attacks faster."] },
+  { id: "regen", name: ["Régénération", "Regenerator"], short: ["ne le lâche pas", "don't let up"], does: ["Se soigne dès que tu arrêtes de frapper.", "Heals as soon as you stop hitting."] },
+  { id: "summon", name: ["Meneur", "Leader"], short: ["appelle des renforts", "calls in backup"], does: ["Appelle des renforts de temps en temps.", "Calls in backup now and then."] },
+  { id: "blink", name: ["Téléporteur", "Blinker"], short: ["surgit à côté de toi", "pops up next to you"], does: ["Surgit à côté de toi.", "Pops up right next to you."] },
+];
+/** the waves its affixes start at: one, then two */
+export const AFFIX_WAVES = [50, 150];
+/** a boss left standing this long gets angry: hits harder, moves faster (its wave no longer ends on a clock) */
+export const ENRAGE_AFTER = 75;
+
 /** what the statuses feed, for the guide */
 export const STATUS_NOTES: Txt[] = [
   ["Châtiment et Poltergeist frappent fort les ennemis qui ont un statut.", "Hex and Poltergeist hit foes with a status hard."],
@@ -542,13 +559,25 @@ export const WAVE_SECONDS = 30;
  * The ladder's time check (game_submit2 v5 in docs/supabase.sql) follows the same steps.
  */
 export const waveLength = (w: number) => (w < 25 ? 15 : w < 50 ? 20 : WAVE_SECONDS);
-/** when wave w starts, in seconds of play */
+/**
+ * Since 2026-10-20 (Johan: "kill all, next wave") a classic wave holds a count of foes: all of them knocked out, the next one
+ * comes at once; its length is only the most it lasts (the next one comes anyway, these still about). A wave's crowd, the
+ * foes a second the old clock-driven waves brought in...
+ */
+export const waveRate = (w: number) => 0.6 + 0.3 * w + 0.012 * w * w;
+/**
+ * ...and its count: the old crowd early on, then a count a good build clears before the clock (the old one never ended:
+ * 14 000 at wave 190). A god-mode bot with a plain build knocked out ~7-8 foes a second at waves 100 to 175: 200 is about
+ * 25 s for it, much less for a strong one.
+ */
+export const waveQuota = (w: number) => Math.round(Math.min(waveRate(w) * waveLength(w), 40 + 2 * w, 200));
+/** the last few of a wave's count rush at the player (no waiting for stragglers walking in from off screen) */
+export const WAVE_HURRY = 12;
+/** when wave w starts at the latest (each wave to its full length): where a start tier's clock begins */
 export const waveStart = (w: number) => {
   const a = Math.min(w, 25) - 1, b = Math.max(0, Math.min(w, 50) - 25), c = Math.max(0, w - 50);
   return a * 15 + b * 20 + c * WAVE_SECONDS;
 };
-/** the wave at a moment of the run */
-export const waveAt = (t: number) => (t < waveStart(25) ? 1 + Math.floor(t / 15) : t < waveStart(50) ? 25 + Math.floor((t - waveStart(25)) / 20) : 50 + Math.floor((t - waveStart(50)) / WAVE_SECONDS));
 
 /* ---------------- biomes and weather (Johan, 2026-10-19: variety, never at the cost of reading the field) ---------------- */
 

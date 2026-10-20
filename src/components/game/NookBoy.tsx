@@ -5,7 +5,7 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BIOMES, BIOME_WAVES, BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, WEATHERS, type Txt, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, unlockProgress, unlockedStarters, waveStart, type Elem, type Lang, type Unlock } from "@/lib/game/data";
+import { AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, BIOMES, BIOME_WAVES, BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, WEATHERS, type Txt, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, unlockProgress, unlockedStarters, waveStart, type Elem, type Lang, type Unlock } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
 import { DEFI_WINS_KEY, Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickAt, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
@@ -1005,7 +1005,8 @@ export default function NookBoy({ origin, onClose }: Props) {
           {(tiers.length > 1 || bestWave(levels) >= 15) && (
             <div className={styles.tiers}>
               <span className={styles.tierLabel}>{t("DÉPART", "START")}</span>
-              {tiers.map((w) => (
+              {/* 12 tiers don't fit on the screen: the 6 around the one picked (▴ ▾ go through them all) */}
+              {tiers.slice(Math.max(0, Math.min(tiers.indexOf(tier) - 2, tiers.length - 6)), Math.max(0, Math.min(tiers.indexOf(tier) - 2, tiers.length - 6)) + 6).map((w) => (
                 <button key={w} className={w === tier ? styles.on : ""} onClick={() => w !== tier && (gsfx.move(), setTier(w))}>
                   {t("V", "W")}
                   {w}
@@ -1673,9 +1674,10 @@ const GUIDE_TABS: Txt[] = [
   ["Évolutions", "Evolutions"],
   ["Objets", "Items"],
   ["Météo", "Weather"],
+  ["Boss", "Bosses"],
 ];
 /** what the Game Boy's screen holds without scrolling (the statuses' rows run on two lines) */
-const guideRowsPer = (tab: number) => (tab === 0 ? 8 : 10);
+const guideRowsPer = (tab: number) => (tab === 0 || tab === 5 ? 8 : 10);
 /** a tab's rows: a bold head, then its text */
 function guideRows(tab: number, lang: Lang): [string, string][] {
   if (tab === 0)
@@ -1690,6 +1692,16 @@ function guideRows(tab: number, lang: Lang): [string, string][] {
       `= ${say(MOVES.find((x) => x.id === m.evo!.from)!.name, lang)} ${lang === "fr" ? "niv. 5" : "lv 5"} + ${say(ITEMS.find((x) => x.id === m.evo!.item)!.name, lang)}`,
     ]);
   if (tab === 3) return ITEMS.map((it) => [say(it.name, lang), say(it.desc, lang)]);
+  // the bosses' affixes (one from wave 50, two from 150), and their anger
+  if (tab === 5)
+    return [
+      ...AFFIXES.map((a) => [say(a.name, lang), say(a.does, lang)] as [string, string]),
+      [
+        lang === "fr" ? "Énervé" : "Enraged",
+        lang === "fr" ? `Après ${ENRAGE_AFTER} s, tout boss frappe plus fort.` : `After ${ENRAGE_AFTER} s, any boss hits harder.`,
+      ],
+      ["★", lang === "fr" ? `Un affixe dès la vague ${AFFIX_WAVES[0]}, deux dès la ${AFFIX_WAVES[1]}.` : `One affix from wave ${AFFIX_WAVES[0]}, two from ${AFFIX_WAVES[1]}.`],
+    ];
   // the weather, then the fields in their order (a new one every 10 waves)
   return [
     ...(Object.values(WEATHERS).map((w) => [say(w.name, lang), say(w.does, lang)]) as [string, string][]),

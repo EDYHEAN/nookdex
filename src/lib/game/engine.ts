@@ -4,8 +4,8 @@
 import { unlock } from "@/lib/trophyStore";
 import { gsfx, music } from "./audio";
 import {
-  BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, UNLOCK_STARTERS, WILD, BIOMES, BIOME_WAVES, WEATHERS, type WeatherId, waveAt, waveLength, waveStart, xpFor,
-  DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
+  BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, UNLOCK_STARTERS, WILD, BIOMES, BIOME_WAVES, WEATHERS, type WeatherId, waveLength, waveQuota, waveRate, waveStart, xpFor, WAVE_HURRY,
+  AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, type AffixId, DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
 } from "./data";
 import { DEFI_DAYS, DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
@@ -14,8 +14,11 @@ import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type 
 export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over" | "shop" | "countdown";
 /** "daily": the old daily (a wave to reach in a classic run), until 2026-10-14; "defi": the daily challenge since (lib/game/defi) */
 export type Mode = "classic" | "daily" | "coop" | "defi";
-/** the classic and coop runs end there, won once its giga boss falls (Johan, 2026-10-17: 100 was too close) */
-export const MAX_WAVE = 200;
+/** the classic and coop runs end there, won once its giga boss falls (Johan, 2026-10-17: 100 was too close; 2026-10-20:
+ * 200 was reached, on to 300) */
+export const MAX_WAVE = 300;
+/** Mega Mewtwo Y's first fall (the "Bicentennial" trophy); it comes back, tougher, as the 300th */
+const MEWTWO_WAVE = 200;
 /** past it, the titans: one every few seconds, and a giga boss every 10th wave; reaching it opens the Pension's 2nd rank */
 export const BEYOND = 100;
 /** a classic giga boss's HP before the wave's multiplier (the daily's are tuned for its 10 waves) */
@@ -30,13 +33,13 @@ const BEYOND_DMG = 0.3;
  * by card after it (Johan, 2026-10-18); past the 48 a full build and its evolutions take, the stacking boosts a run
  * picks then (2 Proteins for a PP Up): without them a wave-125 start knocked out 2 foes in 9 s.
  */
-export const TIERS = [25, 50, 75, 100, 125, 150, 175];
+export const TIERS = [25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275];
 /**
  * The level a start tier gives: about a played run's by then (the ladder, 2026-10-18: ~60 at wave 25, ~120 at 50, 148 at
  * 92, the XP curve steepening), wave 25 a little under (a friend found it right with its pack), past 100 as before (no run
  * went that far yet). Wave 50 at 80 was too weak: 40 levels short is 40 boosts short.
  */
-const TIER_LEVEL: Record<number, number> = { 25: 42, 50: 110, 75: 140, 100: 165, 125: 200, 150: 240, 175: 280 };
+const TIER_LEVEL: Record<number, number> = { 25: 42, 50: 110, 75: 140, 100: 165, 125: 200, 150: 240, 175: 280, 200: 320, 225: 360, 250: 400, 275: 440 };
 export const tierLevel = (tier: number) => TIER_LEVEL[tier] ?? Math.round(1.6 * tier);
 /** the types that put a foe in each state (the combos' first half) */
 const STATE_BY: Record<(typeof COMBOS)[number]["on"], Elem[]> = { wet: ["water"], burn: ["fire"], poison: ["poison"], sleep: ["grass", "ice", "dark"], charm: ["fairy"] };
@@ -64,6 +67,10 @@ const TITANS_FROM = 50;
 const BOSS_LATE_HP = 0.03;
 /** the most one blow takes, a share of the max HP */
 const HIT_CAP = 0.3;
+/** past wave 100 (Johan, 2026-10-20: the climb to 200 dragged): candies and gold come to you by themselves, XP x1.5 */
+const BEYOND_XP = 1.5;
+/** a cleared wave's breath before the next one */
+const WAVE_GAP = 1.2;
 /** the daily challenge's Pokémon won with (dex of their first form), for "defi-week": per device */
 export const DEFI_WINS_KEY = "nookdex:defi-wins";
 
@@ -192,8 +199,18 @@ interface Enemy {
   elite: boolean;
   /** the daily challenge's big ones: drawn bigger, much tougher */
   titan?: boolean;
-  /** the classic's last boss (wave 100): beating it wins */
+  /** the classic's last boss (wave 300): beating it wins */
   final?: boolean;
+  /** a boss's affixes (classic and coop, from wave 50), its shield's HP and what it holds at most, its own clocks */
+  affix?: AffixId[];
+  shield?: number;
+  shieldMax?: number;
+  /** time since it was last hit (Shield, Regenerator), and its next call (Leader) or blink (Blinker) */
+  quietT?: number;
+  affT?: number;
+  blinkT?: number;
+  enraged?: boolean;
+  bornT?: number;
   /** height above the ground (a boss's slam) */
   z: number;
   alpha: number;
@@ -670,6 +687,16 @@ export class Game {
   /** a start tier's boss, on its way (the time it comes, 0: none) */
   private bossDue = 0;
   private titanWave = 0;
+  /**
+   * The classic wave (data `waveQuota`): its foes still to come, its time so far, the breath once cleared, its crowd's rate
+   * and what each foe's XP and gold are worth (a late wave holds far fewer foes than the old clock brought: as much a wave)
+   */
+  private waveLeft = 0;
+  waveT = 0;
+  private waveGap = 0;
+  private waveSpawn = 1;
+  private waveWorth = 1;
+  private bossSpawned = false;
   /** the daily challenge: the wave's foes still to come, the next group's wait, the pause between two waves */
   private defiLeft = 0;
   private defiGroupT = 0;
@@ -815,7 +842,11 @@ export class Game {
     return this.setup.defi ? 1 : 30 / waveLength(this.wave);
   }
   get xpMul() {
-    return this.pace * (1 + 0.12 * this.itemLevel("share")) * (1 + 0.03 * this.perm("xp")) * (this.setup.daily?.mod.xp ?? 1) * (this.setup.defi ? 1.8 : 1) * (this.dex === 129 ? 1.5 : 1);
+    return this.pace * (1 + 0.12 * this.itemLevel("share")) * (1 + 0.03 * this.perm("xp")) * (this.setup.daily?.mod.xp ?? 1) * (this.setup.defi ? 1.8 : 1) * (this.dex === 129 ? 1.5 : 1) * (this.beyond ? BEYOND_XP : 1);
+  }
+  /** past wave 100 in a classic or coop run */
+  private get beyond() {
+    return !this.setup.defi && this.wave > BEYOND;
   }
   get goldMul() {
     return this.pace * (1 + 0.06 * this.perm("gold")) * (this.setup.daily?.mod.gold ?? 1);
@@ -852,6 +883,7 @@ export class Game {
       time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1, titanT: 4, titanWave: 0,
       bossAlive: null, bossDue: 0, weather: null, breakAt: 0, shake: 0, flash: 0, dyingT: 0, defiLeft: setup.defi ? DEFI_QUOTA[0] : 0, defiGroupT: 1, defiGap: 0, defiTitans: 0, endAt: 0,
     });
+    if (!setup.defi) this.fillWave(1);
     // a start tier: the run's clock starts at its wave (whose boss waits, frozen, while the draft is picked)
     const from = setup.daily || setup.defi ? 1 : (setup.start ?? 1);
     this.startAt = waveStart(from);
@@ -1323,16 +1355,9 @@ export class Game {
     this.time += dt;
 
     if (this.endAt && this.time >= this.endAt) return this.finish(true);
-    // a new wave every 30 s, every fifth one brings a boss (up to the 100th); the daily challenge's when the last foe falls
+    // a new wave once the last foe falls (or its time is up), every fifth one brings a boss
     if (this.setup.defi) this.stepDefi(dt);
-    else {
-      const wave = Math.min(MAX_WAVE, waveAt(this.time));
-      if (wave !== this.wave) this.newWave(wave);
-      if (this.bossDue && this.time >= this.bossDue) {
-        this.bossDue = 0;
-        this.spawnBoss(this.wave - (this.wave % 5));
-      }
-    }
+    else this.stepWaves(dt);
     if (this.breakAt && this.time >= this.breakAt) {
       this.breakAt = 0;
       return this.startBreak();
@@ -1497,9 +1522,72 @@ export class Game {
     }
   }
 
+  /**
+   * A classic wave's count. A boss's wave: a few guards, then it alone (Johan, 2026-10-20: the endless crowd made it a
+   * free-for-all; with a count the field clears and the boss is the fight). The crowd comes in at the old rate, or fast
+   * enough to be all out by 60 % of the wave's length.
+   */
+  private fillWave(w: number) {
+    const boss = w % 5 === 0;
+    const spawnMod = this.setup.daily?.mod.spawn ?? 1;
+    const n = boss ? Math.min(40, 8 + Math.floor(w / 4)) : w === 11 ? 0 : Math.round(waveQuota(w) * spawnMod);
+    Object.assign(this, {
+      waveT: 0, waveGap: 0, bossSpawned: false, waveLeft: n,
+      waveSpawn: boss ? n / 20 : Math.max(waveRate(w) * spawnMod, n / (0.6 * waveLength(w))),
+      // the old wave's crowd over this one's count, each foe worth a little more: a build clearing waves fast reaches tougher
+      // ones sooner, this keeps its levels from lagging too far behind (x1.5 at most: the XP a second stays about the same)
+      waveWorth: boss || !n ? 1 : Math.min(1.5, (waveRate(w) * spawnMod * waveLength(w)) / n),
+    });
+  }
+
+  /** the classic wave goes on: all its foes knocked out, the next one; its time up, the next one anyway; a boss's, when it falls */
+  private stepWaves(dt: number) {
+    if (this.endAt) return;
+    this.waveT += dt;
+    if (this.waveGap > 0) {
+      this.waveGap -= dt;
+      if (this.waveGap <= 0) this.newWave(this.wave + 1);
+      return;
+    }
+    if (this.bossDue && this.time >= this.bossDue) {
+      this.bossDue = 0;
+      this.spawnBoss(this.wave - (this.wave % 5));
+    }
+    if (this.wave % 5 === 0) {
+      const b = this.bossAlive;
+      // its boss fell, the break is over: on to the next
+      if (this.bossSpawned && !b && !this.breakAt && this.wave < MAX_WAVE) return this.newWave(this.wave + 1);
+      // standing too long: it gets angry (its wave doesn't end on a clock any more)
+      if (b && !b.enraged && this.time - (b.bornT ?? this.time) > ENRAGE_AFTER) {
+        b.enraged = true;
+        b.dmg *= 1.5;
+        b.speed *= 1.3;
+        this.shake = 8;
+        gsfx.boss();
+        this.showBanner(this.tr("IL S'ENERVE !", "IT'S ENRAGED!"), this.tr("il frappe plus fort", "it hits harder now"));
+      }
+      return;
+    }
+    if (this.waveLeft <= 0 && !this.enemies.some((e) => !e.dead && e.w?.act !== "treasure")) {
+      this.waveGap = WAVE_GAP;
+      // what lies on the ground comes to you
+      for (const p of this.pickups) p.pull = true;
+      gsfx.rare();
+      this.showBanner(this.tr(`VAGUE ${this.wave} NETTOYÉE`, `WAVE ${this.wave} CLEARED`), this.tr("la suivante arrive…", "the next one is coming…"));
+      return;
+    }
+    if (this.waveT >= waveLength(this.wave) && this.wave < MAX_WAVE) this.newWave(this.wave + 1);
+  }
+
+  /** what's left of the classic wave: its foes still to come and those out */
+  get waveRemaining() {
+    return this.waveLeft + this.enemies.filter((e) => !e.dead && !e.boss && e.w?.act !== "treasure").length;
+  }
+
   private newWave(wave: number) {
     this.wave = wave;
     if (this.setup.defi) return this.defiWave(wave);
+    this.fillWave(wave);
     const daily = this.setup.daily;
     if (daily && wave === daily.target) {
       // the daily's goal reached: the rest is for the ladder
@@ -1525,7 +1613,8 @@ export class Game {
       this.showBanner(this.tr("5E CAPACITE !", "5TH MOVE!"), this.tr("et un 5e objet : de quoi aller plus loin", "and a 5th item: room to go further"));
       gsfx.evolveDone();
       this.flash = 0.5;
-    } else if (wave === BEYOND + 1) this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), this.tr("au-delà : les titans arrivent", "beyond: the titans are coming"));
+    } else if (wave === BEYOND + 1)
+      this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), this.tr("au-delà : les titans, l'XP x1,5, les bonbons viennent seuls", "beyond: titans, XP x1.5, candies come to you"));
     else this.showBanner(this.tr(`VAGUE ${wave}`, `WAVE ${wave}`), "");
     // the daily met: its banner wins over the others
     if (daily && wave === daily.target)
@@ -1540,21 +1629,39 @@ export class Game {
     else if (w && !this.bannerSub) this.bannerSub = this.tr(`${w.name[0]} : ${w.does[0]}`, `${w.name[1]}: ${w.does[1]}`);
   }
 
-  /** a fifth wave's boss: past wave 100, every 10th is a giga boss of the daily challenge's (Mega Mewtwo Y for the 200th) */
+  /** a fifth wave's boss: past wave 100, every 10th is a giga boss of the daily challenge's (Mega Mewtwo Y the 200th and 300th) */
   private spawnBoss(wave: number) {
     const round = Math.floor((wave / 5 - 1) / BOSSES.length);
-    // past wave 100, every 10th: a giga boss of the daily challenge's (Mega Mewtwo Y for the 200th, the last)
     const giga = wave > BEYOND && wave % 10 === 0;
-    const b = giga ? DEFI_DAYS[wave >= MAX_WAVE ? 0 : ((wave / 10 - 11) % (DEFI_DAYS.length - 1)) + 1].giga : BOSSES[(wave / 5 - 1) % BOSSES.length];
+    const mewtwo = wave === MEWTWO_WAVE || wave >= MAX_WAVE;
+    const b = giga ? DEFI_DAYS[mewtwo ? 0 : ((wave / 10 - 11) % (DEFI_DAYS.length - 1)) + 1].giga : BOSSES[(wave / 5 - 1) % BOSSES.length];
     // past wave 25 they grow tougher still: late in a run they fell in a few seconds
     const mult = (1 + round * 2) * (1 + wave * 0.02) * (1 + Math.min(50, Math.max(0, wave - 25)) * BOSS_LATE_HP);
-    const hp = giga ? GIGA_HP * mult * (wave >= MAX_WAVE ? 1.25 : 1) : b.hp * mult;
+    const hp = giga ? GIGA_HP * mult * (mewtwo ? 1.25 : 1) : b.hp * mult;
     const a = Math.random() * Math.PI * 2;
     const e = this.makeEnemy(b.dex, this.x + Math.cos(a) * 170, this.y + Math.sin(a) * 150);
-    Object.assign(e, { boss: b, hp, max: hp, speed: b.speed, dmg: b.dmg * (1 + round * 0.5) * (1 + wave * 0.04), r: b.r, actT: 3, n: 0, final: wave >= MAX_WAVE });
+    Object.assign(e, { boss: b, hp, max: hp, speed: b.speed, dmg: b.dmg * (1 + round * 0.5) * (1 + wave * 0.04), r: b.r, actT: 3, n: 0, final: wave >= MAX_WAVE, bornT: this.time });
+    // its affixes: one from wave 50, two from 150, never the same twice
+    const nAff = this.setup.defi || this.setup.daily ? 0 : AFFIX_WAVES.filter((w) => wave >= w).length;
+    if (nAff) {
+      const pool = AFFIXES.map((x) => x.id);
+      e.affix = [];
+      while (e.affix.length < nAff) e.affix.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+      if (e.affix.includes("shield")) e.shield = e.shieldMax = hp * 0.3;
+      if (e.affix.includes("swift")) e.speed *= 1.4;
+      Object.assign(e, { quietT: 0, affT: 6 });
+    }
     this.enemies.push(e);
     this.bossAlive = e;
-    this.showBanner(`${this.name(b.dex)}`, giga ? this.tr(`GIGA BOSS · ${b.title[0]}`, `GIGA BOSS · ${b.title[1]}`) : this.tr(b.title[0], b.title[1]));
+    this.bossSpawned = true;
+    const title = giga ? this.tr(`GIGA BOSS · ${b.title[0]}`, `GIGA BOSS · ${b.title[1]}`) : this.tr(b.title[0], b.title[1]);
+    // an affix says what it does in the banner (the boss's own title waits under its bar)
+    const aff = e.affix?.map((id) => AFFIXES.find((x) => x.id === id)!);
+    const affName = (x: (typeof AFFIXES)[number]) => this.tr(x.name[0], x.name[1]).toUpperCase();
+    this.showBanner(
+      `${this.name(b.dex)}`,
+      !aff ? title : aff.length === 1 ? `${affName(aff[0])} : ${this.tr(aff[0].short[0], aff[0].short[1])}` : aff.map(affName).join(" + "),
+    );
     if (giga) this.shake = 12;
     gsfx.boss();
     music.boss(true);
@@ -2613,7 +2720,25 @@ export class Game {
       for (let i = 0; i < 5; i++) this.part(e.x, e.y - 10, rand(-40, 40), rand(-60, -10), "gold", 0.4, 2, 60, "spark");
       if (!quiet) gsfx.zap();
     }
-    e.hp -= dmg;
+    // a boss's shield takes the blows first; broken, the boss is stunned a moment
+    let shielded = false;
+    if (e.boss) e.quietT = 0;
+    if (e.shield && e.shield > 0) {
+      const took = Math.min(e.shield, dmg);
+      e.shield -= took;
+      e.hp -= dmg - took;
+      shielded = true;
+      if (e.shield <= 0) {
+        e.state = "";
+        e.z = 0;
+        e.alpha = 1;
+        e.actT = Math.max(e.actT, 3);
+        this.shake = Math.max(this.shake, 6);
+        this.fx.push({ kind: "text", x: e.x, y: e.y - 40, t: 0, life: 1.4, text: this.tr("BOUCLIER BRISÉ !", "SHIELD BROKEN!"), color: "gold" });
+        for (let i = 0; i < 24; i++) this.part(e.x, e.y - 12, rand(-90, 90), rand(-90, 30), "ice2", 0.6, 2, 80, "spark");
+        gsfx.boom();
+      }
+    } else e.hp -= dmg;
     e.hitT = 0.1;
     // King's Rock: now and then, the foe is knocked out cold for a moment
     const rock = this.itemLevel("kingsrock");
@@ -2622,7 +2747,7 @@ export class Game {
     e.kx += kx * heavy;
     e.ky += ky * heavy;
     if (this.nums.length > 50) this.nums.shift();
-    this.nums.push({ x: e.x + rand(-4, 4), y: e.y - 14 - (e.boss ? 14 : 0), t: 0, text: mul > 1 ? `${dmg}!` : String(dmg), color: mul > 1 ? "psy" : crit ? "gold" : "ui", big: crit || mul > 1 });
+    this.nums.push({ x: e.x + rand(-4, 4), y: e.y - 14 - (e.boss ? 14 : 0), t: 0, text: mul > 1 ? `${dmg}!` : String(dmg), color: shielded ? "ice" : mul > 1 ? "psy" : crit ? "gold" : "ui", big: crit || mul > 1 });
     if (!quiet) gsfx.hit(crit);
     const [c1] = TYPE_FX[elem];
     for (let i = 0; i < (crit ? 6 : 2); i++) this.part(e.x, e.y - 8, rand(-50, 50), rand(-60, 10), c1, 0.3, 1, 100, "spark");
@@ -2662,11 +2787,15 @@ export class Game {
       for (let i = 0; i < 14; i++) this.drop("candy", e.x + rand(-20, 20), e.y + rand(-20, 20), 8);
       for (let i = 0; i < 10; i++) this.drop("coin", e.x + rand(-24, 24), e.y + rand(-24, 24), 2 + Math.floor(this.wave / 4));
       gsfx.rare();
-      // the 100th wave's boss: what used to be the end, now the way beyond
+      // the 100th wave's boss: what used to be the end, now the way beyond; the 200th's, the same since 2026-10-20
       if (this.wave === BEYOND) {
         unlock("game-wave100");
         gsfx.evolveDone();
         this.showBanner(this.tr("100 VAGUES !", "100 WAVES!"), this.tr("et ce n'est pas fini…", "and it's not over…"));
+      } else if (this.wave === MEWTWO_WAVE) {
+        unlock("game-wave200");
+        gsfx.evolveDone();
+        this.showBanner(this.tr("200 VAGUES !", "200 WAVES!"), this.tr(`il reviendra, vague ${MAX_WAVE}…`, `it'll be back, wave ${MAX_WAVE}…`));
       } else
         this.showBanner(this.tr(`${this.name(e.dex)} est K.O. !`, `${this.name(e.dex)} fainted!`), this.tr("un Super Bonbon est tombé", "a Rare Candy dropped"));
     } else if (e.w?.act === "treasure") {
@@ -2676,11 +2805,13 @@ export class Game {
       this.drop("egg", e.x, e.y, 0);
       gsfx.rare();
     } else {
-      this.drop("candy", e.x, e.y, xp);
+      // a classic wave's foe is worth what the old wave's crowd was, shared among its count (fillWave)
+      const worth = this.setup.defi ? 1 : this.waveWorth;
+      this.drop("candy", e.x, e.y, xp * worth);
       // gold: now and then, worth a little more as the waves go on (the late waves bring many more foes already)
       const v = 1 + Math.floor(this.wave / 6);
       if (e.elite) for (let i = 0; i < 2; i++) this.drop("coin", e.x + rand(-8, 8), e.y + rand(-8, 8), v);
-      else if (Math.random() < 0.06) this.drop("coin", e.x, e.y, v);
+      else if (Math.random() < 0.06 * worth) this.drop("coin", e.x, e.y, v);
       const r = Math.random();
       if (r < 0.012) this.drop("oran", e.x, e.y, 0);
       else if (r < 0.016) this.drop("magnet", e.x, e.y, 0);
@@ -2860,32 +2991,36 @@ export class Game {
     // a start tier's ramp: a trickle at first, the wave's full crowd after RAMP seconds
     const k = this.startAt > 0 ? Math.min(1, (this.time - this.startAt) / RAMP) : 1;
     const cap = Math.min(260, 120 + this.wave * 6) * (0.15 + 0.85 * k);
-    const rate =
-      (0.6 + 0.3 * this.wave + 0.012 * this.wave * this.wave) * (this.bossAlive ? 0.5 : 1) * (this.setup.daily?.mod.spawn ?? 1) * (0.06 + 0.94 * k * k);
-    this.spawnAcc += rate * dt;
+    // the wave's count comes in at its rate (fillWave), none once all are out
+    this.spawnAcc += this.waveSpawn * (0.06 + 0.94 * k * k) * dt;
     const pool = this.wildPool;
     while (this.spawnAcc >= 1) {
       this.spawnAcc--;
-      if (alive >= cap) continue;
+      if (alive >= cap || this.waveLeft <= 0) continue;
       // the biome's own come up more (among the wave's)
       const local = pool.filter((d) => this.biome.foes.includes(d));
       const dex = local.length && Math.random() < 0.45 ? pick(local) : pick(pool);
       // sometimes a whole group comes from one side
-      if (Math.random() < 0.08) {
+      if (Math.random() < 0.08 && this.waveLeft >= 5) {
         const f = Math.random();
         for (let i = 0; i < 5; i++) this.spawnOne(dex, f + rand(-0.03, 0.03));
-      } else this.spawnOne(dex);
+        this.waveLeft -= 5;
+      } else {
+        this.spawnOne(dex);
+        this.waveLeft--;
+      }
     }
-    // past wave 100, titans walk among the crowd, more and more often (a third as many while a boss is out)
-    if (this.wave > TITANS_FROM) {
+    // past wave 50, titans walk among the crowd, more and more often: one of the wave's count (none with a boss)
+    if (this.wave > TITANS_FROM && !this.bossAlive && this.waveLeft > 0) {
       this.titanT -= dt;
       if (this.titanT <= 0) {
         // one every ~25 s at wave 50, every ~14 s at 100, then more and more often
         const every = this.wave > BEYOND ? Math.max(4, 14 - (this.wave - BEYOND) * 0.1) : 25 - (this.wave - TITANS_FROM) * 0.22;
-        this.titanT = every * (this.bossAlive ? 3 : 1);
+        this.titanT = every;
         const a = Math.random() * Math.PI * 2, d = VIEW_R + 20;
         const p = pick(this.alive().length ? this.alive() : this.players);
         this.enemies.push(this.makeEnemy(pick(pool), p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, true));
+        this.waveLeft--;
         if (this.titanWave !== this.wave && !this.bossAlive) this.showBanner(this.tr("UN TITAN !", "A TITAN!"), this.tr("un ennemi géant", "a giant foe"));
         this.titanWave = this.wave;
       }
@@ -2905,6 +3040,8 @@ export class Game {
 
   private stepEnemies(dt: number) {
     const keep = this.cur;
+    // a classic wave's last few: they hurry in
+    const hurry = !this.setup.defi && this.wave % 5 !== 0 && this.waveLeft <= 0 && this.waveRemaining <= WAVE_HURRY;
     for (const e of this.enemies) {
       if (e.dead) {
         e.deadT += dt;
@@ -2945,7 +3082,7 @@ export class Game {
       const dx = px - e.x, dy = py - e.y;
       const d = Math.hypot(dx, dy) || 1;
       const ux = dx / d, uy = dy / d;
-      let sp = e.speed * (e.slowT > 0 ? 0.5 : 1);
+      let sp = e.speed * (e.slowT > 0 ? 0.5 : 1) * (hurry && !e.boss ? 2 : 1);
       let vx = ux, vy = uy;
       e.stateT -= dt;
       if (e.boss) {
@@ -3075,7 +3212,7 @@ export class Game {
         }
       }
       // too far behind: brought back in front
-      if (d > VIEW_R + 160 && !e.boss && e.w?.act !== "treasure") {
+      if (d > VIEW_R + (hurry ? 30 : 160) && !e.boss && e.w?.act !== "treasure") {
         const a = Math.random() * Math.PI * 2;
         e.x = px + Math.cos(a) * (VIEW_R + 20);
         e.y = py + Math.sin(a) * (VIEW_R + 20);
@@ -3105,9 +3242,44 @@ export class Game {
     this.enemies = this.enemies.filter((e) => !e.dead || e.deadT < (e.boss ? 1.4 : 0.35));
   }
 
+  /** a boss's affixes at work: its shield back, its heal, its backup, its blink */
+  private stepAffix(e: Enemy, dt: number) {
+    const has = (id: AffixId) => e.affix!.includes(id);
+    e.quietT = (e.quietT ?? 0) + dt;
+    e.affT = (e.affT ?? 0) - dt;
+    // left alone a while: its shield comes back, whole
+    if (has("shield") && e.shield! <= 0 && e.quietT > 6) {
+      e.shield = e.shieldMax;
+      gsfx.shield();
+    }
+    if (has("regen") && e.quietT > 2 && e.hp < e.max) {
+      e.hp = Math.min(e.max, e.hp + e.max * 0.03 * dt);
+      if (Math.random() < 0.2) this.part(e.x + rand(-10, 10), e.y - rand(0, 24), 0, -24, "heal", 0.6, 2, 0, "spark");
+    }
+    e.blinkT = (e.blinkT ?? 4) - dt;
+    if (has("blink") && e.blinkT <= 0 && !e.state) {
+      e.blinkT = 7;
+      e.state = "fade";
+      e.stateT = 0.4;
+    }
+    if (has("summon") && e.affT <= 0 && !e.state) {
+      e.affT = 9;
+      if (this.enemies.filter((o) => !o.dead).length < 60) {
+        const pool = this.wildPool;
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI * 2;
+          this.enemies.push(this.makeEnemy(pick(pool), e.x + Math.cos(a) * 40, e.y + Math.sin(a) * 34));
+        }
+        for (let i = 0; i < 10; i++) this.part(e.x + rand(-30, 30), e.y - rand(0, 20), 0, -30, "gold", 0.5, 2, 0, "spark");
+        gsfx.boss();
+      }
+    }
+  }
+
   private bossAct(e: Enemy, dt: number, ux: number, uy: number) {
     const b = e.boss!;
-    e.actT -= dt;
+    if (e.affix) this.stepAffix(e, dt);
+    e.actT -= dt * (e.affix?.includes("swift") ? 1.35 : 1) * (e.enraged ? 1.25 : 1);
     if (b.giga && this.gigaAct(e, dt)) return;
     const base = () => {
       e.x += ux * e.speed * dt;
@@ -3619,8 +3791,8 @@ export class Game {
       }
       const dx = this.x - p.x, dy = this.y - 4 - p.y;
       const d = Math.hypot(dx, dy);
-      // in reach, or lying on screen for a while: it comes
-      if (!p.pull && (d < mag || (p.t > 10 && d < SH * 0.6))) p.pull = true;
+      // in reach, or lying on screen for a while: it comes; past wave 100, candies and gold come once they've landed
+      if (!p.pull && (d < mag || (p.t > 10 && d < SH * 0.6) || (this.beyond && p.t > 0.5 && (p.kind === "candy" || p.kind === "coin")))) p.pull = true;
       if (p.pull) {
         const sp = 60 + p.t * 30 + (mag - Math.min(d, mag)) * 4;
         p.x += (dx / (d || 1)) * Math.min(d, sp * dt * 2.2);
@@ -3735,7 +3907,8 @@ export class Game {
 
   /** the time of day changes with the waves: day, dusk, night (fireflies), dawn */
   get timeOfDay() {
-    const c = ((this.wave - 1) % 8) + Math.min(1, Math.max(0, (this.time - waveStart(this.wave)) / waveLength(this.wave)));
+    const into = this.setup.defi ? this.time - waveStart(this.wave) : this.waveT;
+    const c = ((this.wave - 1) % 8) + Math.min(1, Math.max(0, into / waveLength(this.wave)));
     return c;
   }
   private get night() {
@@ -4054,6 +4227,14 @@ export class Game {
       ctx.strokeStyle = g.c.gold;
       ctx.globalAlpha = 0.5 + Math.sin(e.t * 8) * 0.3;
       ring(ctx, e.x + ox, e.y + oy, e.r + 3, 0.45);
+      ctx.globalAlpha = 1;
+    }
+    // a boss's shield: a bubble round it; an angry one: a red halo
+    if ((e.shield && e.shield > 0) || e.enraged) {
+      ctx.strokeStyle = g.c[e.shield && e.shield > 0 ? "ice" : "hpLow"];
+      ctx.globalAlpha = 0.45 + Math.sin(e.t * 6) * 0.2;
+      ring(ctx, e.x + ox, e.y + oy - 2, e.r + 7, 0.5);
+      ring(ctx, e.x + ox, e.y + oy - 2, e.r + 8, 0.5);
       ctx.globalAlpha = 1;
     }
     // its last seconds: it blinks, about to leave
@@ -4744,9 +4925,12 @@ export class Game {
     } else if (this.wave >= MAX_WAVE) {
       g.text(ctx, this.tr(`VAGUE ${MAX_WAVE} · FINALE`, `WAVE ${MAX_WAVE} · FINAL`), SW / 2, 8, "gold", { align: "center" });
     } else {
-      const left = Math.max(0, Math.ceil(waveStart(this.wave + 1) - this.time));
       g.text(ctx, this.tr(`VAGUE ${this.wave}`, `WAVE ${this.wave}`), SW / 2, 8, "gold", { align: "center" });
-      g.text(ctx, `0:${String(left).padStart(2, "0")}`, SW / 2, 15, left <= 5 ? "hpLow" : "uiDim", { align: "center" });
+      // the foes left to knock out, and the most the wave still lasts (a boss's: its bar says it all)
+      if (this.wave % 5 && !this.waveGap) {
+        const n = this.waveRemaining, left = Math.max(0, Math.ceil(waveLength(this.wave) - this.waveT));
+        g.text(ctx, `${this.tr(`reste ${n}`, `${n} left`)}  0:${String(left).padStart(2, "0")}`, SW / 2, 15, n <= 5 || left <= 5 ? "hpLow" : "uiDim", { align: "center" });
+      }
     }
     g.text(ctx, `KO ${this.kills}`, SW - 4, 8, "ui", { align: "right" });
     this.drawPickup(ctx, { kind: "coin", x: 8, y: 20, z: 0, vz: 1, value: 0, pull: false, t: 0 }, 0, 0);
@@ -4765,7 +4949,14 @@ export class Game {
       ctx.fillRect(SW / 2 - 70, 24, 140, 6);
       ctx.fillStyle = c.hpLow;
       ctx.fillRect(SW / 2 - 69, 25, Math.round(138 * (b.hp / b.max)), 4);
+      // its shield over the bar, its affixes by its name
+      if (b.shield && b.shield > 0) {
+        ctx.fillStyle = c.ice;
+        ctx.fillRect(SW / 2 - 69, 24, Math.round(138 * (b.shield / b.shieldMax!)), 2);
+      }
       g.text(ctx, this.name(b.dex), SW / 2, 32, "ui", { align: "center" });
+      const tags = [...(b.affix ?? []).map((id) => AFFIXES.find((x) => x.id === id)!.name), ...(b.enraged ? [["ENRAGÉ", "ENRAGED"] as const] : [])];
+      if (tags.length) g.text(ctx, tags.map((n) => this.tr(n[0], n[1]).toUpperCase()).join(" + "), SW / 2, 39, b.enraged ? "hpLow" : "psy", { align: "center" });
     }
 
     // the moves at the bottom: their cooldown fills them back up
