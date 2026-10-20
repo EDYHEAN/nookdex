@@ -322,8 +322,11 @@ doesn't show.
   (`public/game/sprites.png`, ~900 KB since the daily challenge's Pokémon). Fixed 60 Hz step on a 320×288 canvas, scaled by a whole number in a CSS
   Game Boy. Select (Tab) swaps palettes (colours, DMG green, Pocket, lofi violet: the atlas re-shaded once).
   `?game` opens it, `window.nookboy` is the engine in dev.
+- **Shiny** (Johan, 2026-10-20): one classic or coop run in 40 (`SHINY_ODDS`) starts with its starter shiny: SpriteCollab's
+  shiny sprite (atlas id 20000 + its id, `lookOf` in the engine) and `SHINY_BOOST` (damage and HP x1.5). Never in the daily.
 - Sprites: PMD SpriteCollab (CC BY-NC 4.0: credits in the game's Crédits screen, non-commercial use only), downloaded,
-  trimmed and packed by `npm run build-game` (`scripts/build-game.mjs`, cache `.cache/`), which also writes
+  trimmed and packed by `npm run build-game` (`scripts/build-game.mjs`, cache `.cache/`; frames copied into a raw buffer,
+  ~4 s: sharp's composite of the tiles stalled once the shinies came in), which also writes
   `src/data/game-sprites.json` and the room's loop. A new Pokémon: add its dex number to the script's ROSTER, run it.
 - Ladder: Supabase `game_scores` behind `game_top2` / `game_submit2` (v4 at the end of docs/supabase.sql: plausibility
   checks, the waves' timing (v6: 2 s a wave at least, waves end once cleared), up to wave 300, one run per name every 20 s, best run per name), open to everyone, account
