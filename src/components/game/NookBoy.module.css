@@ -1292,6 +1292,16 @@
   color: var(--c0) !important;
 }
 
+/* the game over's main way out: Enter plays again */
+.overBtns .replayBtn {
+  background: var(--c3);
+  color: var(--c0) !important;
+}
+
+.skip {
+  cursor: pointer;
+}
+
 .daily {
   display: flex;
   flex-direction: column;

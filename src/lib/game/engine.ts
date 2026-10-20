@@ -924,6 +924,14 @@ export class Game {
     this.afterLevel();
   }
 
+  /** "Pass" (Johan, 2026-10-20): no card for this level rather than a move or an item the build doesn't want. Not for a build pack. */
+  skip() {
+    if (this.phase !== "levelup" || !this.canChoose || this.choices[0]?.kind === "pack") return;
+    this.pendingLevels--;
+    gsfx.back();
+    this.afterLevel();
+  }
+
   /** a build pack: its moves and items learnt, the moves raised to the top and evolved, then the items, then boosts: n cards */
   private applyPack(def: PackDef, n: number) {
     const steps: Choice[] = [...def.moves.map((id) => ({ kind: "move" as const, id, level: 1 })), ...def.items.map((id) => ({ kind: "item" as const, id, level: 1 }))];

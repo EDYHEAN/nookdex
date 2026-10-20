@@ -564,6 +564,16 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (p === "evolve" && b === "b") return eng.cancelEvolution();
   };
 
+  /** the game over's "Play again": straight back to the starters (a daily challenge starts over at once) */
+  const replay = () => {
+    const run = g?.lastStats;
+    if (!g || g.phase !== "over" || !run) return;
+    gsfx.ok();
+    setSent("idle");
+    if (run.mode === "daily" || run.mode === "defi") startRun("daily");
+    else g.toSelect();
+  };
+
   const quitRun = () => {
     music.stop();
     g?.set("title");
@@ -591,10 +601,12 @@ export default function NookBoy({ origin, onClose }: Props) {
   const pressRef = useRef(press);
   const pensionOpen = useRef(false);
   const settleRef = useRef(settle);
+  const replayRef = useRef(replay);
   useEffect(() => {
     pressRef.current = press;
     pensionOpen.current = pension;
     settleRef.current = settle;
+    replayRef.current = replay;
   });
   useEffect(() => {
     if (phase === "over") settleRef.current();
@@ -620,6 +632,7 @@ export default function NookBoy({ origin, onClose }: Props) {
       set(e.code, true);
       if (e.repeat) return;
       if (e.code === "KeyR" && eng.phase === "levelup") return eng.reroll();
+      if (e.code === "KeyX" && eng.phase === "levelup") return eng.skip();
       if (/^Digit[1-5]$/.test(e.code)) {
         const n = +e.code.slice(5) - 1;
         if (eng.phase === "levelup") eng.choose(eng.choices[n]);
@@ -632,8 +645,11 @@ export default function NookBoy({ origin, onClose }: Props) {
       const inRun = eng.phase === "play";
       if (inRun && (e.code === "Enter" || e.code === "Escape" || e.code === "KeyP")) return pressRef.current("start");
       if (inRun && b !== "select") return;
-      // the game over has its own buttons (and the name field); its Pension screen takes the keys
-      if (eng.phase === "over" && !pensionOpen.current) return;
+      // the game over has its own buttons (and the name field); its Pension screen takes the keys. A (Enter) plays again.
+      if (eng.phase === "over" && !pensionOpen.current) {
+        if (b === "a") replayRef.current();
+        return;
+      }
       pressRef.current(b);
     };
     const onUp = (e: KeyboardEvent) => set(e.code, false);
@@ -1069,6 +1085,11 @@ export default function NookBoy({ origin, onClose }: Props) {
               {t(`R : relancer les cartes (${g.rerolls})`, `R: reroll the cards (${g.rerolls})`)}
             </p>
           )}
+          {g.choices[0]?.kind !== "pack" && (
+            <p className={`${styles.keys} ${styles.skip}`} onClick={() => g.skip()}>
+              {t("X : passer (aucune carte)", "X: pass (no card)")}
+            </p>
+          )}
           {g.moves.length >= g.moveSlots && g.choices.every((c) => c.kind !== "move" || c.level > 1) && (
             <p className={styles.keys}>{t(`${nameOf(g.dex)} connaît déjà ${g.moveSlots} capacités.`, `${nameOf(g.dex)} already knows ${g.moveSlots} moves.`)}</p>
           )}
@@ -1306,15 +1327,8 @@ export default function NookBoy({ origin, onClose }: Props) {
             </form>
           )}
           <div className={styles.overBtns}>
-            <button
-              onClick={() => {
-                gsfx.ok();
-                setSent("idle");
-                if (run.mode === "daily" || run.mode === "defi") startRun("daily");
-                else g.toSelect();
-              }}
-            >
-              {t("Rejouer", "Play again")}
+            <button className={styles.replayBtn} onClick={replay}>
+              {t("Rejouer ▶", "Play again ▶")}
             </button>
             <button onClick={quitRun}>{t("Menu", "Menu")}</button>
             <button className={styles.pensionBtn} onClick={openPension}>
