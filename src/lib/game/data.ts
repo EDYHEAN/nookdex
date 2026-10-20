@@ -263,12 +263,16 @@ export type MoveId =
   | "quick" | "sleep" | "hyper" | "rocks" | "toxic" | "solar" | "twister"
   | "bubble" | "discharge" | "bone" | "firespin" | "sludge" | "icebeam" | "gigadrain" | "hex" | "aura" | "future"
   | "dazzle" | "flashcannon" | "darkpulse" | "xscissor"
+  // 2026-10-20 (Johan: more moves, items, combos)
+  | "dragonbreath" | "airslash" | "drainpunch" | "crunch" | "bugbuzz"
   // the evolved ones
   | "fulgur" | "blast" | "hydro" | "petal" | "blizzard" | "draco" | "fissure"
-  | "scald" | "zapcannon" | "poltergeist" | "sacredfire" | "closecombat" | "doomdesire" | "gunk" | "moonblast" | "steelbeam";
+  | "scald" | "zapcannon" | "poltergeist" | "sacredfire" | "closecombat" | "doomdesire" | "gunk" | "moonblast" | "steelbeam"
+  | "hurricane" | "outrage" | "aeroblast" | "focuspunch" | "nightslash" | "megahorn";
 export type ItemId =
   | "leftovers" | "band" | "scarf" | "claw" | "lens" | "magnet" | "share" | "hpup" | "root" | "shellbell" | "belt" | "lifeorb" | "helmet"
-  | "eviolite" | "kingsrock" | "sash" | "spoon";
+  | "eviolite" | "kingsrock" | "sash" | "spoon"
+  | "razorfang" | "metronome" | "amulet";
 
 export interface MoveDef {
   id: MoveId;
@@ -315,6 +319,11 @@ export const MOVES: MoveDef[] = [
   { id: "flashcannon", rarity: "epic", name: ["Luminocanon", "Flash Cannon"], type: "steel", desc: ["Un rayon d'acier qui perce tout.", "A steel beam that pierces everything."], cd: [4.2, 3.9, 3.6, 3.3, 3] },
   { id: "darkpulse", rarity: "rare", name: ["Vibrobscur", "Dark Pulse"], type: "dark", desc: ["Une onde noire qui repousse et fait flancher.", "A dark wave that pushes back and makes foes flinch."], cd: [5.5, 5.2, 4.9, 4.6, 4.2] },
   { id: "xscissor", rarity: "common", name: ["Plaie-Croix", "X-Scissor"], type: "bug", desc: ["Deux lames en croix vers les plus proches.", "Two crossed blades at the closest foes."], cd: [1.8, 1.7, 1.6, 1.5, 1.3] },
+  { id: "dragonbreath", rarity: "rare", name: ["Dracosouffle", "Dragon Breath"], type: "dragon", desc: ["Trois souffles de dragon en éventail.", "Three dragon breaths in a fan."], cd: [3, 2.8, 2.6, 2.4, 2.1] },
+  { id: "airslash", rarity: "common", name: ["Lame d'Air", "Air Slash"], type: "fly", desc: ["Des lames d'air partent en étoile.", "Blades of air fly out in a star."], cd: [2.4, 2.3, 2.2, 2, 1.8] },
+  { id: "drainpunch", rarity: "rare", name: ["Poing Drainant", "Drain Punch"], type: "fight", desc: ["Un gros coup au plus proche, qui te soigne.", "A big blow at the closest foe, that heals you."], cd: [2.6, 2.4, 2.2, 2, 1.8] },
+  { id: "crunch", rarity: "common", name: ["Mâchouille", "Crunch"], type: "dark", desc: ["Croque les ennemis les plus proches.", "Bites the closest foes."], cd: [2.2, 2.1, 2, 1.9, 1.7] },
+  { id: "bugbuzz", rarity: "rare", name: ["Bourdon", "Bug Buzz"], type: "bug", desc: ["Un bourdonnement autour de toi, qui repousse.", "A buzz all around you, pushing back."], cd: [5, 4.7, 4.4, 4.1, 3.7] },
   // evolutions: a move at level 5 + an item
   { id: "fulgur", rarity: "legendary", name: ["Fatal-Foudre", "Thunder"], type: "elec", desc: ["La foudre s'abat partout et rebondit.", "Lightning everywhere, bouncing on."], cd: [1.5, 1.5, 1.5, 1.5, 1.5], evo: { from: "thunder", item: "magnet" } },
   { id: "blast", rarity: "legendary", name: ["Déflagration", "Fire Blast"], type: "fire", desc: ["Une boule de feu qui explose en étoile.", "A fireball that bursts into a star."], cd: [2.6, 2.6, 2.6, 2.6, 2.6], evo: { from: "flamethrower", item: "band" } },
@@ -332,6 +341,12 @@ export const MOVES: MoveDef[] = [
   { id: "gunk", rarity: "legendary", name: ["Détricanon", "Gunk Shot"], type: "poison", desc: ["D'énormes flaques toxiques partout.", "Huge toxic puddles everywhere."], cd: [2.5, 2.5, 2.5, 2.5, 2.5], evo: { from: "sludge", item: "eviolite" } },
   { id: "moonblast", rarity: "legendary", name: ["Pouvoir Lunaire", "Moonblast"], type: "fairy", desc: ["Une lune tombe sur la mêlée, charme et te soigne.", "A moon falls on the crowd, charms it, heals you."], cd: [2.4, 2.4, 2.4, 2.4, 2.4], evo: { from: "dazzle", item: "shellbell" } },
   { id: "steelbeam", rarity: "legendary", name: ["Métalaser", "Steel Beam"], type: "steel", desc: ["Quatre rayons d'acier en croix, qui tournent.", "Four steel beams in a cross, turning."], cd: [1.6, 1.6, 1.6, 1.6, 1.6], evo: { from: "flashcannon", item: "lifeorb" } },
+  { id: "hurricane", rarity: "legendary", name: ["Vent Violent", "Hurricane"], type: "fly", desc: ["Trois tornades géantes qui aspirent tout.", "Three giant tornadoes that suck it all in."], cd: [3.2, 3.2, 3.2, 3.2, 3.2], evo: { from: "twister", item: "root" } },
+  { id: "outrage", rarity: "legendary", name: ["Colère", "Outrage"], type: "dragon", desc: ["Une couronne de flammes de dragon tout autour.", "A crown of dragon flames all around."], cd: [1.8, 1.8, 1.8, 1.8, 1.8], evo: { from: "dragonbreath", item: "lifeorb" } },
+  { id: "aeroblast", rarity: "legendary", name: ["Aéroblast", "Aeroblast"], type: "fly", desc: ["Des lames d'air sans fin, qui percent tout.", "Endless blades of air, piercing everything."], cd: [1, 1, 1, 1, 1], evo: { from: "airslash", item: "belt" } },
+  { id: "focuspunch", rarity: "legendary", name: ["Mitra-Poing", "Focus Punch"], type: "fight", desc: ["Un coup énorme sur le plus costaud, qui te soigne.", "A huge blow on the toughest, that heals you."], cd: [1.6, 1.6, 1.6, 1.6, 1.6], evo: { from: "drainpunch", item: "helmet" } },
+  { id: "nightslash", rarity: "legendary", name: ["Tranche-Nuit", "Night Slash"], type: "dark", desc: ["Des lames d'ombre, toujours critiques.", "Shadow blades, always critical."], cd: [1.2, 1.2, 1.2, 1.2, 1.2], evo: { from: "crunch", item: "razorfang" } },
+  { id: "megahorn", rarity: "legendary", name: ["Mégacorne", "Megahorn"], type: "bug", desc: ["Une onde géante qui empoisonne tout.", "A giant wave that poisons everything."], cd: [2.6, 2.6, 2.6, 2.6, 2.6], evo: { from: "bugbuzz", item: "metronome" } },
 ];
 
 export interface ItemDef {
@@ -359,6 +374,9 @@ export const ITEMS: ItemDef[] = [
   { id: "kingsrock", rarity: "rare", name: ["Roche Royale", "King's Rock"], desc: ["Tes coups peuvent endormir (4 %).", "Your hits may put foes to sleep (4%)."] },
   { id: "sash", rarity: "epic", name: ["Ceinture Force", "Focus Sash"], desc: ["Survit à un coup fatal, de temps en temps.", "Survives a fatal blow, now and then."] },
   { id: "spoon", rarity: "rare", name: ["Cuillère Tordue", "Twisted Spoon"], desc: ["Brûlures et poisons +30 % plus forts.", "Burns and poisons 30% stronger."] },
+  { id: "razorfang", rarity: "rare", name: ["Croc Rasoir", "Razor Fang"], desc: ["+12 % de dégâts aux ennemis qui ont un statut.", "+12% damage to foes with a status."] },
+  { id: "metronome", rarity: "epic", name: ["Métronome", "Metronome"], desc: ["Sans être touché, tu frappes de plus en plus fort.", "Untouched, you hit harder and harder."] },
+  { id: "amulet", rarity: "common", name: ["Pièce Rune", "Amulet Coin"], desc: ["+15 % d'or ramassé.", "+15% gold picked up."] },
 ];
 
 /**
@@ -369,7 +387,7 @@ export const ITEMS: ItemDef[] = [
  */
 export type PackId =
   | "wildfire" | "mud" | "venom" | "bulwark" | "woods" | "storm" | "floe" | "charmer" | "swarm" | "molten" | "critical"
-  | "tempest" | "wisp" | "nightmare" | "eclipse";
+  | "tempest" | "wisp" | "nightmare" | "eclipse" | "gale" | "drake" | "brawler";
 export interface PackDef {
   id: PackId;
   rarity: Rarity;
@@ -390,6 +408,10 @@ export const PACKS: PackDef[] = [
   { id: "molten", rarity: "epic", name: ["Métal en fusion", "Molten Metal"], moves: ["flashcannon", "firespin", "flamethrower", "protect"], items: ["lifeorb", "sash", "band", "lens"] },
   { id: "critical", rarity: "epic", name: ["Coup critique", "Critical Hit"], moves: ["swift", "aura", "bone", "xscissor"], items: ["scarf", "band", "lens", "belt"] },
   { id: "tempest", rarity: "epic", name: ["Tempête", "Tempest"], moves: ["bubble", "thunder", "twister", "hyper"], items: ["magnet", "band", "claw", "lens"] },
+  // 2026-10-20, with the new moves: wind on soaked and burnt foes, dragonfire, fists on charmed foes
+  { id: "gale", rarity: "rare", name: ["Bourrasque", "Gale"], moves: ["airslash", "twister", "bubble", "flamethrower"], items: ["root", "belt", "claw", "band"] },
+  { id: "drake", rarity: "epic", name: ["Dompteur", "Dragon Tamer"], moves: ["dragonbreath", "firespin", "sleep", "crunch"], items: ["lifeorb", "razorfang", "band", "lens"] },
+  { id: "brawler", rarity: "rare", name: ["Bagarreur", "Brawler"], moves: ["drainpunch", "dazzle", "bugbuzz", "aura"], items: ["helmet", "metronome", "eviolite", "band"] },
   // the broken ones: soaked foes and lightning (the safest of all, 2026-10-18), burns and poisons that Hex and Poltergeist
   // feed on (a friend's build), sleep and Ghost, charm and Dark
   { id: "wisp", rarity: "legendary", name: ["Feu follet", "Will-o'-Wisp"], moves: ["flamethrower", "toxic", "firespin", "hex"], items: ["spoon", "kingsrock", "band", "sash"] },
@@ -412,6 +434,23 @@ export const STATUSES: { name: Txt; by: Txt; does: Txt }[] = [
   { name: ["Charmé", "Charmed"], by: ["Fée", "Fairy"], does: ["Attaque ses voisins au lieu de toi.", "Attacks its neighbours instead of you."] },
   { name: ["Flanche", "Flinch"], by: ["Ténèbres", "Dark"], does: ["3 fois sur 10, figé un instant.", "3 times in 10, frozen for a moment."] },
 ];
+/**
+ * A boss's affix (Johan, 2026-10-20: something new to play late in a run, on the bosses only, the crowd is busy enough):
+ * one from wave 50, two from 150 (classic and coop). Named under its bar and in its banner, listed in the guide.
+ */
+export type AffixId = "shield" | "swift" | "regen" | "summon" | "blink";
+export const AFFIXES: { id: AffixId; name: Txt; short: Txt; does: Txt }[] = [
+  { id: "shield", name: ["Bouclier", "Shield"], short: ["casse son bouclier", "break its shield"], does: ["Casse son bouclier d'abord : il est sonné. Revient si tu le laisses.", "Break its shield first: it's stunned. Comes back if you let it be."] },
+  { id: "swift", name: ["Vif", "Swift"], short: ["rapide", "fast"], does: ["Bouge et attaque plus vite.", "Moves and attacks faster."] },
+  { id: "regen", name: ["Régénération", "Regenerator"], short: ["ne le lâche pas", "don't let up"], does: ["Se soigne dès que tu arrêtes de frapper.", "Heals as soon as you stop hitting."] },
+  { id: "summon", name: ["Meneur", "Leader"], short: ["appelle des renforts", "calls in backup"], does: ["Appelle des renforts de temps en temps.", "Calls in backup now and then."] },
+  { id: "blink", name: ["Téléporteur", "Blinker"], short: ["surgit à côté de toi", "pops up next to you"], does: ["Surgit à côté de toi.", "Pops up right next to you."] },
+];
+/** the waves its affixes start at: one, then two */
+export const AFFIX_WAVES = [50, 150];
+/** a boss left standing this long gets angry: hits harder, moves faster (its wave no longer ends on a clock) */
+export const ENRAGE_AFTER = 75;
+
 /** what the statuses feed, for the guide */
 export const STATUS_NOTES: Txt[] = [
   ["Châtiment et Poltergeist frappent fort les ennemis qui ont un statut.", "Hex and Poltergeist hit foes with a status hard."],
@@ -442,12 +481,50 @@ export const COMBOS: { on: "wet" | "burn" | "poison" | "sleep" | "charm"; by: El
   { on: "poison", by: "bug", mul: 1.7, name: ["Empoisonné + Insecte : nid de vermine", "Poisoned + Bug: a nest of vermin"] },
   { on: "sleep", by: "fairy", mul: 1.6, name: ["Endormi + Fée : doux rêve", "Asleep + Fairy: sweet dreams"] },
   { on: "wet", by: "grass", mul: 1.4, name: ["Mouillé + Plante : ça pousse", "Wet + Grass: it grows"] },
+  // 2026-10-20, with the new moves
+  { on: "burn", by: "dragon", mul: 1.5, name: ["Brûlé + Dragon : flamme draconique", "Burnt + Dragon: dragonfire"] },
+  { on: "sleep", by: "dragon", mul: 1.6, name: ["Endormi + Dragon : le dragon s'éveille", "Asleep + Dragon: the dragon wakes"] },
+  { on: "poison", by: "dark", mul: 1.5, name: ["Empoisonné + Ténèbres : coup sournois", "Poisoned + Dark: a dirty trick"] },
+  { on: "charm", by: "fight", mul: 1.7, name: ["Charmé + Combat : coup en traître", "Charmed + Fighting: a sucker punch"] },
+  { on: "wet", by: "fly", mul: 1.4, name: ["Mouillé + Vol : vent glacial", "Wet + Flying: an icy wind"] },
 ];
 export const BONUSES: { id: BonusId; name: Txt; desc: Txt }[] = [
   { id: "protein", name: ["Protéine", "Protein"], desc: ["+6 % de dégâts, pour toujours.", "+6% damage, for good."] },
   { id: "ppup", name: ["PP Plus", "PP Up"], desc: ["Capacités 4 % plus vite prêtes.", "Moves ready 4% sooner."] },
   { id: "sitrus", name: ["Baie Sitrus", "Sitrus Berry"], desc: ["Soigne 40 % de tes PV.", "Heals 40% of your HP."] },
 ];
+
+/**
+ * Paragon cards (Johan, 2026-10-20: past a point only boosts came up, and nothing changed how a run plays): one-off cards
+ * from wave 75 (classic and coop), each a rule of its own, said in a few words. Among the level-up cards (more often once
+ * the build is full) and at Kecleon's.
+ */
+export type ParagonId = "echo" | "blast" | "vamp" | "hunter" | "frenzy" | "limit" | "fatal" | "giant" | "second";
+export const PARAGONS: { id: ParagonId; name: Txt; desc: Txt }[] = [
+  { id: "echo", name: ["Écho", "Echo"], desc: ["1 capacité sur 5 repart aussitôt.", "1 move in 5 is ready again at once."] },
+  { id: "blast", name: ["Détonation", "Detonation"], desc: ["Chaque K.O. explose sur ses voisins.", "Each K.O. blows up on its neighbours."] },
+  { id: "vamp", name: ["Vampire", "Vampire"], desc: ["Chaque K.O. rend un peu de PV.", "Each K.O. gives back a little HP."] },
+  { id: "hunter", name: ["Chasseur", "Hunter"], desc: ["+50 % de dégâts aux boss et titans.", "+50% damage to bosses and titans."] },
+  { id: "frenzy", name: ["Frénésie", "Frenzy"], desc: ["Plus il y a d'ennemis autour, plus tu frappes fort.", "The more foes around, the harder you hit."] },
+  { id: "limit", name: ["Hâte ultime", "Ultimate haste"], desc: ["Les recharges descendent plus bas.", "Cooldowns go lower still."] },
+  { id: "fatal", name: ["Coup fatal", "Deadly blow"], desc: ["Critiques : dégâts x2 en plus.", "Crits: twice the damage on top."] },
+  { id: "giant", name: ["Colosse", "Colossus"], desc: ["+40 % de PV max.", "+40% max HP."] },
+  { id: "second", name: ["Ténacité", "Grit"], desc: ["Te relève une fois de plus.", "Gets you up once more."] },
+];
+export const PARAGON_WAVE = 75;
+
+/**
+ * Kecleon's pacts (Johan, 2026-10-20: a risk for a big reward): at its stall from wave 10, a curse until the next boss falls
+ * against a reward taken at once, for good.
+ */
+export type PactId = "horde" | "glass" | "fury" | "elite";
+export const PACTS: { id: PactId; name: Txt; curse: Txt; gift: Txt }[] = [
+  { id: "horde", name: ["Horde", "Horde"], curse: ["+60 % d'ennemis", "+60% foes"], gift: ["+3 cartes, tout de suite", "+3 cards, right now"] },
+  { id: "glass", name: ["Verre", "Glass"], curse: ["Tu prends +50 % de dégâts", "You take +50% damage"], gift: ["+30 % de dégâts, pour toujours", "+30% damage, for good"] },
+  { id: "fury", name: ["Furie", "Fury"], curse: ["Ennemis 30 % plus rapides", "Foes 30% faster"], gift: ["+30 % de PV max, pour toujours", "+30% max HP, for good"] },
+  { id: "elite", name: ["Élite", "Elite"], curse: ["1 ennemi sur 4 est une élite", "1 foe in 4 is an elite"], gift: ["Un gros sac d'or", "A big bag of gold"] },
+];
+export const PACT_WAVE = 10;
 
 export const MAX_MOVES = 4;
 export const MAX_ITEMS = 4;
@@ -542,13 +619,25 @@ export const WAVE_SECONDS = 30;
  * The ladder's time check (game_submit2 v5 in docs/supabase.sql) follows the same steps.
  */
 export const waveLength = (w: number) => (w < 25 ? 15 : w < 50 ? 20 : WAVE_SECONDS);
-/** when wave w starts, in seconds of play */
+/**
+ * Since 2026-10-20 (Johan: "kill all, next wave") a classic wave holds a count of foes: all of them knocked out, the next one
+ * comes at once; its length is only the most it lasts (the next one comes anyway, these still about). A wave's crowd, the
+ * foes a second the old clock-driven waves brought in...
+ */
+export const waveRate = (w: number) => 0.6 + 0.3 * w + 0.012 * w * w;
+/**
+ * ...and its count: the old crowd early on, then a count a good build clears before the clock (the old one never ended:
+ * 14 000 at wave 190). A god-mode bot with a plain build knocked out ~7-8 foes a second at waves 100 to 175: 200 is about
+ * 25 s for it, much less for a strong one.
+ */
+export const waveQuota = (w: number) => Math.round(Math.min(waveRate(w) * waveLength(w), 40 + 2 * w, 200));
+/** the last few of a wave's count rush at the player (no waiting for stragglers walking in from off screen) */
+export const WAVE_HURRY = 12;
+/** when wave w starts at the latest (each wave to its full length): where a start tier's clock begins */
 export const waveStart = (w: number) => {
   const a = Math.min(w, 25) - 1, b = Math.max(0, Math.min(w, 50) - 25), c = Math.max(0, w - 50);
   return a * 15 + b * 20 + c * WAVE_SECONDS;
 };
-/** the wave at a moment of the run */
-export const waveAt = (t: number) => (t < waveStart(25) ? 1 + Math.floor(t / 15) : t < waveStart(50) ? 25 + Math.floor((t - waveStart(25)) / 20) : 50 + Math.floor((t - waveStart(50)) / WAVE_SECONDS));
 
 /* ---------------- biomes and weather (Johan, 2026-10-19: variety, never at the cost of reading the field) ---------------- */
 

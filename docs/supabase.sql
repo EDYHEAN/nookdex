@@ -357,15 +357,16 @@ declare
   clean text := left(btrim(regexp_replace(coalesce(p_name, ''), '[[:cntrl:]]', '', 'g')), case when p_mode = 'coop' then 35 else 16 end);
   utc date := (now() at time zone 'utc')::date;
   timed boolean := p_mode = 'defi';
-  top integer := case when p_mode = 'daily' then 500 else 200 end;
+  -- v6 (2026-10-20): the classic and coop runs go on to wave 300
+  top integer := case when p_mode = 'daily' then 500 else 300 end;
 begin
   if clean = '' then clean := 'Dresseur'; end if;
   if p_mode not in ('classic', 'daily', 'coop', 'defi') then raise exception 'unknown mode'; end if;
   if p_mode in ('daily', 'defi') and (p_day is null or p_day < utc - 1 or p_day > utc + 1) then raise exception 'not today'; end if;
-  if p_kills < 0 or p_kills > p_seconds * 40 + 40 or p_level < 1 or p_level > 600
+  if p_kills < 0 or p_kills > p_seconds * 40 + 40 or p_level < 1 or p_level > 1000
      -- the four starters, Mewtwo and Gengar, the daily challenge's Pokémon, the starters to unlock (2026-10-19)
      or p_starter not in (1, 4, 7, 25, 94, 150, 63, 133, 58, 131, 129, 66, 143, 32, 74, 173, 147)
-     or p_start not in (1, 25, 50, 75, 100, 125, 150, 175) or p_start > p_wave or (p_start > 1 and p_mode not in ('classic', 'coop')) then
+     or p_start not in (1, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275) or p_start > p_wave or (p_start > 1 and p_mode not in ('classic', 'coop')) then
     raise exception 'implausible score';
   end if;
   if timed then
@@ -373,11 +374,12 @@ begin
     if p_wave < 1 or p_wave > 11 or p_seconds < (p_wave - 1) * 6 or p_seconds > 3600 or (p_wave = 11 and p_seconds < 90) then
       raise exception 'implausible score';
     end if;
-  -- v5 (2026-10-19): waves last 15 s up to 24, 20 s from 25 to 49, then 30 s (lib/game/data waveStart); the most a run
-  -- may take stays the 30 s rule's, so a client from before the change is still let in
+  -- v6 (2026-10-20): a wave ends once its foes are all knocked out (lib/game/data waveQuota), its length only the most it
+  -- lasts, and a boss's wave lasts until it falls: 2 s a wave at the very least past the start tier's clock (which starts at
+  -- the tier's place in the old waves: 15 s up to 24, 20 s to 49, then 30 s), 90 s a wave at most
   elsif p_wave < 1 or p_wave > top
-     or p_seconds < (least(p_wave, 25) - 1) * 15 + greatest(0, least(p_wave, 50) - 25) * 20 + greatest(0, p_wave - 50) * 30
-     or (p_wave < top and p_seconds > p_wave * 30 + 5) then
+     or p_seconds < (least(p_start, 25) - 1) * 15 + greatest(0, least(p_start, 50) - 25) * 20 + greatest(0, p_start - 50) * 30 + (p_wave - p_start) * 2
+     or (p_wave < top and p_seconds > p_wave * 90 + 600) then
     raise exception 'implausible score';
   end if;
   if exists (select 1 from public.game_scores s where lower(s.name) = lower(clean) and s.created_at > now() - interval '20 seconds') then

@@ -1882,6 +1882,89 @@
   font-size: 9px;
 }
 
+/* a Paragon card: a rule of its own, a purple shimmer (level-up cards and Kecleon's goods) */
+.paraCard {
+  border-top-color: #b86bff;
+  background: linear-gradient(115deg, var(--c3) 40%, #ecd6ff 50%, var(--c3) 60%) 0 0 / 300% 100%;
+  animation:
+    deal 0.3s steps(5) both,
+    shimmer 1.6s steps(12) 0.3s infinite;
+}
+
+.good.paraCard {
+  animation:
+    shelve 0.3s steps(4) both,
+    shimmer 1.6s steps(12) 0.3s infinite;
+}
+
+.screen:not([data-palette="color"]) .paraCard {
+  border-top-color: var(--c0);
+  background: var(--c2);
+}
+
+/* Kecleon's pact: what it costs, what it gives */
+.pact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 8px 10px 10px;
+  margin: 0 6px;
+  border-bottom: 6px solid var(--wood);
+  box-shadow: 0 2px 0 var(--wood2);
+  animation: shelve 0.3s steps(4) both;
+}
+
+.pactName {
+  grid-column: 1 / -1;
+  text-align: center;
+  font: 10px/12px var(--font-press), monospace;
+  color: var(--c0);
+}
+
+.pactCurse,
+.pactGift {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 74px;
+  padding: 6px;
+  border-radius: 3px;
+  font: 13px/12px var(--font-vt), monospace;
+  box-shadow: 0 0 0 1px var(--c0), 0 2px 0 var(--c0);
+}
+
+.pactCurse {
+  background: #ffd3d3;
+}
+
+.pactGift {
+  background: #d8f5c8;
+}
+
+.screen:not([data-palette="color"]) .pactCurse,
+.screen:not([data-palette="color"]) .pactGift {
+  background: var(--c3);
+}
+
+.pactCurse i,
+.pactGift i {
+  font: 6px/8px var(--font-press), monospace;
+  font-style: normal;
+}
+
+.pactCurse i {
+  color: #b8433d;
+}
+
+.pactGift i {
+  color: #3d8b2f;
+}
+
+.pactGift em {
+  font-style: normal;
+  opacity: 0.75;
+}
+
 /* the guide (menu): a page of rows, its head in bold */
 .guide {
   flex: 1;
