@@ -5,7 +5,7 @@ import { unlock } from "@/lib/trophyStore";
 import { gsfx, music } from "./audio";
 import {
   BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, UNLOCK_STARTERS, WILD, BIOMES, BIOME_WAVES, WEATHERS, type WeatherId, waveLength, waveQuota, waveRate, waveStart, xpFor, WAVE_HURRY,
-  AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, type AffixId, DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
+  AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, type AffixId, PARAGONS, PARAGON_WAVE, type ParagonId, PACTS, PACT_WAVE, type PactId, DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
 } from "./data";
 import { DEFI_DAYS, DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
@@ -131,8 +131,8 @@ export interface Input {
 export interface Choice {
   /** evolve: a move at its last level and its item make a stronger move; bonus: what's left once all is learnt; pack: a
    * start tier's build */
-  kind: "move" | "item" | "heal" | "evolve" | "bonus" | "pack";
-  id?: MoveId | ItemId | BonusId | PackId;
+  kind: "move" | "item" | "heal" | "evolve" | "bonus" | "pack" | "paragon";
+  id?: MoveId | ItemId | BonusId | PackId | ParagonId;
   rarity?: Rarity;
   /** the level it goes to (1 = new) */
   level: number;
@@ -377,6 +377,10 @@ export class Player {
   /** knocked out in a coop run, waiting for a partner to get them up */
   down = false;
   reviveT = 0;
+  /** the Paragon cards taken (one of each at most), Fury's pact's max HP for good, Frenzy's multiplier of the moment */
+  paragons: ParagonId[] = [];
+  bonusHp = 0;
+  frenzy = 1;
   constructor(id: number) {
     this.id = id;
   }
@@ -662,6 +666,11 @@ export class Game {
   swapList: Choice[] = [];
   private swapFrom: Choice | null = null;
   shopSwaps = 0;
+  /** Kecleon's pact (data PACTS): the one it offers at this stall, the one on (until the next boss falls), it shown, one just kept */
+  pactOffer: PactId | null = null;
+  pact: PactId | null = null;
+  pactShown = false;
+  pactKept = false;
   /** the break after a boss is on (Center, levels, shop, then the 3-2-1) */
   private inBreak = false;
   private shopDone = false;
@@ -680,6 +689,8 @@ export class Game {
   private titanT = 0;
   /** foes charmed this run (the "Charmer" trophy) */
   private charmed = 0;
+  /** a Detonation's blast going off (its own K.O.s don't blow up) */
+  private blasting = false;
   /** the run's clock at its start: 0, or a start tier's (the draft's cards are picked then) */
   startAt = 0;
   /** the wave's weather (none in the daily challenge) */
@@ -795,8 +806,12 @@ export class Game {
   private perm(id: PensionId) {
     return this.setup.perm[id] ?? 0;
   }
+  /** the current player holds this Paragon card */
+  has(id: ParagonId) {
+    return this.cur.paragons.includes(id);
+  }
   get power() {
-    return (1 + 0.02 * this.perm("power")) * (this.setup.daily?.mod.playerDmg ?? 1) * (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower) * (this.starter.power ?? 1) * (1 + (this.starter.growth ?? 0) * (this.level - 1)) * this.defiPower;
+    return this.cur.frenzy * (1 + 0.02 * this.perm("power")) * (this.setup.daily?.mod.playerDmg ?? 1) * (1 + this.stage * 0.18) * (1 + 0.12 * this.itemLevel("band")) * (1 + 0.1 * this.itemLevel("lifeorb")) * (1 + this.bonusPower) * (this.starter.power ?? 1) * (1 + (this.starter.growth ?? 0) * (this.level - 1)) * this.defiPower;
   }
   /** the daily challenge is quicker and stronger (x1.5); Eevee grows with each wave cleared, Machop when it hurts */
   private get defiPower() {
@@ -807,12 +822,16 @@ export class Game {
   get speed() {
     return this.starter.speed * (1 + 0.08 * this.itemLevel("scarf")) * (1 + this.stage * 0.04) * (1 + 0.015 * this.perm("speed"));
   }
+  /** the shortest cooldowns get: lower with Ultimate haste */
+  private get hasteFloor() {
+    return this.has("limit") ? HASTE_FLOOR * 0.67 : HASTE_FLOOR;
+  }
   get haste() {
-    return Math.max(HASTE_FLOOR, (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste * (1 - 0.015 * this.perm("haste")));
+    return Math.max(this.hasteFloor, (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste * (1 - 0.015 * this.perm("haste")));
   }
   /** the cooldowns can't get shorter: a PP Up would do nothing */
   get hasteMaxed() {
-    return (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste * (1 - 0.015 * this.perm("haste")) <= HASTE_FLOOR;
+    return (1 - 0.08 * this.itemLevel("claw")) * this.bonusHaste * (1 - 0.015 * this.perm("haste")) <= this.hasteFloor;
   }
   get area() {
     return (1 + 0.1 * this.itemLevel("root")) * (1 + this.stage * 0.08);
@@ -826,13 +845,13 @@ export class Game {
   }
   /** the share of a blow that lands (Eviolite, the Pension's shell), before the HIT_CAP */
   get guard() {
-    return (1 - 0.07 * this.itemLevel("eviolite")) * (1 - 0.025 * this.perm("armor"));
+    return (1 - 0.07 * this.itemLevel("eviolite")) * (1 - 0.025 * this.perm("armor")) * (this.pact === "glass" ? 1.5 : 1);
   }
   get crit() {
     return 0.05 + 0.07 * this.itemLevel("lens") + 0.015 * this.perm("crit");
   }
   get critMul() {
-    return 1.8 + 0.25 * this.itemLevel("belt");
+    return (1.8 + 0.25 * this.itemLevel("belt")) * (this.has("fatal") ? 2 : 1);
   }
   get magnet() {
     return 56 * (1 + 0.4 * this.itemLevel("magnet")) * (1 + 0.08 * this.perm("magnet"));
@@ -853,7 +872,8 @@ export class Game {
   }
   private computeMaxHp() {
     return Math.round(
-      (this.starter.hp + this.stage * 30 + 20 * this.itemLevel("hpup") + (this.level - 1) * (this.starter.hpPerLevel ?? 2)) * (1 - 0.03 * this.itemLevel("lifeorb")) * (1 + 0.04 * this.perm("hp")),
+      (this.starter.hp + this.stage * 30 + 20 * this.itemLevel("hpup") + (this.level - 1) * (this.starter.hpPerLevel ?? 2)) * (1 - 0.03 * this.itemLevel("lifeorb")) * (1 + 0.04 * this.perm("hp")) *
+        (1 + this.cur.bonusHp) * (this.has("giant") ? 1.4 : 1),
     );
   }
 
@@ -879,6 +899,7 @@ export class Game {
     this.offers = [];
     this.shopRerolls = 0;
     this.inBreak = false;
+    Object.assign(this, { pact: null, pactOffer: null, pactShown: false, pactKept: false });
     Object.assign(this, {
       time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1, titanT: 4, titanWave: 0,
       bossAlive: null, bossDue: 0, weather: null, breakAt: 0, shake: 0, flash: 0, dyingT: 0, defiLeft: setup.defi ? DEFI_QUOTA[0] : 0, defiGroupT: 1, defiGap: 0, defiTitans: 0, endAt: 0,
@@ -1026,6 +1047,13 @@ export class Game {
       this.flash = 0.8;
       for (let i = 0; i < 30; i++) this.part(this.x, this.y - 10, rand(-1, 1) * 80, rand(-1, 1) * 80, "gold", 1, 2, 0, "spark");
       gsfx.evolveDone();
+    } else if (c.kind === "paragon") {
+      const id = c.id as ParagonId;
+      if (!this.has(id)) this.cur.paragons.push(id);
+      if (id === "second") this.revives++;
+      this.flash = 0.8;
+      for (let i = 0; i < 30; i++) this.part(this.x, this.y - 10, rand(-1, 1) * 80, rand(-1, 1) * 80, "psy", 1, 2, 0, "spark");
+      gsfx.evolveDone();
     } else if (c.kind === "bonus" && c.id === "protein") {
       this.bonusPower += 0.06;
       gsfx.learn();
@@ -1054,6 +1082,8 @@ export class Game {
     this.shopRerolls = 0;
     this.shopSwaps = 0;
     this.swapMode = null;
+    this.pactShown = false;
+    this.pactOffer = !this.setup.defi && !this.setup.daily && this.wave >= PACT_WAVE && !this.pact ? pick(PACTS).id : null;
     this.offers = this.makeOffers();
     this.release();
     gsfx.coin();
@@ -1062,7 +1092,7 @@ export class Game {
   private makeOffers(): ShopOffer[] {
     const w = this.priceUp;
     const base: Record<Rarity, number> = { common: 30, rare: 55, epic: 90, legendary: 150 };
-    return this.drawChoices(3).map((c) => ({ choice: c, price: Math.round(base[c.rarity ?? "common"] * w), sold: false }));
+    return this.drawChoices(3).map((c) => ({ choice: c, price: Math.round(base[c.rarity ?? "common"] * w * (c.kind === "paragon" ? 2 : 1)), sold: false }));
   }
   /** prices climb 12 % a wave after the first shop (wave 6); the Pension's loyalty card takes some off */
   private get priceUp() {
@@ -1091,6 +1121,7 @@ export class Game {
       const d = MOVES.find((x) => x.id === c.id)!;
       return this.moves.some((m) => m.id === d.evo!.from && m.level >= MAX_LEVEL) && this.itemLevel(d.evo!.item) > 0;
     }
+    if (c.kind === "paragon") return !this.has(c.id as ParagonId);
     return true;
   }
   buy(i: number) {
@@ -1187,9 +1218,48 @@ export class Game {
     }
     return out;
   }
+  /** the Elite pact's bag of gold: about 8 common cards' worth at this stall */
+  get pactGold() {
+    return Math.round(250 * this.priceUp);
+  }
+  /** the pact: Kecleon shows it, the player takes it (its gift at once, its curse until the next boss falls) or not */
+  pactShow(on: boolean) {
+    if (this.phase !== "shop" || !this.pactOffer || this.swapMode) return;
+    this.pactShown = on;
+    if (on) gsfx.boss();
+    else gsfx.back();
+    this.onChange();
+  }
+  pactAccept() {
+    if (this.phase !== "shop" || !this.pactOffer || !this.pactShown) return;
+    const id = this.pactOffer;
+    this.pact = id;
+    this.pactOffer = null;
+    this.pactShown = false;
+    unlock("game-shop");
+    // the gift, for the whole team
+    if (id === "elite") this.gold += this.pactGold;
+    for (const p of this.players) {
+      if (id === "horde") p.pendingLevels += 3;
+      if (id === "glass") p.bonusPower += 0.3;
+      if (id === "fury") p.bonusHp += 0.3;
+    }
+    const keep = this.cur;
+    for (const p of this.players) {
+      this.cur = p;
+      this.maxHp = this.computeMaxHp();
+      if (id === "fury") this.hp = this.maxHp;
+    }
+    this.cur = keep;
+    this.flash = 0.8;
+    gsfx.evolveDone();
+    this.onChange();
+  }
+
   leaveShop() {
     if (this.phase !== "shop" || this.swapMode === "take") return;
     this.swapMode = null;
+    this.pactShown = false;
     gsfx.ok();
     // in coop, the second player's turn at the stall (the gold is shared)
     const next = this.players[this.cur.id + 1];
@@ -1202,6 +1272,7 @@ export class Game {
       return this.onChange();
     }
     this.shopDone = true;
+    this.pactKept = false;
     this.resume();
   }
 
@@ -1312,6 +1383,13 @@ export class Game {
       out.push(pool.splice(i, 1)[0]);
       weights.splice(i, 1);
     }
+    // a Paragon card from wave 75, now and then; often once the build is full (instead of one more boost)
+    const paras = !this.setup.defi && !this.setup.daily && this.wave >= PARAGON_WAVE ? PARAGONS.filter((p) => !this.has(p.id)) : [];
+    if (paras.length && this.cardRng() < (out.length < n ? 0.45 : 0.12)) {
+      const p: Choice = { kind: "paragon", id: paras[Math.floor(this.cardRng() * paras.length)].id, level: 1, rarity: "legendary" };
+      if (out.length < n) out.push(p);
+      else out[n - 1] = p;
+    }
     // everything learnt and raised: boosts that stack, and a berry
     for (const b of BONUSES) if (out.length < n && !(b.id === "ppup" && this.hasteMaxed)) out.push({ kind: "bonus", id: b.id, level: 0, rarity: "common" });
     return out;
@@ -1377,6 +1455,8 @@ export class Game {
     this.buildGrid();
     this.eachAlive((p) => {
       p.sashCd = Math.max(0, p.sashCd - dt);
+      // Frenzy (a Paragon card): +2 % a foe close by, up to +50 %
+      p.frenzy = this.has("frenzy") ? 1 + Math.min(0.5, 0.02 * this.around(p.x, p.y, 70).length) : 1;
       this.stepDash(dt);
       this.stepRocks(dt);
       this.attack(p.input, dt);
@@ -1530,7 +1610,7 @@ export class Game {
   private fillWave(w: number) {
     const boss = w % 5 === 0;
     const spawnMod = this.setup.daily?.mod.spawn ?? 1;
-    const n = boss ? Math.min(40, 8 + Math.floor(w / 4)) : w === 11 ? 0 : Math.round(waveQuota(w) * spawnMod);
+    const n = boss ? Math.min(40, 8 + Math.floor(w / 4)) : w === 11 ? 0 : Math.round(waveQuota(w) * spawnMod * (this.pact === "horde" ? 1.6 : 1));
     Object.assign(this, {
       waveT: 0, waveGap: 0, bossSpawned: false, waveLeft: n,
       waveSpawn: boss ? n / 20 : Math.max(waveRate(w) * spawnMod, n / (0.6 * waveLength(w))),
@@ -1570,10 +1650,16 @@ export class Game {
     }
     if (this.waveLeft <= 0 && !this.enemies.some((e) => !e.dead && e.w?.act !== "treasure")) {
       this.waveGap = WAVE_GAP;
+      // cleared with a third of its time left, from wave 25: a Rare Candy (a level), speed pays
+      const fast = this.wave >= 25 && this.waveT < waveLength(this.wave) * 0.67;
+      if (fast) for (const p of this.alive()) this.drop("rare", p.x + rand(-10, 10), p.y - 10, 0);
       // what lies on the ground comes to you
       for (const p of this.pickups) p.pull = true;
       gsfx.rare();
-      this.showBanner(this.tr(`VAGUE ${this.wave} NETTOYÉE`, `WAVE ${this.wave} CLEARED`), this.tr("la suivante arrive…", "the next one is coming…"));
+      this.showBanner(
+        this.tr(`VAGUE ${this.wave} NETTOYÉE`, `WAVE ${this.wave} CLEARED`),
+        fast ? this.tr("RAPIDE ! un Super Bonbon", "FAST! a Rare Candy") : this.tr("la suivante arrive…", "the next one is coming…"),
+      );
       return;
     }
     if (this.waveT >= waveLength(this.wave) && this.wave < MAX_WAVE) this.newWave(this.wave + 1);
@@ -2027,7 +2113,8 @@ export class Game {
   private cast(m: { id: MoveId; level: number; cd: number; active: number }) {
     const def = MOVES.find((d) => d.id === m.id)!;
     const L = m.level;
-    m.cd = def.cd[L - 1] * this.haste;
+    // Echo (a Paragon card): now and then the move is ready again at once
+    m.cd = this.has("echo") && Math.random() < 0.2 ? 0.15 : def.cd[L - 1] * this.haste;
     const pw = this.power;
     switch (m.id) {
       case "thunder": {
@@ -2713,7 +2800,7 @@ export class Game {
     if (elem === "dark" && !e.boss && Math.random() < 0.3) e.sleepT = Math.max(e.sleepT, 0.5);
     const crit = Math.random() < this.crit;
     const day = this.setup.daily?.mod.elem;
-    const boost = day && (elem === day[0] || (day[0] === "water" && elem === "elec")) ? day[1] : 1;
+    const boost = (day && (elem === day[0] || (day[0] === "water" && elem === "elec")) ? day[1] : 1) * ((e.boss || e.titan) && this.has("hunter") ? 1.5 : 1);
     const dmg = Math.max(1, Math.round(base * mul * boost * this.weatherMul(elem) * (crit ? this.critMul : 1) * rand(0.9, 1.1)));
     if (mul > 1) {
       unlock("game-combo");
@@ -2763,6 +2850,14 @@ export class Game {
     if (bell) this.hp = Math.min(this.maxHp, this.hp + 0.3 * bell);
     for (let i = 0; i < 6; i++) this.part(e.x + rand(-4, 4), e.y - 6, rand(-25, 25), rand(-30, 0), "white", 0.45, 3, -10, "puff");
     if (e.w?.act === "explode") this.explode(e, false);
+    // the Paragon cards: Vampire's bite, Detonation's blast (a blast's own K.O.s don't blow up again: no chain across the field)
+    if (this.has("vamp")) this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.004);
+    if (this.has("blast") && !e.boss && !this.blasting) {
+      this.blasting = true;
+      this.fx.push({ kind: "boom", x: e.x, y: e.y - 6, t: 0, life: 0.3, r: 22 });
+      for (const o of this.around(e.x, e.y, 26)) if (o !== e) this.damage(o, e.max * 0.35, (o.x - e.x) * 3, (o.y - e.y) * 3, "normal", true);
+      this.blasting = false;
+    }
     // Gengar's Curse: each foe it knocks out sends a wisp at the next one (and that one's at the next...)
     if (this.starter.sig === "phantom" && !e.boss && this.shots.length < 250) {
       const next = this.nearest(e.x, e.y, 130);
@@ -2779,10 +2874,16 @@ export class Game {
       unlock("game-boss");
       this.bossAlive = null;
       this.breakAt = this.time + 1.5;
+      // Kecleon's pact held to the end: its curse lifts
+      if (this.pact) {
+        this.pact = null;
+        this.pactKept = true;
+      }
       music.boss(false);
       this.shake = 10;
       this.flash = 0.8;
-      this.drop("rare", e.x, e.y, 0);
+      // a Rare Candy; past wave 100, three (the levels come slowly up there)
+      for (let i = 0; i < (this.beyond ? 3 : 1); i++) this.drop("rare", e.x + i * 8, e.y - i * 4, 0);
       this.drop("oran", e.x + 8, e.y, 0);
       for (let i = 0; i < 14; i++) this.drop("candy", e.x + rand(-20, 20), e.y + rand(-20, 20), 8);
       for (let i = 0; i < 10; i++) this.drop("coin", e.x + rand(-24, 24), e.y + rand(-24, 24), 2 + Math.floor(this.wave / 4));
@@ -2899,7 +3000,7 @@ export class Game {
       gsfx.shield();
       return;
     }
-    dmg *= (1 - 0.07 * this.itemLevel("eviolite")) * (1 - 0.025 * this.perm("armor"));
+    dmg *= this.guard;
     // never more than 30 % of the max HP a blow (Johan, 2026-10-18: past wave 60 any touch was a one-shot, and running
     // through the crowd happens all the time): a run wears down, it doesn't end on one bump
     dmg = Math.min(dmg, this.maxHp * HIT_CAP);
@@ -2944,12 +3045,12 @@ export class Game {
     const kq = Math.min(k, BEYOND - 1), kl = Math.max(0, k - (BEYOND - 1));
     const hpMul = 1 + 0.18 * kq + 0.009 * kq * kq + (0.18 + 0.018 * kq) * kl;
     const dmgMul = 1 + 0.07 * kq + 0.003 * kq * kq + BEYOND_DMG * kl;
-    const eliteOdds = this.setup.defi ? 0.04 + 0.008 * this.wave : (0.015 + 0.004 * this.wave) * (this.setup.daily?.mod.elite ?? 1);
+    const eliteOdds = this.setup.defi ? 0.04 + 0.008 * this.wave : Math.max(this.pact === "elite" ? 0.25 : 0, (0.015 + 0.004 * this.wave) * (this.setup.daily?.mod.elite ?? 1));
     const elite = !titan && !!w && w.act !== "treasure" && w.act !== "flop" && Math.random() < eliteOdds;
     const big = titan ? TITAN : null;
     const hp = (w?.hp ?? 100) * hpMul * (elite ? 4 : 1) * (big?.hp ?? 1);
     return {
-      w, boss: null, dex, x, y, kx: 0, ky: 0, hp, max: hp, speed: (w?.speed ?? 30) * (1 + Math.min(0.35, 0.012 * k)) * (elite ? 0.9 : 1) * (big?.speed ?? 1),
+      w, boss: null, dex, x, y, kx: 0, ky: 0, hp, max: hp, speed: (w?.speed ?? 30) * (1 + Math.min(0.35, 0.012 * k)) * (elite ? 0.9 : 1) * (big?.speed ?? 1) * (this.pact === "fury" ? 1.3 : 1),
       dmg: (w?.dmg ?? 10) * dmgMul * (elite ? 1.5 : 1) * (this.setup.daily?.mod.enemyDmg ?? 1) * (big?.dmg ?? 1),
       r: (w?.r ?? 7) * (elite ? 1.3 : 1) * (big?.scale ?? 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0, wetT: 0, burnT: 0, burnDps: 0, poisonT: 0, poisonDps: 0, charmT: 0, dotT: 0.5,
       state: "", stateT: rand(1, 3), actT: 2, elite, titan, z: 0, alpha: 1, aim: { x: 0, y: 0 }, touchT: 0, n: 0, dead: false, deadT: 0, seed: Math.random() * 100,
@@ -4939,6 +5040,9 @@ export class Game {
     if (daily)
       g.text(ctx, this.wave >= daily.target ? this.tr("DEFI REUSSI", "CHALLENGE MET") : this.tr(`OBJECTIF : VAGUE ${daily.target}`, `GOAL: WAVE ${daily.target}`), 4, 26, this.wave >= daily.target ? "gold" : "psy");
     if (this.players.length > 1) g.text(ctx, `J${this.cur.id + 1}`, 4, 26, "xp");
+    // Kecleon's pact on: its curse, until the next boss falls
+    const pact = this.pact && PACTS.find((x) => x.id === this.pact)!;
+    if (pact) g.text(ctx, `${this.tr("PACTE", "PACT")} ${this.tr(pact.name[0], pact.name[1]).toUpperCase()}`, 4, this.players.length > 1 ? 33 : 26, "hpLow");
     const m = Math.floor(this.time / 60);
     g.text(ctx, `${m}:${String(Math.floor(this.time % 60)).padStart(2, "0")}`, SW - 4, 15, "uiDim", { align: "right" });
 

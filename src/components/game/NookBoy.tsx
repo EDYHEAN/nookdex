@@ -5,7 +5,7 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, BIOMES, BIOME_WAVES, BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, WEATHERS, type Txt, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, unlockProgress, unlockedStarters, waveStart, type Elem, type Lang, type Unlock } from "@/lib/game/data";
+import { AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, PACTS, PARAGONS, PARAGON_WAVE, BIOMES, BIOME_WAVES, BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, WEATHERS, type Txt, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, unlockProgress, unlockedStarters, waveStart, type Elem, type Lang, type Unlock } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
 import { DEFI_WINS_KEY, Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickAt, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
@@ -460,8 +460,24 @@ export default function NookBoy({ origin, onClose }: Props) {
       }
       return;
     }
+    if (p === "shop" && eng.pactShown) {
+      // Kecleon's pact: take it, or not
+      if (b === "left" || b === "right" || b === "up" || b === "down") {
+        gsfx.move();
+        setCursor((c) => (c ? 0 : 1));
+      } else if (b === "a" && cursor === 0) {
+        setCursor(0);
+        eng.pactAccept();
+      } else if (b === "a" || b === "b") {
+        setCursor(eng.offers.length + 3);
+        eng.pactShow(false);
+      }
+      return;
+    }
     if (p === "shop") {
-      const n = eng.offers.length + 4;
+      // the stall's counter: Berry, Reroll, Swap, (the pact), Back to it
+      const pactAt = eng.pactOffer ? eng.offers.length + 3 : -1;
+      const n = eng.offers.length + 4 + (eng.pactOffer ? 1 : 0);
       if (b === "left" || b === "up") {
         gsfx.move();
         setCursor((c) => (c + n - 1) % n);
@@ -475,6 +491,9 @@ export default function NookBoy({ origin, onClose }: Props) {
         else if (cursor === eng.offers.length + 2) {
           setCursor(0);
           eng.swapOpen();
+        } else if (cursor === pactAt) {
+          setCursor(1);
+          eng.pactShow(true);
         } else {
           setCursor(0);
           eng.leaveShop();
@@ -1069,15 +1088,15 @@ export default function NookBoy({ origin, onClose }: Props) {
                   </button>
                 );
               const move = c.kind === "move" || c.kind === "evolve" ? MOVES.find((m) => m.id === c.id) : undefined;
-              const def = move ?? (c.kind === "item" ? ITEMS.find((it) => it.id === c.id) : c.kind === "bonus" ? BONUSES.find((b) => b.id === c.id) : undefined);
-              const tag = { move: t("CAPACITÉ", "MOVE"), item: t("OBJET", "ITEM"), heal: t("SOIN", "HEAL"), evolve: t("ÉVOLUTION", "EVOLUTION"), bonus: "BONUS", pack: "BUILD" }[c.kind];
+              const def = move ?? cardDef(c);
+              const tag = cardTag(c, t);
               // an evolution says what it's made of: the move and its item
               const recipe = move?.evo && `${say(MOVES.find((m) => m.id === move.evo!.from)!.name, lang)} + ${say(ITEMS.find((it) => it.id === move.evo!.item)!.name, lang)}`;
               const hint = evoHint(c, g, lang);
               return (
                 <button
                   key={`${c.kind}${c.id}`}
-                  className={`${styles.card} ${i === cursor ? styles.on : ""} ${move ? styles[`t_${move.type}`] : ""} ${c.kind === "evolve" ? styles.evoCard : ""} ${c.rarity ? styles[`r_${c.rarity}`] : ""}`}
+                  className={`${styles.card} ${i === cursor ? styles.on : ""} ${move ? styles[`t_${move.type}`] : ""} ${c.kind === "evolve" ? styles.evoCard : ""} ${c.kind === "paragon" ? styles.paraCard : ""} ${c.rarity ? styles[`r_${c.rarity}`] : ""}`}
                   onPointerEnter={() => i !== cursor && (gsfx.move(), setCursor(i))}
                   onClick={() => g.choose(c)}
                 >
@@ -1093,7 +1112,9 @@ export default function NookBoy({ origin, onClose }: Props) {
                         ? recipe
                         : c.kind === "bonus"
                           ? t("cumulable", "stacks")
-                          : c.level === 1
+                          : c.kind === "paragon"
+                            ? t("★ unique ★", "★ one-off ★")
+                            : c.level === 1
                             ? t("nouveau !", "new!")
                             : `${"●".repeat(c.level)}${"○".repeat(5 - c.level)}`}
                   </span>
@@ -1127,8 +1148,9 @@ export default function NookBoy({ origin, onClose }: Props) {
       // Kecleon's stall, between two waves: its own look, nothing like the level-up cards
       const cheapest = Math.min(g.healPrice, ...g.offers.filter((o) => !o.sold).map((o) => o.price));
       const bought = g.offers.some((o) => o.sold);
-      const say2 =
-        g.gold < cheapest
+      const say2 = g.pactKept
+        ? t("Pacte tenu ! Respect. Le malus est levé.", "Pact kept! Respect. The curse is lifted.")
+        : g.gold < cheapest
           ? t("Hmm… pas assez d'or. Ramasse des pépites !", "Hmm… not enough gold. Pick up some Nuggets!")
           : bought
             ? t("Merci bien ! Autre chose ?", "Thank you kindly! Anything else?")
@@ -1136,6 +1158,41 @@ export default function NookBoy({ origin, onClose }: Props) {
               ? t("Bienvenue ! Les vagues attendent, prends ton temps.", "Welcome! The waves will wait, take your time.")
               : t("Bienvenue ! Ton Pokémon est soigné. Les vagues attendent.", "Welcome! Your Pokémon is healed. The waves will wait.");
       const swapping = g.swapMode;
+      const pact = g.pactShown ? PACTS.find((x) => x.id === g.pactOffer) : undefined;
+      if (pact)
+        return (
+          <div className={styles.shop}>
+            <div className={styles.awning} />
+            <div className={styles.shopHead}>
+              <Mini dex={352} label="Kecleon" big />
+              <p className={styles.bubble}>
+                <b>KECLEON</b> {t("Psst… un pacte ? Tiens jusqu'au prochain boss.", "Psst… a pact? Hold on until the next boss.")}
+              </p>
+            </div>
+            <div className={styles.pact}>
+              <b className={styles.pactName}>☠ {say(pact.name, lang).toUpperCase()}</b>
+              <div className={styles.pactCurse}>
+                <i>{t("JUSQU'AU BOSS", "UNTIL THE BOSS")}</i>
+                {say(pact.curse, lang)}
+              </div>
+              <div className={styles.pactGift}>
+                <i>{t("TU GAGNES", "YOU GET")}</i>
+                {say(pact.gift, lang)}
+                {pact.id === "elite" && <em> ({g.pactGold} {t("or", "gold")})</em>}
+              </div>
+            </div>
+            <div className={styles.counter}>
+              {[
+                [t("J'accepte ! ☠", "Deal! ☠"), () => (setCursor(0), g.pactAccept())],
+                [t("Non merci", "No thanks"), () => (setCursor(g.offers.length + 3), g.pactShow(false))],
+              ].map(([label, go], k) => (
+                <button key={k} className={cursor === k ? styles.on : ""} onPointerEnter={() => setCursor(k)} onClick={go as () => void}>
+                  {label as string}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
       return (
         <div className={styles.shop}>
           <div className={styles.awning} />
@@ -1215,6 +1272,7 @@ export default function NookBoy({ origin, onClose }: Props) {
                     [t("Baie ♥+50%", "Berry ♥+50%"), g.healPrice, () => g.buyHeal()],
                     [t("Relancer", "Reroll"), g.rerollPrice, () => g.shopReroll()],
                     [t("Échanger", "Swap"), g.swapPrice, () => (setCursor(0), g.swapOpen())],
+                    ...(g.pactOffer ? ([[t("☠ Pacte", "☠ Pact"), null, () => (setCursor(1), g.pactShow(true))]] as const) : []),
                     [t("Reprendre ▶", "Back to it ▶"), null, () => (setCursor(0), g.leaveShop())],
                   ] as const)
             ).map(([label, price, go], k) => (
@@ -1604,6 +1662,12 @@ function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string
         ) : (
           <p className={styles.dim}>{t("aucun pour l'instant", "none yet")}</p>
         )}
+        {g.cur.paragons.length > 0 && (
+          <>
+            <p className={styles.recapTitle}>PARAGON</p>
+            <p>{g.cur.paragons.map((id) => say(PARAGONS.find((x) => x.id === id)!.name, lang)).join(", ")}</p>
+          </>
+        )}
       </div>
       <div className={styles.box}>
         <p className={styles.recapTitle}>{t("STATS", "STATS")}</p>
@@ -1644,6 +1708,7 @@ function statsOf(g: Game, t: (fr: string, en: string) => string): [string, strin
     [t("PV max", "Max HP"), `${Math.round(g.maxHp)}`, false],
     [t("Terrain", "Field"), t(g.biome.name[0], g.biome.name[1]), false],
     ...(g.weather ? [[t("Météo", "Weather"), t(WEATHERS[g.weather].name[0], WEATHERS[g.weather].name[1]), false] as [string, string, boolean]] : []),
+    ...(g.pact ? [[t("Pacte", "Pact"), t(PACTS.find((x) => x.id === g.pact)!.curse[0], PACTS.find((x) => x.id === g.pact)!.curse[1]), false] as [string, string, boolean]] : []),
   ];
 }
 
@@ -1674,7 +1739,7 @@ const GUIDE_TABS: Txt[] = [
   ["Évolutions", "Evolutions"],
   ["Objets", "Items"],
   ["Météo", "Weather"],
-  ["Boss", "Bosses"],
+  ["Au-delà", "Beyond"],
 ];
 /** what the Game Boy's screen holds without scrolling (the statuses' rows run on two lines) */
 const guideRowsPer = (tab: number) => (tab === 0 || tab === 5 ? 8 : 10);
@@ -1692,16 +1757,19 @@ function guideRows(tab: number, lang: Lang): [string, string][] {
       `= ${say(MOVES.find((x) => x.id === m.evo!.from)!.name, lang)} ${lang === "fr" ? "niv. 5" : "lv 5"} + ${say(ITEMS.find((x) => x.id === m.evo!.item)!.name, lang)}`,
     ]);
   if (tab === 3) return ITEMS.map((it) => [say(it.name, lang), say(it.desc, lang)]);
-  // the bosses' affixes (one from wave 50, two from 150), and their anger
-  if (tab === 5)
+  // the late game: the bosses' affixes and anger, the Paragon cards, Kecleon's pacts
+  if (tab === 5) {
+    const fr = lang === "fr";
     return [
+      ["★", fr ? `Boss : un affixe dès la vague ${AFFIX_WAVES[0]}, deux dès la ${AFFIX_WAVES[1]}.` : `Bosses: one affix from wave ${AFFIX_WAVES[0]}, two from ${AFFIX_WAVES[1]}.`],
       ...AFFIXES.map((a) => [say(a.name, lang), say(a.does, lang)] as [string, string]),
-      [
-        lang === "fr" ? "Énervé" : "Enraged",
-        lang === "fr" ? `Après ${ENRAGE_AFTER} s, tout boss frappe plus fort.` : `After ${ENRAGE_AFTER} s, any boss hits harder.`,
-      ],
-      ["★", lang === "fr" ? `Un affixe dès la vague ${AFFIX_WAVES[0]}, deux dès la ${AFFIX_WAVES[1]}.` : `One affix from wave ${AFFIX_WAVES[0]}, two from ${AFFIX_WAVES[1]}.`],
+      [fr ? "Énervé" : "Enraged", fr ? `Après ${ENRAGE_AFTER} s, tout boss frappe plus fort.` : `After ${ENRAGE_AFTER} s, any boss hits harder.`],
+      ["★", fr ? `Cartes Paragon : dès la vague ${PARAGON_WAVE}, une seule de chaque.` : `Paragon cards: from wave ${PARAGON_WAVE}, one of each.`],
+      ...PARAGONS.map((p) => [say(p.name, lang), say(p.desc, lang)] as [string, string]),
+      ["★", fr ? "Pactes de Kecleon : un malus jusqu'au boss, un gros cadeau tout de suite." : "Kecleon's pacts: a curse until the boss, a big gift right away."],
+      ...PACTS.map((p) => [say(p.name, lang), `${say(p.curse, lang)} → ${say(p.gift, lang)}`] as [string, string]),
     ];
+  }
   // the weather, then the fields in their order (a new one every 10 waves)
   return [
     ...(Object.values(WEATHERS).map((w) => [say(w.name, lang), say(w.does, lang)]) as [string, string][]),
@@ -1816,6 +1884,16 @@ function Mini({ dex, label, big }: { dex: number; label: string; big?: boolean }
 }
 
 /** one of Kecleon's goods: on its shelf, a price tag hanging from it */
+/** a card's name and text: an item, a boost or a Paragon card (a move is found by its id) */
+function cardDef(c: Choice): { name: Txt; desc: Txt } | undefined {
+  if (c.kind === "item") return ITEMS.find((it) => it.id === c.id);
+  if (c.kind === "bonus") return BONUSES.find((b) => b.id === c.id);
+  if (c.kind === "paragon") return PARAGONS.find((p) => p.id === c.id);
+  return undefined;
+}
+const cardTag = (c: Choice, t: (fr: string, en: string) => string) =>
+  ({ move: t("CAPACITÉ", "MOVE"), item: t("OBJET", "ITEM"), heal: t("SOIN", "HEAL"), evolve: t("ÉVOLUTION", "EVOLUTION"), bonus: "BONUS", pack: "BUILD", paragon: "PARAGON" })[c.kind];
+
 function Good(props: {
   c: Choice;
   on: boolean;
@@ -1831,11 +1909,11 @@ function Good(props: {
 }) {
   const { c, lang, t } = props;
   const move = c.kind === "move" || c.kind === "evolve" ? MOVES.find((m) => m.id === c.id) : undefined;
-  const def = move ?? (c.kind === "item" ? ITEMS.find((it) => it.id === c.id) : c.kind === "bonus" ? BONUSES.find((b) => b.id === c.id) : undefined);
-  const tag = { move: t("CAPACITÉ", "MOVE"), item: t("OBJET", "ITEM"), heal: t("SOIN", "HEAL"), evolve: t("ÉVOLUTION", "EVOLUTION"), bonus: "BONUS", pack: "BUILD" }[c.kind];
+  const def = move ?? cardDef(c);
+  const tag = cardTag(c, t);
   return (
     <button
-      className={`${styles.good} ${props.on ? styles.on : ""} ${c.rarity ? styles[`r_${c.rarity}`] : ""} ${props.sold ? styles.sold : props.poor ? styles.cardDim : ""}`}
+      className={`${styles.good} ${props.on ? styles.on : ""} ${c.kind === "paragon" ? styles.paraCard : ""} ${c.rarity ? styles[`r_${c.rarity}`] : ""} ${props.sold ? styles.sold : props.poor ? styles.cardDim : ""}`}
       onPointerEnter={props.onHover}
       onClick={props.onPick}
     >
@@ -1844,7 +1922,13 @@ function Good(props: {
       {c.rarity && <span className={styles.rarity}>{say(RARITY[c.rarity].name, lang)}</span>}
       <span className={styles.cardName}>{def ? say(def.name, lang) : t("Baie Sitrus", "Sitrus Berry")}</span>
       <span className={styles.cardLvl}>
-        {c.kind === "bonus" ? t("cumulable", "stacks") : c.level === 1 ? t("nouveau !", "new!") : `${"●".repeat(c.level)}${"○".repeat(5 - c.level)}`}
+        {c.kind === "bonus"
+          ? t("cumulable", "stacks")
+          : c.kind === "paragon"
+            ? t("★ unique ★", "★ one-off ★")
+            : c.level === 1
+              ? t("nouveau !", "new!")
+              : `${"●".repeat(c.level)}${"○".repeat(5 - c.level)}`}
       </span>
       <span className={styles.goodDesc}>{def ? say(def.desc, lang) : ""}</span>
     </button>

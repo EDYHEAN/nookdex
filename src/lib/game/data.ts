@@ -466,6 +466,38 @@ export const BONUSES: { id: BonusId; name: Txt; desc: Txt }[] = [
   { id: "sitrus", name: ["Baie Sitrus", "Sitrus Berry"], desc: ["Soigne 40 % de tes PV.", "Heals 40% of your HP."] },
 ];
 
+/**
+ * Paragon cards (Johan, 2026-10-20: past a point only boosts came up, and nothing changed how a run plays): one-off cards
+ * from wave 75 (classic and coop), each a rule of its own, said in a few words. Among the level-up cards (more often once
+ * the build is full) and at Kecleon's.
+ */
+export type ParagonId = "echo" | "blast" | "vamp" | "hunter" | "frenzy" | "limit" | "fatal" | "giant" | "second";
+export const PARAGONS: { id: ParagonId; name: Txt; desc: Txt }[] = [
+  { id: "echo", name: ["Écho", "Echo"], desc: ["1 capacité sur 5 repart aussitôt.", "1 move in 5 is ready again at once."] },
+  { id: "blast", name: ["Détonation", "Detonation"], desc: ["Chaque K.O. explose sur ses voisins.", "Each K.O. blows up on its neighbours."] },
+  { id: "vamp", name: ["Vampire", "Vampire"], desc: ["Chaque K.O. rend un peu de PV.", "Each K.O. gives back a little HP."] },
+  { id: "hunter", name: ["Chasseur", "Hunter"], desc: ["+50 % de dégâts aux boss et titans.", "+50% damage to bosses and titans."] },
+  { id: "frenzy", name: ["Frénésie", "Frenzy"], desc: ["Plus il y a d'ennemis autour, plus tu frappes fort.", "The more foes around, the harder you hit."] },
+  { id: "limit", name: ["Hâte ultime", "Ultimate haste"], desc: ["Les recharges descendent plus bas.", "Cooldowns go lower still."] },
+  { id: "fatal", name: ["Coup fatal", "Deadly blow"], desc: ["Critiques : dégâts x2 en plus.", "Crits: twice the damage on top."] },
+  { id: "giant", name: ["Colosse", "Colossus"], desc: ["+40 % de PV max.", "+40% max HP."] },
+  { id: "second", name: ["Ténacité", "Grit"], desc: ["Te relève une fois de plus.", "Gets you up once more."] },
+];
+export const PARAGON_WAVE = 75;
+
+/**
+ * Kecleon's pacts (Johan, 2026-10-20: a risk for a big reward): at its stall from wave 10, a curse until the next boss falls
+ * against a reward taken at once, for good.
+ */
+export type PactId = "horde" | "glass" | "fury" | "elite";
+export const PACTS: { id: PactId; name: Txt; curse: Txt; gift: Txt }[] = [
+  { id: "horde", name: ["Horde", "Horde"], curse: ["+60 % d'ennemis", "+60% foes"], gift: ["+3 cartes, tout de suite", "+3 cards, right now"] },
+  { id: "glass", name: ["Verre", "Glass"], curse: ["Tu prends +50 % de dégâts", "You take +50% damage"], gift: ["+30 % de dégâts, pour toujours", "+30% damage, for good"] },
+  { id: "fury", name: ["Furie", "Fury"], curse: ["Ennemis 30 % plus rapides", "Foes 30% faster"], gift: ["+30 % de PV max, pour toujours", "+30% max HP, for good"] },
+  { id: "elite", name: ["Élite", "Elite"], curse: ["1 ennemi sur 4 est une élite", "1 foe in 4 is an elite"], gift: ["Un gros sac d'or", "A big bag of gold"] },
+];
+export const PACT_WAVE = 10;
+
 export const MAX_MOVES = 4;
 export const MAX_ITEMS = 4;
 export const MAX_LEVEL = 5;

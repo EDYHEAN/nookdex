@@ -303,8 +303,11 @@ doesn't show.
 ## NookBoy (the game in the Game Boy)
 
 - The Game Boy painted by the mug (`GAMEBOY` in PaintedRoom) runs Nook Survivors, a survivors-like (a name of our own: no brand in the game's title): a starter (Bulbasaur,
-  Charmander, Squirtle, Pikachu; they evolve mid-run) against waves of wild Pokémon (15 s a wave up to 24, 20 s to 49, then 30 s: `waveLength` / `waveStart` / `waveAt` in lib/game/data, XP and
-  gold scaled up on short waves so a wave gives as much; Clément 2026-10-18), a boss every 5th,
+  Charmander, Squirtle, Pikachu; they evolve mid-run) against waves of wild Pokémon. A wave holds a count of foes (`waveQuota`
+  in lib/game/data, Johan 2026-10-20): all knocked out, the next one comes at once ("reste N" in the HUD, the last 12 rush in,
+  a Rare Candy if cleared with a third of its time left from wave 25); its length (15 s up to 24, 20 s to 49, then 30 s:
+  `waveLength`) is only the most it lasts. A boss's wave is a few guards then the boss alone, over when it falls (no
+  clock: it enrages after `ENRAGE_AFTER` s). A boss every 5th,
   candies → levels → 3 cards (31 moves of 17 types, auto-cast or keys 1-4, 4 at most; 17 held items; once all is maxed,
   stacking bonuses). A move at level 5 + its item (`evo` in lib/game/data) offers its evolution first (16 of them).
   Statuses (wet, burnt, poisoned, asleep/frozen, slowed, charmed: Fairy, the foe goes for its neighbours; Dark makes them
@@ -323,7 +326,7 @@ doesn't show.
   trimmed and packed by `npm run build-game` (`scripts/build-game.mjs`, cache `.cache/`), which also writes
   `src/data/game-sprites.json` and the room's loop. A new Pokémon: add its dex number to the script's ROSTER, run it.
 - Ladder: Supabase `game_scores` behind `game_top2` / `game_submit2` (v4 at the end of docs/supabase.sql: plausibility
-  checks, the short waves' timing (v5), up to wave 200, one run per name every 20 s, best run per name), open to everyone, account
+  checks, the waves' timing (v6: 2 s a wave at least, waves end once cleared), up to wave 300, one run per name every 20 s, best run per name), open to everyone, account
   or not. A board per mode
   (classic, daily then defi, coop) and period (the month's season, the daily's UTC day, all time); `game_top` / `game_submit` are
   the v1 the client falls back on.
@@ -334,12 +337,18 @@ doesn't show.
   grid, capped, dearer each level, merged by the higher level; a **2nd rank**, half as many levels again, once wave 100 is
   reached) from the menu or the game over. The best classic/coop wave is kept among the Pension's levels as `wave`
   (`bestWave`, merged the same way). A click beside the console mid-run only pauses it.
-- **Beyond wave 100** (Johan, 2026-10-17): classic and coop runs go on to wave 200 (`MAX_WAVE`; the 100th boss gives
-  the "Centenaire" trophy and the run goes on), titans walk among the foes from wave 50 (`TITANS_FROM`, more often past 100: `BEYOND`), a 5th move and item slot once the 50th
+- **Beyond wave 100** (Johan, 2026-10-17): classic and coop runs go on to wave 300 (`MAX_WAVE`, 200 until 2026-10-20; the
+  100th boss gives the "Centenaire" trophy, Mega Mewtwo Y at 200 the "Bicentenaire" and comes back as the 300th, the last),
+  past 100 candies and gold come by themselves and XP x1.5 (`BEYOND_XP`),
+  titans walk among the foes from wave 50 (`TITANS_FROM`, more often past 100: `BEYOND`), a 5th move and item slot once the 50th
   boss has fallen (`SLOT5_WAVE`, `moveSlots`), bosses up to x2.5 HP past wave 25 (`BOSS_LATE_HP`), the starter's type twice as likely in the
   draws and the types it combos with a bit more (`affinity`; Clément, 2026-10-18: the late game was only boosts), every 10th wave is a
-  giga boss of the daily challenge's, Mega Mewtwo Y the 200th (won when it falls). **Start tiers**: a run may start at 25,
-  50 … 175 once that wave was reached (`TIERS`, `tierLevel`, `tierPicks` in the engine): the level a played run has there
+  giga boss of the daily challenge's, Mega Mewtwo Y the 200th and 300th (won when the 300th falls). The late game's
+  own rules (Johan, 2026-10-20, all in the guide's « Au-delà » tab): boss **affixes** (`AFFIXES`: shield, swift,
+  regenerator, leader, blinker; one from wave 50, two from 150), **Paragon cards** (`PARAGONS`, from wave 75, one of each,
+  among the level-up cards and at Kecleon's), **Kecleon's pacts** (`PACTS`, from wave 10: a curse until the next boss falls
+  for a big gift at once). **Start tiers**: a run may start at 25,
+  50 … 275 once that wave was reached (`TIERS`, `tierLevel`, `tierPicks` in the engine): the level a played run has there
   (`TIER_LEVEL`, from the ladder: 42 at 25, 110 at 50; 80 at 50 was too weak, a friend 2026-10-18),
   evolved, a card per level (past a full build: stacking boosts), all of them as a build pack picked out of 3 (`PACKS` in lib/game/data: 15 builds of
   4 moves + 4 items, drawn by rarity, legendaries rare and broken, Johan 2026-10-18: luck, not a build menu; the moves raised and evolved first, then the items); a ramp then (`RAMP`: foes trickle in, the full crowd after 60 s, the tier's boss after 30 s, 3 s
