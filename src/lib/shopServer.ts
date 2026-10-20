@@ -4,8 +4,8 @@ import { STUDIO_EMAIL_HASHES, SUPABASE_KEY, SUPABASE_URL } from "./site";
 /*
  * The shop's server side (app/api/shop): Stripe's API and Supabase's, spoken to with plain fetch (no SDK, like the
  * contact form with Brevo). Keys in the Vercel env and .env.local, never in the browser: STRIPE_SECRET_KEY,
- * STRIPE_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY. Payments go through Stripe Managed Payments (Stripe is the merchant
- * of record: taxes, receipts, refunds, withdrawal rights); the skins' products are made by scripts/stripe-skins.mjs.
+ * STRIPE_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY. Johan sells through plain Stripe Checkout (VAT-exempt; Managed
+ * Payments dropped on 2026-10-20, docs/skins.md); the skins' products are made by scripts/stripe-skins.mjs.
  */
 
 const STRIPE = "https://api.stripe.com/v1";

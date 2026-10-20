@@ -58,12 +58,5 @@ export const LEGAL = {
   } | null,
 };
 
-/**
- * How the shop sells (docs/skins.md): Stripe Managed Payments, where Link is the seller (taxes, receipts, refunds; no
- * Cartes Bancaires, no PayPal), or plain Stripe Checkout, where Johan sells (VAT-exempt, the buyer waives withdrawal
- * before paying). `NEXT_PUBLIC_STRIPE_MANAGED=off` in Vercel switches to plain Stripe, then a redeploy.
- */
-export const MANAGED_PAYMENTS = process.env.NEXT_PUBLIC_STRIPE_MANAGED !== "off";
-
 /** Tips for the project (the cat's bowl, the about pages). */
 export const SUPPORT_URL = "https://buymeacoffee.com/nookdex";

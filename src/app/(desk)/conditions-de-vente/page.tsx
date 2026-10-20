@@ -2,16 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { serverLang } from "@/lib/serverLang";
 import { LegalPage } from "@/components/LegalPage";
-import { LEGAL, MANAGED_PAYMENTS, SITE_NAME } from "@/lib/site";
+import { LEGAL, SITE_NAME } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const en = (await serverLang()) === "en";
   return en ? { title: `Terms of sale · ${SITE_NAME}`, alternates: { canonical: "/conditions-de-vente" } } : { title: `Conditions de vente · ${SITE_NAME}`, alternates: { canonical: "/conditions-de-vente" } };
 }
 
-// The shop (docs/skins.md), two ways of selling (lib/site MANAGED_PAYMENTS): with Stripe Managed Payments the buyer
-// pays Link, the merchant of record (taxes, receipts, refunds, withdrawal rights) and these terms say what the player gets
-// on NookDex's side; without it Johan sells (VAT-exempt), the buyer waives withdrawal before paying, a mediator is named.
+// The shop (docs/skins.md): Johan sells (VAT-exempt), the buyer waives withdrawal before paying, a mediator is named.
+// Stripe's Managed Payments (Link as the seller) was dropped on 2026-10-20: no PayPal, and Cartes Bancaires needed a VAT number.
 
 function Fr() {
   return (
@@ -31,19 +30,9 @@ function Fr() {
       <h2>Prix et paiement</h2>
       <p>
         Les prix sont affichés dans la boutique, en euros, toutes taxes comprises ; la page de paiement peut les convertir dans ta monnaie.{" "}
-        {MANAGED_PAYMENTS ? (
-          <>
-            Le paiement se fait sur une page sécurisée de Stripe : la vente est faite via Link, le service de paiement de Stripe, qui encaisse le
-            paiement, applique la TVA de ton pays et t&apos;envoie le reçu par e-mail. Sur ton relevé, l&apos;achat apparaît comme « LINK.COM*
-            NOOKDEX ».
-          </>
-        ) : (
-          <>
-            Le vendeur est {LEGAL.name}, entrepreneur individuel (voir les <Link href="/mentions-legales">mentions légales</Link>) : TVA non
-            applicable, article 293 B du CGI. Le paiement se fait sur une page sécurisée de Stripe, qui t&apos;envoie le reçu par e-mail ; sur ton
-            relevé, l&apos;achat apparaît comme « NOOKDEX ».
-          </>
-        )}{" "}
+        Le vendeur est {LEGAL.name}, entrepreneur individuel (voir les <Link href="/mentions-legales">mentions légales</Link>) : TVA non
+        applicable, article 293 B du CGI. Le paiement se fait sur une page sécurisée de Stripe, qui t&apos;envoie le reçu par e-mail ; sur ton
+        relevé, l&apos;achat apparaît comme « NOOKDEX ».{" "}
         {SITE_NAME} ne voit jamais tes coordonnées bancaires.
       </p>
 
@@ -56,23 +45,13 @@ function Fr() {
       <h2>Remboursement et rétractation</h2>
       <p>
         Un souci avec un achat ? Écris-nous à <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>, on regarde chaque demande.{" "}
-        {MANAGED_PAYMENTS ? (
-          <>
-            Tu peux aussi demander un remboursement à Link (<a href="https://support.link.com/topics/sold-through-link">support.link.com</a>), qui
-            applique les règles de rétractation de ton pays.
-          </>
-        ) : (
-          <>
-            L&apos;objet est un contenu numérique livré dès le paiement : en cliquant sur « Acheter », tu demandes sa livraison immédiate et tu
-            renonces à ton droit de rétractation de 14 jours (article L221-28 du Code de la consommation), comme l&apos;indique la page de
-            paiement. Un objet qui
-            ne marche pas est remboursé.
-          </>
-        )}{" "}
+        L&apos;objet est un contenu numérique livré dès le paiement : en cliquant sur « Acheter », tu demandes sa livraison immédiate et tu
+        renonces à ton droit de rétractation de 14 jours (article L221-28 du Code de la consommation), comme l&apos;indique la page de
+        paiement. Un objet qui ne marche pas est remboursé.{" "}
         Un objet remboursé quitte ton casier.
       </p>
 
-      {!MANAGED_PAYMENTS && LEGAL.mediator && (
+      {LEGAL.mediator && (
         <>
           <h2>Médiation</h2>
           <p>
@@ -116,18 +95,9 @@ function En() {
       <h2>Prices and payment</h2>
       <p>
         Prices are shown in the shop, in euros, taxes included; the payment page may convert them into your currency.{" "}
-        {MANAGED_PAYMENTS ? (
-          <>
-            You pay on a secure Stripe page: the sale is made through Link, Stripe&apos;s payment service, which takes the payment, applies your
-            country&apos;s VAT or sales tax and e-mails you the receipt. On your statement, the purchase shows as &laquo; LINK.COM* NOOKDEX &raquo;.
-          </>
-        ) : (
-          <>
-            The seller is {LEGAL.name}, sole trader (see the <Link href="/mentions-legales">legal notice</Link>): VAT not applicable, article 293 B
-            of the French tax code. You pay on a secure Stripe page, which e-mails you the receipt; on your statement, the purchase shows as &laquo;
-            NOOKDEX &raquo;.
-          </>
-        )}{" "}
+        The seller is {LEGAL.name}, sole trader (see the <Link href="/mentions-legales">legal notice</Link>): VAT not applicable, article 293 B
+        of the French tax code. You pay on a secure Stripe page, which e-mails you the receipt; on your statement, the purchase shows as &laquo;
+        NOOKDEX &raquo;.{" "}
         {SITE_NAME} never sees your card details.
       </p>
 
@@ -140,21 +110,12 @@ function En() {
       <h2>Refunds and withdrawal</h2>
       <p>
         A problem with a purchase? Write to <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>, we look at every request.{" "}
-        {MANAGED_PAYMENTS ? (
-          <>
-            You can also ask Link for a refund (<a href="https://support.link.com/topics/sold-through-link">support.link.com</a>), which applies
-            your country&apos;s withdrawal rules.
-          </>
-        ) : (
-          <>
-            The item is digital content delivered as soon as you pay: by clicking &laquo; Buy &raquo;, you ask for it at once and waive your 14-day
-            right of withdrawal (article L221-28 of the French consumer code), as the payment page says. An item that doesn&apos;t work is refunded.
-          </>
-        )}{" "}
+        The item is digital content delivered as soon as you pay: by clicking &laquo; Buy &raquo;, you ask for it at once and waive your 14-day
+        right of withdrawal (article L221-28 of the French consumer code), as the payment page says. An item that doesn&apos;t work is refunded.{" "}
         A refunded item leaves your locker.
       </p>
 
-      {!MANAGED_PAYMENTS && LEGAL.mediator && (
+      {LEGAL.mediator && (
         <>
           <h2>Mediation</h2>
           <p>

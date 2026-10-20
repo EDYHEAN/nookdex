@@ -1,11 +1,9 @@
 import { BUNDLE, ITEM } from "@/lib/skins";
 import { shopOpenFor, stripe, userOf } from "@/lib/shopServer";
-import { MANAGED_PAYMENTS } from "@/lib/site";
 
 /**
- * Buying a skin (lib/shop buySkin): a Stripe Checkout page for the signed-in player, with Managed Payments or not (lib/site
- * MANAGED_PAYMENTS). Its price is found by lookup key (skin_<id>, made by scripts/stripe-skins.mjs); the webhook writes
- * the purchase once paid.
+ * Buying a skin (lib/shop buySkin): a Stripe Checkout page for the signed-in player, Johan the seller (docs/skins.md). Its
+ * price is found by lookup key (skin_<id>, made by scripts/stripe-skins.mjs); the webhook writes the purchase once paid.
  * 503 while Stripe isn't set up, 403 while the shop isn't open to this account.
  */
 export async function POST(req: Request) {
@@ -18,8 +16,8 @@ export async function POST(req: Request) {
   const skin = body?.skin ? (ITEM.get(body.skin) ?? BUNDLE.get(body.skin)) : undefined;
   if (!skin) return Response.json({ error: "unknown skin" }, { status: 400 });
   const en = body?.lang === "en";
-  // Johan sells (no Managed Payments): the buyer asked for the item at once and waived withdrawal, ticked in the shop
-  if (!MANAGED_PAYMENTS && body?.waiver !== true) return Response.json({ error: "waiver" }, { status: 400 });
+  // Johan sells: the buyer asked for the item at once and waived withdrawal by clicking Buy
+  if (body?.waiver !== true) return Response.json({ error: "waiver" }, { status: 400 });
 
   try {
     const prices = await stripe<{ data: { id: string }[] }>("/prices", { "lookup_keys[]": `skin_${skin.id}`, active: true }, "GET");
@@ -31,19 +29,15 @@ export async function POST(req: Request) {
       mode: "payment",
       "line_items[0][price]": price,
       "line_items[0][quantity]": 1,
-      ...(MANAGED_PAYMENTS
-        ? { "managed_payments[enabled]": true }
-        : {
-            // said outright: the account turns Managed Payments on by default for every Checkout session
-            "managed_payments[enabled]": false,
-            // printed on Stripe's receipt: what was bought, and the VAT-exempt mention Johan's sales carry
-            "payment_intent_data[description]": `NookDex · ${en ? skin.name.en : skin.name.fr} · ${en ? "VAT not applicable, art. 293 B CGI" : "TVA non applicable, art. 293 B du CGI"}`,
-            // when the waiver was given, kept with the payment, and said again next to the pay button
-            "metadata[waiver]": new Date().toISOString(),
-            "custom_text[submit][message]": en
-              ? "Digital item delivered right after payment: you asked for it at once and waived your 14-day right of withdrawal."
-              : "Objet numérique livré dès le paiement : tu as demandé sa livraison immédiate et renoncé à ton droit de rétractation de 14 jours.",
-          }),
+      // said outright: Managed Payments (Link the seller) stays off whatever the account's default (dropped 2026-10-20)
+      "managed_payments[enabled]": false,
+      // printed on Stripe's receipt: what was bought, and the VAT-exempt mention Johan's sales carry
+      "payment_intent_data[description]": `NookDex · ${en ? skin.name.en : skin.name.fr} · ${en ? "VAT not applicable, art. 293 B CGI" : "TVA non applicable, art. 293 B du CGI"}`,
+      // when the waiver was given, kept with the payment, and said again next to the pay button
+      "metadata[waiver]": new Date().toISOString(),
+      "custom_text[submit][message]": en
+        ? "Digital item delivered right after payment: you asked for it at once and waived your 14-day right of withdrawal."
+        : "Objet numérique livré dès le paiement : tu as demandé sa livraison immédiate et renoncé à ton droit de rétractation de 14 jours.",
       client_reference_id: user.id,
       ...(user.email ? { customer_email: user.email } : {}),
       "metadata[skin]": skin.id,
