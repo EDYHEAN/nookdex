@@ -151,8 +151,8 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
   Stripe (e-mail du 2026-10-20) confirme que PayPal n'y viendra pas, et CB y demande un numéro de TVA (Johan est en
   franchise). Désactivé par défaut dans le tableau de bord, retiré du code (plus de `MANAGED_PAYMENTS` ni de
   `NEXT_PUBLIC_STRIPE_MANAGED`) ; la session Checkout dit quand même `managed_payments[enabled]=false`. Le compte demande
-  aussi un « numéro de TVA de l'entreprise » pour le réseau CB : laissé vide (les cartes co-badgées passent par
-  Visa/Mastercard) ; à revoir avec le SIE si les ventes décollent. Pas de case à cocher ni de texte dans la
+  aussi un « numéro de TVA de l'entreprise » (conformité, et le réseau CB) : demandé aux impôts le 2026-10-19, voir
+  « Reste à faire » ; d'ici là, les cartes co-badgées passent par Visa/Mastercard. Pas de case à cocher ni de texte dans la
   boutique (Johan, 2026-10-16 : trop lourd pour un petit site) : la renonciation à la rétractation est dite à côté du bouton
   de paiement de Stripe (`custom_text`), sa date gardée dans les métadonnées du paiement (risque accepté : un acheteur
   pourrait la contester et se faire rembourser). Le reçu Stripe porte « NookDex · objet · TVA non applicable, art. 293 B
@@ -187,9 +187,9 @@ Activé par Johan (formulaire « Activer Payments »). Ce qui a été choisi, po
 **Reste à faire**
 - **Signer la convention du médiateur SMP** (demande #309572) et payer sa facture (30 € TTC) : reçues, pas encore signées
   au 2026-10-20. Obligatoire dès qu'on vend à des particuliers (une vente réelle le 2026-10-16).
-- **Numéro de TVA demandé par Stripe** (Paramètres → Entreprise → État du compte, « indispensable pour certains moyens de
-  paiement comme les cartes bancaires ») : question posée au support le 2026-10-20 (obligatoire sans Managed Payments ?
-  restriction du compte ?). Laissé vide en attendant.
+- **Numéro de TVA demandé par Stripe** (Paramètres → Entreprise → État du compte) : exigence de conformité pour une
+  entreprise individuelle selon le support (2026-10-19), et nécessaire au réseau CB. Numéro de TVA intracommunautaire
+  demandé aux impôts par Johan le 2026-10-19 : le saisir dès réception, puis tester Apple Pay avec une carte réglée sur CB.
 - Pas de téléphone dans les mentions légales pour l'instant (Johan, 2026-10-16), bien que la LCEN le demande à une
   personne physique : à ajouter dans `LEGAL` s'il prend un numéro à part.
 - Les liens sur la page de paiement Stripe (2026-10-16, en complétant le compte) : politique de confidentialité
