@@ -23,6 +23,12 @@ const nextConfig: NextConfig = {
   redirects: async () => [
     { source: "/scans/tp/:id(\\d+)/low.:ext(webp|png)", destination: "https://product-images.tcgplayer.com/fit-in/245x342/:id.jpg", permanent: false },
     { source: "/scans/tp/:id(\\d+)/high.:ext(webp|png)", destination: "https://product-images.tcgplayer.com/fit-in/600x837/:id.jpg", permanent: false },
+    // Short links for posts (Johan, 2026-10-20): a clean address to share, the source added for lib/funnel and Vercel
+    // Analytics (the Reddit and Facebook apps send no referrer, so without it those visits read as "direct").
+    { source: "/reddit", destination: "/?utm_source=reddit-fr", permanent: false },
+    { source: "/en/reddit", destination: "/en?utm_source=reddit-en", permanent: false },
+    { source: "/facebook", destination: "/?utm_source=facebook", permanent: false },
+    { source: "/en/facebook", destination: "/en?utm_source=facebook-en", permanent: false },
   ],
   // The sets' files (30 MB) stay out of every function: lib/setFiles fetches them from the site's static files.
   // Each function carried its own copy, and Vercel's Hobby plan keeps every deploy of the last 30 days within 10 GB.
