@@ -366,7 +366,7 @@ doesn't show.
   untouchable at first, Johan 2026-10-18: cornered at once otherwise); its clock starts there (the ladder's time check holds) and the ladder shows "↱50"
   (`start`, `game_submit2` v4). The old
   daily (`dailyOf`, a wave to reach) ran until 2026-10-14; the **daily challenge** below replaced it. A moment after each boss falls, a **break**: the field is cleared, then the
-  Pokémon Center's heal (no screen: forgetting moves was dropped, Johan 2026-10-13), the levels won, Kecleon's stall (cards, heal, reroll, swap: give a move or an item, take one of 3 drawn at its level; prices up 12 % a wave),
+  Pokémon Center's heal (no screen: forgetting moves was dropped, Johan 2026-10-13), the levels won, Kecleon's stall (cards, heal, reroll, swap: give a move or an item, take one of 3 drawn at its level; prices follow `waveGold`),
   a 3-2-1. Statuses and combos: `COMBOS` in lib/game/data.
 - Rewards: Supabase `game_rewards` (docs/supabase.sql, given by hand with an insert, read by the player only), e.g.
   `skin-mewtwo`: **Mewtwo**, a fifth Pokémon on the starter screen (`MEWTWO` in lib/game/data, `roster` in the engine),
