@@ -59,6 +59,8 @@ export interface Palette {
   name: [string, string];
   /** four shades, darkest first; none = the sprites' own colours */
   shades: string[] | null;
+  /** bought at the Pension (lib/game/data OBJECTS) */
+  obj?: string;
 }
 
 export const PALETTES: Palette[] = [
@@ -66,6 +68,9 @@ export const PALETTES: Palette[] = [
   { id: "dmg", name: ["DMG vert", "DMG green"], shades: ["#0f380f", "#306230", "#8bac0f", "#9bbc0f"] },
   { id: "pocket", name: ["Pocket", "Pocket"], shades: ["#1f1f1f", "#4d533c", "#8b956d", "#c4cfa1"] },
   { id: "lofi", name: ["Lofi violet", "Lofi violet"], shades: ["#2b2230", "#6b4a7a", "#c08cb0", "#f6e2e9"] },
+  { id: "ruby", name: ["Rubis", "Ruby"], shades: ["#2a0a14", "#7a1f3d", "#d4607a", "#fbe3e8"], obj: "pal-ruby" },
+  { id: "sapphire", name: ["Saphir", "Sapphire"], shades: ["#0a1430", "#22408a", "#6a9be0", "#e2eefc"], obj: "pal-sapphire" },
+  { id: "gold", name: ["Or", "Gold"], shades: ["#2a1c05", "#7a5514", "#d9a83a", "#fff3c9"], obj: "pal-gold" },
 ];
 
 /** the colours of everything that isn't a sprite, in the colour palette */

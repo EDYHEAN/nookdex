@@ -5,7 +5,7 @@ import { unlock } from "@/lib/trophyStore";
 import { gsfx, music } from "./audio";
 import {
   BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, UNLOCK_STARTERS, WILD, BIOMES, BIOME_WAVES, WEATHERS, type WeatherId, waveLength, waveQuota, waveRate, waveStart, xpFor, WAVE_HURRY,
-  AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, type AffixId, PARAGONS, PARAGON_WAVE, type ParagonId, PACTS, PACT_WAVE, type PactId, SHINY, SHINY_BOOST, SHINY_ODDS, DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
+  AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, type AffixId, PARAGONS, PARAGON_WAVE, type ParagonId, PACTS, PACT_WAVE, type PactId, SHINY, SHINY_BOOST, SHINY_ODDS, CHARM_ODDS, COIN_ODDS, coinValue, waveGold, DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
 } from "./data";
 import { DEFI_DAYS, DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
@@ -69,6 +69,8 @@ const BOSS_LATE_HP = 0.03;
 const HIT_CAP = 0.3;
 /** past wave 100 (Johan, 2026-10-20: the climb to 200 dragged): candies and gold come to you by themselves, XP x1.5 */
 const BEYOND_XP = 1.5;
+/** a start tier's gold, in waves of it (data `waveGold`): a card or two at Kecleon's first stall */
+const TIER_GOLD = 5;
 /** a cleared wave's breath before the next one */
 const WAVE_GAP = 1.2;
 /** the daily challenge's Pokémon won with (dex of their first form), for "defi-week": per device */
@@ -82,6 +84,8 @@ export interface RunSetup {
   defi?: Defi;
   /** a start tier's wave (classic and coop), else from wave 1 */
   start?: number;
+  /** the Shiny Charm bought (lib/game/data OBJECTS) */
+  charm?: boolean;
 }
 
 /** the day's challenge: the same starter and rule for everyone (UTC day) */
@@ -675,6 +679,12 @@ export class Game {
   /** the run's setup (mode, Pension, daily) */
   setup: RunSetup = { mode: "classic", perm: {} };
   gold = 0;
+  /** a start tier's gold, given at the start: it never goes to the purse (or quitting at once would mint it) */
+  tierGold = 0;
+  /** what the run adds to the purse */
+  get earned() {
+    return Math.max(0, this.gold - this.tierGold);
+  }
   /** Kecleon on the field, and its offers once you meet it */
   offers: ShopOffer[] = [];
   shopRerolls = 0;
@@ -932,6 +942,9 @@ export class Game {
     const from = setup.daily || setup.defi ? 1 : (setup.start ?? 1);
     this.startAt = waveStart(from);
     if (from > 1) this.time = this.startAt;
+    // a start tier brings a few waves' worth of gold: Kecleon's first stall comes a wave in (Johan, 2026-10-21: nothing to buy)
+    this.tierGold = from > 1 ? Math.round(TIER_GOLD * waveGold(from)) : 0;
+    this.gold = this.tierGold;
     if (from > 1) unlock("game-tier");
     if (from >= 175) unlock("game-tier175");
     this.charmed = 0;
@@ -948,7 +961,7 @@ export class Game {
       Object.assign(p, { starter: s, dex: s.dex, x: id * 24, y: 0, cam: { x: id * 24, y: 0 }, invuln: 1 });
       this.cur = p;
       // now and then a shiny (never in the daily challenge, the same for everyone)
-      p.shiny = !setup.defi && !setup.daily && Math.random() < SHINY_ODDS;
+      p.shiny = !setup.defi && !setup.daily && Math.random() < SHINY_ODDS * (setup.charm ? CHARM_ODDS : 1);
       p.rerolls = this.perm("reroll");
       p.revives = this.perm("revive");
       // the Pension's backpack: cards to pick before the first foe
@@ -1135,9 +1148,12 @@ export class Game {
     const base: Record<Rarity, number> = { common: 30, rare: 55, epic: 90, legendary: 150 };
     return this.drawChoices(3).map((c) => ({ choice: c, price: Math.round(base[c.rarity ?? "common"] * w * (c.kind === "paragon" ? 2 : 1)), sold: false }));
   }
-  /** prices climb 12 % a wave after the first shop (wave 6); the Pension's loyalty card takes some off */
+  /**
+   * prices follow the gold a wave brings (data `waveGold`): a common card is about 3 waves of it, at wave 6 as at wave 200;
+   * the Pension's loyalty card takes some off
+   */
   private get priceUp() {
-    return Math.pow(1.12, Math.max(0, this.wave - 6)) * (1 - 0.04 * this.perm("discount"));
+    return Math.max(1, waveGold(this.wave) / waveGold(6)) * (1 - 0.04 * this.perm("discount"));
   }
   get rerollPrice() {
     return Math.round((15 + 15 * this.shopRerolls) * this.priceUp);
@@ -1587,7 +1603,7 @@ export class Game {
     if (won && this.setup.defi) this.defiWon(this.players[0].starter.dex, Math.floor(this.time));
     const met = !!daily && this.wave >= daily.target;
     this.lastStats = {
-      mode: this.setup.mode, day: daily?.day ?? this.setup.defi?.day, gold: this.gold, dailyBonus: daily ? dailyReward(this.wave, met) : 0, dailyWon: met, won,
+      mode: this.setup.mode, day: daily?.day ?? this.setup.defi?.day, gold: this.earned, dailyBonus: daily ? dailyReward(this.wave, met) : 0, dailyWon: met, won,
       wave: this.setup.defi && won ? DEFI_WAVES + 1 : this.wave, kills: this.kills, level: Math.max(...this.players.map((p) => p.level)), seconds: Math.floor(this.time), start: (this.setup.start ?? 1) > 1 && !this.setup.daily && !this.setup.defi ? this.setup.start! : 1,
       starter: this.players[0].starter.dex, dex: this.players[0].dex, dex2: this.players[1]?.dex, starter2: this.players[1]?.starter.dex,
     };
@@ -3081,10 +3097,10 @@ export class Game {
       // a classic wave's foe is worth what the old wave's crowd was, shared among its count (fillWave)
       const worth = this.setup.defi ? 1 : this.waveWorth;
       this.drop("candy", e.x, e.y, xp * worth);
-      // gold: now and then, worth a little more as the waves go on (the late waves bring many more foes already)
-      const v = 1 + Math.floor(this.wave / 6);
+      // gold: now and then, worth a little more as the waves go on (data `waveGold`)
+      const v = coinValue(this.wave);
       if (e.elite) for (let i = 0; i < 2; i++) this.drop("coin", e.x + rand(-8, 8), e.y + rand(-8, 8), v);
-      else if (Math.random() < 0.06 * worth) this.drop("coin", e.x, e.y, v);
+      else if (Math.random() < COIN_ODDS * worth) this.drop("coin", e.x, e.y, v);
       const r = Math.random();
       if (r < 0.012) this.drop("oran", e.x, e.y, 0);
       else if (r < 0.016) this.drop("magnet", e.x, e.y, 0);

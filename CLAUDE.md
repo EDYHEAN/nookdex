@@ -339,8 +339,13 @@ doesn't show.
   (`lib/pensionStore` `gold`, in the save and the cloud, the latest wins). A run starts with **no gold** (Johan,
   2026-10-17: a 47k purse bought Kecleon's whole stall and made wave 92 easy); all it picks up goes to the purse at the
   end (game over, or the console put away mid-run). The purse buys the **Pension** (15 permanent boosts in one scrolling
-  grid, capped, dearer each level, merged by the higher level; a **2nd rank**, half as many levels again, once wave 100 is
-  reached) from the menu or the game over. The best classic/coop wave is kept among the Pension's levels as `wave`
+  grid, capped, dearer each level, merged by the higher level; **ranks** 2 to 5 open at best waves 100, 150, 200, 250:
+  `RANK_WAVES`, `pensionMax`, a colour per rank on the pips) and **objects** bought once (`OBJECTS`: Shiny Charm = shinies
+  x2, palettes Rubis/Saphir/Or; kept among the levels as `obj-<id>`) from the menu or the game over. The purse holds
+  `PURSE_CAP` (360 000, Johan 2026-10-21: the Elite pact had made purses of 2.5 M and 347 M, brought down to it).
+  Kecleon's prices (and the Elite pact's gold) follow `waveGold`, the gold a plain wave brings (a common card ≈ 3 waves of
+  it; they used to rise 12 % a wave, out of reach past 40); a start tier brings 5 waves of it (`TIER_GOLD`), never added to
+  the purse (`earned`). The best classic/coop wave is kept among the Pension's levels as `wave`
   (`bestWave`, merged the same way). A click beside the console mid-run only pauses it.
 - **Beyond wave 100** (Johan, 2026-10-17): classic and coop runs go on to wave 300 (`MAX_WAVE`, 200 until 2026-10-20; the
   100th boss gives the "Centenaire" trophy, Mega Mewtwo Y at 200 the "Bicentenaire" and comes back as the 300th, the last),

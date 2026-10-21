@@ -482,14 +482,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 22px;
+  /* high on the screen (Johan, 2026-10-21: the menu sat low, its keys line cut off): logo, menu, keys all in */
+  padding-top: 8px;
 }
 
 .logo {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 8px;
   animation: float 2.4s steps(6) infinite alternate;
 }
 
@@ -508,8 +509,8 @@
 
 .logoBig,
 .logoBig2 {
-  font-size: 24px;
-  line-height: 26px;
+  font-size: 22px;
+  line-height: 24px;
   color: #ffd36e;
   text-shadow:
     2px 0 #2f3a8f,
@@ -525,8 +526,8 @@
 }
 
 .logoBig2 {
-  font-size: 18px;
-  line-height: 22px;
+  font-size: 16px;
+  line-height: 20px;
 }
 
 .screen:not([data-palette="color"]) .logoBig,
@@ -546,7 +547,7 @@
 }
 
 .logoSub {
-  margin-top: 6px;
+  margin-top: 4px;
   font: 13px/1 var(--font-vt), monospace;
   color: var(--c3);
   text-shadow:
@@ -947,12 +948,19 @@
   display: flex;
   gap: 6px;
   align-self: stretch;
+  /* a long run's recap shrinks and scrolls: the pause menu always stays on screen (Johan, 2026-10-21: with a full build
+     it went below the screen, no way to give up) */
+  flex: 0 1 auto;
+  min-height: 0;
 }
 
 .recap .box {
   flex: 1;
+  min-width: 0;
   padding: 4px 6px;
   font: 11px/11px var(--font-vt), monospace;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .recap p {
@@ -964,17 +972,35 @@
   color: var(--c1);
 }
 
+/* a move or an item: its name, then its level's pips on the same line */
+.recap p.recapRow {
+  display: flex;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.recapRow span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recapRow i {
+  margin-left: auto;
+  font-size: 8px;
+  letter-spacing: -1px;
+}
+
+.pause > .menu,
+.pause > .keys {
+  flex-shrink: 0;
+}
+
 .recapTitle {
   font: 6px/10px var(--font-press), monospace;
   color: var(--c1);
 }
 
-/* the run's combos: never past the pause menu, and the ones it has both halves of stand out */
-.recapCombos {
-  max-height: 150px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
+/* the run's combos: the ones it has both halves of stand out */
 
 .recap p.comboOn {
   color: var(--c0);
@@ -1031,6 +1057,46 @@
   background: var(--c3);
 }
 
+/* the Pension's rank, in its colour (the tiles' pips of that rank wear it too) */
+.pRank {
+  --rk: #ffc93d;
+  padding: 2px 5px 1px;
+  border-radius: 3px;
+  background: var(--rk);
+  color: var(--c0);
+  text-shadow: none;
+  box-shadow: 0 0 0 1px var(--c0), 0 2px 0 var(--c0);
+}
+
+.pR1 {
+  --rk: #ffc93d;
+  --rk2: #c47f00;
+}
+
+.pR2 {
+  --rk: #ff6b4a;
+  --rk2: #b8322a;
+}
+
+.pR3 {
+  --rk: #5fd16a;
+  --rk2: #2f8a3a;
+}
+
+.pR4 {
+  --rk: #5fb8ff;
+  --rk2: #2f6fb8;
+}
+
+.pR5 {
+  --rk: #c07bff;
+  --rk2: #7a3fb8;
+}
+
+.screen:not([data-palette="color"]) .pRank {
+  background: var(--c3);
+}
+
 /* the Pension's grid scrolls: a fade and a bobbing "▼ 6 more" while there's more below */
 .pScroll {
   position: relative;
@@ -1043,6 +1109,8 @@
 .pensionGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* rows as tall as their tallest tile: a name on two lines pushed the price out of its tile */
+  grid-auto-rows: max-content;
   gap: 6px;
   margin-top: 4px;
   /* room for the tiles' lift and outline when picked */
@@ -1154,27 +1222,28 @@
 .pPips i {
   width: 5px;
   height: 3px;
-  background: var(--c2);
+  /* an empty level already hints at its rank's colour */
+  background: color-mix(in srgb, var(--rk, var(--c2)) 30%, var(--c2));
 }
 
 .pPips i.pPipOn {
-  background: #ffc93d;
-  box-shadow: inset 0 -1px 0 #c47f00;
+  background: var(--rk);
+  box-shadow: inset 0 -1px 0 var(--rk2);
 }
 
-/* the 2nd rank's levels (from wave 100): a hotter colour */
-.pPips i.pPip2 {
-  opacity: 0.7;
-}
-
+/* the next rank's levels, locked until its wave */
 .pPips i.pPipLock {
   opacity: 0.3;
 }
 
-.pPips i.pPip2.pPipOn {
-  opacity: 1;
-  background: #ff6b4a;
-  box-shadow: inset 0 -1px 0 #b8322a;
+/* the objects, bought once (OBJECTS) */
+.pObj {
+  min-height: 52px;
+  background: color-mix(in srgb, #ffc93d 18%, var(--c3));
+}
+
+.screen:not([data-palette="color"]) .pObj {
+  background: var(--c3);
 }
 
 .screen:not([data-palette="color"]) .pPips i.pPipOn {
