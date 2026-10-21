@@ -488,6 +488,67 @@ async function scansFromTcgcsvGroup(mainId, cards) {
   return found;
 }
 
+/*
+ * Promos numbered alike in every language (MEP): TCGdex lists them late in French (its list stopped at 088 on 2026-10-21,
+ * with Méga-Dracolosse-ex MEP 091 out in France: a player's mail) and dropped 089-110 from its English list (card backs
+ * since). TCGplayer's group has them all: a number this language's list lacks comes from there, its plain print (not the
+ * Staff or Winner stamp), not downloaded (/scans/tp/<product>). In French a Pokémon's name is made from PokéAPI's ("Mega
+ * Dragonite ex" -> "Méga-Dracolosse-ex"); a trainer's French name isn't known, it waits for TCGdex. The Cardmarket product
+ * (so the euro price, applyGuide) is the English file's, kept from when TCGdex listed the card. TCGdex's card wins the
+ * day it lists it (same id).
+ */
+const LATE_PROMOS = new Set(["mep"]);
+let speciesFr = null;
+async function frenchName(en) {
+  // English and French species names, longest first: "Mewtwo" must win over "Mew"
+  speciesFr ??= [...(NAMES ?? (await pokemonNames()))]
+    .flatMap(([, n]) => (n.en && n.fr ? [[n.en, n.fr]] : []))
+    .sort((a, b) => b[0].length - a[0].length);
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const hit = speciesFr.find(([e]) => new RegExp(`(^|\\s)${esc(e)}(\\s|$)`).test(en));
+  if (!hit) return null;
+  return en.replace(hit[0], hit[1]).replace(/^Mega /, "Méga-").replace(/ ex$/, "-ex").replace(/^Alolan (.+)$/, "$1 d'Alola");
+}
+async function promosFromTcgcsv(mainId, cards) {
+  const group = TCGCSV_GROUPS[mainId];
+  const listed = new Set(cards.map((c) => numKey(c.num)));
+  const enFile = `public/sets/en/${mainId}.json`;
+  const en = new Map(existsSync(enFile) ? JSON.parse(await readFile(enFile, "utf8")).cards.map((c) => [numKey(c.num), c]) : []);
+  const prices = (await tcgcsv(`/${group}/prices`))?.results ?? [];
+  const byNum = new Map(); // number -> its plainest print (the shortest name)
+  for (const p of (await tcgcsv(`/${group}/products`))?.results ?? []) {
+    const number = p.extendedData?.find((e) => e.name === "Number")?.value;
+    if (!number || !p.imageUrl || listed.has(numKey(number))) continue;
+    const had = byNum.get(numKey(number));
+    if (!had || p.name.length < had.name.length) byNum.set(numKey(number), { ...p, number });
+  }
+  const out = [];
+  for (const [key, p] of [...byNum].sort((a, b) => parseInt(a[1].number, 10) - parseInt(b[1].number, 10))) {
+    // "Mega Dragonite ex - 091", "Paradise Resort - 092 (World Championships 2026)"
+    const enName = p.name.replace(/\s+-\s+\d+.*$/, "");
+    const name = FR ? await frenchName(enName) : enName;
+    if (!name) continue;
+    const old = en.get(key);
+    const cmId = old?.price?.cmId;
+    const price = EN
+      ? (tcgcsvPrice(prices.filter((r) => r.productId === p.productId), old?.price ?? cardmarketPrice({})) ?? old?.price ?? cardmarketPrice({}))
+      : { ...cardmarketPrice({}), ...(cmId ? { cmId } : {}) };
+    const num = String(parseInt(p.number, 10)).padStart(3, "0");
+    out.push({
+      id: `${mainId}-${num}`,
+      num,
+      name,
+      rarity: "Promo",
+      category: FR ? "Pokémon" : (old?.category ?? null),
+      img: `${SITE}/scans/tp/${p.productId}`,
+      variants: old?.variants ?? ["holo"],
+      price,
+    });
+  }
+  console.log(`  ${mainId}: ${out.length} promos TCGdex doesn't list, from TCGplayer (group ${group})`);
+  return out;
+}
+
 /** Some logos are on the asset server but not listed by the API (ex: 30th): look for them, French first. */
 async function logoOf(set, serie) {
   if (set.logo) return set.logo;
@@ -611,6 +672,11 @@ async function fetchSet(mainId, subIds) {
     ...(EN ? { currency: "USD" } : {}),
     cards: [...main.cards, ...subs.flatMap((s) => s.cards)],
   };
+  try {
+    if (LATE_PROMOS.has(mainId) && !JA) out.cards.push(...(await promosFromTcgcsv(mainId, out.cards)));
+  } catch (e) {
+    console.warn(`${mainId}: TCGCSV promos skipped (${e.message})`);
+  }
   try {
     if (out.cards.some((c) => !c.img)) await (JA ? scansFromTcgcsvJa : TCGCSV_GROUPS[mainId] ? scansFromTcgcsvGroup : scansFromTcgcsv)(mainId, out.cards);
   } catch (e) {
