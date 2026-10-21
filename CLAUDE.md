@@ -55,6 +55,8 @@ doesn't show.
 - Sets with no scan at all on TCGdex, the trainer kits (`tk-*`, two half decks per TCGplayer group) and the Mega Evolution
   promos (`mep`): `TCGCSV_GROUPS` in fetch-set maps each to its TCGCSV group, cards matched by number and name, shown as
   `/scans/tp/<product>` (not downloaded). A new such set: find its group on tcgcsv.com/tcgplayer/3/groups and add it.
+  MEP numbers TCGdex lists late (French) or dropped (English 089-110) come from that group too (`promosFromTcgcsv`,
+  French names from PokéAPI, Pokémon only; Méga-Dracolosse-ex MEP 091, a player's mail 2026-10-21).
 
 ## Languages: the site, the cards, the money (three separate things)
 
