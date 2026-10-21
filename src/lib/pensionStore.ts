@@ -19,15 +19,26 @@ interface PensionState {
   goldAt: number;
 }
 
+/**
+ * The most a purse holds (Johan, 2026-10-21): Kecleon's Elite pact followed prices that rose 12 % a wave, and purses reached
+ * 2.5 M and 347 M gold. About the Pension's first two ranks: those purses were brought down to it, and gold past it is lost.
+ */
+export const PURSE_CAP = 360_000;
+const capped = (gold: number) => Math.min(PURSE_CAP, Math.max(0, Math.round(gold)));
+
 export const usePension = create<PensionState>()(
   persist(() => ({ levels: {}, dailyPaid: null, gold: 0, goldAt: 0 }) as PensionState, {
     name: "nookdex:pension",
     storage: createJSONStorage(() => localStorage),
+    // a purse from before the cap (once the store exists: localStorage hydrates it while it's made)
+    onRehydrateStorage: () => (st) => {
+      if (st && st.gold > PURSE_CAP) queueMicrotask(() => setGold(st.gold));
+    },
   }),
 );
 
 export function setGold(gold: number) {
-  usePension.setState({ gold: Math.max(0, Math.round(gold)), goldAt: Date.now() });
+  usePension.setState({ gold: capped(gold), goldAt: Date.now() });
 }
 
 /**
@@ -82,7 +93,7 @@ export function mergePension(other: Record<string, number> | undefined) {
 /** The purse from a save: kept if it changed more recently than this one. */
 export function mergeWallet(w: { gold: number; at: number } | undefined) {
   if (!w || typeof w.gold !== "number" || typeof w.at !== "number") return;
-  if (w.at > usePension.getState().goldAt) usePension.setState({ gold: w.gold, goldAt: w.at });
+  if (w.at > usePension.getState().goldAt) usePension.setState({ gold: capped(w.gold), goldAt: w.gold > PURSE_CAP ? Date.now() : w.at });
 }
 
 /** Same levels and purse: tells if the cloud is behind. */

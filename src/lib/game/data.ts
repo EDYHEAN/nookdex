@@ -533,6 +533,8 @@ export const PACT_WAVE = 10;
  */
 export const SHINY = 20000;
 export const SHINY_ODDS = 1 / 40;
+/** the Shiny Charm (OBJECTS): twice as often */
+export const CHARM_ODDS = 2;
 export const SHINY_BOOST = { power: 1.5, hp: 1.5, speed: 1.15, xp: 1.25 };
 
 export const MAX_MOVES = 4;
@@ -640,6 +642,15 @@ export const waveRate = (w: number) => 0.6 + 0.3 * w + 0.012 * w * w;
  * 25 s for it, much less for a strong one.
  */
 export const waveQuota = (w: number) => Math.round(Math.min(waveRate(w) * waveLength(w), 40 + 2 * w, 200));
+/**
+ * Gold: a foe drops a coin now and then, worth a little more as the waves go on (the late waves bring many more foes
+ * already). `waveGold` is what a plain wave brings (no elite, boss nor Pension): Kecleon's prices follow it (Johan,
+ * 2026-10-21: they rose 12 % a wave, out of reach past wave 40, a card 4 400 gold at a start from wave 50).
+ */
+export const COIN_ODDS = 0.06;
+export const coinValue = (w: number) => 1 + Math.floor(w / 6);
+export const waveGold = (w: number) =>
+  Math.min(1.5 * waveQuota(w), waveRate(w) * waveLength(w)) * COIN_ODDS * coinValue(w) * (WAVE_SECONDS / waveLength(w));
 /** the last few of a wave's count rush at the player (no waiting for stragglers walking in from off screen) */
 export const WAVE_HURRY = 12;
 /** when wave w starts at the latest (each wave to its full length): where a start tier's clock begins */
@@ -749,6 +760,8 @@ export interface PensionDef {
   pct: boolean;
   /** it takes off (damage taken, prices): shown "−4 %" */
   less?: boolean;
+  /** the levels each of the ranks 3 to 5 adds (default a quarter of the first rank's) */
+  late?: number;
 }
 export const PENSION: PensionDef[] = [
   { id: "power", name: ["Entraînement", "Training"], desc: ["+2 % de dégâts", "+2% damage"], max: 10, cost: 30, per: 2, stat: ["dégâts", "damage"], pct: true },
@@ -758,26 +771,62 @@ export const PENSION: PensionDef[] = [
   { id: "magnet", name: ["Gourmandise", "Sweet tooth"], desc: ["bonbons attirés 8 % plus loin", "candies pulled 8% further"], max: 6, cost: 20, per: 8, stat: ["aimant", "pull"], pct: true },
   { id: "xp", name: ["Leçons", "Lessons"], desc: ["+3 % d'expérience", "+3% experience"], max: 8, cost: 40, per: 3, stat: ["XP", "XP"], pct: true },
   { id: "gold", name: ["Flair", "Flair"], desc: ["+6 % d'or ramassé", "+6% gold picked up"], max: 8, cost: 25, per: 6, stat: ["or", "gold"], pct: true },
-  { id: "reroll", name: ["Dé pipé", "Lucky die"], desc: ["+1 relance des cartes par partie", "+1 card reroll per run"], max: 3, cost: 120, per: 1, stat: ["relance", "reroll"], pct: false },
-  { id: "revive", name: ["Rappel", "Revive"], desc: ["te relève une fois par partie", "gets you up once per run"], max: 1, cost: 400, per: 1, stat: ["rappel", "revive"], pct: false },
+  { id: "reroll", name: ["Dé pipé", "Lucky die"], desc: ["+1 relance des cartes par partie", "+1 card reroll per run"], max: 3, cost: 120, per: 1, stat: ["relance", "reroll"], pct: false, late: 1 },
+  { id: "revive", name: ["Rappel", "Revive"], desc: ["te relève une fois par partie", "gets you up once per run"], max: 1, cost: 400, per: 1, stat: ["rappel", "revive"], pct: false, late: 0 },
   // the second page (Johan, 2026-10-17: somewhere for the purse to go, now that a run starts with no gold)
   { id: "armor", name: ["Carapace", "Hard shell"], desc: ["−2,5 % de dégâts subis", "−2.5% damage taken"], max: 8, cost: 45, per: 2.5, stat: ["dégâts subis", "damage taken"], pct: true, less: true },
   { id: "crit", name: ["Concentration", "Focus"], desc: ["+1,5 % de chances de critique", "+1.5% crit chance"], max: 8, cost: 50, per: 1.5, stat: ["critiques", "crits"], pct: true },
   { id: "luck", name: ["Trèfle", "Clover"], desc: ["cartes rares 10 % plus fréquentes", "rare cards 10% more often"], max: 6, cost: 60, per: 10, stat: ["cartes rares", "rare cards"], pct: true },
   { id: "regen", name: ["Siestes", "Naps"], desc: ["+0,25 PV par seconde", "+0.25 HP a second"], max: 6, cost: 40, per: 0.25, stat: ["PV/s", "HP/s"], pct: false },
-  { id: "discount", name: ["Carte fidélité", "Loyalty card"], desc: ["−4 % chez Kecleon", "−4% at Kecleon's"], max: 6, cost: 50, per: 4, stat: ["prix", "prices"], pct: true, less: true },
-  { id: "pack", name: ["Sac à dos", "Backpack"], desc: ["+1 carte à choisir au départ", "+1 card to pick at the start"], max: 3, cost: 300, per: 1, stat: ["carte au départ", "starting card"], pct: false },
+  { id: "discount", name: ["Carte fidélité", "Loyalty card"], desc: ["−4 % chez Kecleon", "−4% at Kecleon's"], max: 6, cost: 50, per: 4, stat: ["prix", "prices"], pct: true, less: true, late: 1 },
+  { id: "pack", name: ["Sac à dos", "Backpack"], desc: ["+1 carte à choisir au départ", "+1 card to pick at the start"], max: 3, cost: 300, per: 1, stat: ["carte au départ", "starting card"], pct: false, late: 0 },
 ];
-/** the 2nd rank (once wave 100 is reached): half as many levels again on top of the first */
-export const pensionMax2 = (d: PensionDef) => d.max + Math.ceil(d.max / 2);
-/** the best classic or coop wave reached at which the 2nd rank opens */
-export const RANK2_WAVE = 100;
+/**
+ * The Pension's ranks (Johan, 2026-10-21: three players had it all and sat on millions of gold): each opens once the best
+ * classic or coop wave reaches its wave. The 2nd adds half as many levels again as the first, the 3rd to the 5th a quarter
+ * each (`late`: the Revive and the Backpack stop at the 2nd). Each rank has its colour on the tiles' pips.
+ */
+export const RANK_WAVES = [0, 100, 150, 200, 250];
+export const rankOf = (best: number) => RANK_WAVES.filter((w) => best >= w).length;
+/** an upgrade's levels once rank r is open */
+export const pensionMax = (d: PensionDef, rank: number) =>
+  d.max + (rank >= 2 ? Math.ceil(d.max / 2) : 0) + Math.max(0, rank - 2) * (d.late ?? Math.ceil(d.max / 4));
+/** the rank a level (0-based) belongs to */
+export const rankOfLevel = (d: PensionDef, level: number) => {
+  let r = 1;
+  while (r < RANK_WAVES.length && level >= pensionMax(d, r)) r++;
+  return r;
+};
 /**
  * The purse is kept from run to run: dearer, and climbing faster (Johan, 2026-10-13). The 2nd rank climbs slower from the
- * first rank's last price, or its levels would cost hundreds of thousands.
+ * first rank's last price, or its levels would cost hundreds of thousands; the 3rd to the 5th slower still. The whole of
+ * the 5 ranks is about 1.8 M gold, the first two 360 k (lib/pensionStore PURSE_CAP).
  */
-export const pensionCost = (d: PensionDef, level: number) =>
-  level < d.max ? Math.round(d.cost * 2 * Math.pow(1.6, level)) : Math.round(d.cost * 2 * Math.pow(1.6, d.max - 1) * Math.pow(1.4, level - d.max + 1));
+export const pensionCost = (d: PensionDef, level: number) => {
+  const m2 = pensionMax(d, 2);
+  if (level < d.max) return Math.round(d.cost * 2 * Math.pow(1.6, level));
+  const last1 = d.cost * 2 * Math.pow(1.6, d.max - 1);
+  if (level < m2) return Math.round(last1 * Math.pow(1.4, level - d.max + 1));
+  return Math.round(last1 * Math.pow(1.4, m2 - d.max) * Math.pow(1.15, level - m2 + 1));
+};
+
+/**
+ * Things to buy with the purse, once and for all (Johan, 2026-10-21: something for the gold to go to past the Pension): the
+ * Shiny Charm, and Game Boy palettes (lib/game/gfx PALETTES, `obj`). Kept among the Pension's levels as "obj-<id>": 1.
+ */
+export interface PensionObject {
+  id: string;
+  name: Txt;
+  desc: Txt;
+  price: number;
+}
+export const OBJECTS: PensionObject[] = [
+  { id: "chroma", name: ["Charme Chroma", "Shiny Charm"], desc: ["un shiny deux fois plus souvent", "shinies twice as often"], price: 60000 },
+  { id: "pal-ruby", name: ["Palette Rubis", "Ruby palette"], desc: ["la Game Boy en rouge", "the Game Boy in red"], price: 15000 },
+  { id: "pal-sapphire", name: ["Palette Saphir", "Sapphire palette"], desc: ["la Game Boy en bleu", "the Game Boy in blue"], price: 15000 },
+  { id: "pal-gold", name: ["Palette Or", "Gold palette"], desc: ["la Game Boy dorée", "the Game Boy in gold"], price: 30000 },
+];
+export const ownsObject = (levels: Record<string, number>, id: string) => (levels[`obj-${id}`] ?? 0) > 0;
 
 /* ---------------- the daily challenge: the same starter and rule for everyone, no Pension ---------------- */
 

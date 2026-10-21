@@ -5,13 +5,13 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, PACTS, PARAGONS, PARAGON_WAVE, BIOMES, BIOME_WAVES, BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, WEATHERS, type Txt, RANK2_WAVE, RARITY, STARTERS, pensionCost, pensionMax2, say, unlockProgress, unlockedStarters, waveStart, type Elem, type Lang, type Unlock } from "@/lib/game/data";
+import { AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, PACTS, PARAGONS, PARAGON_WAVE, BIOMES, BIOME_WAVES, BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, WEATHERS, type Txt, OBJECTS, RANK_WAVES, RARITY, STARTERS, ownsObject, pensionCost, pensionMax, rankOf, rankOfLevel, say, unlockProgress, unlockedStarters, waveStart, type Elem, type Lang, type Unlock } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
 import { DEFI_WINS_KEY, Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickAt, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
 import { lastName, myRewards, submitScore, topScores, type Period, type Score } from "@/lib/game/scores";
-import { bestWave, buyLevel, reachStarterWave, reachWave, setGold, usePension, wonDefi } from "@/lib/pensionStore";
+import { PURSE_CAP, bestWave, buyLevel, reachStarterWave, reachWave, setGold, usePension, wonDefi } from "@/lib/pensionStore";
 import { unlock } from "@/lib/trophyStore";
 import { startAmbient, stopAmbient } from "@/lib/sound";
 import { useStore } from "@/lib/store";
@@ -237,9 +237,16 @@ export default function NookBoy({ origin, onClose }: Props) {
     g.configure(o.fire, o.manual);
     if (g.gfx.palette !== PALETTES[o.palette]) g.gfx.setPalette(PALETTES[o.palette]);
   };
+  /** the next palette the player has (some are bought at the Pension) */
+  const stepPalette = (d: number) => {
+    let i = opts.palette;
+    do i = (i + d + PALETTES.length) % PALETTES.length;
+    while (PALETTES[i].obj && !ownsObject(levels, PALETTES[i].obj!));
+    return i;
+  };
   const cyclePalette = () => {
     gsfx.move();
-    saveOpts({ ...opts, palette: (opts.palette + 1) % PALETTES.length });
+    saveOpts({ ...opts, palette: stepPalette(1) });
   };
 
   const openLadder = async (i = board) => {
@@ -276,8 +283,9 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (mode === "daily" && defiNow()) return g.start(0, { mode: "defi", perm: {}, defi: defiOf(today()) });
     if (mode === "daily") return g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()) });
     const start = tiers.includes(tier) ? tier : 1;
-    if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: st.levels, start }, g.selected);
-    else g.start(g.selected, { mode: "classic", perm: st.levels, start });
+    const charm = ownsObject(st.levels, "chroma");
+    if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: st.levels, start, charm }, g.selected);
+    else g.start(g.selected, { mode: "classic", perm: st.levels, start, charm });
   };
   /**
    * The run's gold goes to the purse (the Pension's money: a run starts with none), once: at the game over, or when the
@@ -289,7 +297,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     settled.current = true;
     const st = usePension.getState();
     const before = unlockedStarters(st.levels);
-    let gold = st.gold + g.gold;
+    let gold = st.gold + g.earned;
     const run = g.lastStats;
     if (g.phase === "over" && run?.mode === "daily" && st.dailyPaid !== run.day) {
       gold += run.dailyBonus;
@@ -334,8 +342,8 @@ export default function NookBoy({ origin, onClose }: Props) {
   useEffect(() => {
     if (pension) onPensionScroll();
   }, [pension]);
-  /** wave 100 reached once: every upgrade gets its 2nd rank */
-  const rank2 = bestWave(levels) >= RANK2_WAVE;
+  /** the Pension's ranks open (wave 100 reached once: the 2nd, 150 the 3rd… up to the 5th) */
+  const rank = rankOf(bestWave(levels));
   /** the start tiers reached (1 = from the start), and the next one: shown locked, something to aim at */
   const tiers = [1, ...TIERS.filter((w) => bestWave(levels) >= w)];
   const nextTier = TIERS.find((w) => bestWave(levels) < w);
@@ -346,8 +354,14 @@ export default function NookBoy({ origin, onClose }: Props) {
     const goal = u.with ? t(`Atteins la vague ${need} avec ${nameOf(u.with)}`, `Reach wave ${need} with ${nameOf(u.with)}`) : t(`Atteins la vague ${need}`, `Reach wave ${need}`);
     return have ? `${goal} · ${t("record", "best")} ${t("V", "W")}${have}` : goal;
   };
-  const capOf = (d: (typeof PENSION)[number]) => (rank2 ? pensionMax2(d) : d.max);
+  const capOf = (d: (typeof PENSION)[number]) => pensionMax(d, rank);
+  /** the Pension's tiles, then its objects (OBJECTS): one grid */
   const buyPension = (i: number) => {
+    if (i >= PENSION.length) {
+      const o = OBJECTS[i - PENSION.length];
+      if (!o || ownsObject(levels, o.id) || !buyLevel(`obj-${o.id}`, o.price)) return gsfx.back();
+      return gsfx.coin();
+    }
     const d = PENSION[i];
     const lv = levels[d.id] ?? 0;
     const cost = pensionCost(d, lv);
@@ -389,7 +403,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     {
       label: t("Palette", "Palette"),
       value: say(PALETTES[opts.palette].name, lang),
-      go: (d) => saveOpts({ ...opts, palette: (opts.palette + d + PALETTES.length) % PALETTES.length }),
+      go: (d) => saveOpts({ ...opts, palette: stepPalette(d) }),
     },
     { label: t("Musique", "Music"), value: opts.music ? "ON" : "OFF", go: () => saveOpts({ ...opts, music: !opts.music }) },
   ];
@@ -400,7 +414,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     const p = eng.phase;
     if (b === "select") return cyclePalette();
     if (pension) {
-      const n = PENSION.length;
+      const n = PENSION.length + OBJECTS.length;
       if (b === "left" || b === "right") {
         gsfx.move();
         setCursor((c) => (c >= n ? c : (c + (b === "left" ? -1 : 1) + n) % n));
@@ -1436,6 +1450,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     <div className={styles.page}>
       <h2 className={styles.pHead}>
         {t("PENSION", "PENSION")}
+        <span className={`${styles.pRank} ${styles[`pR${rank}`]}`}>{t(`RANG ${rank}`, `RANK ${rank}`)}</span>
         <span className={styles.goldPill}>
           {purse} {t("or", "gold")}
         </span>
@@ -1449,6 +1464,8 @@ export default function NookBoy({ origin, onClose }: Props) {
           const cap = capOf(d);
           const max = lv >= cap;
           const can = !max && purse >= cost;
+          // the next rank that adds levels to this one, if any (its wave to reach)
+          const next = RANK_WAVES.findIndex((_, r) => r + 1 > rank && pensionMax(d, r + 1) > cap);
           const num = (v: number) => (Math.round(v * 100) / 100).toLocaleString(lang === "fr" ? "fr-FR" : "en-GB");
           const fmt = (l: number) => (d.pct ? `${d.less ? "−" : "+"}${num(d.per * l)} %` : d.per < 1 ? `+${num(d.per * l)}` : `${d.per * l}`);
           return (
@@ -1460,9 +1477,9 @@ export default function NookBoy({ origin, onClose }: Props) {
             >
               <span className={styles.pName}>{say(d.name, lang)}</span>
               <span className={styles.pPips}>
-                {/* the 2nd rank's levels show from the start, locked until wave 100 */}
-                {Array.from({ length: pensionMax2(d) }, (_, k) => (
-                  <i key={k} className={`${k < lv ? styles.pPipOn : ""} ${k >= d.max ? (rank2 ? styles.pPip2 : styles.pPipLock) : ""}`} />
+                {/* a colour per rank; the next rank's levels show too, locked until its wave */}
+                {Array.from({ length: next >= 0 ? pensionMax(d, next + 1) : cap }, (_, k) => (
+                  <i key={k} className={`${styles[`pR${rankOfLevel(d, k)}`]} ${k < lv ? styles.pPipOn : ""} ${k >= cap ? styles.pPipLock : ""}`} />
                 ))}
               </span>
               <span className={styles.pEff}>
@@ -1477,8 +1494,25 @@ export default function NookBoy({ origin, onClose }: Props) {
                 )}
               </span>
               <span className={`${styles.pPrice} ${can ? styles.pPriceOk : ""}`}>
-                {max ? (rank2 ? "MAX" : t(`🔒 V${RANK2_WAVE}`, `🔒 W${RANK2_WAVE}`)) : `${cost} ${t("or", "gold")}`}
+                {max ? (next >= 0 ? t(`🔒 V${RANK_WAVES[next]}`, `🔒 W${RANK_WAVES[next]}`) : "MAX") : `${cost} ${t("or", "gold")}`}
               </span>
+            </button>
+          );
+        })}
+        {OBJECTS.map((o, j) => {
+          const i = PENSION.length + j;
+          const owned = ownsObject(levels, o.id);
+          const can = !owned && purse >= o.price;
+          return (
+            <button
+              key={o.id}
+              className={`${styles.pTile} ${styles.pObj} ${i === cursor ? styles.on : ""} ${can || owned ? "" : styles.pDim}`}
+              onPointerEnter={() => setCursor(i)}
+              onClick={() => buyPension(i)}
+            >
+              <span className={styles.pName}>{say(o.name, lang)}</span>
+              <span className={styles.pEff}>{say(o.desc, lang)}</span>
+              <span className={`${styles.pPrice} ${can ? styles.pPriceOk : ""}`}>{owned ? t("✓ À TOI", "✓ YOURS") : `${o.price} ${t("or", "gold")}`}</span>
             </button>
           );
         })}
@@ -1494,11 +1528,14 @@ export default function NookBoy({ origin, onClose }: Props) {
       </div>
       <div className={styles.pFoot}>
         <p>
-          {t("Pour toutes tes parties (sauf le défi du jour). L'or de chaque partie remplit ta bourse.", "For all your runs (but the daily). Each run's gold fills your purse.")}
+          {t(
+            `Pour toutes tes parties (sauf le défi du jour). L'or de chaque partie remplit ta bourse (${PURSE_CAP.toLocaleString("fr-FR")} au plus).`,
+            `For all your runs (but the daily). Each run's gold fills your purse (${PURSE_CAP.toLocaleString("en-GB")} at most).`,
+          )}
         </p>
         <button
-          className={cursor >= PENSION.length ? styles.on : ""}
-          onPointerEnter={() => setCursor(PENSION.length)}
+          className={cursor >= PENSION.length + OBJECTS.length ? styles.on : ""}
+          onPointerEnter={() => setCursor(PENSION.length + OBJECTS.length)}
           onClick={() => (gsfx.back(), setPension(false))}
         >
           {t("Retour", "Back")}
@@ -1644,8 +1681,8 @@ function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string
           g.moves.map((m) => {
             const d = MOVES.find((x) => x.id === m.id)!;
             return (
-              <p key={m.id}>
-                {say(d.name, lang)} <i>{"●".repeat(m.level)}</i>
+              <p key={m.id} className={styles.recapRow}>
+                <span>{say(d.name, lang)}</span> <i>{"●".repeat(m.level)}</i>
               </p>
             );
           })
@@ -1655,8 +1692,8 @@ function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string
         <p className={styles.recapTitle}>{t("OBJETS", "ITEMS")}</p>
         {g.items.length ? (
           g.items.map((it) => (
-            <p key={it.id}>
-              {say(ITEMS.find((x) => x.id === it.id)!.name, lang)} <i>{"●".repeat(it.level)}</i>
+            <p key={it.id} className={styles.recapRow}>
+              <span>{say(ITEMS.find((x) => x.id === it.id)!.name, lang)}</span> <i>{"●".repeat(it.level)}</i>
             </p>
           ))
         ) : (
@@ -1678,7 +1715,7 @@ function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string
           </p>
         ))}
       </div>
-      <div className={`${styles.box} ${styles.recapCombos}`}>
+      <div className={styles.box}>
         <p className={styles.recapTitle}>{t("TES COMBOS", "YOUR COMBOS")}</p>
         {combos.length ? (
           combos.map(({ c, both }) => (
