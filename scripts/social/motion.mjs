@@ -7,7 +7,7 @@
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { AVATAR, DESK, FONT_FACES, GRAIN, asset, card, curveSvg, dayOf, dayShort, esc, historyOf, market, plain, setOf, txt, url } from "./lib.mjs";
+import { AVATAR, DESK, FONT_FACES, GRAIN, asset, card, curveSvg, dayOf, dayShort, esc, historyOf, market, megaSize, plain, setOf, txt, url } from "./lib.mjs";
 
 const FPS = 30;
 const W = 1080;
@@ -199,7 +199,7 @@ const SCENES = {
       bg: cards.length ? cards.map((c) => c.hi) : [asset(s.asset)],
       body: `<div class="stage shake" style="--at:1.55s">
         ${s.kicker ? `<span class="pill" style="left:50%;top:290px;translate:-50% 0;animation:drop .5s .05s cubic-bezier(.3,1.6,.5,1) both">${txt(s.kicker)}</span>` : ""}
-        <p class="mega" style="top:390px;font-size:${Math.round((s.size ?? 110) * 0.95)}px">${letters(s.title, 0.2)}</p>
+        <p class="mega" style="top:390px;font-size:${megaSize(s.title, Math.round((s.size ?? 110) * 0.95))}px">${letters(s.title, 0.2)}</p>
         ${cards.length ? fan : shot}
         ${s.banner ? `<span class="sticker" style="left:50%;top:1160px;translate:-50% 0;font-size:${Math.min(34, Math.floor(880 / s.banner.length))}px;--r:-2deg;animation:slam .5s 1.5s both">${txt(s.banner)}</span>` : ""}
       </div>`,

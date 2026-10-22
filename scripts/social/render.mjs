@@ -10,7 +10,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { APP, AVATAR, FONT_FACES, GRAIN, asset, card, curveSvg, dayOf, dayShort, esc, historyOf, market, money, pctOf, plain, setAssets, setOf, txt, url } from "./lib.mjs";
+import { APP, AVATAR, FONT_FACES, GRAIN, asset, card, curveSvg, dayOf, dayShort, esc, historyOf, market, megaSize, money, pctOf, plain, setAssets, setOf, txt, url } from "./lib.mjs";
 import { renderMotion, renderStills } from "./motion.mjs";
 
 const args = process.argv.slice(2);
@@ -155,7 +155,7 @@ const SLIDES = {
     return full(
       bg,
       `${s.kicker ? `<span class="pill" style="left:50%;top:${top - 100}px;translate:-50% 0;white-space:nowrap">${txt(s.kicker)}</span>` : ""}
-       <p class="mega" style="top:${top}px;font-size:${s.size ?? 110}px">${txt(s.title)}</p>
+       <p class="mega" style="top:${top}px;font-size:${megaSize(s.title, s.size ?? 110)}px">${txt(s.title)}</p>
        ${cards.length ? fan : shot}
        ${s.banner ? `<span class="sticker" style="left:50%;top:${H > 1350 ? 1520 : 1150}px;translate:-50% 0;rotate:-2deg;font-size:30px;z-index:6">${txt(s.banner)}</span>` : ""}
        <span class="mark"><img src="${avatar}">NOOKDEX</span>`,

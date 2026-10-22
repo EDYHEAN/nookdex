@@ -111,8 +111,19 @@ export const money = (n, set) =>
 export const dayOf = (set) => new Date(set.pricesUpdated).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
 export const market = (set) => (set.currency === "USD" ? "TCGplayer" : "Cardmarket");
 export const esc = (s = "") => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-/** texts may carry <br>, <b>, <em> on purpose: those three are let through */
-export const txt = (s = "") => esc(s).replace(/&lt;(\/?)(br|b|em)\s*\/?&gt;/g, "<$1$2>");
+/** texts may carry <br>, <b>, <em> on purpose: those three are let through. The French space before ? ! : ; » (and after «)
+ *  doesn't break: a big title left its "?" alone on the next line */
+export const txt = (s = "") =>
+  esc(s)
+    .replace(/&lt;(\/?)(br|b|em)\s*\/?&gt;/g, "<$1$2>")
+    .replace(/ ([?!:;»])/g, " $1")
+    .replace(/« /g, "« ");
+/** a big Press Start title's size, cut so each of its lines (split by <br>) fits the width (the font is 1em a letter); not under
+ *  60 px, a longer line wraps by words then */
+export const megaSize = (s, size, width = 1000) => {
+  const lines = txt(s).split(/<br>/).map((line) => [...line.replace(/<[^>]+>/g, "")].length);
+  return Math.min(size, Math.max(60, Math.floor(width / Math.max(1, ...lines))));
+};
 
 export const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .22 0 0 0 0 .18 0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
