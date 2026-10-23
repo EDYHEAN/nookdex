@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, animate, motion, useMotionValue, useTransform } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GRIDS, freeHomes, freePageCount, pocketsOf, wantsOf, type Pocket } from "@/lib/binders";
 import { loadSet, setIdOfCard, useSets } from "@/lib/catalog";
 import { cardTier, copiesTotals, formatMoney, setStats, unitPrice, type Tier } from "@/lib/price";
@@ -174,6 +174,23 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
   const [inView, setInView] = useState(0);
   const inViewRef = useRef(0);
   const scrollStep = pageH + SCROLL_GAP;
+  /**
+   * Phone, a binder opened empty: a short summary (StatsPage compact), the first cards right under it. Kept for the visit:
+   * the column doesn't jump when the first card is ticked. Its height is measured (the column's steps start after it).
+   */
+  const [compact] = useState(() => single && !binder.wish && !Object.keys(collection).some((id) => (binder.setId ? setIdOfCard(id) === binder.setId : collection[id]?.some((c) => c.at?.binder === binder.id))));
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const [summaryH, setSummaryH] = useState(pageH);
+  useLayoutEffect(() => {
+    const el = summaryRef.current;
+    if (!compact || !el) return;
+    const ro = new ResizeObserver(() => setSummaryH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [compact]);
+  const firstH = compact ? summaryH : pageH;
+  /** Phone: where an item of the column starts (0 = the summary) */
+  const itemTop = useCallback((item: number) => (item <= 0 ? 0 : firstH + SCROLL_GAP + (item - 1) * scrollStep), [firstH, scrollStep]);
 
   const summary = useMemo<BinderSummary>(() => {
     if (set) {
@@ -270,14 +287,15 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
       const el = scroller.current;
       if (!el) return;
       sfx.flip();
-      el.scrollTo({ top: Math.min(pages.length, Math.max(0, item)) * scrollStep, behavior: "smooth" });
+      el.scrollTo({ top: itemTop(Math.min(pages.length, Math.max(0, item))), behavior: "smooth" });
     },
-    [pages.length, scrollStep],
+    [pages.length, itemTop],
   );
   const onScroll = () => {
     const el = scroller.current;
     if (!el) return;
-    const i = Math.min(pages.length, Math.max(0, Math.round(el.scrollTop / scrollStep)));
+    const st = el.scrollTop;
+    const i = Math.min(pages.length, Math.max(0, st < firstH / 2 ? 0 : 1 + Math.round((st - firstH - SCROLL_GAP) / scrollStep)));
     if (i === inViewRef.current) return;
     inViewRef.current = i;
     setInView(i);
@@ -478,6 +496,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
           collection={collection}
           onJump={jumpToPage}
           onFind={find}
+          compact={compact}
         />
       );
     if (face.type === "blank") return <div className={styles.sheet} />;
@@ -657,7 +676,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
             {/* the summary, then the pages, in a column scrolled by hand: flat sheets, nothing turns */}
             <div ref={scroller} className={styles.scroller} style={{ gap: SCROLL_GAP }} onScroll={onScroll}>
               {[{ type: "stats" } as Face, ...pages.map((_, i): Face => ({ type: "page", index: i }))].map((face, i) => (
-                <div key={i} className={styles.scrollPage} style={{ height: pageH }}>
+                <div key={i} ref={i === 0 ? summaryRef : undefined} className={styles.scrollPage} style={{ height: i === 0 && compact ? "auto" : pageH }}>
                   {renderFace(face, "front", phase !== "enter" && Math.abs(i - inView) <= 1)}
                 </div>
               ))}

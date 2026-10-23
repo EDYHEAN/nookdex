@@ -7,6 +7,7 @@ import { useT } from "@/lib/lang";
 import { sceneImg } from "@/lib/scene";
 import { SUPPORT_URL } from "@/lib/site";
 import { sfx } from "@/lib/sound";
+import { claimAsk } from "@/lib/calm";
 import { unlock } from "@/lib/trophyStore";
 import { useStore } from "@/lib/store";
 import styles from "./SupportCat.module.css";
@@ -87,6 +88,8 @@ export function SupportCat({ compact, calm }: { compact: boolean; calm: boolean 
     const wait = Math.max(CALM_MS, VISIT_MS - (Date.now() - since.current));
     const id = setTimeout(() => {
       setAsked(true);
+      // another ask had this visit's turn (lib/calm): the cat waits for another visit
+      if (!claimAsk("cat")) return;
       snooze(LATER_DAYS);
       setShown(true);
       sfx.purr();

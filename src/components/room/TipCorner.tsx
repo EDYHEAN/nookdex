@@ -2,12 +2,16 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { claimAsk, useAskFree } from "@/lib/calm";
 import { useT } from "@/lib/lang";
 import { SUPPORT_URL } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { unlock } from "@/lib/trophyStore";
 import styles from "./TipCorner.module.css";
+
+/** the calm room this long before the tip tag comes (the other asks go first) */
+const TIP_AFTER = 30_000;
 
 /**
  * A computer's bottom-right corner: Warwick's portrait (the Instagram one) in a round frame, with a paper tag for a tip. Always there in the calm
@@ -17,7 +21,16 @@ export function TipCorner({ show }: { show: boolean }) {
   const t = useT();
   const pathname = usePathname();
   const [thanks, setThanks] = useState(false);
-  const visible = show && (pathname === "/" || pathname === "/en");
+  const free = useAskFree("tip");
+  // the last of the asks: it comes once the room was calm a while, if nothing else asked this visit (lib/calm)
+  const [up, setUp] = useState(false);
+  const ready = show && (pathname === "/" || pathname === "/en");
+  useEffect(() => {
+    if (!ready || up) return;
+    const id = setTimeout(() => claimAsk("tip") && setUp(true), TIP_AFTER);
+    return () => clearTimeout(id);
+  }, [ready, up]);
+  const visible = ready && up && free;
 
   return (
     <AnimatePresence>

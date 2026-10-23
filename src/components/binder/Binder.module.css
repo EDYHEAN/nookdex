@@ -578,9 +578,59 @@
 
 .bigCount {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.35em;
   margin-top: 2%;
+}
+
+/* the progress ring before the big number: the percentage inside */
+.ring {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.9em;
+  height: 2.9em;
+  margin-right: 0.3em;
+  border-radius: 50%;
+  background: conic-gradient(#6fae5a var(--p, 0%), var(--paper-3) 0);
+  box-shadow: 0 0 0 2px var(--ink);
+  transition: --p 0.4s;
+}
+
+.ring > span {
+  display: grid;
+  place-items: center;
+  width: 74%;
+  height: 74%;
+  border-radius: 50%;
+  background: var(--paper);
+  font-family: var(--font-press), monospace;
+  font-size: 0.45em;
+  color: var(--ink-gold);
+}
+
+/* a phone's binder opened empty: the summary as tall as its few lines, the first cards right under it */
+.stats.statsCompact {
+  position: relative;
+  inset: auto;
+  padding: 6% 6% 5%;
+  gap: 10px;
+}
+
+.firstHint {
+  margin: 0;
+  padding: 0.35em 0.6em;
+  border-radius: 4px;
+  background: rgba(111, 174, 90, 0.16);
+  color: var(--ink-green);
+  font-size: 0.85em;
+  animation: hintBob 1.6s ease-in-out infinite;
+}
+
+@keyframes hintBob {
+  50% {
+    translate: 0 3px;
+  }
 }
 
 .bigCount b {

@@ -9,11 +9,12 @@ import { MAX_BINDERS, shelfBinders } from "@/lib/binders";
 import { bareId, keyOf } from "@/lib/cardLang";
 import { binderSets, loadSet, loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { returningFromSignIn, startCloud, useCloud } from "@/lib/cloud";
-import { setMuted, sfx, startAmbient, stopAmbient } from "@/lib/sound";
+import { setMuted, sfx, startAmbient, stopAmbient, unlockOnFirstGesture } from "@/lib/sound";
 import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
 import { useTrophyWatch } from "@/lib/useTrophyWatch";
 import { funnelStep, funnelVisit, watchAmazonClicks } from "@/lib/funnel";
+import { claimAsk, useAskFree, useValued } from "@/lib/calm";
 import { startShareSync } from "@/lib/share";
 import { useTrophyQueue } from "@/lib/trophyStore";
 import { closeTrade, useTradeMat } from "@/lib/trade";
@@ -67,6 +68,8 @@ export function App() {
   const sheetCard = useSets((s) => (sheet ? s.cards[sheet.keys[sheet.index]] : undefined));
   /** The guided tour, after the first binder is picked (and replayable from the notebook). */
   const [tour, setTour] = useState(false);
+  /** the tour is about to start (the binder opening): the trophy toasts wait for it to end, they hid its note on a phone */
+  const [tourSoon, setTourSoon] = useState(false);
   /** the binder the tour started in: it ends there, open */
   const tourBinder = useRef<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -101,6 +104,15 @@ export function App() {
   // its « Appuie pour entrer » behind it (Johan, 2026-10-18: the notebook over a waiting loader looked broken).
   const pathname = usePathname();
   const overPage = pathname !== "/" && pathname !== "/en";
+  /**
+   * A returning player (a profile on this device) goes straight in: no « Appuie pour entrer » (Johan, 2026-10-23). The
+   * tap was the browser's sound unlock: the sound wakes on their first gesture instead (lib/sound). A newcomer keeps it:
+   * their first tap opens the room with its sound.
+   */
+  const [returning] = useState(() => !!useStore.getState().profile);
+  useEffect(() => {
+    if (returning) unlockOnFirstGesture();
+  }, [returning]);
   const profile = useStore((s) => s.profile);
   const cloud = useCloud();
   const trade = useTradeMat();
@@ -145,11 +157,11 @@ export function App() {
     return () => clearInterval(timer);
   }, []);
   /** the account was offered this visit: the cat waits for another one */
-  const [saveAsked, setSaveAsked] = useState(false);
-  const onSaveAsked = useCallback(() => setSaveAsked(true), []);
   /** the trade binder's note showed this visit: the other asks (account, cat) wait for another one */
-  const [tradeAsked, setTradeAsked] = useState(false);
-  const onTradeAsked = useCallback(() => setTradeAsked(true), []);
+  const onTradeAsked = useCallback(() => claimAsk("trade-note"), []);
+  // one ask a visit (lib/calm), and none before the site has given something (10 cards or a 3rd day)
+  const tradeNoteFree = useAskFree("trade-note");
+  const valued = useValued();
   // a trophy toast first: the trade binder's note comes after it
   const trophyUp = useTrophyQueue((q) => q.showing || q.batches.length > 0);
   // Dev screenshots (?skip ?open ?os ?demo ?game) skip the sign-in.
@@ -300,6 +312,7 @@ export function App() {
       if (b.setId) await loadSet(b.setId);
       setOpen({ binderId: b.id });
     }
+    setTourSoon(true);
     setTimeout(() => setTour(true), 1300);
   };
 
@@ -322,6 +335,8 @@ export function App() {
   useEffect(() => {
     if (!news || !calm) return;
     const id = setTimeout(() => {
+      // another ask had this visit's turn: the road log waits for the next visit
+      if (!claimAsk("roadlog")) return;
       markSeen(APP_VERSION);
       setNews(false);
       setRoadLog(true);
@@ -349,7 +364,7 @@ export function App() {
         onOpenBox={setBox}
         onOpenGame={setGame}
         onOpenTrade={openTradeBinder}
-        noteCalm={calm && !news && !saveAsked && !trophyUp}
+        noteCalm={calm && !news && tradeNoteFree && !trophyUp}
         onTradeAsked={onTradeAsked}
         veiled={!entered && !revealed}
         behind={compact && !!openBinder && covered}
@@ -499,6 +514,7 @@ export function App() {
                 if (first)
                   setTimeout(() => {
                     setOpen({ binderId: id });
+                    setTourSoon(true);
                     setTimeout(() => setTour(true), 1300);
                   }, 450);
               }}
@@ -528,7 +544,7 @@ export function App() {
               <path d="M5 8h14l-1.2 12H6.2z" fill="currentColor" />
               <path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" strokeWidth="2" />
             </svg>
-            {shopNews && (
+            {shopNews && valued && (
               <span className={`${styles.shopNew} ${compact ? styles.shopNewDot : ""}`} aria-hidden>
                 {tr("Nouveau", "New")}
               </span>
@@ -588,6 +604,7 @@ export function App() {
               tourBinder.current = id;
               setTimeout(() => {
                 setOpen({ binderId: id });
+                setTourSoon(true);
                 setTimeout(() => setTour(true), 1300);
               }, 450);
             }}
@@ -601,17 +618,18 @@ export function App() {
         )}
       {tour && (
         <Tour
-          onDone={() => setTour(false)}
-          // the tour ends in the binder it started in, open: the player's turn to tick their cards
-          onReopen={() => {
-            const id = tourBinder.current;
-            if (id && useStore.getState().binders.some((b) => b.id === id)) setOpen({ binderId: id });
+          // it ends in the binder it started in, open: the player's turn to tick their cards
+          onDone={() => {
+            setTour(false);
+            setTourSoon(false);
+            funnelStep("tour_done");
           }}
         />
       )}
       {/* a trophy won pops in the corner (it waits for the room: the loader, the welcome) */}
       <TrophyToasts
-        ready={entered && !showWelcome}
+        // (not over the tour: a toast hid its note on a phone; they come once it ends)
+        ready={entered && !showWelcome && !tour && !tourSoon}
         onOpen={() => {
           sfx.ballOpen();
           setTrophies({ x: 60, y: window.innerHeight - 80 });
@@ -619,11 +637,11 @@ export function App() {
       />
       {/* a tip for the project, asked by the cat once the player has a few cards (never over a binder, the OS or the tour) */}
       {/* the account, offered once the player without one has a few cards */}
-      {entered && <ImportBar compact={compact} calm={calm && !news} onImport={openImport} />}
-      {entered && <SavePrompt compact={compact} calm={calm && !news && !tradeAsked} onShown={onSaveAsked} />}
-      {entered && <SupportCat compact={compact} calm={calm && !news && !saveAsked && !tradeAsked} />}
+      {entered && <ImportBar compact={compact} calm={calm && !news && valued} onImport={openImport} />}
+      {entered && <SavePrompt compact={compact} calm={calm && !news} />}
+      {entered && <SupportCat compact={compact} calm={calm && !news} />}
       {/* a computer: the cat and its tip tag in the corner of the calm room (a phone has the pop-in only) */}
-      {entered && !compact && <TipCorner show={calm && !news} />}
+      {entered && !compact && <TipCorner show={calm && !news && valued} />}
       {/* the version, in the room's corner: it opens the road log */}
       {entered && !busy && !tour && (
         <button
@@ -638,7 +656,7 @@ export function App() {
           v{APP_VERSION}
         </button>
       )}
-      {!entered && <Loader auto={overPage} onLeave={() => setRevealed(true)} onEnter={() => setEntered(true)} />}
+      {!entered && <Loader auto={overPage || returning} onLeave={() => setRevealed(true)} onEnter={() => setEntered(true)} />}
       {/* on a phone, the full-screen grain layers are memory a binder or the OS needs (their paper has its own grain) */}
       <Grain off={compact && busy} />
     </>

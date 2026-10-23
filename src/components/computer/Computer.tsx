@@ -23,6 +23,8 @@ import { LANG_COOKIE, currentLang, useLang, useT } from "@/lib/lang";
 
 export type Tab = "home" | "cards" | "wish" | "dupes" | "trade" | "save";
 
+const OS_HINT_KEY = "nookdex:hint:os";
+
 const TABS: { id: Tab; label: [string, string]; hint: [string, string] }[] = [
   { id: "home", label: ["Accueil", "Home"], hint: ["ta collec en un coup d'œil", "your collection at a glance"] },
   { id: "cards", label: ["Toutes les cartes", "All cards"], hint: ["prix, raretés, extensions…", "prices, rarities, sets…"] },
@@ -116,6 +118,25 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
   };
 
   useEffect(() => unlock("os"), []);
+  /**
+   * The first time the OS opens, a word on what's in it (Johan, 2026-10-23: the tour no longer shows it). Once per device;
+   * a tab touched, or the ✕, and it's gone.
+   */
+  const [hint, setHint] = useState(() => {
+    try {
+      return !localStorage.getItem(OS_HINT_KEY);
+    } catch {
+      return false;
+    }
+  });
+  const hintDone = () => {
+    setHint(false);
+    try {
+      localStorage.setItem(OS_HINT_KEY, "1");
+    } catch {}
+  };
+  // another tab opened: it said what it had to say
+  const hintShown = hint && tab === startTab;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -171,6 +192,7 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
                     onClick={() => {
                       sfx.click();
                       setTab(t.id);
+                      if (hint) hintDone();
                     }}
                     onPointerEnter={sfx.hover}
                   >
@@ -195,6 +217,19 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
           </div>
           <div className={styles.scan} aria-hidden />
           {toast && <div className={styles.toast}>{toast}</div>}
+          {hintShown && (
+            <motion.div className={styles.osHint} role="status" initial={{ opacity: 0, y: 16, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.6, type: "spring", stiffness: 300, damping: 20 }}>
+              <span>
+                {tr(
+                  "💡 Ton ordi : ⭐ ta wishlist, ⇄ l'échange, ☁️ ta sauvegarde… Touche un onglet à gauche.",
+                  "💡 Your computer: ⭐ your wishlist, ⇄ trading, ☁️ your save… Tap a tab on the left.",
+                )}
+              </span>
+              <button onClick={() => (sfx.click(), hintDone())} aria-label={tr("Compris", "Got it")}>
+                ✕
+              </button>
+            </motion.div>
+          )}
         </div>
       </div>
     </motion.div>

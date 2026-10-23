@@ -56,7 +56,10 @@ function assetsToPreload() {
 const L = SCENE.logo;
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 
-/** `auto`: a page is open over the room, the room goes in by itself once loaded (no sound: there was no tap yet) */
+/**
+ * `auto`: a page is open over the room, or the player is back (a profile on this device): the room goes in by itself once
+ * loaded (no sound: there was no tap yet; lib/sound unlockOnFirstGesture wakes it later)
+ */
 export function Loader({ auto = false, onLeave, onEnter }: { auto?: boolean; onLeave: () => void; onEnter: () => void }) {
   const [progress, setProgress] = useState(0);
   /** The logo is painted: only then the room's pictures start, so on a slow phone they don't hold the logo back */

@@ -9,7 +9,7 @@
 import { supabase } from "@/lib/cloud";
 import { useStore } from "@/lib/store";
 
-export type FunnelStep = "profile" | "binder" | "cards10" | "account" | "game" | "share";
+export type FunnelStep = "profile" | "binder" | "cards10" | "account" | "game" | "share" | "tour_done";
 
 const DEVICE_KEY = "nookdex:device";
 const SENT_KEY = "nookdex:funnel";

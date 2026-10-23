@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLang } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
+import { claimAsk, useAskFree } from "@/lib/calm";
 import { useStore } from "@/lib/store";
 import styles from "./ImportBar.module.css";
 
@@ -34,11 +35,13 @@ export function ImportBar({ compact, calm, onImport }: { compact: boolean; calm:
   const profile = useStore((s) => !!s.profile);
   const [shown, setShown] = useState(false);
 
+  // (App: only from the 3rd day of visits, before 10 cards it's the only way it can show: lib/calm)
+  const free = useAskFree("import");
   const eligible = fr && calm && profile && owned < MAX_CARDS && pathname === "/";
 
   useEffect(() => {
     if (!eligible || closed()) return;
-    const id = setTimeout(() => setShown(true), CALM_MS);
+    const id = setTimeout(() => claimAsk("import") && setShown(true), CALM_MS);
     return () => clearTimeout(id);
   }, [eligible]);
 
@@ -51,7 +54,7 @@ export function ImportBar({ compact, calm, onImport }: { compact: boolean; calm:
 
   return (
     <AnimatePresence>
-      {shown && eligible && (
+      {shown && eligible && free && (
         <motion.div
           className={`${styles.bar} ${compact ? styles.phone : ""}`}
           role="status"

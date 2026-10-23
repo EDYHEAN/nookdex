@@ -27,24 +27,41 @@ interface Props {
   onJump: (page: number) => void;
   /** riffle to a pocket and make its card pulse */
   onFind: (pocket: number) => void;
+  /**
+   * A phone's binder opened empty: only what a newcomer needs (the count, the search), as tall as it is, so the first
+   * cards show under it (Johan, 2026-10-23: the summary filled the first screen with zeros).
+   */
+  compact?: boolean;
 }
 
-export function StatsPage({ binder, title, stats, pages, collection, onJump, onFind }: Props) {
+/** The progress as a ring, its percentage inside */
+function Ring({ pct }: { pct: number }) {
+  return (
+    <span className={styles.ring} style={{ ["--p" as string]: `${Math.round(pct * 100)}%` }}>
+      <span>{Math.round(pct * 100)}%</span>
+    </span>
+  );
+}
+
+export function StatsPage({ binder, title, stats, pages, collection, onJump, onFind, compact }: Props) {
   const t = useT();
   const mapRef = useRef<HTMLDivElement>(null);
   const g = GRIDS[binder.grid];
   const mapTile = useMapTile(mapRef, pages.length, g.cols, g.rows, g.cols === 3 ? 0.074 : 0.05);
   const free = binder.kind === "free";
   const pct = stats.total ? stats.owned / stats.total : 0;
-  const segments = 20;
-  const lit = Math.round(pct * segments);
   const gain = stats.spentTrend - stats.spent;
   const wish = binder.wish;
   // a wishlist's ghost is a pocket still to fill
   const filled = (p: Pocket) => (free ? !!p.cardId && !p.wanted : !!(p.cardId && collection[p.cardId]?.length));
 
   return (
-    <div className={styles.stats} style={{ ["--accent" as string]: binder.color }} data-tour="summary" data-narrow={binder.grid === 6 || undefined}>
+    <div
+      className={`${styles.stats} ${compact ? styles.statsCompact : ""}`}
+      style={{ ["--accent" as string]: binder.color }}
+      data-tour="summary"
+      data-narrow={binder.grid === 6 || undefined}
+    >
       <div className={styles.statsHead}>
         {binder.logo && <img src={`${binder.logo}.png`} alt="" draggable={false} />}
         <div>
@@ -56,46 +73,38 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
       </div>
 
       <Finder pages={pages} collection={collection} onFind={onFind} />
-      {!free && <SortChips id={binder.id} current={binder.sort} />}
-      <GridChips id={binder.id} current={binder.grid} />
+      {!free && !compact && <SortChips id={binder.id} current={binder.sort} />}
+      {!compact && <GridChips id={binder.id} current={binder.grid} />}
 
+      {/* one big number and its ring first: the rest comes once there is something to count */}
       {wish ? (
-        <>
-          <div className={styles.bigCount}>
-            <b>{stats.owned}</b>
-            <span>
-              / {stats.total} {t("trouvées", "found")}
-            </span>
-            <em>{Math.round(pct * 100)}%</em>
-          </div>
-          <div className={styles.segBar}>
-            {Array.from({ length: segments }, (_, i) => (
-              <span key={i} className={i < lit ? styles.segOn : ""} style={{ animationDelay: `${i * 30}ms` }} />
-            ))}
-          </div>
-        </>
+        <div className={styles.bigCount}>
+          <Ring pct={pct} />
+          <b>{stats.owned}</b>
+          <span>
+            / {stats.total} {t("trouvées", "found")}
+          </span>
+        </div>
       ) : free ? (
         <div className={styles.bigCount}>
           <b>{stats.owned}</b>
           <span>{t(`carte${stats.owned > 1 ? "s" : ""} rangée${stats.owned > 1 ? "s" : ""}`, `card${stats.owned > 1 ? "s" : ""} filed`)}</span>
         </div>
       ) : (
-        <>
-          <div className={styles.bigCount}>
-            <b>{stats.owned}</b>
-            <span>
-              / {stats.total} {t("cartes", "cards")}
-            </span>
-            <em>{Math.round(pct * 100)}%</em>
-          </div>
-          <div className={styles.segBar}>
-            {Array.from({ length: segments }, (_, i) => (
-              <span key={i} className={i < lit ? styles.segOn : ""} style={{ animationDelay: `${i * 30}ms` }} />
-            ))}
-          </div>
-        </>
+        <div className={styles.bigCount}>
+          <Ring pct={pct} />
+          <b>{stats.owned}</b>
+          <span>
+            / {stats.total} {t("cartes", "cards")}
+          </span>
+        </div>
+      )}
+      {compact && !stats.owned && (
+        <p className={styles.firstHint}>{free ? t("Touche une poche vide pour y ranger une carte ▼", "Tap an empty pocket to file a card ▼") : t("Touche les cartes que tu as : elles se colorent ▼", "Tap the cards you have: they colour in ▼")}</p>
       )}
 
+      {/* the figures only once they say something: no wall of zeros on a new binder */}
+      {stats.owned > 0 && (
       <dl className={styles.kv}>
         {wish && (
           <>
@@ -127,27 +136,38 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
             </div>
           </>
         )}
-        <div>
-          <dt>{t("Valeur tendance", "Trend value")}</dt>
-          <dd className={styles.money}>{formatMoney(stats.trend)}</dd>
-        </div>
-        <div>
-          <dt>{t("Valeur prix bas", "Low value")}</dt>
-          <dd>{formatMoney(stats.low)}</dd>
-        </div>
-        <div>
-          <dt>{t("Dépensé", "Spent")}</dt>
-          <dd>{formatMoney(stats.spent)}</dd>
-        </div>
-        <div>
-          <dt>{t("Plus-value", "Gain")}</dt>
-          <dd className={gain >= 0 ? styles.up : styles.down}>
-            {gain >= 0 ? "+" : ""}
-            {formatMoney(gain)}
-          </dd>
-        </div>
+        {stats.trend > 0 && (
+          <div>
+            <dt>{t("Valeur tendance", "Trend value")}</dt>
+            <dd className={styles.money}>{formatMoney(stats.trend)}</dd>
+          </div>
+        )}
+        {stats.low > 0 && (
+          <div>
+            <dt>{t("Valeur prix bas", "Low value")}</dt>
+            <dd>{formatMoney(stats.low)}</dd>
+          </div>
+        )}
+        {stats.spent > 0 && (
+          <div>
+            <dt>{t("Dépensé", "Spent")}</dt>
+            <dd>{formatMoney(stats.spent)}</dd>
+          </div>
+        )}
+        {stats.spent > 0 && (
+          <div>
+            <dt>{t("Plus-value", "Gain")}</dt>
+            <dd className={gain >= 0 ? styles.up : styles.down}>
+              {gain >= 0 ? "+" : ""}
+              {formatMoney(gain)}
+            </dd>
+          </div>
+        )}
       </dl>
+      )}
 
+      {!compact && (
+      <>
       <div className={styles.mapHead}>
         <p className={styles.mapTitle}>{t("Carte du classeur", "Binder map")}</p>
         <Colors id={binder.id} current={binder.color} />
@@ -175,7 +195,9 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
           );
         })}
       </div>
-      {stats.pricesUpdated && (
+      </>
+      )}
+      {stats.pricesUpdated && !compact && (
         <p className={styles.foot}>
           {t("Prix", "")} {marketName(binder.lang ?? "fr")} {t("du", "prices of")} {new Date(stats.pricesUpdated).toLocaleDateString(t("fr-FR", "en-GB"))}
         </p>

@@ -734,3 +734,34 @@ grant execute on function public.share_get(text, boolean) to anon, authenticated
 grant execute on function public.share_delete(text, text) to anon, authenticated;
 grant execute on function public.share_stats() to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- The funnel, again (2026-10-23, onboarding-light): the "tour_done" step (the 3-step tour finished, lib/funnel). Same as above,
+-- the step list one longer.
+create or replace function public.funnel_ping(p_device text, p_source text, p_landing text, p_lang text, p_step text default null)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  ua text := coalesce(current_setting('request.headers', true)::json ->> 'user-agent', '');
+begin
+  if p_device is null or length(p_device) not between 8 and 40 then return; end if;
+  if ua ~* '(bot|crawl|spider|slurp|headless|lighthouse|preview|facebookexternalhit|embedly|bingpreview|python|curl|wget|node-fetch|axios)' then
+    return;
+  end if;
+  insert into public.funnel (device, source, landing, lang)
+  values (p_device, left(p_source, 60), left(p_landing, 120), left(p_lang, 5))
+  on conflict (device) do update set
+    days = public.funnel.days + case when public.funnel.last_at::date < now()::date then 1 else 0 end,
+    last_at = now();
+  if p_step in ('profile', 'binder', 'cards10', 'account', 'game', 'share', 'tour_done') then
+    update public.funnel set steps = steps || jsonb_build_object(p_step, now()) where device = p_device and not steps ? p_step;
+  end if;
+  if random() < 0.01 then delete from public.funnel where last_at < now() - interval '13 months'; end if;
+end $$;
+
+revoke all on function public.funnel_ping(text, text, text, text, text) from public;
+grant execute on function public.funnel_ping(text, text, text, text, text) to anon, authenticated;
+notify pgrst, 'reload schema';

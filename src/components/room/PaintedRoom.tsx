@@ -49,7 +49,7 @@ interface Props {
   /** the room is calm and nothing else asked this visit: the trade binder's note may show (once ever) */
   noteCalm: boolean;
   /** the note showed: the other pop-ins wait for another visit */
-  onTradeAsked: () => void;
+  onTradeAsked: () => boolean;
   /**
    * Under the loader: drawn and downloading, but invisible. Browsers count a hidden-behind picture as the page's
    * biggest paint (the 463 KB room on phones), not an invisible one.
@@ -283,8 +283,9 @@ function PaintedRoomView({
   useEffect(() => {
     if (noteSeen || noteUp || !noteCalm || !trade.ready || page !== 0) return;
     const t = setTimeout(() => {
+      // another ask had this visit's turn (lib/calm): the note waits for another visit
+      if (!onTradeAsked()) return;
       setNoteUp(true);
-      onTradeAsked();
       sfx.pop();
     }, 1800);
     return () => clearTimeout(t);

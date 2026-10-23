@@ -25,6 +25,21 @@ function ac(): AudioContext {
   return ctx;
 }
 
+/**
+ * The room entered without a tap (a returning player skips « Appuie pour entrer », Johan 2026-10-23): browsers keep sound
+ * off until the page gets a gesture. The first one (a click, a tap, a key) wakes it; until then nothing
+ * plays (the hover sounds were silent anyway).
+ */
+export function unlockOnFirstGesture() {
+  const wake = () => {
+    window.removeEventListener("pointerdown", wake, true);
+    window.removeEventListener("keydown", wake, true);
+    ac();
+  };
+  window.addEventListener("pointerdown", wake, true);
+  window.addEventListener("keydown", wake, true);
+}
+
 export function setMuted(m: boolean) {
   muted = m;
   if (ctx) master.gain.setTargetAtTime(m ? 0 : 0.6, ctx.currentTime, 0.05);
