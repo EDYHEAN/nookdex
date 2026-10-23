@@ -1,6 +1,6 @@
 {
   "_": "Upcoming Pokémon TCG releases for the calendar page (lib/releases.ts). Only what an official source confirmed, with that source. Released sets come from the catalogs by themselves: an entry can go once its set is in the catalog. Kept up to date by the blog routine (docs/blog.md).",
-  "updated": "2026-10-16",
+  "updated": "2026-10-23",
   "items": [
     {
       "date": "2026-10-16",
