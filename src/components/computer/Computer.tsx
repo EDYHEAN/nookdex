@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MAX_BINDERS, boxOf, pocketsOf, shelfBinders, wantsOf, wishBinders } from "@/lib/binders";
 import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
@@ -15,6 +15,7 @@ import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
 import { AllCards } from "./AllCards";
 import { ImportPokecardex } from "./ImportPokecardex";
+import { ShareList } from "./ShareList";
 import { openTrade } from "@/lib/trade";
 import styles from "./Computer.module.css";
 import { langLabel, langOfKey } from "@/lib/cardLang";
@@ -72,6 +73,12 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
   const cards = useSets((s) => s.cards);
   const [tab, setTab] = useState<Tab>(startTab);
   const [toast, setToast] = useState<string | null>(null);
+  /** « Ma liste »: the public list's sheet, over the OS */
+  const [listOpen, setListOpen] = useState(false);
+  const openList = () => {
+    sfx.pop();
+    setListOpen(true);
+  };
 
   // Every card of the set binders, plus every card owned elsewhere (free binders).
   const entries = useMemo<Entry[]>(() => {
@@ -111,7 +118,7 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (paused) return;
+      if (paused || listOpen) return;
       if ((e.target as HTMLElement)?.tagName === "INPUT") {
         if (e.key === "Escape") (e.target as HTMLInputElement).blur();
         return;
@@ -127,7 +134,7 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, paused]);
+  }, [onClose, paused, listOpen]);
 
   return (
     <motion.div
@@ -176,10 +183,10 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
               </nav>
 
               <main key={tab} className={styles.panel} role="tabpanel">
-                {tab === "home" && <Home entries={entries} onGo={onGoToCard} onOpenBox={onOpenBox} />}
+                {tab === "home" && <Home entries={entries} onGo={onGoToCard} onOpenBox={onOpenBox} onList={openList} />}
                 {tab === "cards" && <AllCards onOpen={onOpenCards} />}
                 {tab === "wish" && <Wishlist entries={entries} onOpen={onOpenBinder} onCopy={copy} say={say} />}
-                {tab === "dupes" && <Dupes entries={entries} onGo={onGoToCard} onCopy={copy} />}
+                {tab === "dupes" && <Dupes entries={entries} onGo={onGoToCard} onCopy={copy} onList={openList} />}
                 {tab === "trade" && <TradeTab />}
                 {tab === "save" && <Save say={say} focusImport={focusImport} />}
               </main>
@@ -189,6 +196,7 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
           {toast && <div className={styles.toast}>{toast}</div>}
         </div>
       </div>
+      <AnimatePresence>{listOpen && <ShareList key="list" onClose={() => setListOpen(false)} />}</AnimatePresence>
     </motion.div>
   );
 }
@@ -224,11 +232,12 @@ function Clock() {
 
 /* ------------------------------------------------------------------ */
 
-function Home({ entries, onGo, onOpenBox }: { entries: Entry[]; onGo: (id: string) => void; onOpenBox: () => void }) {
+function Home({ entries, onGo, onOpenBox, onList }: { entries: Entry[]; onGo: (id: string) => void; onOpenBox: () => void; onList: () => void }) {
   const tr = useT();
   const collection = useStore((s) => s.collection);
   const userBinders = useStore((s) => s.binders);
   const profile = useStore((s) => s.profile);
+  const live = useStore((s) => !!s.share?.slug);
   const sets = useSets((s) => s.sets);
   const cards = useSets((s) => s.cards);
   const t = useTotals();
@@ -278,6 +287,16 @@ function Home({ entries, onGo, onOpenBox }: { entries: Entry[]; onGo: (id: strin
           accent={gain >= 0 ? "green" : "red"}
         />
       </div>
+
+      {/* the public list: what the player is after and what they trade, as a link for their groups */}
+      <motion.button className={styles.listRow} onClick={onList} onPointerEnter={sfx.hover} whileTap={{ scale: 0.97 }}>
+        <b>{tr("Ma liste ↗", "My list ↗")}</b>
+        <span>
+          {live
+            ? tr("● en ligne : ta page « je cherche / j'échange » suit ta collection", "● live: your « wanted / for trade » page follows your collection")
+            : tr("je cherche · j'échange : un lien pour tes groupes Facebook, ton Discord", "wanted · for trade: a link for your Facebook groups, your Discord")}
+        </span>
+      </motion.button>
 
       <section>
         <h2>{profile ? tr(`Classeurs de ${profile.name}`, `${profile.name}'s binders`) : tr("Classeurs", "Binders")}</h2>
@@ -521,7 +540,7 @@ function Wishlist({
   );
 }
 
-function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string) => void; onCopy: (t: string, m: string) => void }) {
+function Dupes({ entries, onGo, onCopy, onList }: { entries: Entry[]; onGo: (id: string) => void; onCopy: (t: string, m: string) => void; onList: () => void }) {
   const tr = useT();
   const dupes = entries
     .map((e) => {
@@ -546,6 +565,9 @@ function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string)
         <div className={styles.actions}>
           <button className={styles.btn} onClick={() => onCopy(text(), tr("doublons copiés !", "duplicates copied!"))} disabled={!dupes.length}>
             {tr("Copier la liste", "Copy the list")}
+          </button>
+          <button className={styles.btn} onClick={onList} disabled={!dupes.length}>
+            {tr("Cocher pour ma liste ↗", "Tick for my list ↗")}
           </button>
         </div>
       </div>

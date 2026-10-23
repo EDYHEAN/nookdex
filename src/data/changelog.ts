@@ -29,6 +29,10 @@ export const CHANGELOG: Release[] = [
       { fr: "Pension : rangs 3, 4 et 5 (vagues 150, 200, 250), chacun sa couleur, et des objets : Charme Chroma, palettes.", en: "Pension: ranks 3, 4 and 5 (waves 150, 200, 250), each in its colour, and objects: Shiny Charm, palettes." },
       { fr: "Kecleon reste abordable à toutes les vagues, et un départ de la vague 25 ou plus donne de quoi acheter.", en: "Kecleon stays affordable at every wave, and a start from wave 25 or later brings gold to spend." },
       { fr: "Le menu pause reste à l'écran, même avec un gros build.", en: "The pause menu stays on screen, even with a big build." },
+      {
+        fr: "Ma liste ↗ (NookDex OS) : un lien « je cherche / j'échange » pour tes groupes, toujours à jour.",
+        en: "My list ↗ (NookDex OS): a « wanted / for trade » link for your groups, always up to date.",
+      },
     ],
   },
   {

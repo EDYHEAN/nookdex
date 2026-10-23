@@ -296,6 +296,49 @@
   color: #ff8a8f;
 }
 
+/* « Ma liste ↗ »: the public list, a wide yellow key under the tiles (it's the one thing here that goes out) */
+.listRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px 16px;
+  border: 0;
+  background: rgba(255, 211, 90, 0.1);
+  box-shadow: inset 0 0 0 2px #ffd35a;
+  color: #ffe9a8;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.listRow b {
+  font-weight: normal;
+  font-size: 30px;
+  color: #ffd35a;
+  animation: listBlink 2.4s steps(2) infinite;
+}
+
+.listRow span {
+  font-size: 19px;
+}
+
+.listRow:hover {
+  background: rgba(255, 211, 90, 0.2);
+}
+
+@keyframes listBlink {
+  90% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 0.4;
+  }
+}
+
 .setRow {
   display: grid;
   grid-template-columns: 90px 1fr 2fr auto auto;

@@ -18,6 +18,7 @@ import { Celebration } from "./Celebration";
 import { Inspector } from "./Inspector";
 import { FillSet } from "./FillSet";
 import { ShareSheet } from "./ShareSheet";
+import { ShareList } from "../computer/ShareList";
 import { HoldToRemove, RemoveChoice, StatsPage, type BinderSummary } from "./StatsPage";
 import styles from "./Binder.module.css";
 import { useT } from "@/lib/lang";
@@ -69,6 +70,8 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   const collection = useStore((s) => s.collection);
   /** the "show my binder" sheet (set binders) */
   const [sharing, setSharing] = useState(false);
+  /** « Ma liste d'échange » from the share sheet: the public list, this set picked out */
+  const [listing, setListing] = useState(false);
   /** the grid just changed: the cards are dealt again (not at each page turn) */
   const [dealing, setDealing] = useState(false);
   const lastGrid = useRef(binder.grid);
@@ -335,7 +338,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   // keyboard + wheel
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (inspect != null || picking != null || sharing) return;
+      if (inspect != null || picking != null || sharing || listing) return;
       if ((e.target as HTMLElement)?.tagName === "INPUT") return;
       if (e.key === "ArrowRight") next();
       else if (e.key === "ArrowLeft") prev();
@@ -357,7 +360,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("wheel", onWheel);
     };
-  }, [next, prev, close, inspect, picking, sharing, single]);
+  }, [next, prev, close, inspect, picking, sharing, listing, single]);
 
   // swipe
   const swipe = useRef<{ x: number; y: number } | null>(null);
@@ -607,8 +610,20 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
 
       <AnimatePresence>
         {sharing && set && binder.setId && (
-          <ShareSheet key="share" setKey={binder.setId} set={set} owned={summary.owned} value={summary.trend} onClose={() => setSharing(false)} />
+          <ShareSheet
+            key="share"
+            setKey={binder.setId}
+            set={set}
+            owned={summary.owned}
+            value={summary.trend}
+            onClose={() => setSharing(false)}
+            onList={() => {
+              setSharing(false);
+              setListing(true);
+            }}
+          />
         )}
+        {listing && binder.setId && <ShareList key="list" focusSet={binder.setId} onClose={() => setListing(false)} />}
       </AnimatePresence>
 
       <motion.div

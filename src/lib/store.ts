@@ -58,6 +58,21 @@ export interface Backup {
   pension?: Record<string, number>;
   /** its purse (gold), and when it last changed */
   wallet?: { gold: number; at: number };
+  /** The doubles ticked « à échanger » (lib/share): "card key|variant" -> how many */
+  tradable?: Record<string, number>;
+  /** The public list (nookdex.com/c/<slug>) and what it shows: rides the save so another device signed in updates it */
+  share?: ShareSettings | null;
+}
+
+/** What the player's public list shows (NookDex OS → « Ma liste », lib/share). */
+export interface ShareSettings {
+  /** null until the server drew it (the list is being made) */
+  slug: string | null;
+  want: boolean;
+  give: boolean;
+  /** the set binders whose missing cards are listed (their set keys); null = all of them */
+  sets: string[] | null;
+  prices: boolean;
 }
 
 /** The currency of the site's language: what purchase prices were typed in before the currency was a setting. */
@@ -101,6 +116,12 @@ interface State {
   currency: Currency | null;
   binders: UserBinder[];
   collection: Record<string, Copy[]>;
+  /**
+   * The doubles the player offers to trade, by "card key|variant": NookDex suggests the copies beyond the first of a
+   * version, the player ticks the ones really up for grabs (Johan, 2026-10-23: nothing listed until ticked).
+   */
+  tradable: Record<string, number>;
+  share: ShareSettings | null;
   sound: boolean;
   ambient: boolean;
   lampOn: boolean;
@@ -157,6 +178,10 @@ interface State {
    */
   importCopies: (items: { key: string; variant: Variant; condition: Condition; qty: number; addedAt: number }[]) => number;
   resetCollection: () => void;
+  /** How many copies of a card's version are up for trade (0 takes it off the list). */
+  setTradable: (key: string, variant: Variant, n: number) => void;
+  /** Changes what the public list shows; null forgets it (« Supprimer mon lien »). */
+  setShare: (patch: Partial<ShareSettings> | null) => void;
   toggleSound: () => void;
   setAmbient: (on: boolean) => void;
   toggleLamp: () => void;
@@ -182,6 +207,8 @@ export const useStore = create<State>()(
       currency: null,
       binders: [],
       collection: {},
+      tradable: {},
+      share: null,
       sound: true,
       ambient: false,
       lampOn: true,
@@ -354,9 +381,23 @@ export const useStore = create<State>()(
             profile: backup.profile ?? s.profile,
             // older saves: their purchase prices were typed in the site's currency
             currency: backup.currency ?? siteCurrency(s.lang, s.frenchOk),
+            tradable: backup.tradable ?? {},
+            // a save from before the lists keeps the list made on this device
+            share: backup.share === undefined ? s.share : backup.share,
           };
         }),
       resetCollection: () => set({ collection: {} }),
+      setTradable: (key, variant, n) =>
+        set((s) => {
+          const tradable = { ...s.tradable };
+          if (n > 0) tradable[`${key}|${variant}`] = Math.round(n);
+          else delete tradable[`${key}|${variant}`];
+          return { tradable };
+        }),
+      setShare: (patch) =>
+        set((s) => ({
+          share: patch && { slug: null, want: true, give: true, sets: null, prices: true, ...s.share, ...patch },
+        })),
       toggleSound: () => set((s) => ({ sound: !s.sound })),
       setAmbient: (on) => set({ ambient: on }),
       toggleLamp: () => set((s) => ({ lampOn: !s.lampOn })),
@@ -368,7 +409,7 @@ export const useStore = create<State>()(
       version: 4,
       storage: createJSONStorage(() => localStorage),
       // Ambient music never auto-starts on reload (browsers block autoplay anyway).
-      partialize: (s) => ({ profile: s.profile, offline: s.offline, frenchOk: s.frenchOk, lang: s.lang, currency: s.currency, binders: s.binders, collection: s.collection, sound: s.sound, lampOn: s.lampOn, daytime: s.daytime }),
+      partialize: (s) => ({ profile: s.profile, offline: s.offline, frenchOk: s.frenchOk, lang: s.lang, currency: s.currency, binders: s.binders, collection: s.collection, tradable: s.tradable, share: s.share, sound: s.sound, lampOn: s.lampOn, daytime: s.daytime }),
       migrate: (persisted, version) => {
         let s = persisted as { collection?: Record<string, Copy[]>; binders?: UserBinder[]; lang?: "fr" | "en" | null; frenchOk?: boolean } & Record<
           string,
@@ -401,7 +442,7 @@ export const useStore = create<State>()(
   ),
 );
 
-export function makeBackup(s: Pick<State, "profile" | "currency" | "binders" | "collection">): Backup {
+export function makeBackup(s: Pick<State, "profile" | "currency" | "binders" | "collection"> & Partial<Pick<State, "tradable" | "share">>): Backup {
   return {
     app: "nookdex",
     version: 4,
@@ -410,6 +451,8 @@ export function makeBackup(s: Pick<State, "profile" | "currency" | "binders" | "
     currency: s.currency,
     binders: s.binders,
     collection: s.collection,
+    tradable: s.tradable ?? {},
+    share: s.share ?? null,
     trophies: useTrophyStore.getState().got,
     pension: usePension.getState().levels,
     wallet: { gold: usePension.getState().gold, at: usePension.getState().goldAt },

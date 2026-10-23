@@ -14,6 +14,7 @@ import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
 import { useTrophyWatch } from "@/lib/useTrophyWatch";
 import { funnelStep, funnelVisit, watchAmazonClicks } from "@/lib/funnel";
+import { startShareSync } from "@/lib/share";
 import { closeTrade, useTradeMat } from "@/lib/trade";
 import { isCompact, useViewport } from "@/lib/useViewport";
 import { BinderView } from "./binder/BinderView";
@@ -167,6 +168,8 @@ export function App() {
   }, [entered, revealed]);
 
   useEffect(startCloud, []);
+  // the public list (lib/share) follows the collection
+  useEffect(startShareSync, []);
 
   // No loader after signing in or paying: the cards of the binders load in the background instead.
   useEffect(() => {
@@ -190,6 +193,8 @@ export function App() {
       set.cards.forEach((c, i) => {
         if ((i * 7) % 10 < 6) addCard(c.id, c.variants[0]);
         if (i % 9 === 0 && c.variants[1]) addCopy(c.id, c.variants[1]);
+        // a few doubles of the same version, for the public list's « J'échange »
+        if (i % 11 === 0 && (i * 7) % 10 < 6) addCopy(c.id, c.variants[0]);
         const copy = useStore.getState().collection[c.id]?.[0];
         if (copy && i % 4 === 0) updateCopy(c.id, copy.id, { paid: i % 8 === 0 ? 0 : Math.round((c.price.trend ?? 0) * 80) / 100 });
       });
