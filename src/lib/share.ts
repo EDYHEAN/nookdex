@@ -269,10 +269,10 @@ export function startShareSync() {
 }
 
 /**
- * The trade binder on the shelf (Johan, 2026-10-23): it comes once there is something to put in it, a first double or a
- * first wished card (or a list already made), and its badge counts the cards « à échanger ».
+ * The trade binder on the shelf (Johan, 2026-10-23): always there, first. `ready`: there is something to put in it (a
+ * double, a ★ or wished card, a list already made): its note may say so. Its badge counts the cards « à échanger ».
  */
-export function useTradeShelf(): { shown: boolean; count: number } {
+export function useTradeShelf(): { ready: boolean; count: number } {
   const collection = useStore((s) => s.collection);
   const tradable = useStore((s) => s.tradable);
   const rules = useStore((s) => s.tradeRules);
@@ -281,5 +281,5 @@ export function useTradeShelf(): { shown: boolean; count: number } {
   const starred = useStore((s) => Object.keys(s.stars).length > 0);
   const doubles = useMemo(() => doublesOf(collection, tradable, rules), [collection, tradable, rules]);
   const wished = useMemo(() => starred || wishBinders(binders).some((b) => Object.keys(b.wants ?? {}).length > 0), [binders, starred]);
-  return { shown: listed || wished || doubles.length > 0, count: doubles.filter((d) => d.ticked > 0).length };
+  return { ready: listed || wished || doubles.length > 0, count: doubles.filter((d) => d.ticked > 0).length };
 }

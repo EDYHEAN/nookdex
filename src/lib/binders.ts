@@ -21,11 +21,20 @@ export const BINDER_COLORS = [
 
 /** Places on the shelves, in filling order (top shelf, then bottom shelf): one page of the shelf. */
 export const SHELF_SLOTS = SCENE.slots.length;
-/** The shelf turns its pages (Johan, 2026-10-16: big collections, the Pokécardex import): 5 pages of 12. */
-export const SHELF_PAGES = 5;
-export const MAX_BINDERS = SHELF_SLOTS * SHELF_PAGES;
+/** The player's binders at most (Johan, 2026-10-16: big collections, the Pokécardex import): 5 pages' worth of 12. */
+export const MAX_BINDERS = SHELF_SLOTS * 5;
+/**
+ * Places the trade binder takes at the start of the shelf (Johan, 2026-10-23: every player has it, it stands first, top
+ * shelf, page 1). The player's binders follow it: page 1 holds 11 of them, the others 12.
+ */
+export const SHELF_LEAD = 1;
+/** Pages the shelf can turn: the player's binders after the trade binder (60 + 1 places: a 6th page for the last one) */
+export const SHELF_PAGES = Math.ceil((MAX_BINDERS + SHELF_LEAD) / SHELF_SLOTS);
+/** Where the n-th place of the shelf is (the trade binder's counted): its page and its slot */
+export const shelfPlace = (pos: number) => ({ page: Math.floor(pos / SHELF_SLOTS), slot: pos % SHELF_SLOTS });
 /** Pages the shelf shows: the ones with binders, and the one with the free place for a new binder. */
-export const shelfPageCount = (n: number) => Math.min(SHELF_PAGES, Math.floor(Math.min(n, MAX_BINDERS - 1) / SHELF_SLOTS) + 1);
+export const shelfPageCount = (n: number) =>
+  Math.min(SHELF_PAGES, Math.floor(Math.min(n + SHELF_LEAD, MAX_BINDERS + SHELF_LEAD - 1) / SHELF_SLOTS) + 1);
 
 /** The first color no binder wears yet. */
 export function freeColor(binders: UserBinder[]) {
@@ -46,7 +55,7 @@ const light = (hex: string) => {
 export function shelfBinders(binders: UserBinder[]): BinderDef[] {
   return binders.slice(0, MAX_BINDERS).map((b, i) => {
     const color = b.color ?? BINDER_COLORS[i % BINDER_COLORS.length];
-    const paint = { slot: i % SHELF_SLOTS, page: Math.floor(i / SHELF_SLOTS), color, dark: shade(color, -0.48), ink: light(color) ? "#241c26" : "#fff3e6", sort: b.sort ?? "num", grid: b.grid ?? 9 };
+    const paint = { ...shelfPlace(i + SHELF_LEAD), color, dark: shade(color, -0.48), ink: light(color) ? "#241c26" : "#fff3e6", sort: b.sort ?? "num", grid: b.grid ?? 9 };
     if (b.kind === "free") {
       const wish = !!b.wish;
       return { ...paint, id: b.id, kind: "free", wish, wants: b.wants ?? {}, code: wish ? "WISH" : "LIBRE", name: b.name, logo: null, setId: null, lang: null };
