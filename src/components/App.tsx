@@ -7,7 +7,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { APP_VERSION } from "@/data/changelog";
 import { MAX_BINDERS, shelfBinders } from "@/lib/binders";
 import { bareId, keyOf } from "@/lib/cardLang";
-import { loadSet, loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
+import { binderSets, loadSet, loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { returningFromSignIn, startCloud, useCloud } from "@/lib/cloud";
 import { setMuted, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { OS_NAME } from "@/lib/site";
@@ -183,7 +183,25 @@ export function App() {
     if (process.env.NODE_ENV === "production") return;
     const q = new URLSearchParams(window.location.search);
     if (q.has("skin")) useSkins.setState({ equipped: itemsOf(q.get("skin") ?? "") });
+    /**
+     * ?demo=big: a big collector's shelf, for the public list's pickers (Johan, 2026-10-23: 1,200 doubles): 30 set binders
+     * across the series, two cards in three owned, a third of them two to four times.
+     */
+    const bigDemo = async () => {
+      const all = binderSets("fr");
+      const picked = Array.from({ length: 30 }, (_, i) => all[Math.floor((i * all.length) / 30)]).filter(Boolean);
+      for (const s of picked) if (!useStore.getState().binders.some((b) => b.kind === "set" && b.setId === s.id)) useStore.getState().addBinder({ kind: "set", setId: s.id });
+      if (Object.keys(useStore.getState().collection).length) return;
+      const loaded = await Promise.all(picked.map((s) => loadSet(s.id).catch(() => null)));
+      const items = loaded.flatMap((set) =>
+        (set?.cards ?? []).flatMap((c, i) =>
+          i % 3 === 2 ? [] : [{ key: c.id, variant: c.variants[0] ?? "normal", condition: "NM" as const, qty: i % 3 === 0 ? 2 + (i % 4) : 1, addedAt: Date.now() }],
+        ),
+      );
+      useStore.getState().importCopies(items);
+    };
     const demo = async () => {
+      if (q.get("demo") === "big") return bigDemo();
       // the demo binder in the site's language
       const demoSet = keyOf(currentLang(), "swsh12");
       if (!useStore.getState().binders.length) useStore.getState().addBinder({ kind: "set", setId: demoSet });

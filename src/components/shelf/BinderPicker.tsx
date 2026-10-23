@@ -9,6 +9,7 @@ import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import styles from "./BinderPicker.module.css";
 import { useLang, useT } from "@/lib/lang";
+import { TWIN, seriesOf, tabOf, twinOf } from "@/lib/series";
 
 export type BinderChoice = { kind: "set"; setId: string } | { kind: "free"; name: string; wish?: boolean };
 
@@ -22,22 +23,6 @@ interface Props {
   wishes?: boolean;
 }
 
-/** Japanese series ids and their international twins: same tab, and its name in the site's language. */
-const TWIN: Record<string, string> = { M: "me", SV: "sv", S: "swsh" };
-const twinOf = (serie: string, to: CardLang) =>
-  to === "ja" ? (Object.keys(TWIN).find((k) => TWIN[k] === serie) ?? serie) : (TWIN[serie] ?? serie);
-
-/** The Wizards era's series (Base, Gym, Neo, Legendary Collection, e-Card): one tab, they're a few sets each. */
-const WIZARDS = new Set(["base", "gym", "neo", "lc", "ecard"]);
-const tabOf = (serie: string) => (WIZARDS.has(serie) ? "wizards" : serie);
-
-function seriesOf(lang: CardLang, site: "fr" | "en") {
-  const names = new Map(binderSets(site).map((s) => [tabOf(s.serie), WIZARDS.has(s.serie) ? "Wizards" : s.serieName]));
-  return [...new Map(binderSets(lang).map((s) => [tabOf(s.serie), names.get(twinOf(tabOf(s.serie), site)) ?? s.serieName])).entries()].map(([id, name]) => ({
-    id,
-    name,
-  }));
-}
 /** What kind of binder: one of a set (its series' tabs then), a free one, a wishlist */
 type Kind = "set" | "free" | "wish";
 

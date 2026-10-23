@@ -51,7 +51,8 @@ export function ListPage({ en, slug, gone, name = "", updatedAt = "", prices = t
   const t = (fr: string, english: string) => (en ? english : fr);
   const site = en ? "en" : "fr";
   const home = `${en ? "/en" : "/"}?utm_source=share`;
-  const giveCount = give.reduce((n, c) => n + c.n, 0);
+  // cards up for trade (a card's version once, its copies on its ×n badge): the unit the player ticked them in
+  const giveCount = give.length;
   const [tab, setTab] = useState<"want" | "give">(want.length || !give.length ? "want" : "give");
   const [only, setOnly] = useState<string | null>(null);
   const [open, setOpen] = useState<Set<string>>(() => new Set());

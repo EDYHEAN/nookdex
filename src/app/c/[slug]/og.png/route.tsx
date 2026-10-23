@@ -73,7 +73,7 @@ export async function GET(req: Request, { params }: RouteContext<"/c/[slug]/og.p
   ]);
   const [left, right] = await Promise.all([best(want), best(give)]);
   const wanted = row.data.want.length;
-  const offered = row.data.give.reduce((n, g) => n + (g[2] || 1), 0);
+  const offered = row.data.give.length;
   const name = row.name || t("Un dresseur", "A trainer");
 
   return new ImageResponse(

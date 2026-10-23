@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: PageProps<"/c/[slug]">): Prom
   const en = lang === "en";
   if (!row) return { title: SITE_NAME, robots: { index: false, follow: false } };
   const want = row.data.want.length;
-  const give = row.data.give.reduce((n, g) => n + (g[2] || 1), 0);
+  const give = row.data.give.length;
   const title = en ? `${who(row.name, en)}'s list · ${SITE_NAME}` : `La liste de ${who(row.name, en)} · ${SITE_NAME}`;
   const description = en ? `Looking for ${want} cards · ${give} up for trade. Pokémon cards, today's prices.` : `${want} cartes cherchées · ${give} à échanger. Cartes Pokémon, prix du jour.`;
   // the picture's address changes with the list: Facebook and WhatsApp keep a picture by its address

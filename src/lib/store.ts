@@ -180,6 +180,8 @@ interface State {
   resetCollection: () => void;
   /** How many copies of a card's version are up for trade (0 takes it off the list). */
   setTradable: (key: string, variant: Variant, n: number) => void;
+  /** The same for many at once (a set's « tout », 1,200 doubles): one change of the store, one save */
+  setTradableMany: (items: { key: string; variant: Variant; n: number }[]) => void;
   /** Changes what the public list shows; null forgets it (« Supprimer mon lien »). */
   setShare: (patch: Partial<ShareSettings> | null) => void;
   toggleSound: () => void;
@@ -392,6 +394,15 @@ export const useStore = create<State>()(
           const tradable = { ...s.tradable };
           if (n > 0) tradable[`${key}|${variant}`] = Math.round(n);
           else delete tradable[`${key}|${variant}`];
+          return { tradable };
+        }),
+      setTradableMany: (items) =>
+        set((s) => {
+          const tradable = { ...s.tradable };
+          for (const { key, variant, n } of items) {
+            if (n > 0) tradable[`${key}|${variant}`] = Math.round(n);
+            else delete tradable[`${key}|${variant}`];
+          }
           return { tradable };
         }),
       setShare: (patch) =>

@@ -1,7 +1,7 @@
 import { type CardLang, langOfKey } from "./cardLang";
 import { type IndexCard, catalogSet, setIdOfCard } from "./catalog";
 import { type RarityTier, rankOf, tierOf } from "./rarity";
-import type { CatalogSet } from "./types";
+import type { CardData, CatalogSet } from "./types";
 
 /** Lower case, no accents: "Évoli" is found by "evoli". */
 export const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -63,6 +63,30 @@ export function rowsOf(index: IndexCard[]): Row[] {
   });
   prepared.set(index, rows);
   return rows;
+}
+
+/** A card of a loaded set as a search row: the same matcher finds the player's own cards (share/GivePicker). */
+export function cardRow(card: CardData, trend: number | null = null): Row {
+  const set = catalogSet(setIdOfCard(card.id) ?? "");
+  const rank = rankOf(card.rarity);
+  return {
+    key: card.id,
+    name: card.name,
+    num: card.num,
+    img: card.img,
+    trend,
+    rarity: card.rarity,
+    rank,
+    tier: tierOf(rank),
+    aka: card.aka,
+    lang: langOfKey(card.id),
+    set,
+    date: set?.releaseDate ?? "",
+    text: card.aka ? `${norm(card.name)} ${norm(card.aka)}` : norm(card.name),
+    bareNum: card.num.toLowerCase().replace(/^([a-z]*)0+(?=\d)/, "$1"),
+    code: norm(set?.code ?? ""),
+    setName: norm(set?.name ?? ""),
+  };
 }
 
 /**

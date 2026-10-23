@@ -1,0 +1,590 @@
+/* « Ma liste »'s inside (share/ShareListPanel, its pickers): a column that fills whatever holds it */
+.panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.lead {
+  margin: 0 0 10px;
+  line-height: 1.1;
+}
+
+.scroll {
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0 -6px;
+  padding: 4px 6px;
+}
+
+/* the two sides, as big stamps: tap to show or hide one */
+.sides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* room on top for the tick box: a 4-digit count stays clear of it */
+  padding: 18px 6px 6px;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background: #fffaf0;
+  box-shadow: 3px 3px 0 var(--ink);
+  opacity: 0.55;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1), opacity 0.2s, background 0.2s;
+}
+
+.side b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: clamp(18px, 5.6vw, 26px);
+  line-height: 1.3;
+}
+
+.side i {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  font-style: normal;
+  font-size: 16px;
+  background: #fff;
+}
+
+.on {
+  background: #ffd35a;
+  opacity: 1;
+  transform: rotate(-1deg);
+}
+
+.scroll > section {
+  margin-top: 14px;
+}
+
+.panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-weight: normal;
+  font-size: 20px;
+  color: var(--ink-red);
+}
+
+.muted {
+  margin: 6px 0 0;
+  font-size: 17px;
+  color: var(--ink-soft);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: #fffaf0;
+  font-size: 18px;
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.chip img {
+  height: 18px;
+  max-width: 50px;
+  object-fit: contain;
+}
+
+.chip span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.chip small {
+  color: var(--ink-soft);
+}
+
+.chipOn {
+  background: #c9f2d4;
+  opacity: 1;
+}
+
+.chipFocus {
+  box-shadow: 0 0 0 3px #ffd35a;
+}
+
+.lang {
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--ink);
+  color: var(--paper) !important;
+  font-size: 14px;
+}
+
+.all {
+  margin-left: auto;
+  padding: 2px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: #fffaf0;
+  font-size: 17px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.doubles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doubles li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border: 2px solid rgba(43, 34, 48, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.6);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.dOn {
+  border-color: var(--ink-green) !important;
+  background: #dff5e3 !important;
+}
+
+.tick {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tick i {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  background: #fff;
+  font-style: normal;
+  color: var(--ink-green);
+}
+
+.tick img,
+.noImg {
+  flex: none;
+  width: 34px;
+  height: 47px;
+  border-radius: 3px;
+  background: var(--paper-3);
+}
+
+.dName {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  line-height: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dName small {
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.step {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.step button {
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: #fffaf0;
+  cursor: pointer;
+}
+
+.step button:disabled {
+  opacity: 0.35;
+}
+
+.step b,
+.one {
+  min-width: 34px;
+  font-weight: normal;
+  text-align: center;
+}
+
+.one {
+  color: var(--ink-soft);
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.switch i {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper-3);
+  transition: background 0.2s;
+}
+
+.switch i::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: transform 0.25s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.switchOn i {
+  background: #9de3b1;
+}
+
+.switchOn i::after {
+  transform: translateX(20px);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 12px;
+  margin-top: 12px;
+}
+
+/* the link itself, readable and selectable (16 px at least: no zoom on a phone) */
+.url {
+  width: 100%;
+  padding: 6px 10px;
+  border: 2px dashed var(--ink);
+  border-radius: 6px;
+  background: #fffaf0;
+  color: var(--ink);
+  font: inherit;
+  font-size: 18px;
+  text-align: center;
+}
+
+.main,
+.second {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  color: var(--ink);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.main {
+  background: #ffd35a;
+  font-family: var(--font-press), monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.second {
+  background: #fffaf0;
+}
+
+.main:hover,
+.second:hover {
+  transform: translate(-1px, -3px) rotate(-1.5deg);
+}
+
+.main:active,
+.second:active {
+  transform: scale(0.92);
+}
+
+.main:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.note {
+  min-height: 1.2em;
+  margin: 8px 0 0;
+  text-align: center;
+  color: var(--ink-green);
+}
+
+.remove {
+  align-self: center;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border: 0;
+  background: none;
+  font-size: 16px;
+  color: var(--ink-red);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---------- the pickers (share/WantPicker, share/GivePicker) ---------- */
+
+/* a search field: 16 px at least, no zoom on a phone */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 4px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: #fffaf0;
+}
+
+.search span {
+  color: var(--ink-soft);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 18px;
+}
+
+/* « Je cherche »: a series, its binders as chips */
+.serie {
+  margin-top: 8px;
+}
+
+.serie h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-weight: normal;
+  font-size: 18px;
+  color: var(--ink-soft);
+}
+
+.serie h4 span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.serie h4 small {
+  margin-right: auto;
+}
+
+.mini {
+  flex: none;
+  padding: 0 8px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: #fffaf0;
+  color: var(--ink);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.mini:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* « J'échange »: price floors, the count, the sets folded */
+.floors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.floor {
+  padding: 2px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: #fffaf0;
+  color: var(--ink);
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.floorOn {
+  background: var(--ink);
+  color: #ffd35a;
+}
+
+.giveBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 6px;
+}
+
+.giveBar small {
+  color: var(--ink-soft);
+}
+
+.setGroup {
+  margin-top: 6px;
+  border: 2px solid rgba(43, 34, 48, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.55);
+  overflow: hidden;
+}
+
+.setGroup .doubles {
+  padding: 0 6px 6px;
+}
+
+.setHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 4px;
+}
+
+.setOpen {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 2px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.caret {
+  display: inline-block;
+  flex: none;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.setOpen img,
+.noLogo {
+  flex: none;
+  width: 56px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.setName {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  line-height: 1.05;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.setName small {
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.setName .lang {
+  align-self: flex-start;
+}
+
+/* a set's « tout »: a big box, empty, half (some ticked) or ticked */
+.setAll {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: #fffaf0;
+  color: var(--ink);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.setAll i {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  background: #fff;
+  font-style: normal;
+}
+
+.stAll {
+  background: #c9f2d4;
+}
+
+.stAll i {
+  color: var(--ink-green);
+}
+
+.stSome i {
+  background: #fff1c2;
+}
