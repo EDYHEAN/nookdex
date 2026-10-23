@@ -7,13 +7,15 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { APP_VERSION } from "@/data/changelog";
 import { MAX_BINDERS, shelfBinders } from "@/lib/binders";
 import { bareId, keyOf } from "@/lib/cardLang";
-import { loadSet, loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
+import { binderSets, loadSet, loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { returningFromSignIn, startCloud, useCloud } from "@/lib/cloud";
 import { setMuted, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
 import { useTrophyWatch } from "@/lib/useTrophyWatch";
 import { funnelStep, funnelVisit, watchAmazonClicks } from "@/lib/funnel";
+import { startShareSync } from "@/lib/share";
+import { useTrophyQueue } from "@/lib/trophyStore";
 import { closeTrade, useTradeMat } from "@/lib/trade";
 import { isCompact, useViewport } from "@/lib/useViewport";
 import { BinderView } from "./binder/BinderView";
@@ -33,6 +35,8 @@ import { TrophyCase } from "./room/TrophyCase";
 import { ITEM, backFromShop, itemsOf, paidFor, preloadShop, refreshOwned, setShopView, useShopNews, useShopOpen, useSkins } from "@/lib/shop";
 import { Shop, ThankYou, TryOnBar } from "./room/Shop";
 import { Box } from "./room/Box";
+import { TradeBinder } from "./share/TradeBinder";
+import type { ListView } from "./share/TradePanel";
 import { TrophyToasts } from "./room/TrophyToast";
 import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
 import { Tour } from "./shelf/Tour";
@@ -77,6 +81,9 @@ export function App() {
   const [shop, setShop] = useState(false);
   /** the Game Boy, zoomed in (where it is on screen) */
   const [game, setGame] = useState<{ x: number; y: number } | null>(null);
+  /** the trade binder open (the gold one on the shelf): its tab, and the set it was opened from */
+  const [tradeOpen, setTradeOpen] = useState<{ focusSet?: string; view?: ListView } | null>(null);
+  const openTradeBinder = useCallback(() => setTradeOpen({}), []);
   /**
    * A returning player gets the road log once per version (per device), when the room is calm. A newcomer (no
    * profile yet) starts on the current version: the welcome and the tour show them everything already.
@@ -140,6 +147,11 @@ export function App() {
   /** the account was offered this visit: the cat waits for another one */
   const [saveAsked, setSaveAsked] = useState(false);
   const onSaveAsked = useCallback(() => setSaveAsked(true), []);
+  /** the trade binder's note showed this visit: the other asks (account, cat) wait for another one */
+  const [tradeAsked, setTradeAsked] = useState(false);
+  const onTradeAsked = useCallback(() => setTradeAsked(true), []);
+  // a trophy toast first: the trade binder's note comes after it
+  const trophyUp = useTrophyQueue((q) => q.showing || q.batches.length > 0);
   // Dev screenshots (?skip ?open ?os ?demo ?game) skip the sign-in.
   const [devBypass] = useState(
     () => process.env.NODE_ENV !== "production" && /[?&](skip|open|os|demo|game)\b/.test(window.location.search),
@@ -167,6 +179,8 @@ export function App() {
   }, [entered, revealed]);
 
   useEffect(startCloud, []);
+  // the public list (lib/share) follows the collection
+  useEffect(startShareSync, []);
 
   // No loader after signing in or paying: the cards of the binders load in the background instead.
   useEffect(() => {
@@ -180,7 +194,25 @@ export function App() {
     if (process.env.NODE_ENV === "production") return;
     const q = new URLSearchParams(window.location.search);
     if (q.has("skin")) useSkins.setState({ equipped: itemsOf(q.get("skin") ?? "") });
+    /**
+     * ?demo=big: a big collector's shelf, for the public list's pickers (Johan, 2026-10-23: 1,200 doubles): 30 set binders
+     * across the series, two cards in three owned, a third of them two to four times.
+     */
+    const bigDemo = async () => {
+      const all = binderSets("fr");
+      const picked = Array.from({ length: 30 }, (_, i) => all[Math.floor((i * all.length) / 30)]).filter(Boolean);
+      for (const s of picked) if (!useStore.getState().binders.some((b) => b.kind === "set" && b.setId === s.id)) useStore.getState().addBinder({ kind: "set", setId: s.id });
+      if (Object.keys(useStore.getState().collection).length) return;
+      const loaded = await Promise.all(picked.map((s) => loadSet(s.id).catch(() => null)));
+      const items = loaded.flatMap((set) =>
+        (set?.cards ?? []).flatMap((c, i) =>
+          i % 3 === 2 ? [] : [{ key: c.id, variant: c.variants[0] ?? "normal", condition: "NM" as const, qty: i % 3 === 0 ? 2 + (i % 4) : 1, addedAt: Date.now() }],
+        ),
+      );
+      useStore.getState().importCopies(items);
+    };
     const demo = async () => {
+      if (q.get("demo") === "big") return bigDemo();
       // the demo binder in the site's language
       const demoSet = keyOf(currentLang(), "swsh12");
       if (!useStore.getState().binders.length) useStore.getState().addBinder({ kind: "set", setId: demoSet });
@@ -190,6 +222,8 @@ export function App() {
       set.cards.forEach((c, i) => {
         if ((i * 7) % 10 < 6) addCard(c.id, c.variants[0]);
         if (i % 9 === 0 && c.variants[1]) addCopy(c.id, c.variants[1]);
+        // a few doubles of the same version, for the public list's « J'échange »
+        if (i % 11 === 0 && (i * 7) % 10 < 6) addCopy(c.id, c.variants[0]);
         const copy = useStore.getState().collection[c.id]?.[0];
         if (copy && i % 4 === 0) updateCopy(c.id, copy.id, { paid: i % 8 === 0 ? 0 : Math.round((c.price.trend ?? 0) * 80) / 100 });
       });
@@ -270,7 +304,7 @@ export function App() {
   };
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
-  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || shop || (shopOpen && !!thanks) || !!game;
+  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || shop || (shopOpen && !!thanks) || !!game || !!tradeOpen;
   // the room pauses just after a panel opens: the panel is drawn first, the room's redraw doesn't hold it back
   const roomPaused = useDeferredValue(busy);
   // A nickname, then a first binder; the account is offered later (SavePrompt).
@@ -300,7 +334,7 @@ export function App() {
     <>
       <BoilFilter paused={!!openBinder || !!computer} />
       <PaintedRoom
-        openId={openBinder?.id ?? null}
+        openId={tradeOpen ? "trade" : (openBinder?.id ?? null)}
         compact={compact}
         paused={roomPaused}
         onOpen={(binder) => setOpen({ binderId: binder.id })}
@@ -314,6 +348,9 @@ export function App() {
         onOpenTrophies={setTrophies}
         onOpenBox={setBox}
         onOpenGame={setGame}
+        onOpenTrade={openTradeBinder}
+        noteCalm={calm && !news && !saveAsked && !trophyUp}
+        onTradeAsked={onTradeAsked}
         veiled={!entered && !revealed}
         behind={compact && !!openBinder && covered}
       />
@@ -329,8 +366,15 @@ export function App() {
             setOpen(null);
             useStore.getState().removeBinder(openBinder.id, keep);
           }}
+          onOpenTrade={(setKey) => setTradeOpen({ focusSet: setKey, view: "want" })}
+          overlaid={!!tradeOpen}
         />
       )}
+
+      {/* the trade binder, over the room (or over the binder it was opened from: closing it goes back there) */}
+      <AnimatePresence>
+        {tradeOpen && <TradeBinder key="trade-binder" focusSet={tradeOpen.focusSet} start={tradeOpen.view} onClose={() => setTradeOpen(null)} />}
+      </AnimatePresence>
 
       <AnimatePresence>
         {computer && (
@@ -576,8 +620,8 @@ export function App() {
       {/* a tip for the project, asked by the cat once the player has a few cards (never over a binder, the OS or the tour) */}
       {/* the account, offered once the player without one has a few cards */}
       {entered && <ImportBar compact={compact} calm={calm && !news} onImport={openImport} />}
-      {entered && <SavePrompt compact={compact} calm={calm && !news} onShown={onSaveAsked} />}
-      {entered && <SupportCat compact={compact} calm={calm && !news && !saveAsked} />}
+      {entered && <SavePrompt compact={compact} calm={calm && !news && !tradeAsked} onShown={onSaveAsked} />}
+      {entered && <SupportCat compact={compact} calm={calm && !news && !saveAsked && !tradeAsked} />}
       {/* a computer: the cat and its tip tag in the corner of the calm room (a phone has the pop-in only) */}
       {entered && !compact && <TipCorner show={calm && !news} />}
       {/* the version, in the room's corner: it opens the road log */}

@@ -37,11 +37,15 @@ interface Props {
   onRemoved: (keep: boolean) => void;
   /** The binder rises over the room (true), or starts leaving (false). */
   onCover?: (covering: boolean) => void;
+  /** « Ou ta liste d'échange » in the share sheet: the trade binder, this set picked out */
+  onOpenTrade?: (setKey: string) => void;
+  /** the trade binder lies over it: its keys are the trade binder's */
+  overlaid?: boolean;
 }
 
 const SCROLL_GAP = 14; // phone: space between two pages of the column
 
-export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }: Props) {
+export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, onOpenTrade, overlaid }: Props) {
   const t = useT();
   const free = binder.kind === "free";
   /** a wishlist: some pockets hold wanted cards, drawn as ghosts */
@@ -335,7 +339,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   // keyboard + wheel
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (inspect != null || picking != null || sharing) return;
+      if (inspect != null || picking != null || sharing || overlaid) return;
       if ((e.target as HTMLElement)?.tagName === "INPUT") return;
       if (e.key === "ArrowRight") next();
       else if (e.key === "ArrowLeft") prev();
@@ -357,7 +361,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("wheel", onWheel);
     };
-  }, [next, prev, close, inspect, picking, sharing, single]);
+  }, [next, prev, close, inspect, picking, sharing, overlaid, single]);
 
   // swipe
   const swipe = useRef<{ x: number; y: number } | null>(null);
@@ -607,7 +611,21 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
 
       <AnimatePresence>
         {sharing && set && binder.setId && (
-          <ShareSheet key="share" setKey={binder.setId} set={set} owned={summary.owned} value={summary.trend} onClose={() => setSharing(false)} />
+          <ShareSheet
+            key="share"
+            setKey={binder.setId}
+            set={set}
+            owned={summary.owned}
+            value={summary.trend}
+            onClose={() => setSharing(false)}
+            onList={
+              onOpenTrade &&
+              (() => {
+                setSharing(false);
+                onOpenTrade(binder.setId!);
+              })
+            }
+          />
         )}
       </AnimatePresence>
 

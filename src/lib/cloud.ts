@@ -35,7 +35,7 @@ interface CloudState {
 
 export const useCloud = create<CloudState>(() => ({ ready: false, email: null, firstName: null, status: "off", conflict: null, savedAt: null, error: null, restored: 0 }));
 
-type Synced = Pick<Backup, "profile" | "currency" | "binders" | "collection">;
+type Synced = Pick<Backup, "profile" | "currency" | "binders" | "collection" | "tradable" | "tradeRules" | "stars" | "wantModes" | "share">;
 
 /** Stable JSON: Postgres jsonb does not keep key order. */
 const canon = (x: unknown): string => {
@@ -49,8 +49,20 @@ const canon = (x: unknown): string => {
   return JSON.stringify(x ?? null);
 };
 
-// no currency (saves from before it) leaves the key out: same fingerprint as then, no false conflict
-const fingerprint = (s: Synced) => canon({ profile: s.profile ?? null, currency: s.currency ?? undefined, binders: s.binders ?? [], collection: s.collection });
+// no currency (saves from before it) leaves the key out: same fingerprint as then, no false conflict; same for the
+// ticked doubles and the public list (lib/share) while there are none
+const fingerprint = (s: Synced) =>
+  canon({
+    profile: s.profile ?? null,
+    currency: s.currency ?? undefined,
+    binders: s.binders ?? [],
+    collection: s.collection,
+    tradable: s.tradable && Object.keys(s.tradable).length ? s.tradable : undefined,
+    tradeRules: s.tradeRules && Object.keys(s.tradeRules).length ? s.tradeRules : undefined,
+    stars: s.stars && Object.keys(s.stars).length ? s.stars : undefined,
+    wantModes: s.wantModes && Object.keys(s.wantModes).length ? s.wantModes : undefined,
+    share: s.share ?? undefined,
+  });
 
 /** What was last in agreement with the server, per account: tells who changed since. */
 const baseKey = (userId: string) => `nookdex:cloud-base:${userId}`;
@@ -197,7 +209,11 @@ export function startCloud() {
   });
 
   useStore.subscribe((s, prev) => {
-    if (!user || (s.collection === prev.collection && s.binders === prev.binders && s.profile === prev.profile && s.currency === prev.currency)) return;
+    if (
+      !user ||
+      (s.collection === prev.collection && s.binders === prev.binders && s.profile === prev.profile && s.currency === prev.currency && s.tradable === prev.tradable && s.tradeRules === prev.tradeRules && s.stars === prev.stars && s.wantModes === prev.wantModes && s.share === prev.share)
+    )
+      return;
     const status = useCloud.getState().status;
     if (status === "loading" || status === "conflict") return;
     clearTimeout(timer);

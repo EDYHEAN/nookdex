@@ -41,6 +41,11 @@ function Fr() {
         </li>
       </ul>
       <p>
+        <b>Ta liste publique.</b> Si tu crées « Ma liste » (je cherche / j&apos;échange) : ton pseudo, les cartes qu&apos;elle montre et la
+        date de sa dernière mise à jour, sur une page que toute personne ayant le lien peut voir. Ni ton e-mail, ni ton nom, ni la valeur de ta
+        collection. « Supprimer mon lien » l&apos;efface aussitôt ; faite sans compte, elle s&apos;efface seule après 6 mois sans mise à jour.
+      </p>
+      <p>
         <b>Formulaire de contact.</b> Si tu nous écris : ton e-mail, le sujet et ton message.
       </p>
       <p>
@@ -172,6 +177,11 @@ function En() {
         <li>when the account was created and when you last signed in;</li>
         <li>your save: your nickname, binders and collection (cards owned, variant, condition, quantity, price paid you entered).</li>
       </ul>
+      <p>
+        <b>Your public list.</b> If you make « My list » (wanted / for trade): your nickname, the cards it shows and when it was last updated,
+        on a page anyone with the link can see. Not your e-mail, nor your name, nor your collection&apos;s value. « Delete my link » erases it at
+        once; made without an account, it erases itself after 6 months without an update.
+      </p>
       <p>
         <b>Contact form.</b> If you write to us: your e-mail, the subject and your message.
       </p>

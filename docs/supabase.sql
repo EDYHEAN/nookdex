@@ -543,3 +543,194 @@ revoke all on function public.amazon_stats(date) from public;
 grant execute on function public.amazon_click(text) to anon, authenticated;
 grant execute on function public.amazon_stats(date) to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- The funnel, again (2026-10-23): robots out on the server too, and the "share" step (a public list made, lib/share).
+-- lib/funnel already leaves robots out, but a crawler running an old copy of the script, or calling the function
+-- straight, still counted (Googlebot made 817 "direct" devices in a week, report of 2026-10-19): the user-agent PostgREST
+-- passes on is checked here as well.
+create or replace function public.funnel_ping(p_device text, p_source text, p_landing text, p_lang text, p_step text default null)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  ua text := coalesce(current_setting('request.headers', true)::json ->> 'user-agent', '');
+begin
+  if p_device is null or length(p_device) not between 8 and 40 then return; end if;
+  if ua ~* '(bot|crawl|spider|slurp|headless|lighthouse|preview|facebookexternalhit|embedly|bingpreview|python|curl|wget|node-fetch|axios)' then
+    return;
+  end if;
+  insert into public.funnel (device, source, landing, lang)
+  values (p_device, left(p_source, 60), left(p_landing, 120), left(p_lang, 5))
+  on conflict (device) do update set
+    days = public.funnel.days + case when public.funnel.last_at::date < now()::date then 1 else 0 end,
+    last_at = now();
+  if p_step in ('profile', 'binder', 'cards10', 'account', 'game', 'share') then
+    update public.funnel set steps = steps || jsonb_build_object(p_step, now()) where device = p_device and not steps ? p_step;
+  end if;
+  if random() < 0.01 then delete from public.funnel where last_at < now() - interval '13 months'; end if;
+end $$;
+
+-- funnel_stats gains a "share" column: its return type changes, so it's dropped first
+drop function if exists public.funnel_stats(date);
+create function public.funnel_stats(p_since date default null)
+returns table (source text, devices bigint, profile bigint, binder bigint, cards10 bigint, account bigint, game bigint, share bigint, returned bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(f.source, '?'), count(*),
+    count(*) filter (where f.steps ? 'profile'), count(*) filter (where f.steps ? 'binder'),
+    count(*) filter (where f.steps ? 'cards10'), count(*) filter (where f.steps ? 'account'),
+    count(*) filter (where f.steps ? 'game'), count(*) filter (where f.steps ? 'share'), count(*) filter (where f.days >= 2)
+  from public.funnel f
+  where p_since is null or f.first_at >= p_since
+  group by 1
+  order by 2 desc
+$$;
+
+revoke all on function public.funnel_ping(text, text, text, text, text) from public;
+revoke all on function public.funnel_stats(date) from public;
+grant execute on function public.funnel_ping(text, text, text, text, text) to anon, authenticated;
+grant execute on function public.funnel_stats(date) to anon, authenticated;
+notify pgrst, 'reload schema';
+
+-- A player's public list (2026-10-23, lib/share, nookdex.com/c/<slug>): "Je cherche" (the cards missing from the set binders
+-- they picked, and their wishlists) and "J'échange" (the doubles they ticked), to paste in a Facebook group or a Discord.
+-- Card ids only: the page finds names, scans and the day's prices in the sets' files. Its pseudo is the only thing about
+-- the player (no contact, no value, no city). Without an account the list is theirs by a secret token kept in their browser
+-- (only its hash is here); with one, by their account. A list nobody updated for 6 months, made without an account, goes.
+-- Read and written only through the functions below.
+create table if not exists public.shares (
+  slug       text primary key check (slug ~ '^[a-z0-9]{8}$'),
+  token_hash text,
+  user_id    uuid references auth.users(id) on delete cascade,
+  name       text not null default '' check (length(name) <= 24),
+  lang       text not null default 'fr' check (lang in ('fr', 'en')),
+  prices     boolean not null default true,
+  data       jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  views      integer not null default 0
+);
+create index if not exists shares_user on public.shares (user_id);
+create index if not exists shares_token on public.shares (token_hash);
+alter table public.shares enable row level security;
+revoke all on public.shares from anon, authenticated;
+
+-- Writes a list (a new one when p_slug is null or gone) and returns its slug. Errors the client reads: 'too soon' (one write
+-- every 10 s), 'not yours', 'too big', 'bad list', 'busy' (too many new lists in a minute, all players together).
+create or replace function public.share_put(p_slug text, p_token text, p_name text, p_lang text, p_prices boolean, p_data jsonb)
+returns text
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid  uuid := auth.uid();
+  v_hash text;
+  v_slug text;
+  v_row  public.shares%rowtype;
+  v_name text := btrim(coalesce(p_name, ''));
+  i      integer;
+begin
+  if p_token is null or length(p_token) not between 32 and 128 then raise exception 'bad token'; end if;
+  v_hash := encode(sha256(convert_to(p_token, 'UTF8')), 'hex');
+  if p_data is null or octet_length(p_data::text) > 65536 then raise exception 'too big'; end if;
+  if jsonb_typeof(p_data -> 'want') is distinct from 'array' or jsonb_typeof(p_data -> 'give') is distinct from 'array'
+    or jsonb_array_length(p_data -> 'want') > 1500 or jsonb_array_length(p_data -> 'give') > 500 then
+    raise exception 'bad list';
+  end if;
+  -- a pseudo the page can show, else none ("a trainer"): letters, digits, a few signs, no address, no insult
+  if v_name !~ '^[[:alnum:] ._''-]{1,24}$' or v_name ~* '(www|https?|\.com|\.fr|\.net|pute|salop|connard|connass|encul|niqu|batard|fdp|pd\M|pedo|nazi|hitler|fuck|shit|bitch|cunt|nigg|porn|sexe?\M)' then
+    v_name := '';
+  end if;
+
+  -- the list this call may write: the one asked for, else the account's, else the token's
+  if p_slug is not null then
+    select * into v_row from public.shares where slug = p_slug;
+    if found and not (v_row.token_hash = v_hash or (v_uid is not null and v_row.user_id = v_uid)) then raise exception 'not yours'; end if;
+  end if;
+  if v_row.slug is null and v_uid is not null then select * into v_row from public.shares where user_id = v_uid limit 1; end if;
+  if v_row.slug is null then select * into v_row from public.shares where token_hash = v_hash limit 1; end if;
+
+  if v_row.slug is not null then
+    if v_row.updated_at > now() - interval '10 seconds' then raise exception 'too soon'; end if;
+    update public.shares set name = v_name, lang = coalesce(nullif(p_lang, ''), 'fr'), prices = coalesce(p_prices, true), data = p_data,
+      user_id = coalesce(user_id, v_uid), updated_at = now()
+    where slug = v_row.slug;
+    return v_row.slug;
+  end if;
+
+  if (select count(*) from public.shares where created_at > now() - interval '1 minute') >= 30 then raise exception 'busy'; end if;
+  -- 8 characters drawn from 31 (no 0/o, 1/l/i): read aloud at a fair without a mistake
+  loop
+    v_slug := '';
+    for i in 1..8 loop
+      v_slug := v_slug || substr('abcdefghjkmnpqrstuvwxyz23456789', 1 + floor(random() * 31)::integer, 1);
+    end loop;
+    exit when not exists (select 1 from public.shares where slug = v_slug);
+  end loop;
+  insert into public.shares (slug, token_hash, user_id, name, lang, prices, data)
+  values (v_slug, v_hash, v_uid, v_name, case when p_lang = 'en' then 'en' else 'fr' end, coalesce(p_prices, true), p_data);
+  -- now and then, the lists made without an account and left alone for 6 months go
+  if random() < 0.02 then delete from public.shares where user_id is null and updated_at < now() - interval '6 months'; end if;
+  return v_slug;
+end $$;
+
+-- A list for its page (p_view: a visit, counted; the share picture reads it without counting)
+create or replace function public.share_get(p_slug text, p_view boolean default false)
+returns table (name text, lang text, prices boolean, data jsonb, updated_at timestamptz)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+begin
+  if p_view then update public.shares s set views = s.views + 1 where s.slug = p_slug; end if;
+  return query
+    select s.name, s.lang, s.prices, s.data, s.updated_at from public.shares s
+    where s.slug = p_slug and (s.user_id is not null or s.updated_at > now() - interval '6 months');
+end $$;
+
+-- « Supprimer mon lien »: by its token, or by the account
+create or replace function public.share_delete(p_slug text, p_token text)
+returns boolean
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_hash text := encode(sha256(convert_to(coalesce(p_token, ''), 'UTF8')), 'hex');
+begin
+  delete from public.shares s
+  where s.slug = p_slug and (s.token_hash = v_hash or (auth.uid() is not null and s.user_id = auth.uid()));
+  return found;
+end $$;
+
+-- The weekly report: lists in all, updated in the last 7 days, page visits
+create or replace function public.share_stats()
+returns table (lists bigint, updated_7d bigint, with_account bigint, views bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select count(*), count(*) filter (where s.updated_at > now() - interval '7 days'), count(s.user_id), coalesce(sum(s.views), 0)
+  from public.shares s
+$$;
+
+revoke all on function public.share_put(text, text, text, text, boolean, jsonb) from public;
+revoke all on function public.share_get(text, boolean) from public;
+revoke all on function public.share_delete(text, text) from public;
+revoke all on function public.share_stats() from public;
+grant execute on function public.share_put(text, text, text, text, boolean, jsonb) to anon, authenticated;
+grant execute on function public.share_get(text, boolean) to anon, authenticated;
+grant execute on function public.share_delete(text, text) to anon, authenticated;
+grant execute on function public.share_stats() to anon, authenticated;
+notify pgrst, 'reload schema';

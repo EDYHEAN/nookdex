@@ -15,6 +15,7 @@ import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
 import { AllCards } from "./AllCards";
 import { ImportPokecardex } from "./ImportPokecardex";
+import { TradePanel } from "../share/TradePanel";
 import { openTrade } from "@/lib/trade";
 import styles from "./Computer.module.css";
 import { langLabel, langOfKey } from "@/lib/cardLang";
@@ -72,6 +73,13 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
   const cards = useSets((s) => s.cards);
   const [tab, setTab] = useState<Tab>(startTab);
   const [toast, setToast] = useState<string | null>(null);
+  /** « Échange » holds the trade mat and « Ma liste » (the trade binder's panel): which one */
+  const [tradeSub, setTradeSub] = useState<"mat" | "list">("mat");
+  const openList = () => {
+    sfx.pop();
+    setTradeSub("list");
+    setTab("trade");
+  };
 
   // Every card of the set binders, plus every card owned elsewhere (free binders).
   const entries = useMemo<Entry[]>(() => {
@@ -179,8 +187,8 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
                 {tab === "home" && <Home entries={entries} onGo={onGoToCard} onOpenBox={onOpenBox} />}
                 {tab === "cards" && <AllCards onOpen={onOpenCards} />}
                 {tab === "wish" && <Wishlist entries={entries} onOpen={onOpenBinder} onCopy={copy} say={say} />}
-                {tab === "dupes" && <Dupes entries={entries} onGo={onGoToCard} onCopy={copy} />}
-                {tab === "trade" && <TradeTab />}
+                {tab === "dupes" && <Dupes entries={entries} onGo={onGoToCard} onCopy={copy} onList={openList} />}
+                {tab === "trade" && <TradeTab sub={tradeSub} onSub={setTradeSub} />}
                 {tab === "save" && <Save say={say} focusImport={focusImport} />}
               </main>
             </div>
@@ -193,21 +201,52 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
   );
 }
 
-/** « Échange »: what the mat does, and the mat itself (it opens at once: there is nothing else to do in this tab) */
-function TradeTab() {
+/**
+ * « Échange »: the trade mat (at a fair: is it fair?) and « Ma liste », the trade binder's own panel (share/ShareListPanel,
+ * the same as the gold binder on the shelf), on paper inside the screen.
+ */
+function TradeTab({ sub, onSub }: { sub: "mat" | "list"; onSub: (s: "mat" | "list") => void }) {
   const tr = useT();
-  useEffect(() => openTrade(), []);
   return (
-    <div className={styles.listTab} style={{ alignItems: "center", justifyContent: "center", textAlign: "center", gap: 16 }}>
-      <p style={{ fontSize: "1.2em", maxWidth: 520 }}>
-        {tr(
-          "En salon ou en brocante : pose ce que tu donnes et ce que tu reçois, le tapis te dit tout de suite si l'échange est équitable.",
-          "At a fair or a meetup: lay what you give and what you get, the mat tells you at once whether the trade is fair.",
-        )}
-      </p>
-      <button className={styles.quit} onClick={() => (sfx.pop(), openTrade())} onPointerEnter={sfx.hover}>
-        ⇄ {tr("Sortir le tapis", "Bring out the mat")}
-      </button>
+    <div className={styles.tradeTab}>
+      <div className={styles.subTabs} role="tablist">
+        {(
+          [
+            ["mat", tr("⇄ Le tapis", "⇄ The mat")],
+            ["list", tr("Ma liste", "My list")],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={sub === id}
+            className={`${styles.btn} ${sub === id ? styles.subOn : ""}`}
+            onClick={() => {
+              sfx.click();
+              onSub(id);
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {sub === "mat" ? (
+        <div className={styles.listTab} style={{ alignItems: "center", justifyContent: "center", textAlign: "center", gap: 16 }}>
+          <p style={{ fontSize: "1.2em", maxWidth: 520 }}>
+            {tr(
+              "En salon ou en brocante : pose ce que tu donnes et ce que tu reçois, le tapis te dit tout de suite si l'échange est équitable.",
+              "At a fair or a meetup: lay what you give and what you get, the mat tells you at once whether the trade is fair.",
+            )}
+          </p>
+          <button className={styles.quit} onClick={() => (sfx.pop(), openTrade())} onPointerEnter={sfx.hover}>
+            ⇄ {tr("Sortir le tapis", "Bring out the mat")}
+          </button>
+        </div>
+      ) : (
+        <div className={styles.listPaper}>
+          <TradePanel />
+        </div>
+      )}
     </div>
   );
 }
@@ -521,7 +560,7 @@ function Wishlist({
   );
 }
 
-function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string) => void; onCopy: (t: string, m: string) => void }) {
+function Dupes({ entries, onGo, onCopy, onList }: { entries: Entry[]; onGo: (id: string) => void; onCopy: (t: string, m: string) => void; onList: () => void }) {
   const tr = useT();
   const dupes = entries
     .map((e) => {
@@ -546,6 +585,9 @@ function Dupes({ entries, onGo, onCopy }: { entries: Entry[]; onGo: (id: string)
         <div className={styles.actions}>
           <button className={styles.btn} onClick={() => onCopy(text(), tr("doublons copiés !", "duplicates copied!"))} disabled={!dupes.length}>
             {tr("Copier la liste", "Copy the list")}
+          </button>
+          <button className={styles.btn} onClick={onList} disabled={!dupes.length}>
+            {tr("Cocher pour ma liste ↗", "Tick for my list ↗")}
           </button>
         </div>
       </div>

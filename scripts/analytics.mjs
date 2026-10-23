@@ -75,6 +75,8 @@ const report = {
   accounts: { byDay: await rpc("growth_stats", { p_days: 60 }), totals: await rpc("activity_stats") },
   // clicks on the Amazon affiliate links, by page (lib/funnel watchAmazonClicks); the sales are in Amazon's dashboard
   amazon: { week: await rpc("amazon_stats", { p_since: day(ago(7)) }), all: await rpc("amazon_stats", {}) },
+  // the players' public lists (lib/share): how many, updated this week, page visits
+  shares: await rpc("share_stats").catch((e) => ({ error: String(e) })),
   search: await search().catch((e) => ({ error: String(e) })),
 };
 

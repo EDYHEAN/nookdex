@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { MAX_BINDERS, wishBinders } from "@/lib/binders";
+import { wishBinders } from "@/lib/binders";
 import { useT } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
@@ -10,39 +10,61 @@ import type { CardData } from "@/lib/types";
 import styles from "./Inspector.module.css";
 
 /**
- * ☆ on a card's sheet: puts it in one of the player's wishlists (the first free pocket), or in a new one. A wishlist
- * that already wants it says so. Nothing else changes: a wished card is never owned, nor counted anywhere.
+ * ☆ « Je la cherche » on a card's sheet (Johan, 2026-10-23): a tap stars it, and it goes in « je cherche » of the trade
+ * binder (its public list) until the player gets it. No binder is made for it on the shelf. A player who keeps wishlists
+ * can still put the card in one of them (▾).
  */
 export function WishButton({ card }: { card: CardData }) {
   const t = useT();
   const binders = useStore((s) => s.binders);
+  const starred = useStore((s) => !!s.stars[card.id]);
   const [open, setOpen] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
   const lists = wishBinders(binders);
   const wantedIn = lists.filter((b) => Object.values(b.wants ?? {}).includes(card.id));
-  const full = binders.length >= MAX_BINDERS;
-  const { wishCard, addBinder } = useStore.getState();
+  const { wishCard, setStars } = useStore.getState();
 
-  const [note, setNote] = useState<string | null>(null);
-  const done = (name: string) => {
-    sfx.wish();
+  const toggle = () => {
     setOpen(false);
-    setNote(t(`★ ajoutée à ${name}`, `★ added to ${name}`));
+    setStars([card.id], !starred);
+    if (starred) {
+      sfx.minus();
+      setNote(t("plus dans « je cherche »", "out of « wanted »"));
+    } else {
+      sfx.wish();
+      setNote(t("★ dans ton classeur d'échange", "★ in your trade binder"));
+    }
   };
 
   return (
     <div className={styles.wishWrap}>
-      <button
-        className={`${styles.wishBtn} ${wantedIn.length ? styles.wishOn : ""}`}
-        aria-expanded={open}
-        onClick={() => {
-          sfx.pop();
-          setNote(null);
-          setOpen(!open);
-        }}
+      <motion.button
+        className={`${styles.wishBtn} ${starred || wantedIn.length ? styles.wishOn : ""}`}
+        aria-pressed={starred}
+        onClick={toggle}
         onPointerEnter={sfx.hover}
+        whileTap={{ scale: 0.9 }}
       >
-        {wantedIn.length ? "★" : "☆"} {t("Wishlist", "Wishlist")}
-      </button>
+        <motion.span key={starred ? "on" : "off"} initial={{ scale: 0.4, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} style={{ display: "inline-block" }}>
+          {starred ? "★" : "☆"}
+        </motion.span>{" "}
+        {t("Je la cherche", "I'm after it")}
+      </motion.button>
+      {lists.length > 0 && (
+        <button
+          className={styles.wishBtn}
+          aria-expanded={open}
+          aria-label={t("Dans une wishlist", "In a wishlist")}
+          onClick={() => {
+            sfx.pop();
+            setNote(null);
+            setOpen(!open);
+          }}
+          onPointerEnter={sfx.hover}
+        >
+          ▾
+        </button>
+      )}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -52,7 +74,7 @@ export function WishButton({ card }: { card: CardData }) {
             exit={{ opacity: 0, y: 6, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 420, damping: 26 }}
           >
-            <p className={styles.hint}>{t("Je la cherche, je la mets dans…", "I'm after it, I put it in…")}</p>
+            <p className={styles.hint}>{t("… ou dans une de tes wishlists :", "… or in one of your wishlists:")}</p>
             {lists.map((b, i) => {
               const has = wantedIn.includes(b);
               return (
@@ -67,7 +89,9 @@ export function WishButton({ card }: { card: CardData }) {
                   onPointerEnter={sfx.hover}
                   onClick={() => {
                     wishCard(b.id, card.id);
-                    done(b.name);
+                    sfx.wish();
+                    setOpen(false);
+                    setNote(t(`★ ajoutée à ${b.name}`, `★ added to ${b.name}`));
                   }}
                 >
                   <b>★ {b.name}</b>
@@ -75,23 +99,6 @@ export function WishButton({ card }: { card: CardData }) {
                 </motion.button>
               );
             })}
-            <motion.button
-              className={styles.placeBtn}
-              disabled={full}
-              initial={{ opacity: 0, x: -14 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.03 + lists.length * 0.04 }}
-              whileTap={{ scale: 0.95 }}
-              onPointerEnter={sfx.hover}
-              onClick={() => {
-                const name = t("Ma wishlist", "My wishlist");
-                addBinder({ kind: "free", name, wish: true, wants: { 0: card.id } });
-                done(name);
-              }}
-            >
-              <b>+ {t("Nouvelle wishlist", "New wishlist")}</b>
-              <small>{full ? t(`l'étagère est pleine (${MAX_BINDERS})`, `the shelf is full (${MAX_BINDERS})`) : t("sur l'étagère", "on the shelf")}</small>
-            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>

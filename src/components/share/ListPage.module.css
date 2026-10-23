@@ -1,0 +1,412 @@
+/* A player's public list (/c/<slug>): a sheet of paper on the night desk's colour, phone first. The body doesn't scroll
+   (globals.css: the room is a fixed screen), so the page is its own scroller. */
+.page {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 12px 40px;
+  background: radial-gradient(ellipse at 50% 0%, #3a2c55, #150f1f 70%);
+}
+
+.sheet {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px 14px 22px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+  color: var(--ink);
+  font-size: 20px;
+  box-shadow: 8px 10px 0 rgba(10, 6, 16, 0.5);
+}
+
+.head {
+  text-align: center;
+}
+
+.brand {
+  display: inline-block;
+  margin: 0;
+  font-family: var(--font-press), monospace;
+  font-size: 11px;
+  color: var(--ink-red);
+  text-decoration: none;
+  letter-spacing: 1px;
+}
+
+.head h1,
+.gone h1 {
+  margin: 10px 0 2px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: clamp(15px, 4.6vw, 24px);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.fresh {
+  margin: 0;
+  color: var(--ink-green);
+}
+
+/* the two big tile-tabs */
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 16px 0 12px;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px 8px;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background: #fffaf0;
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.tab b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: clamp(22px, 7vw, 34px);
+  line-height: 1.2;
+}
+
+.tab span {
+  font-size: 20px;
+}
+
+.tabIcon {
+  font-size: 18px !important;
+}
+
+.tabOn {
+  background: #ffd35a;
+  transform: translateY(-3px) rotate(-1deg);
+}
+
+.tab:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* set filter pills: one line that scrolls sideways */
+.pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 10px;
+  scrollbar-width: none;
+}
+
+.pill {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: #fffaf0;
+  font-size: 18px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.pill:active {
+  transform: scale(0.92);
+}
+
+.pill img {
+  height: 18px;
+  max-width: 54px;
+  object-fit: contain;
+}
+
+.pill small {
+  color: var(--ink-soft);
+}
+
+.pillOn {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.pillOn small {
+  color: #ffd35a;
+}
+
+.empty {
+  margin: 30px 0;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.group {
+  margin-top: 14px;
+}
+
+.group h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px dashed rgba(43, 34, 48, 0.3);
+  font-weight: normal;
+  font-size: 22px;
+}
+
+.group h2 img {
+  height: 26px;
+  max-width: 80px;
+  object-fit: contain;
+}
+
+.group h2 small {
+  margin-left: auto;
+  color: var(--ink-soft);
+}
+
+/* three scans a row on a phone, more on a computer */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px 12px;
+  }
+
+  .sheet {
+    padding: 24px 26px 28px;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.scan {
+  position: relative;
+  display: block;
+  aspect-ratio: 245 / 342;
+  border-radius: 6px;
+  background: var(--paper-3);
+  box-shadow: 2px 3px 0 rgba(20, 12, 28, 0.25);
+}
+
+.scan img {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.noScan {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 6px;
+  text-align: center;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+/* the card's language, big: the first thing a trader checks */
+.lang,
+.qty,
+.variant {
+  position: absolute;
+  font-style: normal;
+  font-family: var(--font-press), monospace;
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  line-height: 1;
+}
+
+.lang {
+  top: -6px;
+  left: -5px;
+  padding: 4px 5px;
+  font-size: 11px;
+  transform: rotate(-6deg);
+}
+
+.fr {
+  background: #3b6fd1;
+  color: #fff;
+}
+
+.en {
+  background: #b8433d;
+  color: #fff;
+}
+
+.ja {
+  background: #fff;
+  color: #b8433d;
+}
+
+.qty {
+  top: -6px;
+  right: -5px;
+  padding: 4px 5px;
+  background: #ffd35a;
+  font-size: 11px;
+  transform: rotate(5deg);
+}
+
+.variant {
+  bottom: 5px;
+  left: 50%;
+  padding: 3px 5px;
+  background: #fffaf0;
+  font-size: 8px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.reverse {
+  background: linear-gradient(120deg, #c9f0ff, #f3c9ff, #fff3b0);
+}
+
+.holo {
+  background: linear-gradient(120deg, #ffe08a, #fff6d5);
+}
+
+.name {
+  margin-top: 6px;
+  overflow: hidden;
+  font-size: 18px;
+  line-height: 1.05;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 6px;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.meta b {
+  font-weight: normal;
+  color: var(--ink-gold);
+}
+
+.more {
+  display: block;
+  margin: 12px auto 0;
+  padding: 6px 14px;
+  border: 2px dashed var(--ink);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 3px solid var(--ink);
+  text-align: center;
+}
+
+.copy {
+  padding: 8px 16px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: #fffaf0;
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.copy:active,
+.cta:active {
+  transform: scale(0.93);
+}
+
+.note {
+  min-height: 1.2em;
+  margin: 6px 0;
+  color: var(--ink-green);
+}
+
+.cta {
+  display: inline-block;
+  margin: 6px 0 4px;
+  padding: 14px 18px;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  text-decoration: none;
+  box-shadow: 4px 4px 0 var(--ink);
+  animation: nudge 2.6s ease-in-out infinite;
+}
+
+@keyframes nudge {
+  0%,
+  80%,
+  100% {
+    transform: none;
+  }
+  85% {
+    transform: rotate(-2deg) translateY(-2px);
+  }
+  92% {
+    transform: rotate(2deg) translateY(-2px);
+  }
+}
+
+.small {
+  max-width: 520px;
+  margin: 8px 0 0;
+  font-size: 17px;
+  color: var(--ink-soft);
+}
+
+.report {
+  margin-top: 14px;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.gone {
+  max-width: 520px;
+  margin-top: 12vh;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta {
+    animation: none;
+  }
+}

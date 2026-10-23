@@ -16,6 +16,8 @@ const nextConfig: NextConfig = {
     "/en/release-calendar": ["./content/blog/**/*"],
     // a binder's share picture: the fonts and the painted desk
     "/share/**": ["./src/assets/fonts/*.ttf", "./src/assets/share-desk.jpg"],
+    // a public list's share picture (app/c/[slug]/og.png): the fonts and the painted desk, landscape
+    "/c/**": ["./src/assets/fonts/*.ttf", "./src/app/opengraph-image.jpg"],
   },
   // Japanese cards TCGdex has no picture of yet are shown with TCGplayer's (scripts/fetch-set, scansFromTcgcsvJa): their
   // scans, /scans/tp/<product id>/low.webp and the like, are TCGplayer's image server at the size of ours (245 and 600 px

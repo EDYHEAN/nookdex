@@ -1,0 +1,38 @@
+/* The trade binder open: a paper page with a gold edge, over the dimmed room (like a set binder, z-index 50) */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  padding: 24px;
+  background: rgba(20, 12, 30, 0.62);
+}
+
+.cover {
+  display: flex;
+  width: min(1180px, 100%);
+  height: min(880px, calc(100dvh - 48px));
+  overflow: hidden;
+  border: 3px solid #2b2230;
+  border-top: 8px solid #e8b22a;
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: 12px 14px 0 rgba(10, 6, 16, 0.5);
+}
+
+/* a phone: the whole screen */
+@media (max-width: 640px) {
+  .backdrop {
+    padding: 0;
+  }
+
+  .cover {
+    width: 100%;
+    height: 100dvh;
+    border-width: 0;
+    border-top-width: 6px;
+    border-radius: 0;
+  }
+}

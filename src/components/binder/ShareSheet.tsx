@@ -18,7 +18,22 @@ import styles from "./ShareSheet.module.css";
  * share sheet with the picture and a link to the set's page; on a computer, download it or copy the link.
  * The picture is fetched first, so the share button runs right in the tap (Safari refuses a share after a wait).
  */
-export function ShareSheet({ setKey, set, owned, value, onClose }: { setKey: string; set: SetData; owned: number; value: number; onClose: () => void }) {
+export function ShareSheet({
+  setKey,
+  set,
+  owned,
+  value,
+  onClose,
+  onList,
+}: {
+  setKey: string;
+  set: SetData;
+  owned: number;
+  value: number;
+  onClose: () => void;
+  /** « Ma liste d'échange »: the public list (computer/ShareList) instead of the picture */
+  onList?: () => void;
+}) {
   const lang = useLang();
   const t = <T,>(fr: T, en: T) => (lang === "en" ? en : fr);
   const collection = useStore((s) => s.collection);
@@ -167,6 +182,18 @@ export function ShareSheet({ setKey, set, owned, value, onClose }: { setKey: str
         <p className={styles.note} aria-live="polite">
           {note ?? " "}
         </p>
+        {onList && (
+          <button
+            className={styles.listLink}
+            onClick={() => {
+              sfx.pop();
+              onList();
+            }}
+            onPointerEnter={sfx.hover}
+          >
+            {t("Ou ta liste d'échange : ce qui te manque, tes doubles ↗", "Or your trade list: what you're missing, your doubles ↗")}
+          </button>
+        )}
       </motion.div>
     </motion.div>
   );

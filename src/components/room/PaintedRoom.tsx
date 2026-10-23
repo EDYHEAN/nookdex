@@ -1,15 +1,17 @@
 "use client";
 
+import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import POSTERS from "@/data/posters.json";
 import { type CSSProperties, memo, useEffect, useMemo, useRef, useState } from "react";
-import { MAX_BINDERS, SHELF_SLOTS, boxOf, pocketsOf, shelfBinders, shelfPageCount, wantsOf } from "@/lib/binders";
+import { MAX_BINDERS, SHELF_LEAD, boxOf, shelfPlace, pocketsOf, shelfBinders, shelfPageCount, wantsOf } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, OS_NAME } from "@/lib/site";
 import { setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { useLook, type LavaTheme } from "@/lib/shop";
+import { useTradeShelf } from "@/lib/share";
 import { useStore } from "@/lib/store";
 import { TROPHIES } from "@/lib/trophies";
 import { bump, unlock, useTrophyStore } from "@/lib/trophyStore";
@@ -42,6 +44,12 @@ interface Props {
   onOpenBox: (at: { x: number; y: number }) => void;
   /** the Game Boy on the desk: the NookBoy game (computers only) */
   onOpenGame: (at: { x: number; y: number }) => void;
+  /** the gold binder first on the shelf: the trade binder (share/TradeBinder) */
+  onOpenTrade: () => void;
+  /** the room is calm and nothing else asked this visit: the trade binder's note may show (once ever) */
+  noteCalm: boolean;
+  /** the note showed: the other pop-ins wait for another visit */
+  onTradeAsked: () => void;
   /**
    * Under the loader: drawn and downloading, but invisible. Browsers count a hidden-behind picture as the page's
    * biggest paint (the 463 KB room on phones), not an invisible one.
@@ -77,6 +85,21 @@ const BOOKS = { x: 2378, y: 515, w: 305, h: 272 };
 const BOARD = { x: 1944, y: 846, w: 328, h: 250 };
 /** the Poké Ball on its stand, top shelf: the trophy case */
 const BALL = { x: 2372, y: 204, w: 128, h: 156, cx: 2435, cy: 267 };
+/**
+ * The trade binder (Johan, 2026-10-23): gold, every player's from the start, in the shelf's first place (top shelf, page 1;
+ * lib/binders SHELF_LEAD moves the player's binders one place on). Drawn like every binder (ShelfBinder).
+ */
+const TRADE = SCENE.slots[0];
+const TRADE_GOLD = "#f0b929";
+const TRADE_LABEL = (({ x, y, w, h }) => ({ left: x, top: y, width: w, height: h }))(binderLabel(TRADE.w, TRADE.h));
+const TRADE_NOTE_KEY = "nookdex:trade-binder-note";
+const readNote = () => {
+  try {
+    return !!localStorage.getItem(TRADE_NOTE_KEY);
+  } catch {
+    return true;
+  }
+};
 /** the purple box beside it: the cards no binder holds; its tan label (LABEL) shows how many */
 const BOX = { x: 2522, y: 202, w: 216, h: 138, cx: 2630, cy: 270 };
 const BOX_LABEL = { cx: 2607, cy: 273 };
@@ -144,10 +167,27 @@ function useCamera(compact: boolean) {
  */
 export const PaintedRoom = memo(
   PaintedRoomView,
-  (a, b) => a.openId === b.openId && a.compact === b.compact && a.paused === b.paused && a.veiled === b.veiled && a.behind === b.behind,
+  (a, b) =>
+    a.openId === b.openId && a.compact === b.compact && a.paused === b.paused && a.veiled === b.veiled && a.behind === b.behind && a.noteCalm === b.noteCalm,
 );
 
-function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAddBinder, onOpenAbout, onOpenTrophies, onOpenBox, onOpenGame, veiled, behind }: Props) {
+function PaintedRoomView({
+  openId,
+  compact,
+  paused,
+  onOpen,
+  onOpenComputer,
+  onAddBinder,
+  onOpenAbout,
+  onOpenTrophies,
+  onOpenBox,
+  onOpenGame,
+  onOpenTrade,
+  noteCalm,
+  onTradeAsked,
+  veiled,
+  behind,
+}: Props) {
   const uiLang = useLang();
   const router = useRouter();
   /** "EN" on an English binder of the French site (and the other way round): the language it isn't in */
@@ -233,6 +273,29 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
   const [ballHover, setBallHover] = useState(false);
   const [boxHover, setBoxHover] = useState(false);
   const inBox = useMemo(() => boxOf(collection, userBinders).reduce((n, g) => n + g.count, 0), [collection, userBinders]);
+  const trade = useTradeShelf();
+  /**
+   * Its taped note, once ever (per device): « Ton classeur d'échange est là ! », only in a calm room where nothing else
+   * asked this visit (App: the account, the cat, the road log wait for another one once it showed).
+   */
+  const [noteSeen, setNoteSeen] = useState(readNote);
+  const [noteUp, setNoteUp] = useState(false);
+  useEffect(() => {
+    if (noteSeen || noteUp || !noteCalm || !trade.ready || page !== 0) return;
+    const t = setTimeout(() => {
+      setNoteUp(true);
+      onTradeAsked();
+      sfx.pop();
+    }, 1800);
+    return () => clearTimeout(t);
+  }, [noteSeen, noteUp, noteCalm, trade.ready, page, onTradeAsked]);
+  const closeNote = () => {
+    setNoteUp(false);
+    setNoteSeen(true);
+    try {
+      localStorage.setItem(TRADE_NOTE_KEY, "1");
+    } catch {}
+  };
   /** the room's little games: a scale on the spines, the weather flipped on and on */
   const scale = useRef({ last: -1, t: 0, n: 0 });
   const weather = useRef({ t: 0, n: 0 });
@@ -375,8 +438,10 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
   };
   /** the binders of the page shown, and the free place for a new one if it's on this page */
   const onPage = binders.filter((b) => b.page === page);
-  const free = binders.length % SHELF_SLOTS;
-  const plusSlot = binders.length < MAX_BINDERS && Math.floor(binders.length / SHELF_SLOTS) === page ? SCENE.slots[free] : null;
+  // the free place: after the trade binder and the player's binders
+  const nextPlace = shelfPlace(binders.length + SHELF_LEAD);
+  const free = nextPlace.slot;
+  const plusSlot = binders.length < MAX_BINDERS && nextPlace.page === page ? SCENE.slots[free] : null;
   /** the binder on its left shows its side cover over part of the sketch */
   const besideBinder = free > 0 && !rowEnd(free - 1);
 
@@ -535,6 +600,45 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
             </button>
           )}
 
+          {/* the trade binder: gold, first on the shelf, its badge (the trophies' one) the cards up for trade */}
+          {page === 0 && (
+            <button
+              className={`${styles.binder} ${styles.tradeBinder} ${openId === "trade" ? styles.out : ""}`}
+              style={place(TRADE)}
+              data-trade-binder
+              aria-label={tr(`Mon classeur d'échange · ${trade.count} à échanger`, `My trade binder · ${trade.count} for trade`)}
+              onPointerEnter={() => {
+                sfx.spine(0);
+                showTip(
+                  TRADE.x + TRADE.w / 2,
+                  TRADE.y - 8,
+                  tr("Mon classeur d'échange", "My trade binder"),
+                  trade.count ? tr(`${trade.count} à échanger · je cherche · un lien`, `${trade.count} for trade · wanted · a link`) : tr("je cherche, j'échange : un lien", "wanted, for trade: a link"),
+                  TRADE.y + TRADE.h + 10,
+                );
+              }}
+              onPointerLeave={() => setTip(null)}
+              onClick={() => {
+                sfx.shelfOut();
+                setTip(null);
+                closeNote();
+                onOpenTrade();
+              }}
+            >
+              <ShelfBinder slot={TRADE} color={TRADE_GOLD} last={!onPage.some((b) => b.slot === 1)}>
+                {/* Warwick's head on the label, a sticker, where a set binder has its logo */}
+                <span className={styles.label} style={TRADE_LABEL}>
+                  <img className={styles.tradeSticker} src={sceneImg("warwick-head.webp")} alt="" draggable={false} />
+                </span>
+              </ShelfBinder>
+            </button>
+          )}
+          {page === 0 && trade.count > 0 && (
+            <span key={trade.count} className={styles.ballBadge} style={{ left: TRADE.x + TRADE.w - 36, top: TRADE.y - 30 }} aria-hidden>
+              {trade.count > 999 ? "999+" : trade.count}
+            </span>
+          )}
+
           {/* binders standing on the shelves, with the set logo on their label */}
           {onPage.map((b) => {
             const slot = SCENE.slots[b.slot];
@@ -569,7 +673,7 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
                 onPointerLeave={() => setTip(null)}
                 onClick={() => clickBinder(b)}
               >
-                <ShelfBinder slot={slot} color={b.color} last={rowEnd(b.slot) || b.slot === onPage.length - 1}>
+                <ShelfBinder slot={slot} color={b.color} last={rowEnd(b.slot) || !onPage.some((x) => x.slot === b.slot + 1)}>
                   <span
                     className={styles.label}
                     style={{ left: label.x, top: label.y, width: label.w, height: label.h }}
@@ -973,6 +1077,25 @@ function PaintedRoomView({ openId, compact, paused, onOpen, onOpenComputer, onAd
         <div className={styles.vignette} />
       </div>
 
+      <AnimatePresence>
+        {/* (it points at the binder: only on the shelf's first page) */}
+        {noteUp && !paused && page === 0 && (
+          <TradeNote
+            key="trade-note"
+            at={toScreen(TRADE.x, TRADE.y + TRADE.h + 14)}
+            onOpen={() => {
+              closeNote();
+              sfx.shelfOut();
+              onOpenTrade();
+            }}
+            onClose={() => {
+              sfx.click();
+              closeNote();
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       {tip && (
         <div key={tip.title + tip.x} className={`${styles.tip} ${tip.below ? styles.tipBelow : ""}`} style={{ left: tip.x, top: tip.y, ["--x" as string]: `${tip.x}px` }}>
           <strong>{tip.title}</strong>
@@ -1009,6 +1132,40 @@ function Clock() {
         <circle r={3} fill="#c23b32" />
       </g>
     </svg>
+  );
+}
+
+/** The trade binder's note, taped under it on the shelf: once, when it first stands there */
+function TradeNote({ at, onOpen, onClose }: { at: { x: number; y: number }; onOpen: () => void; onClose: () => void }) {
+  const tr = useT();
+  return (
+    <motion.div
+      className={styles.tradeNote}
+      style={{ left: Math.max(12, at.x - 30), top: at.y }}
+      role="dialog"
+      aria-label={tr("Ton classeur d'échange est là !", "Your trade binder is here!")}
+      initial={{ opacity: 0, y: -20, rotate: -4, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, rotate: -1, scale: 1 }}
+      exit={{ opacity: 0, y: -12, scale: 0.9 }}
+      transition={{ type: "spring", stiffness: 280, damping: 18 }}
+    >
+      <i className={styles.tape} aria-hidden />
+      <button className={styles.tradeNoteClose} onClick={onClose} aria-label={tr("Fermer", "Close")}>
+        ✕
+      </button>
+      <h3>
+        <span aria-hidden>⇄</span> {tr("Ton classeur d'échange est là !", "Your trade binder is here!")}
+      </h3>
+      <p>
+        {tr(
+          "Ce que tu cherches + tes doubles, en un lien toujours à jour pour tes groupes Facebook et ton Discord.",
+          "What you're after + your doubles, in one link always up to date for your Facebook groups and your Discord.",
+        )}
+      </p>
+      <button className={styles.tradeNoteOpen} onClick={onOpen}>
+        {tr("Ouvrir ▶", "Open ▶")}
+      </button>
+    </motion.div>
   );
 }
 

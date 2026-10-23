@@ -296,6 +296,41 @@
   color: #ff8a8f;
 }
 
+/* « Échange »: the trade mat, and « Ma liste » (the trade binder's panel) on a sheet of paper inside the screen */
+.tradeTab {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+
+.subTabs {
+  display: flex;
+  gap: 10px;
+}
+
+/* the sub-tab not shown: an outline, the shown one lit */
+.subTabs .btn:not(.subOn) {
+  background: transparent;
+  color: #8dffc0;
+}
+
+.subOn {
+  background: #8dffc0;
+  color: #06120e;
+}
+
+.listPaper {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+}
+
 .setRow {
   display: grid;
   grid-template-columns: 90px 1fr 2fr auto auto;
