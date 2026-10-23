@@ -1269,46 +1269,19 @@
 
 /* ---------- the trade binder: gold, first on the top shelf ---------- */
 
-/* its label: a cream card with the ⇄ mark, upright */
-.tradeLabel {
-  display: grid;
-  place-items: center;
-  background: #fff6df;
-  border-radius: 3px;
-}
-
-.tradeMark {
-  font-family: var(--font-press), monospace;
-  font-size: min(95cqw, 40px);
-  line-height: 1;
-  color: #2b2230;
-}
-
-/* its badge: the cards up for trade, a red sticker over its top (scene px: it scales with the room) */
-.tradeBadge {
+/* its label: Warwick's head, a sticker with a white outline, upright on the white label */
+/* (more specific than .label > img: a logo lies on its side, the sticker stands upright) */
+.label > .tradeSticker {
   position: absolute;
-  z-index: 3;
-  min-width: 40px;
-  padding: 5px 9px 4px;
-  border: 4px solid #2b2230;
-  border-radius: 999px;
-  background: #c23b32;
-  color: #fff;
-  font-family: var(--font-press), monospace;
-  font-size: 22px;
-  line-height: 1;
-  text-align: center;
-  pointer-events: none;
-  animation: badgePop 0.4s steps(4);
-}
-
-@keyframes badgePop {
-  0% {
-    scale: 0.4;
-  }
-  60% {
-    scale: 1.25;
-  }
+  left: 50%;
+  top: 50%;
+  width: 94cqw;
+  height: auto;
+  object-fit: contain;
+  mix-blend-mode: normal;
+  transform: translate(-50%, -50%) rotate(-4deg);
+  filter: drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff)
+    drop-shadow(1px 2px 0 rgba(43, 34, 48, 0.35));
 }
 
 /* its note, taped under it once (screen px, outside the scaled scene, like the tips) */

@@ -69,8 +69,8 @@ interface Tip {
 }
 
 const { width: W, height: H } = SCENE;
-/** On phones the camera frames the shelves (from the trade binder, first on the top shelf, to the box's left half). */
-const FOCUS = { x: 1700, w: 885 };
+/** On phones the camera frames the shelves (from the trade binder, first on the bottom shelf, to the box's left half). */
+const FOCUS = { x: 1688, w: 897 };
 const HEADER = 92;
 const ANIM_FPS = 12;
 /** A binder shows its side cover when nothing stands on its right: end of a shelf, or of the row. */
@@ -86,12 +86,16 @@ const BOARD = { x: 1944, y: 846, w: 328, h: 250 };
 /** the Poké Ball on its stand, top shelf: the trophy case */
 const BALL = { x: 2372, y: 204, w: 128, h: 156, cx: 2435, cy: 267 };
 /**
- * The trade binder (Johan, 2026-10-23): gold, slimmer, first on the top shelf, left of the 12 places (not one of them), in
- * the bit of shelf before the first. Its quad follows the shelf's vanishing lines, taken from the first place's.
+ * The trade binder (Johan, 2026-10-23): gold, first of the bottom shelf, left of its 6 places (not one of the 12), drawn
+ * like every binder (ShelfBinder) at a binder's full width. The top shelf has 61 px before its first place, the bottom one
+ * 103: room for a real binder (Johan: a slimmer one looked wrong on a phone). Its quad follows the shelf's vanishing lines,
+ * taken from the 7th place's (the top edge rises 0.034 px a px to the right, the bottom is flat).
  */
-const TRADE_QUAD: [number, number][] = [[1708, 110], [1766, 103], [1766, 395], [1708, 398.6]];
-const TRADE = { x: 1708, y: 103, w: 58, h: 296, quad: TRADE_QUAD } as (typeof SCENE)["slots"][number];
-const TRADE_GOLD = "#e2ab2a";
+const TRADE_QUAD: [number, number][] = [[1697, 487.1], [1788, 484], [1788, 776], [1697, 776]];
+const TRADE = { x: 1697, y: 484, w: 91, h: 292, quad: TRADE_QUAD } as (typeof SCENE)["slots"][number];
+/** the first place of the bottom shelf: the trade binder shows its side cover when nothing stands there */
+const TRADE_NEXT = 6;
+const TRADE_GOLD = "#f0b929";
 const TRADE_LABEL = (({ x, y, w, h }) => ({ left: x, top: y, width: w, height: h }))(binderLabel(TRADE.w, TRADE.h));
 const TRADE_NOTE_KEY = "nookdex:trade-binder-note";
 const readNote = () => {
@@ -609,7 +613,7 @@ function PaintedRoomView({
             </button>
           )}
 
-          {/* the trade binder: gold, first on the top shelf, its badge the cards up for trade */}
+          {/* the trade binder: gold, first on the bottom shelf, its badge (the trophies' one) the cards up for trade */}
           {trade.shown && page === 0 && (
             <button
               className={`${styles.binder} ${styles.tradeBinder} ${openId === "trade" ? styles.out : ""}`}
@@ -634,15 +638,16 @@ function PaintedRoomView({
                 onOpenTrade();
               }}
             >
-              <ShelfBinder slot={TRADE} color={TRADE_GOLD}>
-                <span className={`${styles.label} ${styles.tradeLabel}`} style={TRADE_LABEL}>
-                  <span className={styles.tradeMark}>⇄</span>
+              <ShelfBinder slot={TRADE} color={TRADE_GOLD} last={!onPage.some((b) => b.slot === TRADE_NEXT)}>
+                {/* Warwick's head on the label, a sticker, where a set binder has its logo */}
+                <span className={styles.label} style={TRADE_LABEL}>
+                  <img className={styles.tradeSticker} src={sceneImg("warwick-head.webp")} alt="" draggable={false} />
                 </span>
               </ShelfBinder>
             </button>
           )}
           {trade.shown && page === 0 && trade.count > 0 && (
-            <span key={trade.count} className={styles.tradeBadge} style={{ left: TRADE.x + TRADE.w - 20, top: TRADE.y - 30 }} aria-hidden>
+            <span key={trade.count} className={styles.ballBadge} style={{ left: TRADE.x + TRADE.w - 36, top: TRADE.y - 30 }} aria-hidden>
               {trade.count > 999 ? "999+" : trade.count}
             </span>
           )}
