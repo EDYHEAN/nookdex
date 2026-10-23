@@ -4,18 +4,20 @@ import { motion } from "motion/react";
 import { useEffect } from "react";
 import { useT } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
-import { type ListTab, ShareListPanel } from "./ShareListPanel";
+import { type ListView, TradePanel } from "./TradePanel";
 import styles from "./TradeBinder.module.css";
 
 /**
- * « Mon classeur d'échange » open (Johan, 2026-10-23): the gold binder of the shelf, pulled out like a set binder. Its
- * cover frames the page that holds the public list (share/ShareListPanel). Full screen on a phone.
+ * « Mon classeur d'échange » open (Johan, 2026-10-23): the gold binder of the shelf, pulled out like a set binder. Its gold
+ * edge frames the page that holds the public list (share/TradePanel, which has its own header and close button). Full
+ * screen on a phone.
  */
-export function TradeBinder({ onClose, focusSet, startTab }: { onClose: () => void; focusSet?: string; startTab?: ListTab }) {
+export function TradeBinder({ onClose, focusSet, start }: { onClose: () => void; focusSet?: string; start?: ListView }) {
   const tr = useT();
 
   useEffect(() => {
     sfx.coverOpen();
+    // (a bottom sheet open catches Escape first: share/BottomSheet)
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape" || (e.target as HTMLElement)?.tagName === "INPUT") return;
       onClose();
@@ -24,17 +26,8 @@ export function TradeBinder({ onClose, focusSet, startTab }: { onClose: () => vo
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  // (the shelf plays the binder going back in)
-  const close = () => onClose();
-
   return (
-    <motion.div
-      className={styles.backdrop}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={(e) => e.target === e.currentTarget && close()}
-    >
+    <motion.div className={styles.backdrop} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <motion.div
         className={styles.cover}
         role="dialog"
@@ -44,23 +37,7 @@ export function TradeBinder({ onClose, focusSet, startTab }: { onClose: () => vo
         exit={{ y: "-20%", scale: 0.7, rotate: -4, opacity: 0 }}
         transition={{ type: "spring", stiffness: 240, damping: 22 }}
       >
-        {/* the binder's rings, down the left of the cover (a computer: a phone has no room for them) */}
-        <span className={styles.rings} aria-hidden>
-          <i />
-          <i />
-          <i />
-        </span>
-        <div className={styles.page}>
-          <header className={styles.head}>
-            <h2>
-              <span aria-hidden>⇄</span> {tr("Mon classeur d'échange", "My trade binder")}
-            </h2>
-            <button className={styles.close} onClick={close} onPointerEnter={sfx.hover}>
-              {tr("Ranger", "Put away")} <kbd>{tr("Échap", "Esc")}</kbd>
-            </button>
-          </header>
-          <ShareListPanel focusSet={focusSet} startTab={startTab} />
-        </div>
+        <TradePanel onClose={onClose} focusSet={focusSet} start={start} />
       </motion.div>
     </motion.div>
   );

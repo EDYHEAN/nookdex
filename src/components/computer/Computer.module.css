@@ -325,7 +325,7 @@
   display: flex;
   flex: 1;
   min-height: 0;
-  padding: 12px 14px;
+  overflow: hidden;
   border-radius: 8px;
   background-color: var(--paper);
   background-image: var(--paper-grain), var(--paper-wash);

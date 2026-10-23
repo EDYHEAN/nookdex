@@ -8,7 +8,7 @@ import { supabase } from "./cloud";
 import { funnelStep } from "./funnel";
 import { currentLang } from "./lang";
 import { SITE_DOMAIN } from "./site";
-import { useStore } from "./store";
+import { type WantMode, useStore } from "./store";
 import type { Copy, SetData, UserBinder, Variant } from "./types";
 
 /**
@@ -64,14 +64,25 @@ export function doublesOf(collection: Record<string, Copy[]>, tradable: Record<s
 }
 
 /**
- * The cards wanted: those missing from the set binders listed (all of them when `sets` is null), then the wishlists'
- * ghosts. `ready` is false while a set binder's file is still loading: its missing cards would be left out.
+ * The cards wanted (« je cherche »): the missing cards of the set binders in « toutes » (the default), the ★ cards not owned
+ * (but those of a set binder in « aucune »), the wishlists' ghosts. A card the player gets leaves by itself. `ready` is
+ * false while a set binder's file is still loading: its missing cards would be left out.
  */
-export function wantedOf(binders: UserBinder[], collection: Record<string, Copy[]>, sets: Record<string, SetData>, only: string[] | null) {
+export function wantedOf(
+  binders: UserBinder[],
+  collection: Record<string, Copy[]>,
+  sets: Record<string, SetData>,
+  modes: Record<string, WantMode>,
+  stars: Record<string, number>,
+) {
   const keys = new Set<string>();
   let ready = true;
+  const off = new Set<string>();
   for (const b of binders) {
-    if (b.kind !== "set" || (only && !only.includes(b.setId))) continue;
+    if (b.kind !== "set") continue;
+    const mode = modes[b.setId] ?? "all";
+    if (mode === "none") off.add(b.setId);
+    if (mode !== "all") continue;
     const set = sets[b.setId];
     if (!set) {
       ready = false;
@@ -79,6 +90,7 @@ export function wantedOf(binders: UserBinder[], collection: Record<string, Copy[
     }
     for (const card of set.cards) if (!card.unavailable && !collection[card.id]?.length) keys.add(card.id);
   }
+  for (const key of Object.keys(stars)) if (!collection[key]?.length && !off.has(setIdOfCard(key) ?? "")) keys.add(key);
   for (const b of wishBinders(binders)) {
     const kept = pocketsOf(b.id, collection);
     for (const [pocket, key] of wantsOf(b)) if (!kept.has(pocket)) keys.add(key);
@@ -86,12 +98,16 @@ export function wantedOf(binders: UserBinder[], collection: Record<string, Copy[
   return { keys: [...keys], ready };
 }
 
+/** The ★ cards still wanted (not owned yet): the search's badge, « dont 12 ★ à la carte » */
+export const starsWanted = (stars: Record<string, number>, collection: Record<string, Copy[]>) =>
+  Object.keys(stars).filter((k) => !collection[k]?.length);
+
 /** What the list holds today, or null when it can't be told yet (a set file loading) or there's no list. */
 export function shareData(): ShareData | null {
   const s = useStore.getState();
   const share = s.share;
   if (!share) return null;
-  const wanted = share.want ? wantedOf(s.binders, s.collection, useSets.getState().sets, share.sets) : { keys: [], ready: true };
+  const wanted = share.want ? wantedOf(s.binders, s.collection, useSets.getState().sets, s.wantModes, s.stars) : { keys: [], ready: true };
   if (!wanted.ready) return null;
   const give = share.give
     ? doublesOf(s.collection, s.tradable, s.tradeRules)
@@ -239,7 +255,7 @@ export function startShareSync() {
   started = true;
   useStore.subscribe((s, prev) => {
     if (!s.share?.slug) return;
-    if (s.collection === prev.collection && s.binders === prev.binders && s.tradable === prev.tradable && s.tradeRules === prev.tradeRules && s.share === prev.share && s.profile === prev.profile) return;
+    if (s.collection === prev.collection && s.binders === prev.binders && s.tradable === prev.tradable && s.tradeRules === prev.tradeRules && s.stars === prev.stars && s.wantModes === prev.wantModes && s.share === prev.share && s.profile === prev.profile) return;
     schedule();
   });
   useSets.subscribe((s, prev) => {
@@ -262,7 +278,8 @@ export function useTradeShelf(): { shown: boolean; count: number } {
   const rules = useStore((s) => s.tradeRules);
   const binders = useStore((s) => s.binders);
   const listed = useStore((s) => !!s.share);
+  const starred = useStore((s) => Object.keys(s.stars).length > 0);
   const doubles = useMemo(() => doublesOf(collection, tradable, rules), [collection, tradable, rules]);
-  const wished = useMemo(() => wishBinders(binders).some((b) => Object.keys(b.wants ?? {}).length > 0), [binders]);
+  const wished = useMemo(() => starred || wishBinders(binders).some((b) => Object.keys(b.wants ?? {}).length > 0), [binders, starred]);
   return { shown: listed || wished || doubles.length > 0, count: doubles.filter((d) => d.ticked > 0).length };
 }

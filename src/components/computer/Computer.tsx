@@ -15,7 +15,7 @@ import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
 import { AllCards } from "./AllCards";
 import { ImportPokecardex } from "./ImportPokecardex";
-import { ShareListPanel } from "../share/ShareListPanel";
+import { TradePanel } from "../share/TradePanel";
 import { openTrade } from "@/lib/trade";
 import styles from "./Computer.module.css";
 import { langLabel, langOfKey } from "@/lib/cardLang";
@@ -244,7 +244,7 @@ function TradeTab({ sub, onSub }: { sub: "mat" | "list"; onSub: (s: "mat" | "lis
         </div>
       ) : (
         <div className={styles.listPaper}>
-          <ShareListPanel />
+          <TradePanel />
         </div>
       )}
     </div>

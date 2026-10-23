@@ -36,7 +36,7 @@ import { ITEM, backFromShop, itemsOf, paidFor, preloadShop, refreshOwned, setSho
 import { Shop, ThankYou, TryOnBar } from "./room/Shop";
 import { Box } from "./room/Box";
 import { TradeBinder } from "./share/TradeBinder";
-import type { ListTab } from "./share/ShareListPanel";
+import type { ListView } from "./share/TradePanel";
 import { TrophyToasts } from "./room/TrophyToast";
 import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
 import { Tour } from "./shelf/Tour";
@@ -82,7 +82,7 @@ export function App() {
   /** the Game Boy, zoomed in (where it is on screen) */
   const [game, setGame] = useState<{ x: number; y: number } | null>(null);
   /** the trade binder open (the gold one on the shelf): its tab, and the set it was opened from */
-  const [tradeOpen, setTradeOpen] = useState<{ focusSet?: string; tab?: ListTab } | null>(null);
+  const [tradeOpen, setTradeOpen] = useState<{ focusSet?: string; view?: ListView } | null>(null);
   const openTradeBinder = useCallback(() => setTradeOpen({}), []);
   /**
    * A returning player gets the road log once per version (per device), when the room is calm. A newcomer (no
@@ -366,14 +366,14 @@ export function App() {
             setOpen(null);
             useStore.getState().removeBinder(openBinder.id, keep);
           }}
-          onOpenTrade={(setKey) => setTradeOpen({ focusSet: setKey, tab: "want" })}
+          onOpenTrade={(setKey) => setTradeOpen({ focusSet: setKey, view: "want" })}
           overlaid={!!tradeOpen}
         />
       )}
 
       {/* the trade binder, over the room (or over the binder it was opened from: closing it goes back there) */}
       <AnimatePresence>
-        {tradeOpen && <TradeBinder key="trade-binder" focusSet={tradeOpen.focusSet} startTab={tradeOpen.tab} onClose={() => setTradeOpen(null)} />}
+        {tradeOpen && <TradeBinder key="trade-binder" focusSet={tradeOpen.focusSet} start={tradeOpen.view} onClose={() => setTradeOpen(null)} />}
       </AnimatePresence>
 
       <AnimatePresence>

@@ -12,14 +12,16 @@ import { type Double, doublesOf } from "@/lib/share";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import type { CardData } from "@/lib/types";
-import styles from "./ShareListPanel.module.css";
+import { BottomSheet } from "./BottomSheet";
+import { Ring } from "./WantView";
+import styles from "./TradePanel.module.css";
 
 /**
  * « J'échange »: the doubles NookDex suggests (the copies beyond the first of a version), the player ticks those really up
- * for grabs. A big collection has 1,200 of them (Johan, 2026-10-23): they come by set, folded. A set's box is
- * « tout · les nouveaux suivent »: a rule kept in the save (store tradeRules), every double of it listed, the ones to come
- * too, but for the cards taken out by hand. Search, price floors, ★ Rares+ and Holo narrow the list; « ✓ les N » ticks
- * what's shown, once. Only the sets opened (or a search's first hits) draw their scans: a phone stays smooth.
+ * for grabs. A big collection has 1,200 of them (Johan, 2026-10-23): one tile per set, its ring the doubles ticked, a tap
+ * opens them in a sheet (tap = ticked, long press = how many). A set's « tout · les nouveaux suivent » is a rule kept in
+ * the save (store tradeRules): every double of it listed, the ones to come too, but for the cards taken out by hand.
+ * Search, price floors, ★ Rares+ and Holo narrow the list; « ✓ les N » ticks what's shown, once.
  */
 
 interface Item {
@@ -61,7 +63,7 @@ const readOffer = () => {
   }
 };
 
-export function GivePicker() {
+export function GiveView({ wide }: { wide: boolean }) {
   const tr = useT();
   const site = currentLang();
   const collection = useStore((s) => s.collection);
@@ -73,7 +75,7 @@ export function GivePicker() {
   const [floor, setFloor] = useState(0);
   const [rare, setRare] = useState(false);
   const [holo, setHolo] = useState(false);
-  const [open, setOpen] = useState<Set<string>>(() => new Set());
+  const [open, setOpen] = useState<string | null>(null);
   const [offerDone, setOfferDone] = useState(readOffer);
 
   const items = useMemo<Item[]>(
@@ -94,7 +96,7 @@ export function GivePicker() {
     const match = matcher(query);
     return match ? shown.filter((i) => i.card && match(rowOf(i.card))).sort((a, b) => (b.price ?? -1) - (a.price ?? -1)) : null;
   }, [shown, query]);
-  // by set, the newest first; in a set the priciest first. `all`: the whole set (its box and rule), `list`: what's shown
+  // one tile per set, the newest first; in a set the priciest first. `all`: the whole set (its rule), `list`: what's shown
   const groups = useMemo(() => {
     const m = new Map<string, Item[]>();
     for (const i of items) {
@@ -133,7 +135,7 @@ export function GivePicker() {
   const chip = (on: boolean, label: string, act: () => void, key: string) => (
     <motion.button
       key={key}
-      className={`${styles.floor} ${on ? styles.floorOn : ""}`}
+      className={`${styles.chip} ${on ? styles.chipOn : ""}`}
       whileTap={{ scale: 0.9 }}
       onClick={() => {
         sfx.click();
@@ -144,6 +146,7 @@ export function GivePicker() {
       {label}
     </motion.button>
   );
+  const cur = open ? groups.find((g) => g.key === open) : undefined;
 
   if (!items.length) {
     return <p className={styles.muted}>{tr("Pas encore de doubles : le + sur la fiche d'une carte en ajoute un.", "No doubles yet: the + on a card's sheet adds one.")}</p>;
@@ -166,14 +169,7 @@ export function GivePicker() {
           >
             {tr("Oui", "Yes")}
           </button>
-          <button
-            className={styles.offerNo}
-            aria-label={tr("Non merci", "No thanks")}
-            onClick={() => {
-              sfx.click();
-              closeOffer();
-            }}
-          >
+          <button className={styles.offerNo} aria-label={tr("Non merci", "No thanks")} onClick={() => (sfx.click(), closeOffer())}>
             ✕
           </button>
         </motion.div>
@@ -183,14 +179,14 @@ export function GivePicker() {
         <input
           type="search"
           value={q}
-          placeholder={tr("dracaufeu, 151, n° 199…", "charizard, 151, no. 199…")}
+          placeholder={wide ? tr("un double : dracaufeu, 151, n° 199…", "a double: charizard, 151, no. 199…") : tr("dracaufeu, 151, n° 199…", "charizard, 151, no. 199…")}
           onChange={(e) => {
             setQ(e.target.value);
             sfx.hover();
           }}
         />
       </label>
-      <div className={styles.floors} role="group" aria-label={tr("Filtres", "Filters")}>
+      <div className={styles.chips} role="group" aria-label={tr("Filtres", "Filters")}>
         {FLOORS.map((f) => chip(floor === f && (f > 0 || !filtered), f ? `≥ ${money(f)}` : tr("Tout", "All"), () => (f ? setFloor(f) : (setFloor(0), setRare(false), setHolo(false))), `f${f}`))}
         {chip(rare, "★ Rares+", () => setRare(!rare), "rare")}
         {chip(holo, "Holo", () => setHolo(!holo), "holo")}
@@ -205,22 +201,23 @@ export function GivePicker() {
             </>
           )}
         </span>
-        <button
+        <motion.button
           className={`${styles.bulk} ${allOn ? styles.bulkOff : ""}`}
           disabled={!scope.length}
+          whileTap={{ scale: 0.9 }}
           onClick={() => {
             sfx.stamp();
             tickAll(scope, !allOn);
           }}
         >
           {allOn ? `✕ ${tr("les", "the")} ${scope.length}` : `✓ ${tr("les", "the")} ${scope.length}`}
-        </button>
+        </motion.button>
       </div>
 
       {hits ? (
         <>
           {!hits.length && <p className={styles.muted}>{tr("Aucun double ne correspond.", "No double matches.")}</p>}
-          <ul className={styles.tiles}>
+          <ul className={styles.cards}>
             {hits.slice(0, HITS).map((i) => (
               <Tile key={`${i.d.key}|${i.d.variant}`} d={i.d} card={i.card} price={i.price} site={site} onSet={setOne} />
             ))}
@@ -230,80 +227,90 @@ export function GivePicker() {
       ) : (
         <>
           {!groups.length && <p className={styles.muted}>{tr("Aucun double ici.", "No double here.")}</p>}
-          {groups.map((g) => {
-            const isOpen = open.has(g.key);
-            const rule = !!rules[g.key];
-            const on = ticked(g.all);
-            const kept = rule ? g.all.filter((i) => i.d.ticked < i.d.extra).length : 0;
-            const state = rule ? (kept ? "some" : "all") : on === 0 ? "none" : full(g.all) ? "all" : "some";
-            const toggle = () =>
-              setOpen((o) => {
-                const n = new Set(o);
-                if (n.has(g.key)) n.delete(g.key);
-                else n.add(g.key);
-                return n;
-              });
-            return (
-              <section key={g.key} className={`${styles.setGroup} ${rule ? styles.setRuled : ""}`}>
-                <div className={styles.setHead}>
-                  <button
-                    className={styles.setOpen}
-                    aria-expanded={isOpen}
-                    onClick={() => {
-                      sfx.riffle();
-                      toggle();
-                    }}
-                  >
-                    {g.set?.logo ? <img src={`${g.set.logo}.png`} alt="" loading="lazy" /> : <span className={styles.noLogo} />}
-                    <span className={styles.setName}>
-                      <span>
-                        {g.set?.name ?? g.key}
-                        {langOfKey(g.key) !== site && <small className={styles.lang}>{langLabel(langOfKey(g.key), site)}</small>}
-                      </span>
-                      <small>
-                        {rule
-                          ? `${tr("tout · les nouveaux suivent ✓", "all · new ones follow ✓")}${kept ? ` · ${kept} ${tr(kept > 1 ? "gardés" : "gardé", "kept")}` : ""}`
-                          : `${filtered ? g.list.length : g.all.length} ${tr("doubles", "doubles")} · ${on ? `${on} ${tr(on > 1 ? "cochés" : "coché", "ticked")}` : tr("aucun coché", "none ticked")}`}
-                      </small>
-                    </span>
-                  </button>
-                  <motion.button
-                    className={`${styles.setAll} ${state === "all" ? styles.stAll : state === "some" ? styles.stSome : ""}`}
-                    whileTap={{ scale: 0.85 }}
-                    aria-pressed={rule}
-                    aria-label={rule ? tr("Ne plus tout échanger", "Stop trading all") : tr("Tout échanger, les nouveaux aussi", "Trade all, new ones too")}
-                    title={tr("tout · les nouveaux suivent", "all · new ones follow")}
-                    onClick={() => {
-                      // the box is the set's rule: on, every double and the ones to come; off, none
-                      if (rule || state === "all") sfx.minus();
-                      else sfx.stamp();
-                      useStore.getState().setTradeRule(g.key, !(rule || state === "all"));
-                    }}
-                  >
-                    {state === "all" ? "✓" : state === "some" ? "–" : ""}
-                  </motion.button>
-                  <motion.button className={styles.caret} animate={{ rotate: isOpen ? 90 : 0 }} onClick={() => (sfx.riffle(), toggle())} aria-hidden tabIndex={-1}>
-                    ▶
-                  </motion.button>
-                </div>
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
-                      <ul className={styles.tiles}>
-                        {g.list.map((i) => (
-                          <Tile key={`${i.d.key}|${i.d.variant}`} d={i.d} card={i.card} price={i.price} site={site} onSet={setOne} />
-                        ))}
-                      </ul>
-                      <p className={styles.hint}>{tr("tap = coché · appui long = combien", "tap = ticked · long press = how many")}</p>
-                    </motion.div>
+          <div className={styles.tiles}>
+            {groups.map((g) => {
+              const rule = !!rules[g.key];
+              const on = ticked(g.all);
+              const kept = rule ? g.all.filter((i) => i.d.ticked < i.d.extra).length : 0;
+              const n = filtered ? g.list.length : g.all.length;
+              return (
+                <motion.button
+                  key={g.key}
+                  className={`${styles.tile} ${rule ? styles.tileRuled : ""}`}
+                  whileTap={{ scale: 0.94 }}
+                  whileHover={{ y: -3 }}
+                  onClick={() => {
+                    sfx.riffle();
+                    setOpen(g.key);
+                  }}
+                >
+                  {rule ? (
+                    <span className={styles.badge}>✓ {tr("tout", "all")}</span>
+                  ) : (
+                    on > 0 && <span className={`${styles.badge} ${styles.badgeStar}`}>✓ {on}</span>
                   )}
-                </AnimatePresence>
-              </section>
-            );
-          })}
+                  {langOfKey(g.key) !== site && <span className={styles.tileLang}>{langLabel(langOfKey(g.key), site)}</span>}
+                  <Ring pct={g.all.length ? on / g.all.length : 0} color={rule ? "#5aa05a" : "#f6c84c"} logo={g.set?.logo} />
+                  <b>{n}</b>
+                  <small>
+                    {rule
+                      ? `${tr("les nouveaux suivent", "new ones follow")}${kept ? ` · ${kept} ${tr("gardés", "kept")}` : ""}`
+                      : `${tr("doubles", "doubles")}${on ? ` · ${on} ✓` : ""}`}
+                  </small>
+                </motion.button>
+              );
+            })}
+          </div>
         </>
       )}
+
+      <AnimatePresence>
+        {cur && (
+          <BottomSheet
+            key={cur.key}
+            logo={cur.set?.logo}
+            title={cur.set?.name ?? cur.key}
+            sub={tr(`${cur.all.length} doubles · ${ticked(cur.all)} cochés`, `${cur.all.length} doubles · ${ticked(cur.all)} ticked`)}
+            onClose={() => setOpen(null)}
+          >
+            <RuleToggle setKey={cur.key} rule={!!rules[cur.key]} />
+            <ul className={styles.cards}>
+              {cur.list.map((i) => (
+                <Tile key={`${i.d.key}|${i.d.variant}`} d={i.d} card={i.card} price={i.price} site={site} onSet={setOne} />
+              ))}
+            </ul>
+            <p className={styles.rule}>{tr("tap = coché · appui long = combien", "tap = ticked · long press = how many")}</p>
+          </BottomSheet>
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+/** A set's rule in its sheet: « tout · les nouveaux suivent », on or off */
+function RuleToggle({ setKey, rule }: { setKey: string; rule: boolean }) {
+  const tr = useT();
+  return (
+    <motion.button
+      className={`${styles.ruleToggle} ${rule ? styles.ruleOn : ""}`}
+      whileTap={{ scale: 0.96 }}
+      aria-pressed={rule}
+      onClick={() => {
+        if (rule) sfx.minus();
+        else sfx.stamp();
+        useStore.getState().setTradeRule(setKey, !rule);
+      }}
+    >
+      <i aria-hidden>{rule ? "✓" : ""}</i>
+      <span>
+        <b>{tr("Tout · les nouveaux suivent", "All · new ones follow")}</b>
+        <small>
+          {rule
+            ? tr("chaque double de cette extension, même ceux à venir", "every double of this set, the ones to come too")
+            : tr("coche tout, et ceux que tu auras plus tard", "tick all, and the ones you'll get later")}
+        </small>
+      </span>
+    </motion.button>
   );
 }
 
@@ -318,9 +325,8 @@ const Tile = memo(
     const lang = langOfKey(d.key);
     const count = () => onSet(d, d.ticked >= d.extra ? 0 : d.ticked + 1);
     return (
-      <li>
+      <li className={`${d.ticked ? styles.cdOn : ""}`}>
         <motion.button
-          className={`${styles.tile} ${d.ticked ? styles.tileOn : ""}`}
           whileTap={{ scale: 0.93 }}
           aria-pressed={d.ticked > 0}
           aria-label={`${card?.name ?? d.key} · ${variantLabel(d.variant)} · ${d.ticked}/${d.extra}`}
@@ -343,14 +349,14 @@ const Tile = memo(
             onSet(d, d.ticked ? 0 : d.extra);
           }}
         >
-          {card?.img ? <img src={`${card.img}/low.webp`} alt="" loading="lazy" draggable={false} /> : <span className={styles.tileNoImg}>{card?.name ?? d.key}</span>}
-          {d.ticked > 0 && <i className={styles.tileCheck}>{d.ticked < d.extra ? `${d.ticked}/${d.extra}` : "✓"}</i>}
-          {d.extra > 1 && d.ticked === d.extra && <i className={styles.tileQty}>×{d.extra}</i>}
-          {lang !== site && <i className={styles.tileLang}>{langLabel(lang, site)}</i>}
-          {d.variant !== "normal" && <i className={styles.tileVariant}>{variantLabel(d.variant)}</i>}
-          {price != null && <i className={styles.tilePrice}>{formatPrice(price)}</i>}
+          {card?.img ? <img src={`${card.img}/low.webp`} alt="" loading="lazy" draggable={false} /> : <span className={styles.cdName}>{card?.name ?? d.key}</span>}
+          {d.ticked > 0 && <em className={styles.check}>{d.ticked < d.extra ? `${d.ticked}/${d.extra}` : "✓"}</em>}
+          {d.extra > 1 && d.ticked === d.extra && <i className={styles.qty}>×{d.extra}</i>}
+          {lang !== site && <i className={styles.cdLang}>{langLabel(lang, site)}</i>}
+          {d.variant !== "normal" && <i className={styles.cdVariant}>{variantLabel(d.variant)}</i>}
+          {price != null && <i className={styles.cdPrice}>{formatPrice(price)}</i>}
         </motion.button>
-        <span className={styles.tileName}>{card?.name ?? d.key}</span>
+        <span className={styles.cdCaption}>{card?.name ?? d.key}</span>
       </li>
     );
   },

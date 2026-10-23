@@ -35,7 +35,7 @@ interface CloudState {
 
 export const useCloud = create<CloudState>(() => ({ ready: false, email: null, firstName: null, status: "off", conflict: null, savedAt: null, error: null, restored: 0 }));
 
-type Synced = Pick<Backup, "profile" | "currency" | "binders" | "collection" | "tradable" | "tradeRules" | "share">;
+type Synced = Pick<Backup, "profile" | "currency" | "binders" | "collection" | "tradable" | "tradeRules" | "stars" | "wantModes" | "share">;
 
 /** Stable JSON: Postgres jsonb does not keep key order. */
 const canon = (x: unknown): string => {
@@ -59,6 +59,8 @@ const fingerprint = (s: Synced) =>
     collection: s.collection,
     tradable: s.tradable && Object.keys(s.tradable).length ? s.tradable : undefined,
     tradeRules: s.tradeRules && Object.keys(s.tradeRules).length ? s.tradeRules : undefined,
+    stars: s.stars && Object.keys(s.stars).length ? s.stars : undefined,
+    wantModes: s.wantModes && Object.keys(s.wantModes).length ? s.wantModes : undefined,
     share: s.share ?? undefined,
   });
 
@@ -209,7 +211,7 @@ export function startCloud() {
   useStore.subscribe((s, prev) => {
     if (
       !user ||
-      (s.collection === prev.collection && s.binders === prev.binders && s.profile === prev.profile && s.currency === prev.currency && s.tradable === prev.tradable && s.tradeRules === prev.tradeRules && s.share === prev.share)
+      (s.collection === prev.collection && s.binders === prev.binders && s.profile === prev.profile && s.currency === prev.currency && s.tradable === prev.tradable && s.tradeRules === prev.tradeRules && s.stars === prev.stars && s.wantModes === prev.wantModes && s.share === prev.share)
     )
       return;
     const status = useCloud.getState().status;
