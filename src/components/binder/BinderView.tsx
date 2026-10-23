@@ -18,7 +18,6 @@ import { Celebration } from "./Celebration";
 import { Inspector } from "./Inspector";
 import { FillSet } from "./FillSet";
 import { ShareSheet } from "./ShareSheet";
-import { ShareList } from "../computer/ShareList";
 import { HoldToRemove, RemoveChoice, StatsPage, type BinderSummary } from "./StatsPage";
 import styles from "./Binder.module.css";
 import { useT } from "@/lib/lang";
@@ -38,11 +37,15 @@ interface Props {
   onRemoved: (keep: boolean) => void;
   /** The binder rises over the room (true), or starts leaving (false). */
   onCover?: (covering: boolean) => void;
+  /** « Ou ta liste d'échange » in the share sheet: the trade binder, this set picked out */
+  onOpenTrade?: (setKey: string) => void;
+  /** the trade binder lies over it: its keys are the trade binder's */
+  overlaid?: boolean;
 }
 
 const SCROLL_GAP = 14; // phone: space between two pages of the column
 
-export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }: Props) {
+export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, onOpenTrade, overlaid }: Props) {
   const t = useT();
   const free = binder.kind === "free";
   /** a wishlist: some pockets hold wanted cards, drawn as ghosts */
@@ -70,8 +73,6 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   const collection = useStore((s) => s.collection);
   /** the "show my binder" sheet (set binders) */
   const [sharing, setSharing] = useState(false);
-  /** « Ma liste d'échange » from the share sheet: the public list, this set picked out */
-  const [listing, setListing] = useState(false);
   /** the grid just changed: the cards are dealt again (not at each page turn) */
   const [dealing, setDealing] = useState(false);
   const lastGrid = useRef(binder.grid);
@@ -338,7 +339,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
   // keyboard + wheel
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (inspect != null || picking != null || sharing || listing) return;
+      if (inspect != null || picking != null || sharing || overlaid) return;
       if ((e.target as HTMLElement)?.tagName === "INPUT") return;
       if (e.key === "ArrowRight") next();
       else if (e.key === "ArrowLeft") prev();
@@ -360,7 +361,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("wheel", onWheel);
     };
-  }, [next, prev, close, inspect, picking, sharing, listing, single]);
+  }, [next, prev, close, inspect, picking, sharing, overlaid, single]);
 
   // swipe
   const swipe = useRef<{ x: number; y: number } | null>(null);
@@ -617,13 +618,15 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover }
             owned={summary.owned}
             value={summary.trend}
             onClose={() => setSharing(false)}
-            onList={() => {
-              setSharing(false);
-              setListing(true);
-            }}
+            onList={
+              onOpenTrade &&
+              (() => {
+                setSharing(false);
+                onOpenTrade(binder.setId!);
+              })
+            }
           />
         )}
-        {listing && binder.setId && <ShareList key="list" focusSet={binder.setId} onClose={() => setListing(false)} />}
       </AnimatePresence>
 
       <motion.div

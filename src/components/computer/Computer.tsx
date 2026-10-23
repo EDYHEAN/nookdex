@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MAX_BINDERS, boxOf, pocketsOf, shelfBinders, wantsOf, wishBinders } from "@/lib/binders";
 import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
@@ -15,7 +15,7 @@ import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
 import { AllCards } from "./AllCards";
 import { ImportPokecardex } from "./ImportPokecardex";
-import { ShareList } from "./ShareList";
+import { ShareListPanel } from "../share/ShareListPanel";
 import { openTrade } from "@/lib/trade";
 import styles from "./Computer.module.css";
 import { langLabel, langOfKey } from "@/lib/cardLang";
@@ -73,11 +73,12 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
   const cards = useSets((s) => s.cards);
   const [tab, setTab] = useState<Tab>(startTab);
   const [toast, setToast] = useState<string | null>(null);
-  /** « Ma liste »: the public list's sheet, over the OS */
-  const [listOpen, setListOpen] = useState(false);
+  /** « Échange » holds the trade mat and « Ma liste » (the trade binder's panel): which one */
+  const [tradeSub, setTradeSub] = useState<"mat" | "list">("mat");
   const openList = () => {
     sfx.pop();
-    setListOpen(true);
+    setTradeSub("list");
+    setTab("trade");
   };
 
   // Every card of the set binders, plus every card owned elsewhere (free binders).
@@ -118,7 +119,7 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (paused || listOpen) return;
+      if (paused) return;
       if ((e.target as HTMLElement)?.tagName === "INPUT") {
         if (e.key === "Escape") (e.target as HTMLInputElement).blur();
         return;
@@ -134,7 +135,7 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, paused, listOpen]);
+  }, [onClose, paused]);
 
   return (
     <motion.div
@@ -183,11 +184,11 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
               </nav>
 
               <main key={tab} className={styles.panel} role="tabpanel">
-                {tab === "home" && <Home entries={entries} onGo={onGoToCard} onOpenBox={onOpenBox} onList={openList} />}
+                {tab === "home" && <Home entries={entries} onGo={onGoToCard} onOpenBox={onOpenBox} />}
                 {tab === "cards" && <AllCards onOpen={onOpenCards} />}
                 {tab === "wish" && <Wishlist entries={entries} onOpen={onOpenBinder} onCopy={copy} say={say} />}
                 {tab === "dupes" && <Dupes entries={entries} onGo={onGoToCard} onCopy={copy} onList={openList} />}
-                {tab === "trade" && <TradeTab />}
+                {tab === "trade" && <TradeTab sub={tradeSub} onSub={setTradeSub} />}
                 {tab === "save" && <Save say={say} focusImport={focusImport} />}
               </main>
             </div>
@@ -196,26 +197,56 @@ export function Computer({ origin, onClose, onGoToCard, onOpenCards, onOpenBinde
           {toast && <div className={styles.toast}>{toast}</div>}
         </div>
       </div>
-      <AnimatePresence>{listOpen && <ShareList key="list" onClose={() => setListOpen(false)} />}</AnimatePresence>
     </motion.div>
   );
 }
 
-/** « Échange »: what the mat does, and the mat itself (it opens at once: there is nothing else to do in this tab) */
-function TradeTab() {
+/**
+ * « Échange »: the trade mat (at a fair: is it fair?) and « Ma liste », the trade binder's own panel (share/ShareListPanel,
+ * the same as the gold binder on the shelf), on paper inside the screen.
+ */
+function TradeTab({ sub, onSub }: { sub: "mat" | "list"; onSub: (s: "mat" | "list") => void }) {
   const tr = useT();
-  useEffect(() => openTrade(), []);
   return (
-    <div className={styles.listTab} style={{ alignItems: "center", justifyContent: "center", textAlign: "center", gap: 16 }}>
-      <p style={{ fontSize: "1.2em", maxWidth: 520 }}>
-        {tr(
-          "En salon ou en brocante : pose ce que tu donnes et ce que tu reçois, le tapis te dit tout de suite si l'échange est équitable.",
-          "At a fair or a meetup: lay what you give and what you get, the mat tells you at once whether the trade is fair.",
-        )}
-      </p>
-      <button className={styles.quit} onClick={() => (sfx.pop(), openTrade())} onPointerEnter={sfx.hover}>
-        ⇄ {tr("Sortir le tapis", "Bring out the mat")}
-      </button>
+    <div className={styles.tradeTab}>
+      <div className={styles.subTabs} role="tablist">
+        {(
+          [
+            ["mat", tr("⇄ Le tapis", "⇄ The mat")],
+            ["list", tr("Ma liste", "My list")],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={sub === id}
+            className={`${styles.btn} ${sub === id ? styles.subOn : ""}`}
+            onClick={() => {
+              sfx.click();
+              onSub(id);
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {sub === "mat" ? (
+        <div className={styles.listTab} style={{ alignItems: "center", justifyContent: "center", textAlign: "center", gap: 16 }}>
+          <p style={{ fontSize: "1.2em", maxWidth: 520 }}>
+            {tr(
+              "En salon ou en brocante : pose ce que tu donnes et ce que tu reçois, le tapis te dit tout de suite si l'échange est équitable.",
+              "At a fair or a meetup: lay what you give and what you get, the mat tells you at once whether the trade is fair.",
+            )}
+          </p>
+          <button className={styles.quit} onClick={() => (sfx.pop(), openTrade())} onPointerEnter={sfx.hover}>
+            ⇄ {tr("Sortir le tapis", "Bring out the mat")}
+          </button>
+        </div>
+      ) : (
+        <div className={styles.listPaper}>
+          <ShareListPanel />
+        </div>
+      )}
     </div>
   );
 }
@@ -232,12 +263,11 @@ function Clock() {
 
 /* ------------------------------------------------------------------ */
 
-function Home({ entries, onGo, onOpenBox, onList }: { entries: Entry[]; onGo: (id: string) => void; onOpenBox: () => void; onList: () => void }) {
+function Home({ entries, onGo, onOpenBox }: { entries: Entry[]; onGo: (id: string) => void; onOpenBox: () => void }) {
   const tr = useT();
   const collection = useStore((s) => s.collection);
   const userBinders = useStore((s) => s.binders);
   const profile = useStore((s) => s.profile);
-  const live = useStore((s) => !!s.share?.slug);
   const sets = useSets((s) => s.sets);
   const cards = useSets((s) => s.cards);
   const t = useTotals();
@@ -287,16 +317,6 @@ function Home({ entries, onGo, onOpenBox, onList }: { entries: Entry[]; onGo: (i
           accent={gain >= 0 ? "green" : "red"}
         />
       </div>
-
-      {/* the public list: what the player is after and what they trade, as a link for their groups */}
-      <motion.button className={styles.listRow} onClick={onList} onPointerEnter={sfx.hover} whileTap={{ scale: 0.97 }}>
-        <b>{tr("Ma liste ↗", "My list ↗")}</b>
-        <span>
-          {live
-            ? tr("● en ligne : ta page « je cherche / j'échange » suit ta collection", "● live: your « wanted / for trade » page follows your collection")
-            : tr("je cherche · j'échange : un lien pour tes groupes Facebook, ton Discord", "wanted · for trade: a link for your Facebook groups, your Discord")}
-        </span>
-      </motion.button>
 
       <section>
         <h2>{profile ? tr(`Classeurs de ${profile.name}`, `${profile.name}'s binders`) : tr("Classeurs", "Binders")}</h2>

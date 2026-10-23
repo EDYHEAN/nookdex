@@ -60,6 +60,8 @@ export interface Backup {
   wallet?: { gold: number; at: number };
   /** The doubles ticked « à échanger » (lib/share): "card key|variant" -> how many */
   tradable?: Record<string, number>;
+  /** The sets whose doubles all go « à échanger », new ones included (lib/share); tradable then holds the exceptions */
+  tradeRules?: Record<string, true>;
   /** The public list (nookdex.com/c/<slug>) and what it shows: rides the save so another device signed in updates it */
   share?: ShareSettings | null;
 }
@@ -121,6 +123,11 @@ interface State {
    * version, the player ticks the ones really up for grabs (Johan, 2026-10-23: nothing listed until ticked).
    */
   tradable: Record<string, number>;
+  /**
+   * « tout · les nouveaux suivent » (Johan, 2026-10-23): a set whose every double is up for trade, the ones to come too.
+   * In such a set,  holds the exceptions the player set by hand (0 = kept), not the ticks.
+   */
+  tradeRules: Record<string, true>;
   share: ShareSettings | null;
   sound: boolean;
   ambient: boolean;
@@ -182,6 +189,8 @@ interface State {
   setTradable: (key: string, variant: Variant, n: number) => void;
   /** The same for many at once (a set's « tout », 1,200 doubles): one change of the store, one save */
   setTradableMany: (items: { key: string; variant: Variant; n: number }[]) => void;
+  /** A set's « tout »: every double of it up for trade, new ones too (on), or none (off). Its exceptions are cleared. */
+  setTradeRule: (setKey: string, on: boolean) => void;
   /** Changes what the public list shows; null forgets it (« Supprimer mon lien »). */
   setShare: (patch: Partial<ShareSettings> | null) => void;
   toggleSound: () => void;
@@ -210,6 +219,7 @@ export const useStore = create<State>()(
       binders: [],
       collection: {},
       tradable: {},
+      tradeRules: {},
       share: null,
       sound: true,
       ambient: false,
@@ -384,26 +394,32 @@ export const useStore = create<State>()(
             // older saves: their purchase prices were typed in the site's currency
             currency: backup.currency ?? siteCurrency(s.lang, s.frenchOk),
             tradable: backup.tradable ?? {},
+            tradeRules: backup.tradeRules ?? {},
             // a save from before the lists keeps the list made on this device
             share: backup.share === undefined ? s.share : backup.share,
           };
         }),
       resetCollection: () => set({ collection: {} }),
-      setTradable: (key, variant, n) =>
-        set((s) => {
-          const tradable = { ...s.tradable };
-          if (n > 0) tradable[`${key}|${variant}`] = Math.round(n);
-          else delete tradable[`${key}|${variant}`];
-          return { tradable };
-        }),
+      setTradable: (key, variant, n) => get().setTradableMany([{ key, variant, n }]),
       setTradableMany: (items) =>
         set((s) => {
           const tradable = { ...s.tradable };
           for (const { key, variant, n } of items) {
-            if (n > 0) tradable[`${key}|${variant}`] = Math.round(n);
-            else delete tradable[`${key}|${variant}`];
+            const k = `${key}|${variant}`;
+            // in a set that follows its rule, a 0 is an exception to keep (the card stays out); elsewhere it's nothing
+            if (n > 0 || s.tradeRules[setIdOfCard(key) ?? ""]) tradable[k] = Math.max(0, Math.round(n));
+            else delete tradable[k];
           }
           return { tradable };
+        }),
+      setTradeRule: (setKey, on) =>
+        set((s) => {
+          const tradeRules = { ...s.tradeRules };
+          if (on) tradeRules[setKey] = true;
+          else delete tradeRules[setKey];
+          // the set starts clean: all of it (the rule), or none of it
+          const tradable = Object.fromEntries(Object.entries(s.tradable).filter(([k]) => setIdOfCard(k.slice(0, k.lastIndexOf("|"))) !== setKey));
+          return { tradeRules, tradable };
         }),
       setShare: (patch) =>
         set((s) => ({
@@ -420,7 +436,7 @@ export const useStore = create<State>()(
       version: 4,
       storage: createJSONStorage(() => localStorage),
       // Ambient music never auto-starts on reload (browsers block autoplay anyway).
-      partialize: (s) => ({ profile: s.profile, offline: s.offline, frenchOk: s.frenchOk, lang: s.lang, currency: s.currency, binders: s.binders, collection: s.collection, tradable: s.tradable, share: s.share, sound: s.sound, lampOn: s.lampOn, daytime: s.daytime }),
+      partialize: (s) => ({ profile: s.profile, offline: s.offline, frenchOk: s.frenchOk, lang: s.lang, currency: s.currency, binders: s.binders, collection: s.collection, tradable: s.tradable, tradeRules: s.tradeRules, share: s.share, sound: s.sound, lampOn: s.lampOn, daytime: s.daytime }),
       migrate: (persisted, version) => {
         let s = persisted as { collection?: Record<string, Copy[]>; binders?: UserBinder[]; lang?: "fr" | "en" | null; frenchOk?: boolean } & Record<
           string,
@@ -453,7 +469,7 @@ export const useStore = create<State>()(
   ),
 );
 
-export function makeBackup(s: Pick<State, "profile" | "currency" | "binders" | "collection"> & Partial<Pick<State, "tradable" | "share">>): Backup {
+export function makeBackup(s: Pick<State, "profile" | "currency" | "binders" | "collection"> & Partial<Pick<State, "tradable" | "tradeRules" | "share">>): Backup {
   return {
     app: "nookdex",
     version: 4,
@@ -463,6 +479,7 @@ export function makeBackup(s: Pick<State, "profile" | "currency" | "binders" | "
     binders: s.binders,
     collection: s.collection,
     tradable: s.tradable ?? {},
+    tradeRules: s.tradeRules ?? {},
     share: s.share ?? null,
     trophies: useTrophyStore.getState().got,
     pension: usePension.getState().levels,

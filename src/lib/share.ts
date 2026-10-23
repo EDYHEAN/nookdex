@@ -1,8 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
 import { create } from "zustand";
 import { pocketsOf, wantsOf, wishBinders } from "./binders";
-import { useSets } from "./catalog";
+import { setIdOfCard, useSets } from "./catalog";
 import { supabase } from "./cloud";
 import { funnelStep } from "./funnel";
 import { currentLang } from "./lang";
@@ -41,17 +42,22 @@ export interface Double {
   variant: Variant;
   extra: number;
   ticked: number;
+  /** its set follows « tout · les nouveaux suivent » */
+  ruled: boolean;
 }
 
 /** The copies beyond the first of each version (a reverse and a plain one are two cards to a master-set collector). */
-export function doublesOf(collection: Record<string, Copy[]>, tradable: Record<string, number>): Double[] {
+export function doublesOf(collection: Record<string, Copy[]>, tradable: Record<string, number>, rules: Record<string, true> = {}): Double[] {
   const out: Double[] = [];
   for (const [key, copies] of Object.entries(collection)) {
+    // a set under « tout · les nouveaux suivent »: every double of it, but for the exceptions set by hand
+    const ruled = !!rules[setIdOfCard(key) ?? ""];
     const qty = new Map<Variant, number>();
     for (const c of copies) qty.set(c.variant, (qty.get(c.variant) ?? 0) + c.qty);
     for (const [variant, n] of qty) {
       if (n < 2) continue;
-      out.push({ key, variant, extra: n - 1, ticked: Math.min(n - 1, tradable[`${key}|${variant}`] ?? 0) });
+      const set = tradable[`${key}|${variant}`];
+      out.push({ key, variant, extra: n - 1, ticked: Math.min(n - 1, set ?? (ruled ? n - 1 : 0)), ruled });
     }
   }
   return out;
@@ -88,7 +94,7 @@ export function shareData(): ShareData | null {
   const wanted = share.want ? wantedOf(s.binders, s.collection, useSets.getState().sets, share.sets) : { keys: [], ready: true };
   if (!wanted.ready) return null;
   const give = share.give
-    ? doublesOf(s.collection, s.tradable)
+    ? doublesOf(s.collection, s.tradable, s.tradeRules)
         .filter((d) => d.ticked > 0)
         .map((d): GiveItem => [d.key, d.variant, d.ticked])
     : [];
@@ -233,7 +239,7 @@ export function startShareSync() {
   started = true;
   useStore.subscribe((s, prev) => {
     if (!s.share?.slug) return;
-    if (s.collection === prev.collection && s.binders === prev.binders && s.tradable === prev.tradable && s.share === prev.share && s.profile === prev.profile) return;
+    if (s.collection === prev.collection && s.binders === prev.binders && s.tradable === prev.tradable && s.tradeRules === prev.tradeRules && s.share === prev.share && s.profile === prev.profile) return;
     schedule();
   });
   useSets.subscribe((s, prev) => {
@@ -244,4 +250,19 @@ export function startShareSync() {
     if (pending) void pushShare();
   });
   if (useStore.getState().share?.slug) schedule();
+}
+
+/**
+ * The trade binder on the shelf (Johan, 2026-10-23): it comes once there is something to put in it, a first double or a
+ * first wished card (or a list already made), and its badge counts the cards « à échanger ».
+ */
+export function useTradeShelf(): { shown: boolean; count: number } {
+  const collection = useStore((s) => s.collection);
+  const tradable = useStore((s) => s.tradable);
+  const rules = useStore((s) => s.tradeRules);
+  const binders = useStore((s) => s.binders);
+  const listed = useStore((s) => !!s.share);
+  const doubles = useMemo(() => doublesOf(collection, tradable, rules), [collection, tradable, rules]);
+  const wished = useMemo(() => wishBinders(binders).some((b) => Object.keys(b.wants ?? {}).length > 0), [binders]);
+  return { shown: listed || wished || doubles.length > 0, count: doubles.filter((d) => d.ticked > 0).length };
 }

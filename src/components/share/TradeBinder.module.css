@@ -1,0 +1,124 @@
+/* The trade binder open: a gold cover round a paper page, over the dimmed room (like a set binder, z-index 50) */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  padding: 20px;
+  background: rgba(20, 12, 30, 0.66);
+}
+
+.cover {
+  position: relative;
+  display: flex;
+  width: min(880px, 100%);
+  height: min(860px, calc(100dvh - 40px));
+  padding: 14px 14px 14px 58px;
+  border: 4px solid #2b2230;
+  border-radius: 16px;
+  background:
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.07) 0 6px, transparent 6px 14px),
+    linear-gradient(160deg, #f6cf5c, #d9a521 45%, #b9821a);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 240, 190, 0.45),
+    12px 14px 0 rgba(10, 6, 16, 0.5);
+}
+
+.rings {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.rings i {
+  display: block;
+  width: 30px;
+  height: 22px;
+  border: 4px solid #2b2230;
+  border-radius: 12px;
+  background: linear-gradient(#f2f2f2, #9a96a0);
+}
+
+.page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 14px 16px 12px;
+  border: 3px solid #2b2230;
+  border-radius: 10px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.head h2 {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: clamp(13px, 3.6vw, 17px);
+  line-height: 1.4;
+  color: var(--ink-red);
+}
+
+.close {
+  flex: none;
+  padding: 4px 10px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: #fffaf0;
+  color: var(--ink);
+  font-family: var(--font-vt), monospace;
+  font-size: 19px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.close kbd {
+  margin-left: 4px;
+  padding: 0 4px;
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  font: inherit;
+  font-size: 15px;
+}
+
+/* a phone: the whole screen, the cover a gold edge */
+@media (max-width: 640px) {
+  .backdrop {
+    padding: 0;
+  }
+
+  .cover {
+    width: 100%;
+    height: 100dvh;
+    padding: 8px 6px 6px;
+    border-width: 0;
+    border-radius: 0;
+  }
+
+  .rings {
+    display: none;
+  }
+
+  .page {
+    padding: 10px 10px 8px;
+  }
+
+  .close kbd {
+    display: none;
+  }
+}

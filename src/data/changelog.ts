@@ -30,8 +30,8 @@ export const CHANGELOG: Release[] = [
       { fr: "Kecleon reste abordable à toutes les vagues, et un départ de la vague 25 ou plus donne de quoi acheter.", en: "Kecleon stays affordable at every wave, and a start from wave 25 or later brings gold to spend." },
       { fr: "Le menu pause reste à l'écran, même avec un gros build.", en: "The pause menu stays on screen, even with a big build." },
       {
-        fr: "Ma liste ↗ (NookDex OS) : un lien « je cherche / j'échange » pour tes groupes, toujours à jour.",
-        en: "My list ↗ (NookDex OS): a « wanted / for trade » link for your groups, always up to date.",
+        fr: "Le classeur d'échange, en or sur l'étagère : ce que tu cherches et tes doubles, en un lien toujours à jour.",
+        en: "The trade binder, in gold on the shelf: what you're after and your doubles, in one link always up to date.",
       },
     ],
   },
