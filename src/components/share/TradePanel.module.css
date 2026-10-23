@@ -140,6 +140,12 @@
   background: #fff;
 }
 
+/* « Copié ✓ » a moment after a copy */
+.btnDone {
+  background: var(--green);
+  color: #fff;
+}
+
 /* ⚙: the page's settings */
 .gear {
   position: absolute;
