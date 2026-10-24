@@ -13,6 +13,23 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.17",
+    date: "2026-10-24",
+    title: { fr: "Le classeur d'échange", en: "The trade binder" },
+    items: [
+      {
+        fr: "Le classeur d'échange, en or sur l'étagère : ce que tu cherches et tes doubles, en un lien toujours à jour.",
+        en: "The trade binder, in gold on the shelf: what you're after and your doubles, in one link always up to date.",
+      },
+      { fr: "☆ « Je la cherche » sur chaque carte : elle rejoint ta liste en un tap.", en: "☆ « I'm after it » on every card: on your list in one tap." },
+      { fr: "Du courrier sur le bureau quand tes cartes ont bougé depuis ta dernière visite.", en: "Mail on the desk when your cards have moved since your last visit." },
+      { fr: "📬 Le courrier du lundi par e-mail, si tu le veux : NookDex OS → Sauvegarde.", en: "📬 The Monday mail by e-mail, if you want it: NookDex OS → Save." },
+      { fr: "Un onglet « Marché » dans le carnet : les cartes qui montent et qui chutent cette semaine.", en: "A « Market » tab in the notebook: the cards rising and falling this week." },
+      { fr: "Un départ plus léger : une visite en 3 étapes, et plus d'écran « Appuie pour entrer » quand tu reviens.", en: "A lighter start: a 3-step tour, and no more « Press to enter » when you come back." },
+      { fr: "Le bureau s'ouvre plus vite sur téléphone.", en: "The desk opens faster on a phone." },
+    ],
+  },
+  {
     version: "0.16",
     date: "2026-10-20",
     title: { fr: "Nook Survivors : jusqu'à 300", en: "Nook Survivors: on to 300" },
@@ -29,13 +46,6 @@ export const CHANGELOG: Release[] = [
       { fr: "Pension : rangs 3, 4 et 5 (vagues 150, 200, 250), chacun sa couleur, et des objets : Charme Chroma, palettes.", en: "Pension: ranks 3, 4 and 5 (waves 150, 200, 250), each in its colour, and objects: Shiny Charm, palettes." },
       { fr: "Kecleon reste abordable à toutes les vagues, et un départ de la vague 25 ou plus donne de quoi acheter.", en: "Kecleon stays affordable at every wave, and a start from wave 25 or later brings gold to spend." },
       { fr: "Le menu pause reste à l'écran, même avec un gros build.", en: "The pause menu stays on screen, even with a big build." },
-      {
-        fr: "Le classeur d'échange, en or sur l'étagère : ce que tu cherches et tes doubles, en un lien toujours à jour.",
-        en: "The trade binder, in gold on the shelf: what you're after and your doubles, in one link always up to date.",
-      },
-      { fr: "Un départ plus léger : une visite en 3 étapes, et plus d'écran « Appuie pour entrer » quand tu reviens.", en: "A lighter start: a 3-step tour, and no more « Press to enter » when you come back." },
-      { fr: "Du courrier sur le bureau quand tes cartes ont bougé depuis ta dernière visite.", en: "Mail on the desk when your cards have moved since your last visit." },
-      { fr: "Un onglet « Marché » dans le carnet : les cartes qui montent et qui chutent cette semaine.", en: "A « Market » tab in the notebook: the cards rising and falling this week." },
     ],
   },
   {
