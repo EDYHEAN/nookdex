@@ -10,6 +10,7 @@ const TABS = [
   { href: ["/a-propos", "/a-propos"], label: ["À propos", "About"] },
   { href: ["/extensions", "/en/sets"], label: ["Extensions", "Sets"] },
   { href: ["/calendrier-des-sorties", "/en/release-calendar"], label: ["Sorties", "Releases"] },
+  { href: ["/marche", "/en/market"], label: ["Marché", "Market"] },
   // the sealed products on amazon.fr (affiliate): French only
   { href: ["/invitations-amazon", ""], label: ["Invitations", ""] },
   { href: ["/blog", "/blog"], label: ["Blog", "Blog"] },

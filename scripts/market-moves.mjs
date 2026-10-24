@@ -4,15 +4,20 @@
 //   node scripts/market-moves.mjs        run by the prices Action, after price-history.mjs
 //
 // Output: public/market/<fr|en|ja>.json =
-//   { updated, days, currency, floor, up7: [Move…], down7: […], up30: […], down30: […] }
-//   Move = { id, name, num, set, setName, img, price, m7, d7, m30?, d30? }   (m: % move, d: the move in the currency)
+//   { updated, days, currency, floor, up7: [Move…], down7: […], up30: […], down30: […], recent: { up7, down7, up30, down30 } }
+//   Move = { id, name, num, set, recent, setName, img, price, m7, d7, m30?, d30? }   (m: % move, d: the move in the currency)
 // Only cards worth the floor or more today (1 € or $1: a card going from 0,03 € to 0,06 € isn't news), with a price on
-// enough of the days. 30-day moves only once the history is that long. No per-card map: the room's « courrier »
+// enough of the days. `recent`: the same lists for the current series only (me, sv, swsh): an old Wizards card sold a few
+// times a month jumps +200 % on one sale and filled the overall lists (2026-10-24), the market page leads with these.
+// The overall lists stay for the posts.
+// 30-day moves only once the history is that long. No per-card map: the room's « courrier »
 // compares the player's own cards with what they were worth at their last visit (lib/courrier), it needs nothing here.
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
 const TOP = 40;
+/** the current series (the binder series a player collects today): JCC Méga-Évolution, Écarlate et Violet, Épée et Bouclier */
+const RECENT = new Set(["me", "sv", "swsh", "M", "SV", "S"]);
 /** the price a card must have today to be listed (in its market's currency) */
 const FLOOR = 1;
 /** and back then: a card new on the market (a few cents on day one) would rise thousands of percent */
@@ -73,6 +78,7 @@ for (const lang of ["fr", "en", "ja"]) {
         name: card.name,
         num: card.num,
         set: set.id,
+        recent: RECENT.has(set.serie),
         setName: set.name,
         img: card.img || null,
         price: row[last],
@@ -82,11 +88,12 @@ for (const lang of ["fr", "en", "ja"]) {
       });
     }
   }
-  const top = (key, dir) =>
-    moves
+  const top = (key, dir, list = moves) =>
+    list
       .filter((m) => m[key] != null && (dir > 0 ? m[key] > 0 : m[key] < 0))
       .sort((a, b) => dir * (b[key] - a[key]))
       .slice(0, TOP);
+  const recent = moves.filter((m) => m.recent);
   const out = {
     updated,
     days: span,
@@ -96,6 +103,7 @@ for (const lang of ["fr", "en", "ja"]) {
     down7: top("m7", -1),
     up30: top("m30", 1),
     down30: top("m30", -1),
+    recent: { up7: top("m7", 1, recent), down7: top("m7", -1, recent), up30: top("m30", 1, recent), down30: top("m30", -1, recent) },
   };
   await mkdir("public/market", { recursive: true });
   await writeFile(`public/market/${lang}.json`, JSON.stringify(out));

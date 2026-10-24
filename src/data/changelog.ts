@@ -35,6 +35,7 @@ export const CHANGELOG: Release[] = [
       },
       { fr: "Un départ plus léger : une visite en 3 étapes, et plus d'écran « Appuie pour entrer » quand tu reviens.", en: "A lighter start: a 3-step tour, and no more « Press to enter » when you come back." },
       { fr: "Du courrier sur le bureau quand tes cartes ont bougé depuis ta dernière visite.", en: "Mail on the desk when your cards have moved since your last visit." },
+      { fr: "Un onglet « Marché » dans le carnet : les cartes qui montent et qui chutent cette semaine.", en: "A « Market » tab in the notebook: the cards rising and falling this week." },
     ],
   },
   {

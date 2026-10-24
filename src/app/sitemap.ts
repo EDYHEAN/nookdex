@@ -27,6 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const home = { languages: { fr: SITE_URL, en: `${SITE_URL}/en` } };
   const calendar = { languages: { fr: `${SITE_URL}/calendrier-des-sorties`, en: `${SITE_URL}/en/release-calendar` } };
   const sets = { languages: { fr: `${SITE_URL}/extensions`, en: `${SITE_URL}/en/sets` } };
+  const market = { languages: { fr: `${SITE_URL}/marche`, en: `${SITE_URL}/en/market` } };
   return [
     { url: SITE_URL, lastModified: prices, changeFrequency: "daily", priority: 1, alternates: home },
     { url: `${SITE_URL}/en`, lastModified: prices, changeFrequency: "daily", priority: 1, alternates: home },
@@ -36,6 +37,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // the calendar moves with each announcement (the blog routine)
     { url: `${SITE_URL}/calendrier-des-sorties`, changeFrequency: "weekly", priority: 0.8, alternates: calendar },
     { url: `${SITE_URL}/en/release-calendar`, changeFrequency: "weekly", priority: 0.8, alternates: calendar },
+    // the week's risers and fallers, new every day with the prices (public/market)
+    { url: `${SITE_URL}/marche`, lastModified: prices, changeFrequency: "daily", priority: 0.7, alternates: market },
+    { url: `${SITE_URL}/en/market`, lastModified: prices, changeFrequency: "daily", priority: 0.7, alternates: market },
     // the sealed products on amazon.fr, kept up to date with each release
     { url: `${SITE_URL}/invitations-amazon`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITE_URL}/a-propos`, changeFrequency: "monthly", priority: 0.6 },
