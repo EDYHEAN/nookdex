@@ -58,12 +58,14 @@ export function Courrier({
   /** on the desk */
   const [envelope, setEnvelope] = useState<Letter | null>(null);
   const [open, setOpen] = useState(false);
+  /** a letter put away: no other one until the page loads again (with ?courrier, it was written anew at once, in a loop) */
+  const [done, setDone] = useState(false);
   // dev: ?courrier writes a letter whatever the day (cards a little off today's prices)
   const [force] = useState(() => process.env.NODE_ENV !== "production" && /[?&]courrier\b/.test(window.location.search));
 
   // once the player's cards are loaded: the letter since the last visit, or the first snapshot
   useEffect(() => {
-    if (!profile || pending || envelope) return;
+    if (!profile || pending || envelope || done) return;
     const snap = readSnap();
     // the first snapshot, once there are cards to compare (a newcomer's empty one would compare nothing for weeks)
     if (!force && (!snap || !Object.keys(snap.owned).length)) {
@@ -87,7 +89,7 @@ export function Courrier({
     // (the letter is written from what's loaded: a set file coming later doesn't change it)
     const t = setTimeout(() => setPending(letter), 0);
     return () => clearTimeout(t);
-  }, [profile, cards, collection, pending, envelope, force, lang]);
+  }, [profile, cards, collection, pending, envelope, done, force, lang]);
 
   useWantAsk("courrier", !!pending && !envelope);
   useEffect(() => {
@@ -111,7 +113,10 @@ export function Courrier({
     if (s) saveSnap(s);
   };
   const putAway = () => {
-    if (envelope) pinLetter(envelope);
+    if (envelope) {
+      pinLetter(envelope);
+      setDone(true);
+    }
     setEnvelope(null);
     setPending(null);
     setOpen(false);
