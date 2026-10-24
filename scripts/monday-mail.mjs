@@ -136,7 +136,8 @@ const money = (n, cur, lang) =>
     ? `$${Math.abs(n).toFixed(2)}`
     : `${Math.abs(n).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${lang === "fr" ? " " : " "}€`;
 const signed = (n) => (n > 0.004 ? "+" : n < -0.004 ? "−" : "");
-const pctText = (p, lang) => `${signed(p)}${Math.abs(p).toLocaleString(lang === "fr" ? "fr-FR" : "en-US", { maximumFractionDigits: Math.abs(p) < 10 ? 1 : 0 })}${lang === "fr" ? " " : ""}%`;
+// (under 0,05 %: « 0 % », not « −0 % »)
+const pctText = (p, lang) => `${Math.abs(p) < 0.05 ? "" : signed(p)}${Math.abs(Math.abs(p) < 0.05 ? 0 : p).toLocaleString(lang === "fr" ? "fr-FR" : "en-US", { maximumFractionDigits: Math.abs(p) < 10 ? 1 : 0 })}${lang === "fr" ? " " : ""}%`;
 // e-mail clients and webp: Outlook shows none; TCGdex has a png of each scan, ours (/scans) too
 const scan = (img) => (img ? `${img}/low.png` : null);
 
