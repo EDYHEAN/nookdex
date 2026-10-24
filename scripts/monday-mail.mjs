@@ -163,10 +163,16 @@ function mailOf(week, { lang, name, token }) {
     : t("Ta collec cette semaine", "Your collection this week");
   const row = (cards, sub) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>${cards.map((c) => cardCell(c, lang, sub(c))).join("")}</tr></table>`;
   const html = `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(subject)}</title></head>
-<body style="margin:0;padding:0;background:#2b2230">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#2b2230"><tr><td align="center" style="padding:24px 12px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#f4ecdc;border-radius:12px;border:4px solid #1a141e">
-<tr><td style="padding:22px 22px 6px">
+<body style="margin:0;padding:0;background:#221c36">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#221c36"><tr><td align="center" style="padding:32px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px">
+<tr><td align="center" style="padding:0;line-height:0"><div style="width:110px;height:22px;margin:0 auto -11px;background:#f3d98f;opacity:0.9"></div></td></tr>
+<tr><td style="background:#fdf8f1;border:3px solid #2b2230;border-radius:8px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<tr><td align="center" style="padding:26px 22px 0">
+  <a href="${desk}"><img src="${SITE}/email/logo.jpg" width="260" alt="NookDex" style="display:block;width:100%;max-width:260px;height:auto;border:0"></a>
+</td></tr>
+<tr><td style="padding:18px 22px 6px">
   <div style="font:bold 13px Courier New,monospace;letter-spacing:1px;color:#a8701a">✉ ${t("LE COURRIER DU LUNDI", "THE MONDAY MAIL")}</div>
   <h1 style="margin:8px 0 4px;font:bold 22px Courier New,monospace;color:#b8433d">${t(`Ta collec cette semaine${name ? `, ${esc(name)}` : ""}`, `Your collection this week${name ? `, ${esc(name)}` : ""}`)}</h1>
 </td></tr>
@@ -180,13 +186,22 @@ ${week.top.length ? `<tr><td style="padding:14px 16px 0"><div style="padding:0 6
 ${week.cheaper.length ? `<tr><td style="padding:14px 16px 0"><div style="padding:0 6px;font:bold 15px Courier New,monospace;color:#2b2230">${t("Ce que tu cherches a baissé", "What you're after got cheaper")}</div>${row(week.cheaper, (c) => `${money(c.now, c.currency, lang)} · ${c.setName}`)}</td></tr>` : ""}
 ${week.release ? `<tr><td style="padding:14px 22px 0"><div style="background:#fff3b0;border-radius:8px;padding:10px 14px;font:14px Arial,sans-serif;color:#2b2230"><b style="font-family:Courier New,monospace">J-${week.release.days}</b> · ${esc(week.release.name)} ${t("sort bientôt", "is coming")}</div></td></tr>` : ""}
 <tr><td align="center" style="padding:22px">
-  <a href="${desk}" style="display:inline-block;background:#ffd35a;color:#2b2230;border:3px solid #2b2230;border-radius:8px;padding:12px 22px;font:bold 15px Courier New,monospace;text-decoration:none">${t("Ouvrir mon bureau ▶", "Open my desk ▶")}</a>
+  <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:#ffd35a;border:3px solid #2b2230;border-radius:6px;box-shadow:5px 5px 0 #2b2230">
+    <a href="${desk}" style="display:inline-block;padding:14px 22px;font:bold 16px Courier New,monospace;color:#2b2230;text-decoration:none">${t("Ouvrir mon bureau ▶", "Open my desk ▶")}</a>
+  </td></tr></table>
+</td></tr>
+<tr><td style="padding:0 22px 18px">
+  <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+    <td valign="middle" style="padding-right:12px"><img src="${SITE}/email/warwick.png" width="56" height="56" alt="Warwick" style="display:block;width:56px;height:56px;border-radius:50%;border:2px solid #2b2230"></td>
+    <td valign="middle" style="font:14px Courier New,monospace;color:#2b2230;line-height:1.4">${t("Miaou ! J'ai gardé un œil sur tes cartes cette semaine. À lundi prochain.", "Meow! I kept an eye on your cards this week. See you next Monday.")}<br><span style="color:#6f6068">— Warwick, ${t("le chat du bureau", "the desk's cat")}</span></td>
+  </tr></table>
 </td></tr>
 <tr><td style="padding:0 22px 20px;font:12px Arial,sans-serif;color:#6f6068;line-height:1.5">
   ${t("Valeurs ≈ d'après la tendance Cardmarket (cartes FR et JAP) et TCGplayer (EN) de tes classeurs d'extension, il y a 7 jours et aujourd'hui.", "Values ≈ from the TCGplayer (EN cards) and Cardmarket (FR, JP) trend of your set binders' cards, 7 days ago and today.")}
   ${unsub ? `<br>${t("Tu reçois ce mail parce que tu l'as demandé sur NookDex.", "You get this mail because you asked for it on NookDex.")} <a href="${unsub}" style="color:#6f6068">${t("Ne plus le recevoir", "Unsubscribe")}</a>` : `<br>${t("(Envoi de test : pas de lien de désinscription.)", "(Test send: no unsubscribe link.)")}`}
 </td></tr>
-</table></td></tr></table></body></html>`;
+</table></td></tr></table>
+</td></tr></table></body></html>`;
   return { subject, html, unsub };
 }
 
