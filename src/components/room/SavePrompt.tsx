@@ -7,6 +7,7 @@ import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useT } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
 import { claimAsk, useWantAsk } from "@/lib/calm";
+import { wishMailOptin } from "@/lib/mailOptin";
 import { useStore } from "@/lib/store";
 import { useTrophyQueue } from "@/lib/trophyStore";
 import styles from "./SavePrompt.module.css";
@@ -72,6 +73,7 @@ export function SavePrompt({ compact, calm }: { compact: boolean; calm: boolean 
   const [sent, setSent] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const [mailWish, setMailWish] = useState(false);
 
   // it would ask this visit (not snoozed, no account, enough cards): the asks after it (the cat…) hold back meanwhile,
   // while it waits for the calm room and the trophy toasts (lib/calm)
@@ -144,6 +146,19 @@ export function SavePrompt({ compact, calm }: { compact: boolean; calm: boolean 
           `${owned} cards already! Make an account to keep them and find them on any device.`,
         )}
       </p>
+      {/* the Monday mail, asked here too: never ticked for them, written once the account exists (lib/mailOptin) */}
+      <label className={styles.mailWish}>
+        <input
+          type="checkbox"
+          checked={mailWish}
+          onChange={(e) => {
+            sfx.click();
+            setMailWish(e.target.checked);
+            wishMailOptin(e.target.checked);
+          }}
+        />
+        <span>{t("📬 Et chaque lundi, la valeur de ma collec par e-mail", "📬 And every Monday, my collection's value by e-mail")}</span>
+      </label>
       <div className={styles.actions}>
         {mail ? (
           <form

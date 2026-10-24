@@ -1255,3 +1255,54 @@
   height: 18px;
   accent-color: #8dffc0;
 }
+
+/* « Le courrier du lundi » (lib/mailOptin): a big tick box, the player's yes */
+.mailToggle {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  color: #8dffc0;
+  background: rgba(141, 255, 192, 0.06);
+  box-shadow: inset 0 0 0 2px rgba(141, 255, 192, 0.35);
+  cursor: pointer;
+  transition: transform 0.12s, background 0.12s;
+}
+.mailToggle:hover {
+  transform: translateY(-2px);
+  background: rgba(141, 255, 192, 0.12);
+}
+.mailToggle span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mailToggle b {
+  font-weight: normal;
+  color: #ffd35a;
+}
+.mailToggle small {
+  opacity: 0.75;
+  font-size: 0.85em;
+}
+.mailBox {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: #06120e;
+  box-shadow: 0 0 0 2px #06120e, 0 0 0 4px #8dffc0;
+}
+.mailOn .mailBox {
+  background: #8dffc0;
+  animation: mailPop 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+@keyframes mailPop {
+  from {
+    transform: scale(0.6);
+  }
+}
