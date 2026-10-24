@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { MAX_BINDERS, boxOf, pocketsOf, shelfBinders, wantsOf, wishBinders } from "@/lib/binders";
 import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { resolveConflict, signIn, signInWithGoogle, signOut, useCloud } from "@/lib/cloud";
+import { setMailOptin, useMailOptin } from "@/lib/mailOptin";
 import { variantLabel, copiesTotals, formatMoney, formatPrice, playerCurrency, priceOf, setStats, unitPrice } from "@/lib/price";
 import { OS_NAME, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
@@ -844,6 +845,41 @@ function LangSwitch() {
   );
 }
 
+/** « Le courrier du lundi » by e-mail: a yes the player gives (lib/mailOptin), off until then */
+function MondayMail({ say }: { say: (m: string) => void }) {
+  const tr = useT();
+  const { on, busy } = useMailOptin();
+  if (on === null) return null;
+  return (
+    <button
+      className={`${styles.mailToggle} ${on ? styles.mailOn : ""}`}
+      role="switch"
+      aria-checked={on}
+      disabled={busy}
+      onClick={() => {
+        sfx.click();
+        void setMailOptin(!on).then((ok) => {
+          if (!ok) {
+            sfx.locked();
+            say(tr("pas pu enregistrer, réessaie", "couldn't save that, try again"));
+            return;
+          }
+          if (!on) sfx.coin();
+          say(on ? tr("plus de courrier du lundi", "no more Monday mail") : tr("📬 rendez-vous lundi !", "📬 see you on Monday!"));
+        });
+      }}
+    >
+      <span className={styles.mailBox} aria-hidden>
+        {on ? "✓" : ""}
+      </span>
+      <span>
+        <b>📬 {tr("Le courrier du lundi", "The Monday mail")}</b>
+        <small>{tr("chaque lundi par e-mail : ta collec cette semaine, tes cartes qui bougent, ta wishlist en baisse", "every Monday by e-mail: your collection's week, your cards that move, your wishlist going down")}</small>
+      </span>
+    </button>
+  );
+}
+
 function Account({ say }: { say: (m: string) => void }) {
   const tr = useT();
   const { email, status, conflict, error } = useCloud();
@@ -962,6 +998,7 @@ function Account({ say }: { say: (m: string) => void }) {
           </div>
         </>
       )}
+      <MondayMail say={say} />
       <div className={styles.saveActions}>
         <button
           className={styles.btnBig}

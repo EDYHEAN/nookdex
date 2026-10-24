@@ -16,6 +16,7 @@ import { useTrophyWatch } from "@/lib/useTrophyWatch";
 import { funnelStep, funnelVisit, watchAmazonClicks } from "@/lib/funnel";
 import { claimAsk, useAskFree, useValued, useWantAsk } from "@/lib/calm";
 import { startShareSync } from "@/lib/share";
+import { startMailOptin } from "@/lib/mailOptin";
 import { useTrophyQueue } from "@/lib/trophyStore";
 import { closeTrade, useTradeMat } from "@/lib/trade";
 import { isCompact, useViewport } from "@/lib/useViewport";
@@ -229,6 +230,7 @@ export function App() {
   useEffect(startCloud, []);
   // the public list (lib/share) follows the collection
   useEffect(startShareSync, []);
+  useEffect(startMailOptin, []);
 
   // No loader after signing in or paying: the cards of the binders load in the background instead.
   useEffect(() => {

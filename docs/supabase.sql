@@ -795,3 +795,70 @@ end $$;
 revoke all on function public.funnel_ping(text, text, text, text, text) from public;
 grant execute on function public.funnel_ping(text, text, text, text, text) to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- The Monday mail (2026-10-24, scripts/monday-mail.mjs): « ta collec cette semaine », to the players who asked for it.
+-- A row = a yes (NookDex OS → Sauvegarde, or the account card's box): the player adds and removes their own (RLS);
+-- `token` makes the one-click unsubscribe link (/api/unsubscribe), which needs no sign-in.
+create table if not exists public.mail_optin (
+  user_id    uuid primary key references auth.users(id) on delete cascade,
+  lang       text not null default 'fr' check (lang in ('fr', 'en')),
+  token      uuid not null default gen_random_uuid() unique,
+  created_at timestamptz not null default now(),
+  last_sent  timestamptz
+);
+alter table public.mail_optin enable row level security;
+drop policy if exists "own optin: read"   on public.mail_optin;
+drop policy if exists "own optin: insert" on public.mail_optin;
+drop policy if exists "own optin: update" on public.mail_optin;
+drop policy if exists "own optin: delete" on public.mail_optin;
+create policy "own optin: read"   on public.mail_optin for select using (auth.uid() = user_id);
+create policy "own optin: insert" on public.mail_optin for insert with check (auth.uid() = user_id);
+create policy "own optin: update" on public.mail_optin for update using (auth.uid() = user_id);
+create policy "own optin: delete" on public.mail_optin for delete using (auth.uid() = user_id);
+grant select, insert, update, delete on table public.mail_optin to authenticated;
+
+-- The unsubscribe link: its token alone, no sign-in
+create or replace function public.mail_unsubscribe(p_token uuid)
+returns boolean
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  with gone as (delete from public.mail_optin where token = p_token returning 1)
+  select exists (select 1 from gone)
+$$;
+revoke all on function public.mail_unsubscribe(uuid) from public;
+grant execute on function public.mail_unsubscribe(uuid) to anon, authenticated;
+
+-- Who gets it, with their e-mail and save: the Monday Action only (service role key, a GitHub secret).
+-- p_email: the test run, that one account whether it said yes or not (its token then null: no unsubscribe link).
+create or replace function public.mail_recipients(p_email text default null)
+returns table (user_id uuid, email text, lang text, token uuid, data jsonb)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select u.id, u.email::text, coalesce(o.lang, 'fr'), o.token, s.data
+  from auth.users u
+  join public.saves s on s.user_id = u.id
+  left join public.mail_optin o on o.user_id = u.id
+  where case when p_email is null then o.user_id is not null else lower(u.email) = lower(p_email) end
+$$;
+revoke all on function public.mail_recipients(text) from public, anon, authenticated;
+grant execute on function public.mail_recipients(text) to service_role;
+
+-- Marked sent by the Action (service role)
+create or replace function public.mail_sent(p_user uuid)
+returns void
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  update public.mail_optin set last_sent = now() where user_id = p_user
+$$;
+revoke all on function public.mail_sent(uuid) from public, anon, authenticated;
+grant execute on function public.mail_sent(uuid) to service_role;
+notify pgrst, 'reload schema';

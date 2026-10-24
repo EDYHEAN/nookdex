@@ -1,0 +1,54 @@
+# Le courrier du lundi (scripts/monday-mail.mjs) : « ta collec cette semaine » par e-mail, aux joueurs qui l'ont demandé
+# (NookDex OS → Sauvegarde). Rien ne part sans eux : pas de case cochée pour eux, un lien de désinscription dans chaque mail.
+# Secrets : SUPABASE_SERVICE_ROLE_KEY (lit les inscrits, mail_recipients()), BREVO_API_KEY (la même clé que le site).
+#
+# - Le lundi (cron) : n'envoie que si la variable du dépôt MONDAY_MAIL_LIVE vaut « true » (Settings → Variables).
+# - À la main (« Run workflow ») : mode « test » = le mail de ce compte-là seulement, à cette adresse, inscrit ou non ;
+#   mode « live » = tout le monde, comme le lundi.
+name: Courrier du lundi
+
+on:
+  schedule:
+    # GitHub décale les tâches planifiées de quelques heures : le matin quand même
+    - cron: "30 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "test (une seule adresse) ou live (tous les inscrits)"
+        type: choice
+        options: [test, live]
+        default: test
+      to:
+        description: "Mode test : l'e-mail de ton compte NookDex (le mail y part, fait de ta collection)"
+        required: false
+
+concurrency:
+  group: monday-mail
+  cancel-in-progress: false
+
+jobs:
+  mail:
+    name: Envoyer le courrier
+    if: github.event_name == 'workflow_dispatch' || vars.MONDAY_MAIL_LIVE == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Envoyer
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          MODE: ${{ github.event_name == 'schedule' && 'live' || inputs.mode }}
+          TO: ${{ inputs.to }}
+        run: |
+          if [ "$MODE" = "live" ]; then
+            node scripts/monday-mail.mjs --live
+          else
+            if [ -z "$TO" ]; then echo "Mode test : indique l'e-mail de ton compte (champ « to »)"; exit 1; fi
+            node scripts/monday-mail.mjs --test "$TO"
+          fi

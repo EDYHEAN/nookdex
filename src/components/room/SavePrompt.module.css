@@ -147,3 +147,22 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* the Monday mail's box (lib/mailOptin): off unless the player ticks it */
+.mailWish {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin: -4px 0 14px;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+.mailWish input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: #3d8b2f;
+  cursor: pointer;
+}

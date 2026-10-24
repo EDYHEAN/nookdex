@@ -46,6 +46,11 @@ function Fr() {
         collection. « Supprimer mon lien » l&apos;efface aussitôt ; faite sans compte, elle s&apos;efface seule après 6 mois sans mise à jour.
       </p>
       <p>
+        <b>Le courrier du lundi.</b> Seulement si tu le demandes (avec un compte) : chaque lundi, un e-mail sur ta collection, calculé à
+        partir de ta sauvegarde en ligne, envoyé par Brevo. On garde ta réponse et la date du dernier envoi. Chaque e-mail a un lien pour ne
+        plus le recevoir, et l&apos;interrupteur de NookDex OS → Sauvegarde le coupe aussi.
+      </p>
+      <p>
         <b>Formulaire de contact.</b> Si tu nous écris : ton e-mail, le sujet et ton message.
       </p>
       <p>
@@ -181,6 +186,11 @@ function En() {
         <b>Your public list.</b> If you make « My list » (wanted / for trade): your nickname, the cards it shows and when it was last updated,
         on a page anyone with the link can see. Not your e-mail, nor your name, nor your collection&apos;s value. « Delete my link » erases it at
         once; made without an account, it erases itself after 6 months without an update.
+      </p>
+      <p>
+        <b>The Monday mail.</b> Only if you ask for it (with an account): every Monday, an e-mail about your collection, worked out from your
+        online save, sent through Brevo. We keep your answer and when the last one was sent. Each e-mail has a link to stop it, and the
+        switch in NookDex OS → Save turns it off too.
       </p>
       <p>
         <b>Contact form.</b> If you write to us: your e-mail, the subject and your message.
