@@ -21,6 +21,7 @@ export function LoaderStill() {
           srcSet={logoSrcSet}
           sizes={LOGO_IMG_SIZES}
           fetchPriority="high"
+          data-logo
           alt={SITE_NAME}
           draggable={false}
         />
