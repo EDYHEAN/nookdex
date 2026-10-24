@@ -109,10 +109,10 @@ function buildSteps(en: boolean, start: number): Step[] {
       target: ["fill-set"],
       text: t(
         <>
-          ✓ Tu as <b>tout le set</b>, ou presque ? <b>J&apos;ai tout</b> coche chaque carte d&apos;un coup, et tu retires celles qui manquent.
+          ✓ Tu as <b>tout le set</b> ? Un seul tap.
         </>,
         <>
-          ✓ Got <b>the whole set</b>, or nearly? <b>Got &apos;em all</b> ticks every card at once, then untick the missing ones.
+          ✓ Got <b>the whole set</b>? One tap.
         </>,
       ),
       skip: () => !$('[data-tour="fill-set"]'),

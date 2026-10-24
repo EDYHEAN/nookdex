@@ -632,10 +632,12 @@
 }
 
 @media (max-width: 700px) {
+  /* a phone: at the top, over the header, not over the cards being ticked (UX review, 2026-10-24) */
   .toast {
     left: 12px;
     right: 12px;
-    bottom: calc(84px + env(safe-area-inset-bottom));
+    top: calc(84px + env(safe-area-inset-top));
+    bottom: auto;
     width: auto;
     margin: 0 auto;
     max-width: 420px;

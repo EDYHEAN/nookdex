@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLang } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
-import { claimAsk, useAskFree } from "@/lib/calm";
+import { claimAsk, useAskFree, useValued, useWantAsk } from "@/lib/calm";
 import { useStore } from "@/lib/store";
 import styles from "./ImportBar.module.css";
 
@@ -37,6 +37,8 @@ export function ImportBar({ compact, calm, onImport }: { compact: boolean; calm:
 
   // (App: only from the 3rd day of visits, before 10 cards it's the only way it can show: lib/calm)
   const free = useAskFree("import");
+  const valued = useValued();
+  useWantAsk("import", fr && valued && profile && owned < MAX_CARDS && pathname === "/" && !closed());
   const eligible = fr && calm && profile && owned < MAX_CARDS && pathname === "/";
 
   useEffect(() => {

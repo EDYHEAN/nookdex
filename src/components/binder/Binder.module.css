@@ -1209,7 +1209,7 @@
     display: none;
   }
 
-  /* a phone header has room for the arrow only */
+  /* a phone header: the icons only (a short word by them left the binder's name one letter wide) */
   .shareLabel {
     display: none;
   }
@@ -1264,6 +1264,54 @@
 }
 
 /* ---------- header actions ---------- */
+
+/* the ⋯ menu: « Retirer » hangs under it */
+.moreWrap {
+  position: relative;
+}
+
+.moreBtn {
+  min-width: 44px;
+  font-weight: bold;
+}
+
+.moreMenu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  padding: 8px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: 4px 4px 0 var(--ink);
+  white-space: nowrap;
+}
+
+/* the summary's folded tools (a binder with fewer than 10 cards) */
+.toolsBtn {
+  align-self: flex-start;
+  padding: 0.25em 0.7em;
+  border: 2px solid rgba(43, 34, 48, 0.35);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.45);
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+.toolsBtn[aria-expanded="true"] {
+  color: var(--ink);
+}
+
+.tools {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--ph) * 0.018);
+  min-height: 0;
+}
 
 .titleActions {
   display: flex;

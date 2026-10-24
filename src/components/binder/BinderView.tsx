@@ -18,7 +18,7 @@ import { Celebration } from "./Celebration";
 import { Inspector } from "./Inspector";
 import { FillSet } from "./FillSet";
 import { ShareSheet } from "./ShareSheet";
-import { HoldToRemove, RemoveChoice, StatsPage, type BinderSummary } from "./StatsPage";
+import { HoldToRemove, MIN_VALUE, RemoveChoice, StatsPage, type BinderSummary } from "./StatsPage";
 import styles from "./Binder.module.css";
 import { useT } from "@/lib/lang";
 
@@ -73,6 +73,18 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
   const collection = useStore((s) => s.collection);
   /** the "show my binder" sheet (set binders) */
   const [sharing, setSharing] = useState(false);
+  /** the header's ⋯ menu (« Retirer ») */
+  const [more, setMore] = useState(false);
+  const moreRef = useRef<HTMLSpanElement>(null);
+  // a tap elsewhere folds it
+  useEffect(() => {
+    if (!more) return;
+    const off = (e: PointerEvent) => {
+      if (!moreRef.current?.contains(e.target as Node)) setMore(false);
+    };
+    window.addEventListener("pointerdown", off);
+    return () => window.removeEventListener("pointerdown", off);
+  }, [more]);
   /** the grid just changed: the cards are dealt again (not at each page turn) */
   const [dealing, setDealing] = useState(false);
   const lastGrid = useRef(binder.grid);
@@ -592,7 +604,14 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
               </>
             ) : (
               <>
-                {summary.count} {t("cartes", "cards")} · <b>{formatMoney(summary.trend)}</b>
+                {summary.count} {t("cartes", "cards")}
+                {/* under 1 €, the count is the news: no « · 0,03 € » */}
+                {summary.trend >= MIN_VALUE && (
+                  <>
+                    {" "}
+                    · <b>{formatMoney(summary.trend)}</b>
+                  </>
+                )}
               </>
             )}
           </p>
@@ -613,15 +632,36 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
               <span className={styles.shareLabel}>{t("Partager", "Share")}</span> ↗
             </button>
           )}
-          {summary.owned ? (
-            <RemoveChoice label={free ? t("Jeter", "Bin it") : t("Retirer", "Remove")} cards={summary.owned} onConfirm={remove} />
-          ) : (
-            <HoldToRemove
-              label={free ? t("Jeter", "Bin it") : t("Retirer", "Remove")}
-              hint={free ? t("Maintiens pour jeter ce classeur vide", "Hold to bin this empty binder") : t("Maintiens pour retirer ce classeur vide de l'étagère", "Hold to take this empty binder off the shelf")}
-              onConfirm={() => remove(true)}
-            />
-          )}
+          {/* « Retirer » in a ⋯ menu (UX review, 2026-10-24): a red button by « Ranger » looked like the way out */}
+          <span ref={moreRef} className={styles.moreWrap}>
+            <button
+              className={`${styles.pixelBtn} ${styles.moreBtn}`}
+              aria-expanded={more}
+              aria-label={t("Plus d'actions", "More actions")}
+              title={t("Plus d'actions", "More actions")}
+              onClick={(e) => {
+                e.stopPropagation();
+                sfx.click();
+                setMore(!more);
+              }}
+              onPointerEnter={sfx.hover}
+            >
+              ⋯
+            </button>
+            {more && (
+              <span className={styles.moreMenu} onClick={(e) => e.stopPropagation()}>
+                {summary.owned ? (
+                  <RemoveChoice label={free ? t("Jeter ce classeur", "Bin this binder") : t("Retirer de l'étagère", "Off the shelf")} cards={summary.owned} onConfirm={remove} />
+                ) : (
+                  <HoldToRemove
+                    label={free ? t("Jeter ce classeur", "Bin this binder") : t("Retirer de l'étagère", "Off the shelf")}
+                    hint={free ? t("Maintiens pour jeter ce classeur vide", "Hold to bin this empty binder") : t("Maintiens pour retirer ce classeur vide de l'étagère", "Hold to take this empty binder off the shelf")}
+                    onConfirm={() => remove(true)}
+                  />
+                )}
+              </span>
+            )}
+          </span>
           <button className={styles.pixelBtn} onClick={close} onPointerEnter={sfx.hover} data-tour="close-binder">
             {t("Ranger", "Put away")} <kbd>{t("Échap", "Esc")}</kbd>
           </button>

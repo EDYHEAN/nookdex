@@ -14,7 +14,7 @@ import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
 import { useTrophyWatch } from "@/lib/useTrophyWatch";
 import { funnelStep, funnelVisit, watchAmazonClicks } from "@/lib/funnel";
-import { claimAsk, useAskFree, useValued } from "@/lib/calm";
+import { claimAsk, useAskFree, useValued, useWantAsk } from "@/lib/calm";
 import { startShareSync } from "@/lib/share";
 import { useTrophyQueue } from "@/lib/trophyStore";
 import { closeTrade, useTradeMat } from "@/lib/trade";
@@ -161,6 +161,7 @@ export function App() {
   const onTradeAsked = useCallback(() => claimAsk("trade-note"), []);
   // one ask a visit (lib/calm), and none before the site has given something (10 cards or a 3rd day)
   const tradeNoteFree = useAskFree("trade-note");
+  useWantAsk("roadlog", news);
   const valued = useValued();
   // a trophy toast first: the trade binder's note comes after it
   const trophyUp = useTrophyQueue((q) => q.showing || q.batches.length > 0);
