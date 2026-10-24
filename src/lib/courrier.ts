@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import releasesData from "@/data/releases.json";
 import { pocketsOf, wantsOf, wishBinders } from "./binders";
-import { useSets } from "./catalog";
+import { setIdOfCard, useSets } from "./catalog";
 import { cardCurrency, convert, marketPrice, playerCurrency } from "./price";
 import { useStore } from "./store";
 import type { CardData, Variant } from "./types";
@@ -80,14 +80,26 @@ function wantedKeys() {
   return [...keys].filter((k) => !collection[k]?.length);
 }
 
+/**
+ * A card's data, "wait" while its set file is coming, or "skip": a card of no set we know (an old import) or missing from
+ * its loaded set. Those used to hold the whole snapshot back, so a collection with one of them never got a letter.
+ */
+function cardOrWait(key: string): CardData | "wait" | "skip" {
+  const { cards, sets } = useSets.getState();
+  if (cards[key]) return cards[key];
+  const set = setIdOfCard(key);
+  return !set || sets[set] ? "skip" : "wait";
+}
+
 /** Today's snapshot, or null while a card's data isn't loaded yet (its set file coming) */
 export function takeSnap(): Snap | null {
   const { collection } = useStore.getState();
   const cards = useSets.getState().cards;
   const owned: Snap["owned"] = {};
   for (const [key, copies] of Object.entries(collection)) {
-    const card = cards[key];
-    if (!card) return null;
+    const card = cardOrWait(key);
+    if (card === "wait") return null;
+    if (card === "skip") continue;
     const qty = new Map<Variant, number>();
     for (const c of copies) qty.set(c.variant, (qty.get(c.variant) ?? 0) + c.qty);
     for (const [variant, n] of qty) {
@@ -130,8 +142,9 @@ export function writeLetter(snap: Snap, lang: "fr" | "en"): { ready: boolean; le
   let then = 0;
   let best: { key: string; card: CardData; pct: number; delta: number } | null = null;
   for (const [key, copies] of Object.entries(collection)) {
-    const card = cards[key];
-    if (!card) return { ready: false, letter: null };
+    const card = cardOrWait(key);
+    if (card === "wait") return { ready: false, letter: null };
+    if (card === "skip") continue;
     const qty = new Map<Variant, number>();
     for (const c of copies) qty.set(c.variant, (qty.get(c.variant) ?? 0) + c.qty);
     for (const [variant, n] of qty) {
