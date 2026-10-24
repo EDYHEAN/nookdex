@@ -12,6 +12,7 @@ import { NAME_PARTS, OS_NAME } from "@/lib/site";
 import { setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { useLook, type LavaTheme } from "@/lib/shop";
 import { useWantAsk } from "@/lib/calm";
+import { openPinned, useCourrier } from "@/lib/courrier";
 import { useTradeShelf } from "@/lib/share";
 import { useStore } from "@/lib/store";
 import { TROPHIES } from "@/lib/trophies";
@@ -275,6 +276,8 @@ function PaintedRoomView({
   const [boxHover, setBoxHover] = useState(false);
   const inBox = useMemo(() => boxOf(collection, userBinders).reduce((n, g) => n + g.count, 0), [collection, userBinders]);
   const trade = useTradeShelf();
+  /** the letters read (room/Courrier), pinned on the cork board */
+  const pins = useCourrier((s) => s.pins);
   /**
    * Its taped note, once ever (per device): « Ton classeur d'échange est là ! », only in a calm room where nothing else
    * asked this visit (App: the account, the cat, the road log wait for another one once it showed).
@@ -924,6 +927,27 @@ function PaintedRoomView({
               router.push("/blog");
             }}
           />
+          {/* the letters read, pinned on the board (the newest at the front): a click reads one again */}
+          {pins.map((l, i) => (
+            <button
+              key={l.day}
+              className={styles.pin}
+              style={{ left: BOARD.x + 30 + i * 62, top: BOARD.y + 150 - (i % 2) * 22, rotate: `${[-8, 6, -3, 9][i]}deg` }}
+              aria-label={tr(`Le courrier du ${l.day}`, `The mail of ${l.day}`)}
+              onPointerEnter={() => {
+                sfx.hover();
+                showTip(BOARD.x + 60 + i * 62, BOARD.y + 140, tr("Le courrier", "The mail"), new Date(`${l.day}T12:00:00`).toLocaleDateString(tr("fr-FR", "en-GB"), { day: "numeric", month: "long" }));
+              }}
+              onPointerLeave={() => setTip(null)}
+              onClick={() => {
+                sfx.flip();
+                setTip(null);
+                openPinned(l);
+              }}
+            >
+              <span aria-hidden>✉</span>
+            </button>
+          ))}
           <button
             className={styles.hotspot}
             style={place(SCENE.lampHit)}

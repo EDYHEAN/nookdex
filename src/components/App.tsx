@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { APP_VERSION } from "@/data/changelog";
 import { MAX_BINDERS, shelfBinders } from "@/lib/binders";
@@ -30,6 +30,7 @@ import { PaintedRoom } from "./room/PaintedRoom";
 import { RoadLog, markSeen, seenVersion } from "./room/RoadLog";
 import { ImportBar } from "./room/ImportBar";
 import { SavePrompt } from "./room/SavePrompt";
+import { Courrier } from "./room/Courrier";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
 import { TrophyCase } from "./room/TrophyCase";
@@ -181,6 +182,7 @@ export function App() {
 
   // The server pages (notebook pages, page text) follow the language the app speaks.
   const lang = useLang();
+  const router = useRouter();
   useEffect(() => {
     document.documentElement.lang = lang;
     document.cookie = `${LANG_COOKIE}=${lang}; path=/; max-age=31536000; samesite=lax`;
@@ -640,6 +642,16 @@ export function App() {
       {/* the account, offered once the player without one has a few cards */}
       {entered && <ImportBar compact={compact} calm={calm && !news && valued} onImport={openImport} />}
       {entered && <SavePrompt compact={compact} calm={calm && !news} />}
+      {/* the letter since the last visit (lib/courrier), its tiles a way to the card, the wanted ones, the calendar */}
+      {entered && (
+        <Courrier
+          calm={calm && !news}
+          compact={compact}
+          onCard={(key) => void goToCard(key)}
+          onWants={() => setTradeOpen({ view: "want" })}
+          onRelease={() => router.push(lang === "en" ? "/en/release-calendar" : "/calendrier-des-sorties")}
+        />
+      )}
       {entered && <SupportCat compact={compact} calm={calm && !news} />}
       {/* a computer: the cat and its tip tag in the corner of the calm room (a phone has the pop-in only) */}
       {entered && !compact && <TipCorner show={calm && !news && valued} />}
