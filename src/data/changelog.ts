@@ -33,6 +33,7 @@ export const CHANGELOG: Release[] = [
         fr: "Le classeur d'échange, en or sur l'étagère : ce que tu cherches et tes doubles, en un lien toujours à jour.",
         en: "The trade binder, in gold on the shelf: what you're after and your doubles, in one link always up to date.",
       },
+      { fr: "Un départ plus léger : une visite en 3 étapes, et plus d'écran « Appuie pour entrer » quand tu reviens.", en: "A lighter start: a 3-step tour, and no more « Press to enter » when you come back." },
     ],
   },
   {

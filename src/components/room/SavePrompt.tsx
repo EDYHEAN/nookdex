@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useT } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
+import { claimAsk, useWantAsk } from "@/lib/calm";
 import { useStore } from "@/lib/store";
 import { useTrophyQueue } from "@/lib/trophyStore";
 import styles from "./SavePrompt.module.css";
@@ -25,6 +26,12 @@ const snoozed = (): { cards: number; at: number } => {
   } catch {
     return { cards: 0, at: 0 };
   }
+};
+
+/** « Plus tard » asked for more cards and a few days: not yet */
+const isSnoozed = (owned: number) => {
+  const s = snoozed();
+  return owned < s.cards || Date.now() < s.at;
 };
 
 /** A floppy disk, bouncing: the save. */
@@ -50,7 +57,7 @@ function Floppy() {
  * The account, asked once it's worth it (Johan, 2026-10-13: asking it first held people back): when a player without one
  * owns a few cards, in the calm room, a short card offers to keep them online. "Later" waits for more cards and a few days.
  */
-export function SavePrompt({ compact, calm, onShown }: { compact: boolean; calm: boolean; onShown: () => void }) {
+export function SavePrompt({ compact, calm }: { compact: boolean; calm: boolean }) {
   const t = useT();
   const pathname = usePathname();
   const owned = useStore((s) => Object.keys(s.collection).length);
@@ -66,20 +73,23 @@ export function SavePrompt({ compact, calm, onShown }: { compact: boolean; calm:
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
 
-  const eligible = calm && !toast && ready && !email && status !== "loading" && !asked && owned >= MIN_CARDS && (pathname === "/" || pathname === "/en");
+  // it would ask this visit (not snoozed, no account, enough cards): the asks after it (the cat…) hold back meanwhile,
+  // while it waits for the calm room and the trophy toasts (lib/calm)
+  const wants = ready && !email && status !== "loading" && !asked && owned >= MIN_CARDS && (pathname === "/" || pathname === "/en") && !isSnoozed(owned);
+  useWantAsk("save", wants);
+  const eligible = calm && !toast && wants;
 
   useEffect(() => {
     if (!eligible) return;
-    const s = snoozed();
-    if (owned < s.cards || Date.now() < s.at) return;
     const id = setTimeout(() => {
       setAsked(true);
+      // another ask had this visit's turn (lib/calm): the account waits for another visit
+      if (!claimAsk("save")) return;
       setShown(true);
-      onShown();
       sfx.pop();
     }, CALM_MS);
     return () => clearTimeout(id);
-  }, [eligible, owned, onShown]);
+  }, [eligible, owned]);
 
   // signed in meanwhile (the e-mail link opened in another tab): nothing left to ask
   const visible = shown && !email && (calm || !!sent);

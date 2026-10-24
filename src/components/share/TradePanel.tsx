@@ -135,12 +135,22 @@ export function TradePanel({ onClose, focusSet, start }: { onClose?: () => void;
 
   const url = slug ? shareUrl(slug) : "";
   const shortUrl = url.replace(/^https?:\/\//, "");
-  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+  /**
+   * The phone's share sheet only on a touch device that has one (Johan, 2026-10-23): on a computer, Windows' or macOS's
+   * share panel is a detour; the link copied is what the player pastes in a group. By capability, not by width.
+   */
+  const [canShare] = useState(
+    () => typeof navigator !== "undefined" && typeof navigator.share === "function" && typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches,
+  );
+  /** « Copié ✓ » on the buttons a moment after a copy */
+  const [copied, setCopied] = useState(false);
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(url);
-      sfx.pop();
+      sfx.coin();
       unlock("share");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
       say(tr("lien copié ! colle-le dans ton groupe", "link copied! paste it in your group"));
     } catch {
       sfx.locked();
@@ -161,8 +171,14 @@ export function TradePanel({ onClose, focusSet, start }: { onClose?: () => void;
   };
   const mainButton = (big?: boolean) =>
     slug ? (
-      <motion.button className={`${styles.btn} ${big ? styles.btnBig : ""}`} onClick={shareIt} onPointerEnter={sfx.hover} whileTap={{ scale: 0.92 }}>
-        {tr("Partager ↗", "Share ↗")}
+      <motion.button
+        className={`${styles.btn} ${big ? styles.btnBig : ""} ${copied ? styles.btnDone : ""}`}
+        onClick={shareIt}
+        onPointerEnter={sfx.hover}
+        whileTap={{ scale: 0.92 }}
+        animate={copied ? { scale: [1, 1.12, 1], rotate: [0, -3, 0] } : {}}
+      >
+        {canShare ? tr("Partager ↗", "Share ↗") : copied ? tr("Copié ✓", "Copied ✓") : tr("Copier mon lien", "Copy my link")}
       </motion.button>
     ) : (
       <motion.button
@@ -237,7 +253,7 @@ export function TradePanel({ onClose, focusSet, start }: { onClose?: () => void;
         </h2>
         {wide && (slug ? (
           <button className={`${styles.btn} ${styles.btnWhite}`} onClick={copy}>
-            {tr("Copier le lien", "Copy the link")}
+            {copied ? tr("Copié ✓", "Copied ✓") : tr("Copier le lien", "Copy the link")}
           </button>
         ) : (
           mainButton()
@@ -337,7 +353,7 @@ export function TradePanel({ onClose, focusSet, start }: { onClose?: () => void;
                     </span>
                     {slug ? (
                       <button className={`${styles.btn} ${styles.btnWhite}`} onClick={copy}>
-                        {tr("Copier", "Copy")}
+                        {copied ? tr("Copié ✓", "Copied ✓") : tr("Copier", "Copy")}
                       </button>
                     ) : (
                       mainButton()

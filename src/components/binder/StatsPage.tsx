@@ -27,130 +27,52 @@ interface Props {
   onJump: (page: number) => void;
   /** riffle to a pocket and make its card pulse */
   onFind: (pocket: number) => void;
+  /**
+   * A phone's binder opened empty: only what a newcomer needs (the count, the search), as tall as it is, so the first
+   * cards show under it (Johan, 2026-10-23: the summary filled the first screen with zeros).
+   */
+  compact?: boolean;
 }
 
-export function StatsPage({ binder, title, stats, pages, collection, onJump, onFind }: Props) {
+/** a binder's tools fold away below this many cards (and its master-set count hides) */
+const FEW = 10;
+/** under this, a value isn't worth showing: the count is the news (« 1 carte ! », not « 0,03 € ») */
+export const MIN_VALUE = 1;
+
+/** The progress as a ring, its percentage inside */
+function Ring({ pct }: { pct: number }) {
+  return (
+    <span className={styles.ring} style={{ ["--p" as string]: `${Math.round(pct * 100)}%` }}>
+      <span>{Math.round(pct * 100)}%</span>
+    </span>
+  );
+}
+
+export function StatsPage({ binder, title, stats, pages, collection, onJump, onFind, compact }: Props) {
   const t = useT();
   const mapRef = useRef<HTMLDivElement>(null);
   const g = GRIDS[binder.grid];
-  const mapTile = useMapTile(mapRef, pages.length, g.cols, g.rows, g.cols === 3 ? 0.074 : 0.05);
   const free = binder.kind === "free";
   const pct = stats.total ? stats.owned / stats.total : 0;
-  const segments = 20;
-  const lit = Math.round(pct * segments);
   const gain = stats.spentTrend - stats.spent;
   const wish = binder.wish;
+  /**
+   * A new binder (fewer than 10 cards, UX review 2026-10-24): the count first; its tools (search, sort, pockets a page,
+   * colour, map) folded behind « ⚙ Réglages du classeur », no master-set jargon. Everything is out again at 10 cards.
+   */
+  const few = stats.owned < FEW;
+  const [tools, setTools] = useState(false);
+  const mapTile = useMapTile(mapRef, pages.length, g.cols, g.rows, g.cols === 3 ? 0.074 : 0.05, `${few}${tools}`);
   // a wishlist's ghost is a pocket still to fill
   const filled = (p: Pocket) => (free ? !!p.cardId && !p.wanted : !!(p.cardId && collection[p.cardId]?.length));
+  const cardsWord = (n: number) => t(`carte${n > 1 ? "s" : ""}`, `card${n > 1 ? "s" : ""}`);
 
-  return (
-    <div className={styles.stats} style={{ ["--accent" as string]: binder.color }} data-tour="summary" data-narrow={binder.grid === 6 || undefined}>
-      <div className={styles.statsHead}>
-        {binder.logo && <img src={`${binder.logo}.png`} alt="" draggable={false} />}
-        <div>
-          <p className={styles.kicker}>
-            {wish ? "★ wishlist" : free ? t("classeur libre", "free binder") : binder.code} · {t("sommaire", "summary")}
-          </p>
-          {free ? <Rename id={binder.id} name={title} /> : <h2>{title}</h2>}
-        </div>
-      </div>
-
-      <Finder pages={pages} collection={collection} onFind={onFind} />
-      {!free && <SortChips id={binder.id} current={binder.sort} />}
-      <GridChips id={binder.id} current={binder.grid} />
-
-      {wish ? (
-        <>
-          <div className={styles.bigCount}>
-            <b>{stats.owned}</b>
-            <span>
-              / {stats.total} {t("trouvées", "found")}
-            </span>
-            <em>{Math.round(pct * 100)}%</em>
-          </div>
-          <div className={styles.segBar}>
-            {Array.from({ length: segments }, (_, i) => (
-              <span key={i} className={i < lit ? styles.segOn : ""} style={{ animationDelay: `${i * 30}ms` }} />
-            ))}
-          </div>
-        </>
-      ) : free ? (
-        <div className={styles.bigCount}>
-          <b>{stats.owned}</b>
-          <span>{t(`carte${stats.owned > 1 ? "s" : ""} rangée${stats.owned > 1 ? "s" : ""}`, `card${stats.owned > 1 ? "s" : ""} filed`)}</span>
-        </div>
-      ) : (
-        <>
-          <div className={styles.bigCount}>
-            <b>{stats.owned}</b>
-            <span>
-              / {stats.total} {t("cartes", "cards")}
-            </span>
-            <em>{Math.round(pct * 100)}%</em>
-          </div>
-          <div className={styles.segBar}>
-            {Array.from({ length: segments }, (_, i) => (
-              <span key={i} className={i < lit ? styles.segOn : ""} style={{ animationDelay: `${i * 30}ms` }} />
-            ))}
-          </div>
-        </>
-      )}
-
-      <dl className={styles.kv}>
-        {wish && (
-          <>
-            <div>
-              <dt>{t("Il te manque", "Missing")}</dt>
-              <dd>
-                {stats.total - stats.owned} {t("cartes", "cards")}
-              </dd>
-            </div>
-            <div>
-              <dt>{t("Pour tout trouver ≈", "To find them all ≈")}</dt>
-              <dd className={styles.money}>{formatMoney(stats.left ?? 0)}</dd>
-            </div>
-          </>
-        )}
-        {!free && (
-          <>
-            <div>
-              <dt>Master set</dt>
-              <dd>
-                {stats.masterOwned}/{stats.masterTotal} {t("variantes", "variants")}
-              </dd>
-            </div>
-            <div>
-              <dt>{t("Il te manque", "Missing")}</dt>
-              <dd>
-                {stats.total - stats.owned} {t("cartes", "cards")}
-              </dd>
-            </div>
-          </>
-        )}
-        <div>
-          <dt>{t("Valeur tendance", "Trend value")}</dt>
-          <dd className={styles.money}>{formatMoney(stats.trend)}</dd>
-        </div>
-        <div>
-          <dt>{t("Valeur prix bas", "Low value")}</dt>
-          <dd>{formatMoney(stats.low)}</dd>
-        </div>
-        <div>
-          <dt>{t("Dépensé", "Spent")}</dt>
-          <dd>{formatMoney(stats.spent)}</dd>
-        </div>
-        <div>
-          <dt>{t("Plus-value", "Gain")}</dt>
-          <dd className={gain >= 0 ? styles.up : styles.down}>
-            {gain >= 0 ? "+" : ""}
-            {formatMoney(gain)}
-          </dd>
-        </div>
-      </dl>
-
+  // the page map is a way through the binder, not a setting: always out (its colours fold away while the binder is new)
+  const map = (
+    <>
       <div className={styles.mapHead}>
         <p className={styles.mapTitle}>{t("Carte du classeur", "Binder map")}</p>
-        <Colors id={binder.id} current={binder.color} />
+        {!few && <Colors id={binder.id} current={binder.color} />}
       </div>
       <div ref={mapRef} className={styles.map} style={mapTile ? { ["--mapw" as string]: `${mapTile}px` } : undefined}>
         {pages.map((pockets, i) => {
@@ -175,7 +97,164 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
           );
         })}
       </div>
-      {stats.pricesUpdated && (
+    </>
+  );
+
+  return (
+    <div
+      className={`${styles.stats} ${compact ? styles.statsCompact : ""}`}
+      style={{ ["--accent" as string]: binder.color }}
+      data-tour="summary"
+      data-narrow={binder.grid === 6 || undefined}
+    >
+      <div className={styles.statsHead}>
+        {binder.logo && <img src={`${binder.logo}.png`} alt="" draggable={false} />}
+        <div>
+          <p className={styles.kicker}>
+            {wish ? "★ wishlist" : free ? t("classeur libre", "free binder") : binder.code} · {t("sommaire", "summary")}
+          </p>
+          {free ? <Rename id={binder.id} name={title} /> : <h2>{title}</h2>}
+        </div>
+      </div>
+
+      {!few && (
+        <>
+          <Finder pages={pages} collection={collection} onFind={onFind} />
+          {!free && !compact && <SortChips id={binder.id} current={binder.sort} />}
+          {!compact && <GridChips id={binder.id} current={binder.grid} />}
+        </>
+      )}
+
+      {/* one big number and its ring first: the rest comes once there is something to count */}
+      {wish ? (
+        <div className={styles.bigCount}>
+          <Ring pct={pct} />
+          <b>{stats.owned}</b>
+          <span>
+            / {stats.total} {t("trouvées", "found")}
+          </span>
+        </div>
+      ) : free ? (
+        <div className={styles.bigCount}>
+          <b>{stats.owned}</b>
+          <span>{t(`carte${stats.owned > 1 ? "s" : ""} rangée${stats.owned > 1 ? "s" : ""}`, `card${stats.owned > 1 ? "s" : ""} filed`)}</span>
+        </div>
+      ) : (
+        <div className={styles.bigCount}>
+          <Ring pct={pct} />
+          <b>{stats.owned}</b>
+          <span>
+            / {stats.total} {t("cartes", "cards")}
+          </span>
+        </div>
+      )}
+      {/* the count celebrated (not « 0,03 € »): the first cards are what matters */}
+      {few && !wish && (
+        <p className={styles.firstHint}>
+          {stats.owned
+            ? t(`🎉 ${stats.owned} ${cardsWord(stats.owned)} ! Continue, touche celles que tu as ▼`, `🎉 ${stats.owned} ${cardsWord(stats.owned)}! Keep going, tap the ones you have ▼`)
+            : free
+              ? t("Touche une poche vide pour y ranger une carte ▼", "Tap an empty pocket to file a card ▼")
+              : t("Touche les cartes que tu as : elles se colorent ▼", "Tap the cards you have: they colour in ▼")}
+        </p>
+      )}
+
+      {/* the figures only once they say something: no wall of zeros, no « 0,03 € » on a new binder */}
+      {stats.owned > 0 && (
+        <dl className={styles.kv}>
+          {wish && (
+            <>
+              <div>
+                <dt>{t("Il te manque", "Missing")}</dt>
+                <dd>
+                  {stats.total - stats.owned} {t("cartes", "cards")}
+                </dd>
+              </div>
+              {(stats.left ?? 0) >= 1 && (
+                <div>
+                  <dt>{t("Pour tout trouver ≈", "To find them all ≈")}</dt>
+                  <dd className={styles.money}>{formatMoney(stats.left ?? 0)}</dd>
+                </div>
+              )}
+            </>
+          )}
+          {!free && !wish && !few && (
+            <>
+              <div>
+                <dt>Master set</dt>
+                <dd>
+                  {stats.masterOwned}/{stats.masterTotal} {t("variantes", "variants")}
+                </dd>
+              </div>
+              <div>
+                <dt>{t("Il te manque", "Missing")}</dt>
+                <dd>
+                  {stats.total - stats.owned} {t("cartes", "cards")}
+                </dd>
+              </div>
+            </>
+          )}
+          {stats.trend >= MIN_VALUE && (
+            <div>
+              <dt>{t("Valeur tendance", "Trend value")}</dt>
+              <dd className={styles.money}>{formatMoney(stats.trend)}</dd>
+            </div>
+          )}
+          {stats.low >= MIN_VALUE && (
+            <div>
+              <dt>{t("Valeur prix bas", "Low value")}</dt>
+              <dd>{formatMoney(stats.low)}</dd>
+            </div>
+          )}
+          {stats.spent > 0 && (
+            <div>
+              <dt>{t("Dépensé", "Spent")}</dt>
+              <dd>{formatMoney(stats.spent)}</dd>
+            </div>
+          )}
+          {stats.spent > 0 && (
+            <div>
+              <dt>{t("Plus-value", "Gain")}</dt>
+              <dd className={gain >= 0 ? styles.up : styles.down}>
+                {gain >= 0 ? "+" : ""}
+                {formatMoney(gain)}
+              </dd>
+            </div>
+          )}
+        </dl>
+      )}
+
+      {few ? (
+        <>
+          <button
+            className={styles.toolsBtn}
+            aria-expanded={tools}
+            onClick={(e) => {
+              e.stopPropagation();
+              sfx.click();
+              setTools(!tools);
+            }}
+            onPointerEnter={sfx.hover}
+          >
+            ⚙ {t("Réglages du classeur", "Binder settings")} {tools ? "▴" : "▾"}
+          </button>
+          {tools && (
+            <div className={styles.tools}>
+              <Finder pages={pages} collection={collection} onFind={onFind} />
+              {!free && <SortChips id={binder.id} current={binder.sort} />}
+              <GridChips id={binder.id} current={binder.grid} />
+              <div className={styles.mapHead}>
+                <p className={styles.mapTitle}>{t("Couleur du classeur", "Binder colour")}</p>
+                <Colors id={binder.id} current={binder.color} />
+              </div>
+            </div>
+          )}
+          {!compact && map}
+        </>
+      ) : (
+        !compact && map
+      )}
+      {stats.pricesUpdated && !compact && !few && (
         <p className={styles.foot}>
           {t("Prix", "")} {marketName(binder.lang ?? "fr")} {t("du", "prices of")} {new Date(stats.pricesUpdated).toLocaleDateString(t("fr-FR", "en-GB"))}
         </p>
@@ -190,7 +269,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
  * 2026-10-17), never a stretched column (a full binder's pages went over each other). A mini page: `cols` x `rows`
  * pockets, 1 px apart, 2 px of padding.
  */
-function useMapTile(ref: RefObject<HTMLDivElement | null>, count: number, cols: number, rows: number, widest: number) {
+function useMapTile(ref: RefObject<HTMLDivElement | null>, count: number, cols: number, rows: number, widest: number, mount: unknown) {
   const [w, setW] = useState(0);
   useLayoutEffect(() => {
     const el = ref.current;
@@ -212,7 +291,8 @@ function useMapTile(ref: RefObject<HTMLDivElement | null>, count: number, cols: 
     const ro = new ResizeObserver(fit);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [ref, count, cols, rows, widest]);
+  // `mount`: the map is drawn again elsewhere (the summary folding its tools): measured again
+  }, [ref, count, cols, rows, widest, mount]);
   return w;
 }
 

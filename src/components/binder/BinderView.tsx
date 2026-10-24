@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, animate, motion, useMotionValue, useTransform } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GRIDS, freeHomes, freePageCount, pocketsOf, wantsOf, type Pocket } from "@/lib/binders";
 import { loadSet, setIdOfCard, useSets } from "@/lib/catalog";
 import { cardTier, copiesTotals, formatMoney, setStats, unitPrice, type Tier } from "@/lib/price";
@@ -18,7 +18,7 @@ import { Celebration } from "./Celebration";
 import { Inspector } from "./Inspector";
 import { FillSet } from "./FillSet";
 import { ShareSheet } from "./ShareSheet";
-import { HoldToRemove, RemoveChoice, StatsPage, type BinderSummary } from "./StatsPage";
+import { HoldToRemove, MIN_VALUE, RemoveChoice, StatsPage, type BinderSummary } from "./StatsPage";
 import styles from "./Binder.module.css";
 import { useT } from "@/lib/lang";
 
@@ -73,6 +73,18 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
   const collection = useStore((s) => s.collection);
   /** the "show my binder" sheet (set binders) */
   const [sharing, setSharing] = useState(false);
+  /** the header's ⋯ menu (« Retirer ») */
+  const [more, setMore] = useState(false);
+  const moreRef = useRef<HTMLSpanElement>(null);
+  // a tap elsewhere folds it
+  useEffect(() => {
+    if (!more) return;
+    const off = (e: PointerEvent) => {
+      if (!moreRef.current?.contains(e.target as Node)) setMore(false);
+    };
+    window.addEventListener("pointerdown", off);
+    return () => window.removeEventListener("pointerdown", off);
+  }, [more]);
   /** the grid just changed: the cards are dealt again (not at each page turn) */
   const [dealing, setDealing] = useState(false);
   const lastGrid = useRef(binder.grid);
@@ -174,6 +186,23 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
   const [inView, setInView] = useState(0);
   const inViewRef = useRef(0);
   const scrollStep = pageH + SCROLL_GAP;
+  /**
+   * Phone, a binder opened empty: a short summary (StatsPage compact), the first cards right under it. Kept for the visit:
+   * the column doesn't jump when the first card is ticked. Its height is measured (the column's steps start after it).
+   */
+  const [compact] = useState(() => single && !binder.wish && !Object.keys(collection).some((id) => (binder.setId ? setIdOfCard(id) === binder.setId : collection[id]?.some((c) => c.at?.binder === binder.id))));
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const [summaryH, setSummaryH] = useState(pageH);
+  useLayoutEffect(() => {
+    const el = summaryRef.current;
+    if (!compact || !el) return;
+    const ro = new ResizeObserver(() => setSummaryH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [compact]);
+  const firstH = compact ? summaryH : pageH;
+  /** Phone: where an item of the column starts (0 = the summary) */
+  const itemTop = useCallback((item: number) => (item <= 0 ? 0 : firstH + SCROLL_GAP + (item - 1) * scrollStep), [firstH, scrollStep]);
 
   const summary = useMemo<BinderSummary>(() => {
     if (set) {
@@ -270,14 +299,15 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
       const el = scroller.current;
       if (!el) return;
       sfx.flip();
-      el.scrollTo({ top: Math.min(pages.length, Math.max(0, item)) * scrollStep, behavior: "smooth" });
+      el.scrollTo({ top: itemTop(Math.min(pages.length, Math.max(0, item))), behavior: "smooth" });
     },
-    [pages.length, scrollStep],
+    [pages.length, itemTop],
   );
   const onScroll = () => {
     const el = scroller.current;
     if (!el) return;
-    const i = Math.min(pages.length, Math.max(0, Math.round(el.scrollTop / scrollStep)));
+    const st = el.scrollTop;
+    const i = Math.min(pages.length, Math.max(0, st < firstH / 2 ? 0 : 1 + Math.round((st - firstH - SCROLL_GAP) / scrollStep)));
     if (i === inViewRef.current) return;
     inViewRef.current = i;
     setInView(i);
@@ -478,6 +508,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
           collection={collection}
           onJump={jumpToPage}
           onFind={find}
+          compact={compact}
         />
       );
     if (face.type === "blank") return <div className={styles.sheet} />;
@@ -573,7 +604,14 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
               </>
             ) : (
               <>
-                {summary.count} {t("cartes", "cards")} · <b>{formatMoney(summary.trend)}</b>
+                {summary.count} {t("cartes", "cards")}
+                {/* under 1 €, the count is the news: no « · 0,03 € » */}
+                {summary.trend >= MIN_VALUE && (
+                  <>
+                    {" "}
+                    · <b>{formatMoney(summary.trend)}</b>
+                  </>
+                )}
               </>
             )}
           </p>
@@ -594,15 +632,36 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
               <span className={styles.shareLabel}>{t("Partager", "Share")}</span> ↗
             </button>
           )}
-          {summary.owned ? (
-            <RemoveChoice label={free ? t("Jeter", "Bin it") : t("Retirer", "Remove")} cards={summary.owned} onConfirm={remove} />
-          ) : (
-            <HoldToRemove
-              label={free ? t("Jeter", "Bin it") : t("Retirer", "Remove")}
-              hint={free ? t("Maintiens pour jeter ce classeur vide", "Hold to bin this empty binder") : t("Maintiens pour retirer ce classeur vide de l'étagère", "Hold to take this empty binder off the shelf")}
-              onConfirm={() => remove(true)}
-            />
-          )}
+          {/* « Retirer » in a ⋯ menu (UX review, 2026-10-24): a red button by « Ranger » looked like the way out */}
+          <span ref={moreRef} className={styles.moreWrap}>
+            <button
+              className={`${styles.pixelBtn} ${styles.moreBtn}`}
+              aria-expanded={more}
+              aria-label={t("Plus d'actions", "More actions")}
+              title={t("Plus d'actions", "More actions")}
+              onClick={(e) => {
+                e.stopPropagation();
+                sfx.click();
+                setMore(!more);
+              }}
+              onPointerEnter={sfx.hover}
+            >
+              ⋯
+            </button>
+            {more && (
+              <span className={styles.moreMenu} onClick={(e) => e.stopPropagation()}>
+                {summary.owned ? (
+                  <RemoveChoice label={free ? t("Jeter ce classeur", "Bin this binder") : t("Retirer de l'étagère", "Off the shelf")} cards={summary.owned} onConfirm={remove} />
+                ) : (
+                  <HoldToRemove
+                    label={free ? t("Jeter ce classeur", "Bin this binder") : t("Retirer de l'étagère", "Off the shelf")}
+                    hint={free ? t("Maintiens pour jeter ce classeur vide", "Hold to bin this empty binder") : t("Maintiens pour retirer ce classeur vide de l'étagère", "Hold to take this empty binder off the shelf")}
+                    onConfirm={() => remove(true)}
+                  />
+                )}
+              </span>
+            )}
+          </span>
           <button className={styles.pixelBtn} onClick={close} onPointerEnter={sfx.hover} data-tour="close-binder">
             {t("Ranger", "Put away")} <kbd>{t("Échap", "Esc")}</kbd>
           </button>
@@ -657,7 +716,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
             {/* the summary, then the pages, in a column scrolled by hand: flat sheets, nothing turns */}
             <div ref={scroller} className={styles.scroller} style={{ gap: SCROLL_GAP }} onScroll={onScroll}>
               {[{ type: "stats" } as Face, ...pages.map((_, i): Face => ({ type: "page", index: i }))].map((face, i) => (
-                <div key={i} className={styles.scrollPage} style={{ height: pageH }}>
+                <div key={i} ref={i === 0 ? summaryRef : undefined} className={styles.scrollPage} style={{ height: i === 0 && compact ? "auto" : pageH }}>
                   {renderFace(face, "front", phase !== "enter" && Math.abs(i - inView) <= 1)}
                 </div>
               ))}

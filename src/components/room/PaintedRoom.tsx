@@ -11,6 +11,7 @@ import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, OS_NAME } from "@/lib/site";
 import { setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { useLook, type LavaTheme } from "@/lib/shop";
+import { useWantAsk } from "@/lib/calm";
 import { useTradeShelf } from "@/lib/share";
 import { useStore } from "@/lib/store";
 import { TROPHIES } from "@/lib/trophies";
@@ -49,7 +50,7 @@ interface Props {
   /** the room is calm and nothing else asked this visit: the trade binder's note may show (once ever) */
   noteCalm: boolean;
   /** the note showed: the other pop-ins wait for another visit */
-  onTradeAsked: () => void;
+  onTradeAsked: () => boolean;
   /**
    * Under the loader: drawn and downloading, but invisible. Browsers count a hidden-behind picture as the page's
    * biggest paint (the 463 KB room on phones), not an invisible one.
@@ -280,11 +281,14 @@ function PaintedRoomView({
    */
   const [noteSeen, setNoteSeen] = useState(readNote);
   const [noteUp, setNoteUp] = useState(false);
+  // its note would show this visit: the asks after it (the strip, the road log, the cat) hold back (lib/calm)
+  useWantAsk("trade-note", !noteSeen && !noteUp && trade.ready);
   useEffect(() => {
     if (noteSeen || noteUp || !noteCalm || !trade.ready || page !== 0) return;
     const t = setTimeout(() => {
+      // another ask had this visit's turn (lib/calm): the note waits for another visit
+      if (!onTradeAsked()) return;
       setNoteUp(true);
-      onTradeAsked();
       sfx.pop();
     }, 1800);
     return () => clearTimeout(t);
@@ -1179,7 +1183,14 @@ function CompactHeader() {
         <span>{NAME_PARTS[1]}</span>
       </h1>
       <p>
-        {t.total ? `${t.owned}/${t.total}` : t.cards} {tr("cartes", "cards")} · <b>{formatMoney(t.trend)}</b>
+        {t.total ? `${t.owned}/${t.total}` : t.cards} {tr("cartes", "cards")}
+        {/* under 1 €, the count is the news */}
+        {t.trend >= 1 && (
+          <>
+            {" "}
+            · <b>{formatMoney(t.trend)}</b>
+          </>
+        )}
       </p>
     </header>
   );

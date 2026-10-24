@@ -2,16 +2,15 @@
 
 import { motion } from "motion/react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { useCloud } from "@/lib/cloud";
 import { useLang } from "@/lib/lang";
-import { OS_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
+import { useStore } from "@/lib/store";
 import styles from "./Tour.module.css";
 
 /**
- * First visit, once the first binder is open: a guided tour that dims everything but the feature it shows
- * (a spotlight on elements tagged data-tour="…"), with a short note right next to it.
- * Some steps wait for the player to do the thing (click the grey card, open the OS…): learning by doing.
+ * First visit, once the first binder is open: a short guided tour that dims everything but what it shows (a spotlight on
+ * elements tagged data-tour="…"), with a note right next to it. The first step waits for the player to tick a card:
+ * learning by doing.
  * It can't be skipped, but it never gets stuck: a target that can't be found lets the player go on.
  * It ends back in the binder, open, with the card it had the player tick (Johan, 2026-10-20: it used to have them remove
  * it, and end on the closed desk with an empty collection).
@@ -29,21 +28,24 @@ interface Step {
   skip?: () => boolean;
   /** Before leaving the step with "next". */
   leave?: () => void;
-  /** Steps that come and go together: the card ones, all skipped when the binder has no card to click */
-  group?: "cards";
 }
 
 const $ = (sel: string) => document.querySelector<HTMLElement>(sel);
-const click = (sel: string) => $(sel)?.click();
 
-/** The element is on screen and actually seen (not behind a page, a modal… the tour itself aside). */
+/**
+ * The element is on screen and seen whole: its top, middle and bottom aren't behind anything (a page, a modal, the tour
+ * itself aside). Checking the middle only spotlighted a card half under the phone's page bar (its bottom hidden).
+ */
 function seen(el: HTMLElement, layer: HTMLElement | null) {
   const r = el.getBoundingClientRect();
   if (r.width < 4 || r.height < 4 || r.bottom < 0 || r.right < 0 || r.top > innerHeight || r.left > innerWidth) return false;
   const x = Math.min(Math.max(r.left + r.width / 2, 1), innerWidth - 1);
-  const y = Math.min(Math.max(r.top + r.height / 2, 1), innerHeight - 1);
-  const top = document.elementsFromPoint(x, y).find((n) => !layer?.contains(n));
-  return !!top && (el === top || el.contains(top));
+  const inset = Math.min(10, r.height / 4);
+  return [r.top + inset, r.top + r.height / 2, r.bottom - inset].every((py) => {
+    const y = Math.min(Math.max(py, 1), innerHeight - 1);
+    const top = document.elementsFromPoint(x, y).find((n) => !layer?.contains(n));
+    return !!top && (el === top || el.contains(top));
+  });
 }
 
 function find(selectors: string[], layer: HTMLElement | null) {
@@ -79,188 +81,60 @@ function placeNote(hole: Box | null, w: number, h: number) {
   return { left: clampX(cx - w / 2), top: vh - h - 12 };
 }
 
-/** The steps (only the texts depend on the account and the language). `reopen` puts the tour's binder back on the desk. */
-function buildSteps(email: string | null, en: boolean, reopen?: () => void): Step[] {
+/** Copies in the collection: the first step goes on once the player ticked a card (one more than when the tour began). */
+const copies = () => Object.values(useStore.getState().collection).reduce((n, c) => n + c.length, 0);
+
+/**
+ * The steps (Johan, 2026-10-23: 12 steps were a lot before the first card; 3 now, cards first): tick a grey card, see « J'ai
+ * tout », your turn. The rest of the desk (NookDex OS, the notebook, the trophies) shows itself when the player meets it.
+ */
+function buildSteps(en: boolean, start: number): Step[] {
   const t = (fr: ReactNode, english: ReactNode) => (en ? english : fr);
   return [
-    {
-      target: ["summary"],
-      text: t(
-        <>
-          📒 <b>Ton classeur.</b> Ici : ton avancement et la valeur de ta collec.
-        </>,
-        <>
-          📒 <b>Your binder.</b> Here: your progress and the value of your collection.
-        </>,
-      ),
-    },
     {
       target: ["missing"],
       text: t(
         <>
-          🃏 Une carte <b>grise</b> = une carte qui te manque. <b>Clique dessus</b> : elle est à toi !
+          🃏 Une carte <b>grise</b> = une carte qui te manque. <b>Touche une carte que tu as</b> : elle se colore, elle est à toi !
         </>,
         <>
-          🃏 A <b>grey</b> card = a card you&apos;re missing. <b>Click it</b>: it&apos;s yours!
+          🃏 A <b>grey</b> card = a card you&apos;re missing. <b>Tap one you have</b>: it colours in, it&apos;s yours!
         </>,
       ),
       detour: { target: "next-page", text: t(<>Tourne la page ▶</>, <>Turn the page ▶</>) },
-      done: () => !!$('[data-tour="owned"]'),
-      skip: () => !$('[data-tour="missing"]') && !$('[data-tour="owned"]'),
-      group: "cards",
+      done: () => copies() > start,
+      skip: () => !$('[data-tour="missing"]'),
     },
     {
-      target: ["owned"],
+      target: ["fill-set"],
       text: t(
         <>
-          Bien joué ! <b>Clique sur ta carte</b> pour ouvrir sa fiche.
+          ✓ Tu as <b>tout le set</b> ? Un seul tap.
         </>,
         <>
-          Nice! <b>Click your card</b> to open its sheet.
+          ✓ Got <b>the whole set</b>? One tap.
         </>,
       ),
-      done: () => !!$('[data-tour="inspector"]'),
-      skip: () => !$('[data-tour="owned"]'),
-      group: "cards",
+      skip: () => !$('[data-tour="fill-set"]'),
     },
     {
-      target: ["remove-card"],
+      // the end, in the binder: no spotlight, the player's turn
+      target: [],
       text: t(
         <>
-          🔍 Variante, état, prix payé : tout se règle sur la fiche. Une carte cochée par erreur ? <b>Maintiens ce bouton</b> pour la
-          retirer.
+          🎉 <b>À toi !</b> Coche les cartes que tu as. Le reste du bureau se découvre en chemin ✨
         </>,
         <>
-          🔍 Variant, condition, price paid: it&apos;s all on the sheet. Ticked one by mistake? <b>Hold this button</b> to remove it.
+          🎉 <b>Your turn!</b> Tick the cards you have. The rest of the desk shows itself along the way ✨
         </>,
       ),
-      skip: () => !$('[data-tour="inspector"]'),
-      leave: () => setTimeout(() => click('[data-tour="inspector-close"]'), 400),
-      group: "cards",
-    },
-    {
-      target: ["close-binder"],
-      text: t(
-        <>
-          <b>Range ton classeur</b> sur l&apos;étagère.
-        </>,
-        <>
-          <b>Put your binder away</b> on the shelf.
-        </>,
-      ),
-      done: () => !$('[data-tour="binder"]'),
-      skip: () => !$('[data-tour="binder"]'),
-    },
-    {
-      target: ["os-button", "monitor"],
-      text: t(
-        <>
-          🖥️ <b>Clique ici</b> pour allumer {OS_NAME}.
-        </>,
-        <>
-          🖥️ <b>Click here</b> to switch {OS_NAME} on.
-        </>,
-      ),
-      done: () => !!$('[data-tour="os"]'),
-    },
-    {
-      target: ["tab-wish"],
-      text: t(
-        <>
-          ⭐ <b>Ta wishlist</b> : les cartes que tu cherches, avec leur prix. Clique !
-        </>,
-        <>
-          ⭐ <b>Your wishlist</b>: the cards you&apos;re after, with their price. Click!
-        </>,
-      ),
-      done: () => !!$('[data-tour="tab-wish"][aria-selected="true"]'),
-      skip: () => !$('[data-tour="os"]'),
-    },
-    {
-      target: ["tab-save"],
-      text: t(
-        <>
-          ☁️ Et ta <b>sauvegarde</b>, juste là. Clique !
-        </>,
-        <>
-          ☁️ And your <b>save</b>, right there. Click!
-        </>,
-      ),
-      done: () => !!$('[data-tour="tab-save"][aria-selected="true"]'),
-      skip: () => !$('[data-tour="os"]'),
-    },
-    {
-      target: ["account"],
-      text: email
-        ? t(
-            <>
-              Connecté : ta collec se <b>sauvegarde toute seule</b> en ligne, sur tous tes appareils.
-            </>,
-            <>
-              Signed in: your collection <b>saves itself</b> online, on all your devices.
-            </>,
-          )
-        : t(
-            <>
-              Sans compte, ta collec reste dans ce navigateur. <b>Connecte-toi ici</b> pour la garder en ligne.
-            </>,
-            <>
-              Without an account, your collection stays in this browser. <b>Sign in here</b> to keep it online.
-            </>,
-          ),
-      skip: () => !$('[data-tour="account"]'),
-    },
-    {
-      target: ["quit-os"],
-      text: t(
-        <>
-          <b>Quitte l&apos;OS</b> pour revenir au bureau.
-        </>,
-        <>
-          <b>Quit the OS</b> to get back to the desk.
-        </>,
-      ),
-      done: () => !$('[data-tour="os"]'),
-      skip: () => !$('[data-tour="os"]'),
-    },
-    {
-      target: ["about"],
-      text: t(
-        <>
-          ✉️ <b>Le carnet</b> : l&apos;histoire du site, et le formulaire de contact si besoin.
-        </>,
-        <>
-          ✉️ <b>The notebook</b>: the story of the site, and the contact form if you need it.
-        </>,
-      ),
-      leave: reopen,
-    },
-    {
-      // back in the binder: a set binder's « J'ai tout », else the binder itself
-      target: ["fill-set", "binder"],
-      text: $('[data-tour="fill-set"]')
-        ? t(
-            <>
-              🃏 <b>À toi !</b> Clique sur chaque carte que tu as. Tu as tout le set ? <b>J&apos;ai tout ✓</b> les ajoute d&apos;un coup.
-            </>,
-            <>
-              🃏 <b>Your turn!</b> Click every card you have. Got the whole set? <b>Got &apos;em all ✓</b> adds them at once.
-            </>,
-          )
-        : t(
-            <>
-              🃏 <b>À toi !</b> Remplis ton classeur avec les cartes que tu as. Le reste du bureau, à toi de le découvrir.
-            </>,
-            <>
-              🃏 <b>Your turn!</b> Fill your binder with the cards you have. The rest of the desk is yours to discover.
-            </>,
-          ),
     },
   ];
 }
 
-export function Tour({ onDone, onReopen }: { onDone: () => void; onReopen?: () => void }) {
-  const email = useCloud((c) => c.email);
+export function Tour({ onDone }: { onDone: () => void }) {
+  /** the copies when the tour began: one more, and the first step is done */
+  const [start] = useState(copies);
   const layer = useRef<HTMLDivElement>(null);
   const note = useRef<HTMLDivElement>(null);
   const [i, setI] = useState(0);
@@ -268,16 +142,11 @@ export function Tour({ onDone, onReopen }: { onDone: () => void; onReopen?: () =
   const [detour, setDetour] = useState(false);
   const [lost, setLost] = useState(false);
   const [pos, setPos] = useState({ left: -9999, top: -9999 });
-  // Steps left out (not relevant here) are out of the count too: 1/8, 2/8… rather than 1/11, 5/11. The card steps are
-  // known from the start (the binder is open: no card to click, none of them comes); the others as they're skipped.
-  const [skipped, setSkipped] = useState<number[]>(() => {
-    const all = buildSteps(null, false);
-    const first = all.find((s) => s.group === "cards");
-    return first?.skip?.() ? all.flatMap((s, k) => (s.group === "cards" ? [k] : [])) : [];
-  });
+  // Steps left out (not relevant here: a free binder has no grey card, no « J'ai tout ») are out of the count too
+  const [skipped, setSkipped] = useState<number[]>(() => buildSteps(false, 0).flatMap((s, k) => (s.skip?.() ? [k] : [])));
 
   const en = useLang() === "en";
-  const steps = buildSteps(email, en, onReopen);
+  const steps = buildSteps(en, start);
   const step = steps[i];
   const last = i === steps.length - 1;
   const interactive = !!step.done && !lost;
@@ -285,7 +154,7 @@ export function Tour({ onDone, onReopen }: { onDone: () => void; onReopen?: () =
 
   // Follows the target every frame (binders flip, the OS zooms in…), and moves on when the player did the thing.
   useEffect(() => {
-    const all = buildSteps(null, false);
+    const all = buildSteps(false, start);
     const s = all[i];
     if (s.skip?.()) {
       const t = setTimeout(() => {
@@ -303,18 +172,20 @@ export function Tour({ onDone, onReopen }: { onDone: () => void; onReopen?: () =
         advanced = true;
         s.leave?.();
         sfx.pop();
+        // the next step starts from a dimmed screen (a step with no target keeps no old hole)
+        setHole(null);
         setI((n) => Math.min(n + 1, all.length - 1));
         return;
       }
       const main = find(s.target, layer.current);
-      // There but off screen (a tab strip scrolled sideways, the bottom of the card sheet on a phone): bring it in.
+      // There but not seen whole (off screen, or under the phone's page bar at the bottom of the binder's column): bring
+      // it to the middle, once.
       if (!main && !scrolled) {
         const el = s.target.map((t) => $(`[data-tour="${t}"]`)).find(Boolean);
         const r = el?.getBoundingClientRect();
-        // only when really out of the screen, and at once: a button that slides away under the finger cancels a hold
-        if (el && r && r.width > 0 && (r.bottom > innerHeight || r.top < 0 || r.right > innerWidth || r.left < 0)) {
+        if (el && r && r.width > 0) {
           scrolled = true;
-          el.scrollIntoView({ block: "center", inline: "center" });
+          el.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
         }
       }
       const alt = !main && s.detour ? find([s.detour.target], layer.current) : null;
@@ -334,7 +205,7 @@ export function Tour({ onDone, onReopen }: { onDone: () => void; onReopen?: () =
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [i]);
+  }, [i, start]);
 
   // The note sits next to the spotlight.
   useEffect(() => {
@@ -361,6 +232,7 @@ export function Tour({ onDone, onReopen }: { onDone: () => void; onReopen?: () =
       return;
     }
     sfx.pop();
+    setHole(null);
     setI(i + 1);
   };
 
