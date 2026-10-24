@@ -83,7 +83,8 @@ export function cardRow(card: CardData, trend: number | null = null): Row {
     set,
     date: set?.releaseDate ?? "",
     text: card.aka ? `${norm(card.name)} ${norm(card.aka)}` : norm(card.name),
-    bareNum: card.num.toLowerCase().replace(/^([a-z]*)0+(?=\d)/, "$1"),
+    // "149/147" (a reprint's printed number) is found by "149"
+    bareNum: card.num.toLowerCase().replace(/\/.*$/, "").replace(/^([a-z]*)0+(?=\d)/, "$1"),
     code: norm(set?.code ?? ""),
     setName: norm(set?.name ?? ""),
   };
