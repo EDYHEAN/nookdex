@@ -13,11 +13,12 @@ import { useStore } from "./store";
  * The trophy toasts aren't asks. And nothing asks before the site has given something: 10 cards, or a 3rd day of visits.
  */
 
-export type Ask = "save" | "courrier" | "trade-note" | "import" | "roadlog" | "cat" | "tip";
+export type Ask = "save" | "courrier" | "trade-note" | "import" | "roadlog" | "mail" | "cat" | "tip";
 
 /** the order of the asks: the first wanting one has the visit */
-// the letter (room/Courrier) just after the account: it gives, it doesn't ask
-const PRIORITY: Record<Ask, number> = { save: 0, courrier: 0.5, "trade-note": 1, import: 2, roadlog: 3, cat: 4, tip: 4 };
+// the letter (room/Courrier) just after the account: it gives, it doesn't ask; the Monday mail's offer (room/MailAsk) after
+// the road log that announces it
+const PRIORITY: Record<Ask, number> = { save: 0, courrier: 0.5, "trade-note": 1, import: 2, roadlog: 3, mail: 3.5, cat: 4, tip: 4 };
 
 const DAYS_KEY = "nookdex:visit-days";
 /** a third day of visits, or this many cards: the site has given something, it may ask */

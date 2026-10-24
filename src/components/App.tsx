@@ -28,6 +28,7 @@ import { PaintedRoom } from "./room/PaintedRoom";
 import { markSeen, seenVersion } from "./room/RoadLog";
 import { ImportBar } from "./room/ImportBar";
 import { SavePrompt } from "./room/SavePrompt";
+import { MailAsk } from "./room/MailAsk";
 import { Courrier } from "./room/Courrier";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
@@ -677,6 +678,8 @@ export function App() {
       {/* the account, offered once the player without one has a few cards */}
       {entered && <ImportBar compact={compact} calm={calm && !news && valued} onImport={openImport} />}
       {entered && <SavePrompt compact={compact} calm={calm && !news} />}
+      {/* the Monday mail offered once to the accounts that haven't said yes (lib/mailOptin) */}
+      {entered && <MailAsk compact={compact} calm={calm && !news} />}
       {/* the letter since the last visit (lib/courrier), its tiles a way to the card, the wanted ones, the calendar */}
       {entered && (
         <Courrier
