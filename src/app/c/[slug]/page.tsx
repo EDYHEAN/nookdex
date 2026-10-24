@@ -26,8 +26,8 @@ export async function generateMetadata({ params }: PageProps<"/c/[slug]">): Prom
   const give = row.data.give.length;
   const title = en ? `${who(row.name, en)}'s list · ${SITE_NAME}` : `La liste de ${who(row.name, en)} · ${SITE_NAME}`;
   const description = en ? `Looking for ${want} cards · ${give} up for trade. Pokémon cards, today's prices.` : `${want} cartes cherchées · ${give} à échanger. Cartes Pokémon, prix du jour.`;
-  // the picture's address changes with the list: Facebook and WhatsApp keep a picture by its address
-  const image = `/c/${slug}/og.png?v=${Date.parse(row.updated_at) || 0}&l=${lang}`;
+  // the picture's address changes with the list and with its drawing (d): Facebook and WhatsApp keep a picture by its address
+  const image = `/c/${slug}/og.png?v=${Date.parse(row.updated_at) || 0}&d=2&l=${lang}`;
   return {
     title,
     description,
