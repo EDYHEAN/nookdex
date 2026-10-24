@@ -6,7 +6,8 @@ import { SITE_DOMAIN, SITE_NAME } from "@/lib/site";
 
 /**
  * A public list's share picture (Facebook, WhatsApp, Discord), 1200×630: the painted desk dimmed, the most wanted cards
- * fanned on the left, the ones up for trade on the right, and in the middle the pseudo and the two counts. WhatsApp crops
+ * fanned on the left, the ones up for trade on the right (a side with none takes the other's next three: Facebook showed
+ * a bare half, 2026-10-24), and in the middle the pseudo and the two counts. The fans stay whole, beside the note. WhatsApp crops
  * it square around the middle: everything that must be read sits there. The page's metadata puts the list's last update in
  * the address (?v=), so a changed list gets a new picture.
  */
@@ -23,31 +24,31 @@ async function inline(src: string, ms = 5000): Promise<string | null> {
   }
 }
 
-/** the three priciest cards of a side, with a scan, as pictures */
-async function best(cards: ListCard[]) {
+/** the priciest cards of a side, with a scan, as pictures */
+async function best(cards: ListCard[], n: number) {
   const top = cards
     .filter((c) => c.img)
     .sort((a, b) => (b.price ?? -1) - (a.price ?? -1))
-    .slice(0, 3);
+    .slice(0, n);
   return (await Promise.all(top.map((c) => inline(`${c.img}/low.png`)))).filter((s): s is string => !!s);
 }
 
 function Fan({ scans, side }: { scans: string[]; side: "left" | "right" }) {
-  const tilt = side === "left" ? [-16, -6, 4] : [-4, 6, 16];
-  const x = side === "left" ? [0, 70, 140] : [140, 70, 0];
+  const tilt = side === "left" ? [-16, -6, 4] : [16, 6, -4];
+  const x = side === "left" ? [0, 60, 120] : [120, 60, 0];
   return (
-    <div style={{ display: "flex", position: "relative", width: 360, height: 420 }}>
+    <div style={{ display: "flex", position: "relative", width: 300, height: 340 }}>
       {scans.map((src, i) => (
         <img
           key={i}
           src={src}
-          width={210}
-          height={293}
+          width={170}
+          height={237}
           alt=""
           style={{
             position: "absolute",
             left: x[i],
-            top: 60 + (i === 1 ? -14 : 0),
+            top: 50 + (i === 1 ? -12 : 0),
             borderRadius: 12,
             transform: `rotate(${tilt[i]}deg)`,
             boxShadow: "8px 10px 0 rgba(20, 12, 28, 0.45)",
@@ -71,34 +72,37 @@ export async function GET(req: Request, { params }: RouteContext<"/c/[slug]/og.p
     readFile(path.join(process.cwd(), "src/assets/fonts/PressStart2P-Regular.ttf")),
     readFile(path.join(process.cwd(), "src/app/opengraph-image.jpg")),
   ]);
-  const [left, right] = await Promise.all([best(want), best(give)]);
+  const [wantScans, giveScans] = await Promise.all([best(want, give.length ? 3 : 6), best(give, want.length ? 3 : 6)]);
+  const left = (wantScans.length ? wantScans : giveScans.slice(3)).slice(0, 3);
+  const right = giveScans.length ? giveScans.slice(0, 3) : wantScans.slice(3);
   const wanted = row.data.want.length;
   const offered = row.data.give.length;
   const name = row.name || t("Un dresseur", "A trainer");
+  const title = t(`La liste de ${name}`, `${name}'s list`);
 
   return new ImageResponse(
     (
       <div style={{ width: W, height: H, display: "flex", position: "relative", fontFamily: "VT323", color: "#2b2230" }}>
         <img src={`data:image/jpeg;base64,${desk.toString("base64")}`} width={W} height={H} style={{ position: "absolute", top: 0, left: 0 }} alt="" />
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", background: "rgba(24, 16, 36, 0.55)" }} />
-        <div style={{ position: "absolute", left: 10, top: 40, display: "flex" }}>
+        <div style={{ position: "absolute", left: 45, top: 130, display: "flex" }}>
           <Fan scans={left} side="left" />
         </div>
-        <div style={{ position: "absolute", right: 10, top: 40, display: "flex" }}>
+        <div style={{ position: "absolute", right: 45, top: 130, display: "flex" }}>
           <Fan scans={right} side="right" />
         </div>
         <div
           style={{
             position: "absolute",
-            left: 300,
-            top: 95,
-            width: 600,
-            height: 440,
+            left: 365,
+            top: 105,
+            width: 470,
+            height: 420,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            padding: "30px 36px",
+            padding: "28px 30px",
             background: "#f4ecdc",
             border: "6px solid #2b2230",
             borderRadius: 14,
@@ -107,8 +111,8 @@ export async function GET(req: Request, { params }: RouteContext<"/c/[slug]/og.p
           }}
         >
           <div style={{ display: "flex", fontFamily: "Press", fontSize: 22, color: "#b8433d" }}>{SITE_NAME.toUpperCase()}</div>
-          <div style={{ display: "flex", marginTop: 18, fontSize: name.length > 14 ? 50 : 62, lineHeight: 1, textAlign: "center" }}>
-            {t(`La liste de ${name}`, `${name}'s list`)}
+          <div style={{ display: "flex", marginTop: 18, fontSize: Math.max(30, Math.min(60, Math.floor(920 / title.length))), lineHeight: 1, textAlign: "center" }}>
+            {title}
           </div>
           <div style={{ display: "flex", alignItems: "baseline", marginTop: 26, fontFamily: "Press", fontSize: 50, color: "#b8433d" }}>
             {String(wanted)}
@@ -118,7 +122,7 @@ export async function GET(req: Request, { params }: RouteContext<"/c/[slug]/og.p
             {String(offered)}
             <span style={{ marginLeft: 14, fontFamily: "VT323", fontSize: 46, color: "#2b2230" }}>{t("à échanger", "for trade")}</span>
           </div>
-          <div style={{ display: "flex", marginTop: 26, fontSize: 30, color: "#6f6068" }}>{`${SITE_DOMAIN} · ${t("prix du jour", "today's prices")}`}</div>
+          <div style={{ display: "flex", marginTop: 26, fontSize: 28, color: "#6f6068" }}>{`${SITE_DOMAIN} · ${t("prix du jour", "today's prices")}`}</div>
         </div>
       </div>
     ),
