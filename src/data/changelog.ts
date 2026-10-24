@@ -34,6 +34,7 @@ export const CHANGELOG: Release[] = [
         en: "The trade binder, in gold on the shelf: what you're after and your doubles, in one link always up to date.",
       },
       { fr: "Un départ plus léger : une visite en 3 étapes, et plus d'écran « Appuie pour entrer » quand tu reviens.", en: "A lighter start: a 3-step tour, and no more « Press to enter » when you come back." },
+      { fr: "Du courrier sur le bureau quand tes cartes ont bougé depuis ta dernière visite.", en: "Mail on the desk when your cards have moved since your last visit." },
     ],
   },
   {

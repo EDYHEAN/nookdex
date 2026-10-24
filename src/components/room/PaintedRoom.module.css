@@ -1356,3 +1356,39 @@
 .tradeNoteOpen:active {
   transform: scale(0.92);
 }
+
+/* a letter read (room/Courrier), pinned on the cork board: a little envelope with a red pin (scene px) */
+.pin {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 38px;
+  padding: 0;
+  border: 3px solid #2e2430;
+  border-radius: 3px;
+  background: linear-gradient(160deg, #fff8e8, #ecdcbc);
+  color: #c23b32;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 3px 4px 0 rgba(40, 20, 30, 0.35);
+  transition: transform 0.2s steps(3);
+}
+
+.pin::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  translate: -50% 0;
+  border: 2px solid #2e2430;
+  border-radius: 50%;
+  background: #d84a3c;
+}
+
+.pin:hover {
+  transform: translateY(-4px) scale(1.06);
+}
