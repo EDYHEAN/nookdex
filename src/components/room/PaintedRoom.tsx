@@ -200,6 +200,21 @@ function PaintedRoomView({
   const ambient = useStore((s) => s.ambient);
   const toggleLamp = useStore((s) => s.toggleLamp);
   const daytime = useStore((s) => s.daytime);
+  // The backdrop that isn't showing (plate, sky, poster: ~570 KB) is only fetched once the room is in view and idle: on a
+  // phone the pictures of both times of day competed for the line.
+  const [warm, setWarm] = useState(false);
+  useEffect(() => {
+    if (veiled || warm) return;
+    const go = () => setWarm(true);
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(go, { timeout: 4000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = setTimeout(go, 2000);
+    return () => clearTimeout(id);
+  }, [veiled, warm]);
+  const showNight = !daytime || warm;
+  const showDay = daytime || warm;
   const toggleDaytime = useStore((s) => s.toggleDaytime);
   const setAmbient = useStore((s) => s.setAmbient);
   const collection = useStore((s) => s.collection);
@@ -473,16 +488,22 @@ function PaintedRoomView({
         <div ref={world} className={styles.layer}>
           {/* low priority: the loader's logo goes first */}
           {/* low priority: the loader's logo is fetched first */}
-          <img className={styles.plate} src={sceneImg("plate.webp")} alt="" draggable={false} fetchPriority="low" />
+          {showNight && <img className={styles.plate} src={sceneImg("plate.webp")} alt="" draggable={false} fetchPriority="low" />}
           {/* the same room on a sunny afternoon, faded in over the rainy night */}
           {/* the poster above the desk, on the night plate under the day one (they fade together) */}
-          <span className={styles.poster} style={place(POSTER_BOX)} aria-hidden>
-            <img src={sceneImg(`posters/${poster}-night.webp`)} alt="" draggable={false} fetchPriority="low" />
-          </span>
-          <img className={`${styles.plate} ${styles.dayPlate} ${daytime ? "" : styles.off}`} src={sceneImg("day.webp")} alt="" draggable={false} fetchPriority="low" />
-          <span className={`${styles.poster} ${styles.dayPlate} ${daytime ? "" : styles.off}`} style={place(POSTER_BOX)} aria-hidden>
-            <img src={sceneImg(`posters/${poster}-day.webp`)} alt="" draggable={false} fetchPriority="low" />
-          </span>
+          {showNight && (
+            <span className={styles.poster} style={place(POSTER_BOX)} aria-hidden>
+              <img src={sceneImg(`posters/${poster}-night.webp`)} alt="" draggable={false} fetchPriority="low" />
+            </span>
+          )}
+          {showDay && (
+            <img className={`${styles.plate} ${styles.dayPlate} ${daytime ? "" : styles.off}`} src={sceneImg("day.webp")} alt="" draggable={false} fetchPriority="low" />
+          )}
+          {showDay && (
+            <span className={`${styles.poster} ${styles.dayPlate} ${daytime ? "" : styles.off}`} style={place(POSTER_BOX)} aria-hidden>
+              <img src={sceneImg(`posters/${poster}-day.webp`)} alt="" draggable={false} fetchPriority="low" />
+            </span>
+          )}
           {/* a new poster catches the light (drawn again for each one) */}
           {posterGlint > 0 && (
             <span key={posterGlint} className={styles.poster} style={place(POSTER_BOX)} aria-hidden>
@@ -493,11 +514,13 @@ function PaintedRoomView({
           {/* the sky behind the glass: night city in the rain, or sunny afternoon */}
           <div className={styles.sky} style={{ ...place(SCENE.window), maskImage: windowMask, WebkitMaskImage: windowMask }}>
             <div ref={sky} className={styles.skyMove}>
-              <div className={styles.skyLayer} style={{ backgroundImage: `url(${skin?.art.sky ?? sceneImg("sky.webp")})` }} />
-              <div
-                className={`${styles.skyLayer} ${styles.skyDay} ${daytime ? "" : styles.off}`}
-                style={{ backgroundImage: `url(${skin?.art.skyDay ?? sceneImg("sky-day.webp")})` }}
-              />
+              {showNight && <div className={styles.skyLayer} style={{ backgroundImage: `url(${skin?.art.sky ?? sceneImg("sky.webp")})` }} />}
+              {showDay && (
+                <div
+                  className={`${styles.skyLayer} ${styles.skyDay} ${daytime ? "" : styles.off}`}
+                  style={{ backgroundImage: `url(${skin?.art.skyDay ?? sceneImg("sky-day.webp")})` }}
+                />
+              )}
             </div>
             <div className={`${styles.skyGlass} ${daytime ? styles.skyGlassDay : ""}`} />
           </div>
@@ -538,7 +561,7 @@ function PaintedRoomView({
 
           {/* steam: the painted wisp, boiling like a hand-drawn loop. One per backdrop, each fading with its
               own room, so the switch never shows a patch of the other one. */}
-          {(["plate.webp", "day.webp"] as const).map((file) => (
+          {(["plate.webp", "day.webp"] as const).filter((file) => (file === "day.webp" ? showDay : showNight)).map((file) => (
             <div key={file} className={`${styles.dayPlate} ${(file === "day.webp") === daytime ? "" : styles.off}`}>
               <div
                 className={styles.steam}

@@ -19,29 +19,21 @@ import { startShareSync } from "@/lib/share";
 import { useTrophyQueue } from "@/lib/trophyStore";
 import { closeTrade, useTradeMat } from "@/lib/trade";
 import { isCompact, useViewport } from "@/lib/useViewport";
-import { BinderView } from "./binder/BinderView";
-import { Inspector } from "./binder/Inspector";
-import { Computer, type Tab } from "./computer/Computer";
+import type { Tab } from "./computer/Computer";
 import { Loader } from "./Loader";
 import { BoilFilter } from "./fx/Boil";
 import { Grain } from "./fx/Grain";
-import { AboutBook } from "./room/AboutBook";
 import { PaintedRoom } from "./room/PaintedRoom";
-import { RoadLog, markSeen, seenVersion } from "./room/RoadLog";
+import { markSeen, seenVersion } from "./room/RoadLog";
 import { ImportBar } from "./room/ImportBar";
 import { SavePrompt } from "./room/SavePrompt";
 import { Courrier } from "./room/Courrier";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
-import { TrophyCase } from "./room/TrophyCase";
 import { ITEM, backFromShop, itemsOf, paidFor, preloadShop, refreshOwned, setShopView, useShopNews, useShopOpen, useSkins } from "@/lib/shop";
-import { Shop, ThankYou, TryOnBar } from "./room/Shop";
-import { Box } from "./room/Box";
-import { TradeBinder } from "./share/TradeBinder";
 import type { ListView } from "./share/TradePanel";
 import { TrophyToasts } from "./room/TrophyToast";
-import { BinderPicker, type BinderChoice } from "./shelf/BinderPicker";
-import { Tour } from "./shelf/Tour";
+import type { BinderChoice } from "./shelf/BinderPicker";
 import { Welcome } from "./shelf/Welcome";
 import styles from "./App.module.css";
 import { LANG_COOKIE, currentLang, useLang, useT } from "@/lib/lang";
@@ -50,6 +42,36 @@ import { LANG_COOKIE, currentLang, useLang, useT } from "@/lib/lang";
 const NookBoy = dynamic(() => import("./game/NookBoy"), { ssr: false });
 /** The trade mat (NookDex OS → « Échange », a card sheet's « Échanger »): loaded when it's brought out. */
 const TradeMat = dynamic(() => import("./trade/TradeMat"), { ssr: false });
+
+/**
+ * What opens on a gesture, not at first sight, is its own chunk: the room starts with far less script to run (mobile
+ * Lighthouse: TBT 1.1 s). `warmChunks` fetches them once the room is calm, so the first tap doesn't wait for one.
+ */
+const BinderView = dynamic(() => import("./binder/BinderView").then((m) => m.BinderView), { ssr: false });
+const Inspector = dynamic(() => import("./binder/Inspector").then((m) => m.Inspector), { ssr: false });
+const Computer = dynamic(() => import("./computer/Computer").then((m) => m.Computer), { ssr: false });
+const AboutBook = dynamic(() => import("./room/AboutBook").then((m) => m.AboutBook), { ssr: false });
+const RoadLog = dynamic(() => import("./room/RoadLog").then((m) => m.RoadLog), { ssr: false });
+const TrophyCase = dynamic(() => import("./room/TrophyCase").then((m) => m.TrophyCase), { ssr: false });
+const Shop = dynamic(() => import("./room/Shop").then((m) => m.Shop), { ssr: false });
+const ThankYou = dynamic(() => import("./room/Shop").then((m) => m.ThankYou), { ssr: false });
+const TryOnBar = dynamic(() => import("./room/Shop").then((m) => m.TryOnBar), { ssr: false });
+const Box = dynamic(() => import("./room/Box").then((m) => m.Box), { ssr: false });
+const TradeBinder = dynamic(() => import("./share/TradeBinder").then((m) => m.TradeBinder), { ssr: false });
+const BinderPicker = dynamic(() => import("./shelf/BinderPicker").then((m) => m.BinderPicker), { ssr: false });
+const Tour = dynamic(() => import("./shelf/Tour").then((m) => m.Tour), { ssr: false });
+function warmChunks() {
+  void import("./binder/BinderView");
+  void import("./binder/Inspector");
+  void import("./computer/Computer");
+  void import("./room/Shop");
+  void import("./share/TradeBinder");
+  void import("./shelf/BinderPicker");
+  void import("./shelf/Tour");
+  void import("./room/TrophyCase");
+  void import("./room/AboutBook");
+  void import("./room/Box");
+}
 
 interface Open {
   binderId: string;
@@ -131,9 +153,20 @@ export function App() {
   useEffect(() => {
     if (shopOpen && cloud.email) void refreshOwned();
   }, [shopOpen, cloud.email]);
+  // once the player is in (not behind the loader, where it competes with the logo), when the room is idle
   useEffect(() => {
-    if (shopOpen) preloadShop();
-  }, [shopOpen]);
+    if (!entered) return;
+    const go = () => {
+      warmChunks();
+      if (shopOpen) preloadShop();
+    };
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(go, { timeout: 6000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = setTimeout(go, 3000);
+    return () => clearTimeout(id);
+  }, [entered, shopOpen]);
   const [shopNews, shopSeen] = useShopNews();
   /** back from Stripe's payment page: the thank-you, while the purchase arrives and once it's in */
   const [thanks, setThanks] = useState<{ id: string; state: "waiting" | "done" | "late" } | null>(() => (paidFor ? { id: paidFor, state: "waiting" } : null));
