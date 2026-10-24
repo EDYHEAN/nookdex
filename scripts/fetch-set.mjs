@@ -399,6 +399,39 @@ async function scansFromTcgcsv(mainId, cards) {
 }
 
 /*
+ * Reprint sub-sets printed with their original cards' numbers: the 30th's Classic Collection Lugia reads "149/147"
+ * (Aquapolis'), TCGdex numbers it "029" (a player's pull, 2026-10-24). The number shown is the printed one, from the
+ * TCGplayer card its scan was made from (public/scans/<id>/product.txt, kept the day TCGdex has a scan of its own).
+ * The card's id keeps TCGdex's number. Run last: the TCGCSV lookups above match TCGdex's numbers.
+ */
+const ORIGINAL_NUMBERS = new Set(["30th-c"]);
+async function originalNumbers(cards) {
+  const subOf = (c) => c.id.slice(0, c.id.lastIndexOf("-"));
+  const mine = cards.filter((c) => ORIGINAL_NUMBERS.has(subOf(c)) && existsSync(`${SCANS}/${c.id}/product.txt`));
+  if (!mine.length) return 0;
+  tcgGroups ??= (await tcgcsv("/groups")).results ?? [];
+  const numbers = new Map(); // TCGplayer product id -> printed number
+  for (const setId of new Set(mine.map(subOf))) {
+    const setName = plain((await get(`${API}/en/sets/${setId}`))?.name);
+    for (const g of tcgGroups.filter((g) => plain(g.name.replace(/^[^:]*:\s*/, "")) === setName)) {
+      for (const p of (await tcgcsv(`/${g.groupId}/products`))?.results ?? []) {
+        const number = p.extendedData?.find((e) => e.name === "Number")?.value;
+        if (number) numbers.set(String(p.productId), number);
+      }
+    }
+  }
+  let n = 0;
+  for (const card of mine) {
+    const number = numbers.get((await readFile(`${SCANS}/${card.id}/product.txt`, "utf8")).trim());
+    if (number && number !== card.num) {
+      card.num = number;
+      n++;
+    }
+  }
+  return n;
+}
+
+/*
  * Japanese sets TCGdex lists with every card, name and Cardmarket price but no picture yet (the MEGA block, Black Bolt,
  * White Flare… for months): TCGplayer sells them, with a picture. Found on TCGCSV's Pokémon Japan category, in the group
  * whose code is the set's id ("SV11B", "m1L"), by printed number ("003/086"); the plain print, not its Poké Ball or
@@ -690,6 +723,12 @@ async function fetchSet(mainId, subIds) {
   } catch (e) {
     // TCGCSV down: the Cardmarket prices in dollars stay
     console.warn(`${mainId}: TCGCSV skipped (${e.message})`);
+  }
+  try {
+    await originalNumbers(out.cards);
+  } catch (e) {
+    // TCGCSV down: TCGdex's numbers for a day
+    console.warn(`${mainId}: printed numbers skipped (${e.message})`);
   }
   await writeFile(`${OUT}/${mainId}.json`, JSON.stringify(out));
   console.log(`${mainId}: ${out.cards.length} cards${gone ? ` (${gone} no longer on TCGdex, kept)` : ""}${filled ? ` (${filled} priced by TCGCSV)` : ""}`);

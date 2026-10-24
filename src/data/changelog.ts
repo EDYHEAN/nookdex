@@ -27,6 +27,10 @@ export const CHANGELOG: Release[] = [
       { fr: "Un onglet « Marché » dans le carnet : les cartes qui montent et qui chutent cette semaine.", en: "A « Market » tab in the notebook: the cards rising and falling this week." },
       { fr: "Un départ plus léger : une visite en 3 étapes, et plus d'écran « Appuie pour entrer » quand tu reviens.", en: "A lighter start: a 3-step tour, and no more « Press to enter » when you come back." },
       { fr: "Le bureau s'ouvre plus vite sur téléphone.", en: "The desk opens faster on a phone." },
+      {
+        fr: "La Classic Collection des 30 ans porte ses vrais numéros (Lugia 149/147).",
+        en: "The 30th's Classic Collection shows its real numbers (Lugia 149/147).",
+      },
     ],
   },
   {
