@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useT } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
 import { type ListView, TradePanel } from "./TradePanel";
@@ -14,17 +14,28 @@ import styles from "./TradeBinder.module.css";
  */
 export function TradeBinder({ onClose, focusSet, start }: { onClose: () => void; focusSet?: string; start?: ListView }) {
   const tr = useT();
+  // App passes a new onClose on each render: kept in a ref so the effects below run once, not on every render
+  const close = useRef(onClose);
+  useEffect(() => {
+    close.current = onClose;
+  }, [onClose]);
+
+  // The shelf already played its pull-out sound on the click: the cover opens once the binder has landed, like a set
+  // binder's (BinderView), instead of both sounds at once.
+  useEffect(() => {
+    const t = setTimeout(() => sfx.coverOpen(), 380);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
-    sfx.coverOpen();
     // (a bottom sheet open catches Escape first: share/BottomSheet)
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape" || (e.target as HTMLElement)?.tagName === "INPUT") return;
-      onClose();
+      close.current();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, []);
 
   return (
     <motion.div className={styles.backdrop} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={(e) => e.target === e.currentTarget && onClose()}>
