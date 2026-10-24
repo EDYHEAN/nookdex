@@ -287,3 +287,127 @@
     scrollbar-color: #6b3f2a transparent;
   }
 }
+
+/* ---------- a tab clicked: the notebook stays open, its page turns (components/NotebookBackdrop) ---------- */
+
+.turn,
+.fill,
+.turn .book,
+.fill .book {
+  animation: none;
+}
+
+/* the page turns over from its spine, the next one under it */
+.turn .sheet {
+  transform-origin: 0 50%;
+  animation: pageTurn 0.32s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes pageTurn {
+  from {
+    opacity: 0.4;
+    transform: perspective(1400px) rotateY(-14deg) translateX(-6px);
+  }
+}
+
+/* the words come onto the page that just turned */
+.fill .sheet {
+  animation: fillIn 0.22s ease-out;
+}
+
+@keyframes fillIn {
+  from {
+    opacity: 0.55;
+  }
+}
+
+/* ---------- the page waiting for its words (components/NotebookSkeleton) ---------- */
+
+/* as tall as a page of words fills the notebook: nothing moves when they come */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: calc(100dvh - 96px);
+  overflow: hidden;
+}
+
+@media (max-width: 560px) {
+  .skeleton {
+    height: calc(100dvh - 56px);
+  }
+}
+
+.skTitle,
+.skLine,
+.skScan {
+  display: block;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(43, 34, 48, 0.1), rgba(43, 34, 48, 0.18), rgba(43, 34, 48, 0.1));
+  background-size: 200% 100%;
+  animation: inkWait 1.2s ease-in-out infinite;
+}
+
+.skTitle {
+  width: 58%;
+  height: 22px;
+  margin: 4px 48px 12px 0;
+}
+
+.skLine {
+  height: 12px;
+  margin-top: 2px;
+}
+
+/* a 0 % line: a paragraph's gap */
+.skLine[style*="width: 0%"] {
+  visibility: hidden;
+}
+
+@keyframes inkWait {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.wideSkeleton {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  padding: 90px max(16px, calc(50vw - 590px)) 20px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+}
+
+.skWide {
+  display: flex;
+  gap: 28px;
+  margin-top: 20px;
+}
+
+.skWide > div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.skScan {
+  flex: none;
+  width: min(300px, 40vw);
+  aspect-ratio: 245 / 342;
+  border-radius: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn .sheet,
+  .fill .sheet,
+  .skTitle,
+  .skLine,
+  .skScan {
+    animation: none;
+  }
+}

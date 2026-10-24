@@ -2,20 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { SITE_NAME } from "@/lib/site";
 import { NotebookBackdrop } from "./NotebookBackdrop";
+import { NotebookTabs } from "./NotebookTabs";
 import styles from "./LegalPage.module.css";
-
-// [French page, English page] when the two languages have their own address (the set pages); "": no English page
-const TABS = [
-  { href: ["/a-propos", "/a-propos"], label: ["À propos", "About"] },
-  { href: ["/extensions", "/en/sets"], label: ["Extensions", "Sets"] },
-  { href: ["/calendrier-des-sorties", "/en/release-calendar"], label: ["Sorties", "Releases"] },
-  // the sealed products on amazon.fr (affiliate): French only
-  { href: ["/invitations-amazon", ""], label: ["Invitations", ""] },
-  { href: ["/blog", "/blog"], label: ["Blog", "Blog"] },
-  { href: ["/confidentialite", "/confidentialite"], label: ["Vie privée", "Privacy"] },
-  { href: ["/conditions", "/conditions"], label: ["CGU", "Terms"] },
-  { href: ["/contact", "/contact"], label: ["Contact", "Contact"] },
-] as const;
 
 /**
  * The public pages (about, privacy, terms, contact): a notebook opened over the room, like the "À propos" one.
@@ -40,17 +28,7 @@ export function LegalPage({
   return (
     <NotebookBackdrop>
       <main className={styles.book}>
-        <nav className={styles.tabs} aria-label="Pages">
-          {TABS.map((tab) => {
-            const href = t(tab.href[0], tab.href[1]);
-            if (!href) return null;
-            return (
-              <Link key={href} href={href} className={href === path ? styles.tabOn : undefined} aria-current={href === path ? "page" : undefined}>
-                {t(tab.label[0], tab.label[1])}
-              </Link>
-            );
-          })}
-        </nav>
+        <NotebookTabs path={path} en={en} />
         <Link href={t("/", "/en")} className={styles.close} aria-label={t(`Retour au bureau ${SITE_NAME}`, `Back to the ${SITE_NAME} desk`)}>
           ✕
         </Link>
