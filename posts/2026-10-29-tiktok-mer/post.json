@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-29",
+  "time": "18:30",
+  "platforms": [
+    "tiktok"
+  ],
+  "tiktok": "photos",
+  "kind": "fun",
+  "format": "post",
+  "title": "TikTok : la page de la mer",
+  "note": "Carrousel photo TikTok (mode photo). Un son tendance.",
+  "prices": true,
+  "caption": "Les plus belles cartes de la mer 🌊 Swipe jusqu'au bout : un Magicarpe qui vaut… plus que tu ne crois.\n\nTu prends laquelle ? 👇\n\n#pokemontcg #pokemoneau #magicarpe #cartespokemon #pokemonfr",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "LA MER",
+      "title": "Pokémon<br>d'eau",
+      "size": 110,
+      "cards": [
+        "sv07-148",
+        "sv02-203",
+        "sv03.5-170"
+      ],
+      "banner": "TU PRENDS LAQUELLE ?"
+    },
+    {
+      "type": "grid",
+      "label": "9 ILLUSTRATIONS AQUATIQUES",
+      "cards": [
+        "sv07-148",
+        "sv02-203",
+        "sv03.5-170",
+        "me02.5-226",
+        "sv10.5w-107",
+        "sv10-193",
+        "sv06.5-067",
+        "sv10-194",
+        "sv09-162"
+      ]
+    },
+    {
+      "type": "price",
+      "card": "sv02-203",
+      "name": "ET CELLE-CI VAUT…"
+    },
+    {
+      "type": "end",
+      "title": "Tu prends<br>laquelle ?",
+      "lead": "Fais-en ta wishlist sur NookDex"
+    }
+  ]
+}
