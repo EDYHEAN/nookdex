@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-24T16:11:07.492Z",
+ "updated": "2026-10-25T05:15:25.255Z",
  "posts": [
   {
    "id": "2026-10-08-bienvenue",
@@ -508,6 +508,27 @@
    "tiktok": "2026-10-26-devine-le-prix/tiktok.mp4"
   },
   {
+   "id": "2026-10-27-tiktok-rayquaza",
+   "date": "2026-10-27",
+   "time": "18:30",
+   "platforms": [
+    "tiktok",
+    "reels"
+   ],
+   "kind": "fact",
+   "format": "post",
+   "title": "TikTok : les 5 Rayquaza les plus chers",
+   "note": "Vidéo TikTok + Reel (même vidéo). Un son tendance dans l'appli. Les prix sont redessinés la veille et le jour même.",
+   "caption": "Les 5 Rayquaza les plus chers 🐉 Méga-Rayquaza-ex revient dans le JCC le 6 novembre.\n\nTu en as un dans ton classeur ? 👇\n\n#pokemontcg #rayquaza #cartespokemon #pokemonfr #pokemoncards",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": "2026-10-27-tiktok-rayquaza/tiktok.mp4"
+  },
+  {
    "id": "2026-10-28-zoom",
    "date": "2026-10-28",
    "time": null,
@@ -536,6 +557,57 @@
    "tiktok": "2026-10-28-zoom/tiktok.mp4"
   },
   {
+   "id": "2026-10-29-tiktok-mer",
+   "date": "2026-10-29",
+   "time": "18:30",
+   "platforms": [
+    "tiktok"
+   ],
+   "kind": "fun",
+   "format": "post",
+   "title": "TikTok : la page de la mer",
+   "note": "Carrousel photo TikTok (mode photo). Un son tendance.",
+   "caption": "Les plus belles cartes de la mer 🌊 Swipe jusqu'au bout : un Magicarpe qui vaut… plus que tu ne crois.\n\nTu prends laquelle ? 👇\n\n#pokemontcg #pokemoneau #magicarpe #cartespokemon #pokemonfr",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [],
+   "photos": [
+    "2026-10-29-tiktok-mer/photo-01.jpg",
+    "2026-10-29-tiktok-mer/photo-02.jpg",
+    "2026-10-29-tiktok-mer/photo-03.jpg",
+    "2026-10-29-tiktok-mer/photo-04.jpg"
+   ],
+   "tiktokAs": "photos",
+   "video": null,
+   "tiktok": null
+  },
+  {
+   "id": "2026-10-30-regne-delta-j7",
+   "date": "2026-10-30",
+   "time": "18:30",
+   "platforms": [
+    "instagram"
+   ],
+   "kind": "news",
+   "format": "post",
+   "title": "Règne Delta : J-7",
+   "note": "Les cartes de Règne Delta ne sont pas encore dans les données : la couverture montre les Rayquaza déjà sortis. Source : pokemon.com (annonce du 6 novembre). Ajoute un sticker compte à rebours en story.",
+   "caption": "Plus qu'une semaine avant Méga-Évolution : Règne Delta (ME06) 🐉\n\n✦ sortie le 6 novembre, partout le même jour\n✦ plus de 135 cartes, dont plus de 35 illustrations spéciales\n✦ Méga-Rayquaza-ex en tête d'affiche, avec Méga-Golemastoc-ex, Méga-Sepiatroce-ex et Méga-Sarmuraï-ex\n\nLe dernier Méga-Rayquaza (Origines Antiques, 2015) se cote aujourd'hui 537,41 €, prix tendance Cardmarket du 24 octobre.\n\nTu vises quelle carte ? Prépare ta wishlist 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #regnedelta #megarayquaza #cartespokemon #pokemonfr",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [
+    "2026-10-30-regne-delta-j7/slide-01.jpg",
+    "2026-10-30-regne-delta-j7/slide-02.jpg",
+    "2026-10-30-regne-delta-j7/slide-03.jpg",
+    "2026-10-30-regne-delta-j7/slide-04.jpg",
+    "2026-10-30-regne-delta-j7/slide-05.jpg"
+   ],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": null
+  },
+  {
    "id": "2026-10-31-halloween",
    "date": "2026-10-31",
    "time": null,
@@ -558,6 +630,26 @@
    "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-10-31-halloween/tiktok.mp4"
+  },
+  {
+   "id": "2026-11-01-tiktok-mewtwo",
+   "date": "2026-11-01",
+   "time": "18:30",
+   "platforms": [
+    "tiktok"
+   ],
+   "kind": "fun",
+   "format": "post",
+   "title": "TikTok : quel Mewtwo vaut le plus ?",
+   "note": "Jeu. Les prix sont redessinés la veille et le jour même.",
+   "caption": "Quel Mewtwo vaut le plus ? 🧠 3 manches, dis ton score en commentaire 👇\n\n#pokemontcg #mewtwo #quiz #cartespokemon #pokemonfr",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": "2026-11-01-tiktok-mewtwo/tiktok.mp4"
   }
  ]
 }
