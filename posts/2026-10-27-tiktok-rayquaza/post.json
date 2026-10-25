@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-27",
+  "time": "18:30",
+  "platforms": [
+    "tiktok",
+    "reels"
+  ],
+  "kind": "fact",
+  "format": "post",
+  "title": "TikTok : les 5 Rayquaza les plus chers",
+  "note": "Vidéo TikTok + Reel (même vidéo). Un son tendance dans l'appli. Les prix sont redessinés la veille et le jour même.",
+  "prices": true,
+  "caption": "Les 5 Rayquaza les plus chers 🐉 Méga-Rayquaza-ex revient dans le JCC le 6 novembre.\n\nTu en as un dans ton classeur ? 👇\n\n#pokemontcg #rayquaza #cartespokemon #pokemonfr #pokemoncards",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "TOP 5",
+      "title": "Rayquaza",
+      "size": 90,
+      "cards": [
+        "xy7-98",
+        "swsh7-218",
+        "swsh7-194"
+      ],
+      "banner": "LES 5 PLUS CHERS"
+    },
+    {
+      "type": "price",
+      "card": "ex8-102",
+      "rank": 5,
+      "name": "EX DEOXYS · 2005"
+    },
+    {
+      "type": "price",
+      "card": "pop1-3",
+      "rank": 4,
+      "name": "POP SERIE 1 · 2004"
+    },
+    {
+      "type": "price",
+      "card": "swsh7-194",
+      "rank": 3,
+      "name": "EVOLUTION CELESTE · 2021"
+    },
+    {
+      "type": "price",
+      "card": "xy7-98",
+      "rank": 2,
+      "name": "ORIGINES ANTIQUES · 2015"
+    },
+    {
+      "type": "price",
+      "card": "swsh7-218",
+      "rank": 1,
+      "name": "EVOLUTION CELESTE · 2021"
+    },
+    {
+      "type": "paper",
+      "kicker": "LE 6 NOVEMBRE",
+      "title": "Un Méga-Rayquaza",
+      "em": "revient",
+      "lead": "Méga-Rayquaza-ex, dans Règne Delta."
+    },
+    {
+      "type": "end",
+      "title": "Et ton Rayquaza,<br>il vaut quoi ?",
+      "lead": "La cote de chaque carte, chaque jour"
+    }
+  ]
+}
