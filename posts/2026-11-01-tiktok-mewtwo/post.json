@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-01",
+  "time": "18:30",
+  "platforms": [
+    "tiktok"
+  ],
+  "kind": "fun",
+  "format": "post",
+  "title": "TikTok : quel Mewtwo vaut le plus ?",
+  "note": "Jeu. Les prix sont redessinés la veille et le jour même.",
+  "prices": true,
+  "caption": "Quel Mewtwo vaut le plus ? 🧠 3 manches, dis ton score en commentaire 👇\n\n#pokemontcg #mewtwo #quiz #cartespokemon #pokemonfr",
+  "slides": [
+    {
+      "type": "duel",
+      "label": "QUEL MEWTWO ? · 1/3",
+      "a": "neo4-109",
+      "b": "sv10-231"
+    },
+    {
+      "type": "duel",
+      "label": "QUEL MEWTWO ? · 2/3",
+      "a": "sm3.5-78",
+      "b": "swsh12.5gg-GG44"
+    },
+    {
+      "type": "duel",
+      "label": "QUEL MEWTWO ? · 3/3",
+      "a": "xy12-103",
+      "b": "30th-157"
+    },
+    {
+      "type": "duelAnswers",
+      "rounds": [
+        [
+          "neo4-109",
+          "sv10-231"
+        ],
+        [
+          "sm3.5-78",
+          "swsh12.5gg-GG44"
+        ],
+        [
+          "xy12-103",
+          "30th-157"
+        ]
+      ]
+    }
+  ]
+}
