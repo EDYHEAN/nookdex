@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { claimAsk, useAskFree } from "@/lib/calm";
+import { useCalm } from "@/lib/calm";
 import { useT } from "@/lib/lang";
 import { SUPPORT_URL } from "@/lib/site";
 import { sfx } from "@/lib/sound";
@@ -21,16 +21,17 @@ export function TipCorner({ show }: { show: boolean }) {
   const t = useT();
   const pathname = usePathname();
   const [thanks, setThanks] = useState(false);
-  const free = useAskFree("tip");
-  // the last of the asks: it comes once the room was calm a while, if nothing else asked this visit (lib/calm)
+  // Not one of the visit's asks (lib/calm): a quiet corner, not a pop-in. Under the one-ask rule the other asks (road log,
+  // letter, Monday mail) took every visit and it never showed (Johan, 2026-10-26). It steps aside while a pop-in is up.
+  const popIn = useCalm((c) => c.up.length > 0);
   const [up, setUp] = useState(false);
   const ready = show && (pathname === "/" || pathname === "/en");
   useEffect(() => {
     if (!ready || up) return;
-    const id = setTimeout(() => claimAsk("tip") && setUp(true), TIP_AFTER);
+    const id = setTimeout(() => setUp(true), TIP_AFTER);
     return () => clearTimeout(id);
   }, [ready, up]);
-  const visible = ready && up && free;
+  const visible = ready && up && !popIn;
 
   return (
     <AnimatePresence>
