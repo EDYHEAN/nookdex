@@ -6,19 +6,19 @@ import { useStore } from "./store";
 
 /**
  * The calm room's asks (Johan, 2026-10-23, « pas de demande avant la valeur »): the account card (room/SavePrompt), the
- * trade binder's note, the Pokécardex strip (room/ImportBar), the road log, the cat (room/SupportCat) and the tip corner
- * (room/TipCorner). One of them a visit, at most, and by priority, not by who comes first: an ask that wants to show
+ * trade binder's note, the Pokécardex strip (room/ImportBar), the road log, the cat (room/SupportCat); not the tip corner
+ * (room/TipCorner), always there after a while since 2026-10-26. One of them a visit, at most, and by priority, not by who comes first: an ask that wants to show
  * (`useWantAsk`) holds back the ones after it, even while it waits for its moment (a trophy toast, the binder closed).
  * Money is always last: the cat came before the account in the visit a player reached 10 cards (UX review, 2026-10-24).
  * The trophy toasts aren't asks. And nothing asks before the site has given something: 10 cards, or a 3rd day of visits.
  */
 
-export type Ask = "save" | "courrier" | "trade-note" | "import" | "roadlog" | "mail" | "cat" | "tip";
+export type Ask = "save" | "courrier" | "trade-note" | "import" | "roadlog" | "mail" | "cat";
 
 /** the order of the asks: the first wanting one has the visit */
 // the letter (room/Courrier) just after the account: it gives, it doesn't ask; the Monday mail's offer (room/MailAsk) after
 // the road log that announces it
-const PRIORITY: Record<Ask, number> = { save: 0, courrier: 0.5, "trade-note": 1, import: 2, roadlog: 3, mail: 3.5, cat: 4, tip: 4 };
+const PRIORITY: Record<Ask, number> = { save: 0, courrier: 0.5, "trade-note": 1, import: 2, roadlog: 3, mail: 3.5, cat: 4 };
 
 const DAYS_KEY = "nookdex:visit-days";
 /** a third day of visits, or this many cards: the site has given something, it may ask */
@@ -46,9 +46,20 @@ interface Calm {
   wanting: Ask[];
   /** days of visits on this device, this one included */
   days: number;
+  /** the pop-in asks on screen right now (the tip corner steps aside for them) */
+  up: Ask[];
 }
 
-export const useCalm = create<Calm>(() => ({ holder: null, wanting: [], days: typeof window === "undefined" ? 1 : countDays() }));
+export const useCalm = create<Calm>(() => ({ holder: null, wanting: [], days: typeof window === "undefined" ? 1 : countDays(), up: [] }));
+
+/** A pop-in ask is on screen (or no longer). */
+export function useAskUp(ask: Ask, up: boolean) {
+  useEffect(() => {
+    if (!up) return;
+    useCalm.setState((c) => ({ up: [...c.up, ask] }));
+    return () => useCalm.setState((c) => ({ up: c.up.filter((a) => a !== ask) }));
+  }, [ask, up]);
+}
 
 const before = (ask: Ask, wanting: Ask[]) => wanting.some((w) => w !== ask && PRIORITY[w] < PRIORITY[ask]);
 

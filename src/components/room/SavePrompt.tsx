@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useT } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
-import { claimAsk, useWantAsk } from "@/lib/calm";
+import { claimAsk, useAskUp, useWantAsk } from "@/lib/calm";
 import { wishMailOptin } from "@/lib/mailOptin";
 import { useStore } from "@/lib/store";
 import { useTrophyQueue } from "@/lib/trophyStore";
@@ -95,6 +95,7 @@ export function SavePrompt({ compact, calm }: { compact: boolean; calm: boolean 
 
   // signed in meanwhile (the e-mail link opened in another tab): nothing left to ask
   const visible = shown && !email && (calm || !!sent);
+  useAskUp("save", visible);
 
   const later = () => {
     sfx.click();

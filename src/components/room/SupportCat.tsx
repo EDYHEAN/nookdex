@@ -7,7 +7,7 @@ import { useT } from "@/lib/lang";
 import { sceneImg } from "@/lib/scene";
 import { SUPPORT_URL } from "@/lib/site";
 import { sfx } from "@/lib/sound";
-import { claimAsk } from "@/lib/calm";
+import { claimAsk, useAskUp } from "@/lib/calm";
 import { unlock } from "@/lib/trophyStore";
 import { useStore } from "@/lib/store";
 import styles from "./SupportCat.module.css";
@@ -99,6 +99,7 @@ export function SupportCat({ compact, calm }: { compact: boolean; calm: boolean 
 
   // the player opened a binder or the OS meanwhile: the cat steps aside, and waits for the room to be calm again
   const visible = shown && (calm || thanks);
+  useAskUp("cat", visible);
 
   const later = () => {
     sfx.click();
