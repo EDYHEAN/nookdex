@@ -39,8 +39,10 @@ function ago(iso: string, en: boolean) {
   if (min < 2) return en ? "updated just now" : "à jour à l'instant";
   if (min < 60) return en ? `updated ${min} min ago` : `à jour il y a ${min} min`;
   const h = Math.round(min / 60);
-  if (h < 48) return en ? `updated ${h} h ago` : `à jour il y a ${h} h`;
+  if (h < 20) return en ? `updated ${h} h ago` : `à jour il y a ${h} h`;
+  // in days past that: "46 h ago" reads worse than "2 days ago" (Johan, 2026-10-26)
   const d = Math.round(h / 24);
+  if (d === 1) return en ? "updated yesterday" : "à jour hier";
   return en ? `updated ${d} days ago` : `à jour il y a ${d} jours`;
 }
 
