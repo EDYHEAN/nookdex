@@ -243,6 +243,12 @@
 }
 
 /* under the first binder's choice: look around every card first */
+.startSet {
+  display: block;
+  margin: 12px 0 6px;
+  text-align: left;
+}
+
 .explore {
   display: block;
   margin-top: 8px;

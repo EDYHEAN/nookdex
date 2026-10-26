@@ -28,6 +28,10 @@ export const CHANGELOG: Release[] = [
       { fr: "Un départ plus léger : une visite en 3 étapes, et plus d'écran « Appuie pour entrer » quand tu reviens.", en: "A lighter start: a 3-step tour, and no more « Press to enter » when you come back." },
       { fr: "Le bureau s'ouvre plus vite sur téléphone.", en: "The desk opens faster on a phone." },
       {
+        fr: "« Ajouter à ma collection » sur la page d'une carte t'amène droit à elle, dans ton classeur.",
+        en: "« Add it to my collection » on a card's page takes you straight to it, in your binder.",
+      },
+      {
         fr: "La Classic Collection des 30 ans porte ses vrais numéros (Lugia 149/147).",
         en: "The 30th's Classic Collection shows its real numbers (Lugia 149/147).",
       },

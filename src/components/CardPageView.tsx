@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatDate } from "@/lib/blog";
+import { keyOf } from "@/lib/cardLang";
 import { type CardPage, cardFaq, cardPage } from "@/lib/cardPages";
 import { money } from "@/lib/setPages";
 import { type PageLang, SET_PAGES_ROOT } from "@/lib/setPath";
@@ -162,7 +163,8 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
           </p>
 
           <div className={styles.cta}>
-            <Link prefetch={false} href={home} className={styles.ctaBtn}>
+            {/* the room takes it from there (App, ?carte): its binder, or its set as a newcomer's first one */}
+            <Link prefetch={false} href={`${home}?carte=${encodeURIComponent(keyOf(lang, card.id))}`} className={styles.ctaBtn}>
               {t("Ajouter à ma collection", "Add it to my collection")} ▶
             </Link>
             <span>{t("Gratuit, sans compte pour commencer.", "Free, no account needed to start.")}</span>
