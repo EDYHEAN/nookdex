@@ -1,4 +1,4 @@
-# Chaque lundi : les chiffres de la semaine (entonnoir par source, comptes, retours, Search Console) dans
+# Chaque dimanche soir : les chiffres de la semaine (entonnoir par source, comptes, retours, Search Console) dans
 # docs/reports/data/<date>.json. La routine Claude du lundi les lit et écrit le rapport docs/reports/<date>.md.
 # Secret : GSC_SERVICE_ACCOUNT (la clé JSON du compte de service Search Console, en lecture seule).
 # Lancement à la main : onglet « Actions » > « Chiffres de la semaine » > « Run workflow ».
@@ -6,9 +6,9 @@ name: Chiffres de la semaine
 
 on:
   schedule:
-    # le lundi à 2 h 17 UTC : GitHub retarde ses tâches programmées (jusqu'à 3 h, surtout à l'heure pile), la routine du
-    # rapport passe à 7 h 30 (le 2026-10-19, prévu à 6 h, il n'avait toujours pas tourné à 7 h 45)
-    - cron: "17 2 * * 1"
+    # le dimanche à 20 h 17 UTC, la veille de la routine du rapport (lundi 7 h 30 UTC) : GitHub retarde ses tâches
+    # programmées de plusieurs heures (le 2026-10-26, prévue à 2 h 17, elle a tourné à 7 h 52, après la routine)
+    - cron: "17 20 * * 0"
   workflow_dispatch:
 
 permissions:
