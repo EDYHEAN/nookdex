@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { sfx } from "@/lib/sound";
 import styles from "./LegalPage.module.css";
@@ -26,10 +27,12 @@ const tabOf = (path: string, en: boolean) =>
 /**
  * The notebook's bookmarks (Johan, 2026-10-24: a tab clicked gave no sign for half a second). The one pressed goes up at
  * once, with a page sound; the next page's paper skeleton (app/(desk)/…/loading.tsx) follows, the content after it.
- * Each tab's route is prefetched as it shows (down to its loading skeleton: the pages are drawn on each visit).
+ * A tab's route is prefetched as the pointer or the focus comes to it, not as it shows: the pages are drawn on each visit,
+ * so each tab shown was a server function run, on every page a crawler opened too (Vercel's Hobby quotas, 2026-10-26).
  */
 export function NotebookTabs({ path, en }: { path: string; en: boolean }) {
   const t = (fr: string, english: string) => (en ? english : fr);
+  const router = useRouter();
   const [pressed, setPressed] = useState<string | null>(null);
   const active = pressed ?? tabOf(path, en);
   return (
@@ -42,6 +45,9 @@ export function NotebookTabs({ path, en }: { path: string; en: boolean }) {
           <Link
             key={href}
             href={href}
+            prefetch={false}
+            onPointerEnter={() => router.prefetch(href)}
+            onFocus={() => router.prefetch(href)}
             className={on ? styles.tabOn : undefined}
             aria-current={href === tabOf(path, en) ? "page" : undefined}
             onClick={(e) => {

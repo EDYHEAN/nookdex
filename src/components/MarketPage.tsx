@@ -124,7 +124,7 @@ export async function MarketPage({ lang }: { lang: PageLang }) {
             <small className={styles.price}>{money(m.price)}</small>
           </>
         );
-        return <li key={m.id}>{href ? <Link href={href}>{body}</Link> : body}</li>;
+        return <li key={m.id}>{href ? <Link prefetch={false} href={href}>{body}</Link> : body}</li>;
       })}
     </ol>
   );
@@ -166,7 +166,7 @@ export async function MarketPage({ lang }: { lang: PageLang }) {
               "Les cartes Pokémon dont la cote a le plus bougé en 7 jours, d'après la tendance Cardmarket relevée chaque jour. Les cartes à moins de 1 € n'y sont pas : quelques centimes de plus ne font pas une hausse.",
               "The Pokémon cards whose price moved the most in 7 days, from the TCGplayer market price recorded every day (English cards). Cards under $1 are left out: a few cents more isn't a rise.",
             )}{" "}
-            <Link href={MARKET_PATH[fr ? "en" : "fr"]} hrefLang={fr ? "en" : "fr"}>
+            <Link prefetch={false} href={MARKET_PATH[fr ? "en" : "fr"]} hrefLang={fr ? "en" : "fr"}>
               {t("English cards (TCGplayer) →", "Cartes françaises (Cardmarket) →")}
             </Link>
           </p>
@@ -192,7 +192,7 @@ export async function MarketPage({ lang }: { lang: PageLang }) {
 
           <p className={styles.cta}>
             {t("Suis la cote de tes propres cartes, chaque jour, sur ton bureau.", "Follow your own cards' prices, every day, on your desk.")}{" "}
-            <Link href={fr ? "/" : "/en"}>{t("Ouvrir mon bureau ▶", "Open my desk ▶")}</Link>
+            <Link prefetch={false} href={fr ? "/" : "/en"}>{t("Ouvrir mon bureau ▶", "Open my desk ▶")}</Link>
           </p>
 
           <h2>{t("Questions fréquentes", "FAQ")}</h2>
@@ -208,7 +208,7 @@ export async function MarketPage({ lang }: { lang: PageLang }) {
               `Prix ${source}, mis à jour le ${formatDate(data.updated, "fr")}. Les prix Cardmarket mélangent toutes les langues d'impression de la carte.`,
               `${source} prices, updated ${formatDate(data.updated, "en")}.`,
             )}{" "}
-            <Link href={SET_PAGES_ROOT[lang]}>{t("Toutes les extensions et leurs prix →", "Every set and its prices →")}</Link>
+            <Link prefetch={false} href={SET_PAGES_ROOT[lang]}>{t("Toutes les extensions et leurs prix →", "Every set and its prices →")}</Link>
           </p>
         </>
       )}

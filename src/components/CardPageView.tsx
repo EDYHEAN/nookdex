@@ -132,7 +132,7 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
         <div className={styles.info}>
           <h1>{card.name}</h1>
           <p className={styles.chips}>
-            <Link href={p.setPath} className={styles.chip}>
+            <Link prefetch={false} href={p.setPath} className={styles.chip}>
               {p.set.name}
             </Link>
             <span className={styles.chip}>n° {p.printed}</span>
@@ -162,14 +162,14 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
           </p>
 
           <div className={styles.cta}>
-            <Link href={home} className={styles.ctaBtn}>
+            <Link prefetch={false} href={home} className={styles.ctaBtn}>
               {t("Ajouter à ma collection", "Add it to my collection")} ▶
             </Link>
             <span>{t("Gratuit, sans compte pour commencer.", "Free, no account needed to start.")}</span>
           </div>
           {p.other && (
             <p className={styles.source}>
-              <Link href={p.other.path} hrefLang={p.other.lang}>
+              <Link prefetch={false} href={p.other.path} hrefLang={p.other.lang}>
                 {fr ? `EN · ${card.name}: the English card and its TCGplayer price` : `FR · ${card.name} : la carte française et son prix Cardmarket`}
               </Link>
             </p>
@@ -190,7 +190,7 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
           <ul className={styles.same}>
             {p.same.map((s) => (
               <li key={s.path}>
-                <Link href={s.path}>
+                <Link prefetch={false} href={s.path}>
                   <img src={`${s.img}/low.webp`} alt={`${s.name} ${s.num} · ${s.set}`} width={245} height={342} loading="lazy" decoding="async" />
                   <small>{s.set}</small>
                   <b>{s.trend != null ? money(s.trend, p) : "—"}</b>
@@ -214,9 +214,9 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
       </section>
 
       <nav className={styles.walk} aria-label={p.set.name}>
-        {p.prev ? <Link href={p.prev.path}>← {p.prev.name}</Link> : <span />}
-        <Link href={p.setPath}>{t(`Toutes les cartes de ${p.set.name}`, `Every ${p.set.name} card`)}</Link>
-        {p.next ? <Link href={p.next.path}>{p.next.name} →</Link> : <span />}
+        {p.prev ? <Link prefetch={false} href={p.prev.path}>← {p.prev.name}</Link> : <span />}
+        <Link prefetch={false} href={p.setPath}>{t(`Toutes les cartes de ${p.set.name}`, `Every ${p.set.name} card`)}</Link>
+        {p.next ? <Link prefetch={false} href={p.next.path}>{p.next.name} →</Link> : <span />}
       </nav>
     </WidePage>
   );
