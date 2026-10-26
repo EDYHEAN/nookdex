@@ -32,6 +32,16 @@ const nextConfig: NextConfig = {
     { source: "/facebook", destination: "/?utm_source=facebook", permanent: false },
     { source: "/en/facebook", destination: "/en?utm_source=facebook-en", permanent: false },
   ],
+  // The pages whose address says their language (src/proxy.ts: nothing in them follows the cookie) are kept a day on
+  // Vercel's CDN: drawn on each visit otherwise (the root layout reads the cookie), the crawlers going through the ~41,000
+  // card pages ran a function each time and went past the Hobby plan's CPU and invocations (2026-10-26). Their prices
+  // change once a day, with the prices commit, and each deploy starts the CDN's cache afresh. The other pages follow the
+  // visitor's language and stay uncached.
+  headers: async () =>
+    ["/en", "/en/:path*", "/extensions", "/extensions/:path*", "/calendrier-des-sorties", "/invitations-amazon", "/marche"].map((source) => ({
+      source,
+      headers: [{ key: "Vercel-CDN-Cache-Control", value: "s-maxage=86400, stale-while-revalidate=86400" }],
+    })),
   // The sets' files (30 MB) stay out of every function: lib/setFiles fetches them from the site's static files.
   // Each function carried its own copy, and Vercel's Hobby plan keeps every deploy of the last 30 days within 10 GB.
   outputFileTracingExcludes: {

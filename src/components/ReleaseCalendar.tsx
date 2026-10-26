@@ -127,13 +127,13 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           "Les prochaines extensions, coffrets et avant-premières du JCC Pokémon, en France et au Japon, mois par mois : seulement ce qui est annoncé officiellement, avec sa source.",
           "The next Pokémon TCG sets, products and prereleases, worldwide and in Japan, month by month: only what has been officially announced, with its source.",
         )}{" "}
-        <Link href={CALENDAR_PATH[fr ? "en" : "fr"]} hrefLang={fr ? "en" : "fr"}>
+        <Link prefetch={false} href={CALENDAR_PATH[fr ? "en" : "fr"]} hrefLang={fr ? "en" : "fr"}>
           {fr ? "EN · In English" : "FR · En français"}
         </Link>
       </p>
       {fr && (
         <p>
-          <Link href={SHOP_PATH} className={legal.cta}>
+          <Link prefetch={false} href={SHOP_PATH} className={legal.cta}>
             Les invitations Amazon du moment ▶
           </Link>
         </p>
@@ -167,7 +167,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
                   <h3>{r.name}</h3>
                   {r.note && <p>{r.note}</p>}
                   <p className={styles.links}>
-                    {r.post && <Link href={`/blog/${r.post}`}>{t("Lire le guide →", "Read the guide →")}</Link>}
+                    {r.post && <Link prefetch={false} href={`/blog/${r.post}`}>{t("Lire le guide →", "Read the guide →")}</Link>}
                     {/* French page: its boosters and boxes to preorder (Amazon affiliate, lib/amazon), as cards below once known */}
                     {fr && r.region === "intl" && r.kind !== "event" && !shopOf(r) && (
                       <a href={amazonSearch(`Pokémon ${r.name}`, "calendrier")} target="_blank" rel="sponsored noopener">
@@ -199,12 +199,12 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           <li key={r.date + r.name}>
             <time dateTime={r.date}>{formatDate(r.date, lang)}</time>
             <span>
-              {r.href ? <Link href={r.href}>{r.name}</Link> : r.name}
+              {r.href ? <Link prefetch={false} href={r.href}>{r.name}</Link> : r.name}
               {r.code && <small> · {r.code}</small>}
               {r.post && (
                 <small>
                   {" · "}
-                  <Link href={`/blog/${r.post}`}>{t("le guide", "the guide")}</Link>
+                  <Link prefetch={false} href={`/blog/${r.post}`}>{t("le guide", "the guide")}</Link>
                 </small>
               )}
             </span>
@@ -229,7 +229,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
 
       <p className={styles.updated}>
         {t(`Calendrier mis à jour le ${formatDate(updated, "fr")}.`, `Calendar updated ${formatDate(updated, "en")}.`)}{" "}
-        <Link href={SET_PAGES_ROOT[lang]}>{t("Toutes les extensions et leurs prix →", "Every set and its prices →")}</Link>
+        <Link prefetch={false} href={SET_PAGES_ROOT[lang]}>{t("Toutes les extensions et leurs prix →", "Every set and its prices →")}</Link>
       </p>
       {fr && <p className={styles.updated}>{AMAZON_NOTICE}</p>}
     </LegalPage>

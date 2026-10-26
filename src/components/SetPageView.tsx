@@ -142,14 +142,14 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
         </p>
         {p.other && (
           <p className={styles.other}>
-            <Link href={p.other.path} hrefLang={p.other.lang}>
+            <Link prefetch={false} href={p.other.path} hrefLang={p.other.lang}>
               {fr ? `EN · ${p.other.name}: the English cards and their TCGplayer prices` : `FR · ${p.other.name} : les cartes françaises et leurs prix Cardmarket`}
             </Link>
           </p>
         )}
 
         <p className={blog.cta}>
-          <Link href={fr ? "/" : "/en"} className={legal.cta}>
+          <Link prefetch={false} href={fr ? "/" : "/en"} className={legal.cta}>
             {t(`Coche tes cartes de ${name} sur le bureau ${SITE_NAME} ▶`, `Tick your ${name} cards on the ${SITE_NAME} desk ▶`)}
           </Link>
         </p>
@@ -210,7 +210,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
             return (
               <li key={c.id} className={styles.card}>
                 {/* its own page (lib/cardPages): how search engines find the cards */}
-                <Link href={`${p.path}/${cardSlug(c)}`} className={styles.cardLink}>
+                <Link prefetch={false} href={`${p.path}/${cardSlug(c)}`} className={styles.cardLink}>
                 {c.img ? (
                   <img src={`${c.img}/low.webp`} alt={`${label} · ${name}`} width={245} height={342} loading="lazy" decoding="async" />
                 ) : (
@@ -242,7 +242,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
           <ul className={blog.list}>
             {p.posts.map((post) => (
               <li key={post.slug}>
-                <Link href={`/blog/${post.slug}`} className={blog.note}>
+                <Link prefetch={false} href={`/blog/${post.slug}`} className={blog.note}>
                   <time dateTime={post.date}>{formatDate(post.date, post.lang)}</time>
                   <b>{post.title}</b>
                 </Link>
@@ -258,7 +258,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
           <ul>
             {p.series.map((s) => (
               <li key={s.path}>
-                <Link href={s.path}>{s.name}</Link>
+                <Link prefetch={false} href={s.path}>{s.name}</Link>
               </li>
             ))}
           </ul>
@@ -266,7 +266,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
       )}
 
       <p>
-        <Link href={root}>{t("← toutes les extensions", "← all sets")}</Link>
+        <Link prefetch={false} href={root}>{t("← toutes les extensions", "← all sets")}</Link>
       </p>
     </LegalPage>
   );
@@ -297,7 +297,7 @@ export function SetIndexView({ lang }: { lang: PageLang }) {
           : "Every Pokémon TCG set in English: its card list, rarities and TCGplayer prices, updated every day."}
       </p>
       <p>
-        <Link href={fr ? "/en/sets" : "/extensions"} hrefLang={fr ? "en" : "fr"}>
+        <Link prefetch={false} href={fr ? "/en/sets" : "/extensions"} hrefLang={fr ? "en" : "fr"}>
           {fr ? "EN · The English sets and their TCGplayer prices" : "FR · Les extensions en français et leurs prix Cardmarket"}
         </Link>
       </p>
@@ -307,7 +307,7 @@ export function SetIndexView({ lang }: { lang: PageLang }) {
           <ul className={styles.grid}>
             {s.sets.map((set) => (
               <li key={set.path}>
-                <Link href={set.path} className={styles.tile}>
+                <Link prefetch={false} href={set.path} className={styles.tile}>
                   {set.logo ? (
                     <img src={set.logo} alt="" loading="lazy" />
                   ) : (

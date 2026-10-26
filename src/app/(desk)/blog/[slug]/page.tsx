@@ -92,7 +92,7 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
         <time dateTime={post.date}>{formatDate(post.date, post.lang)}</time>
         <span>· {t(`${post.minutes} min de lecture`, `${post.minutes} min read`)}</span>
         {other && (
-          <Link href={`/blog/${other.slug}`} hrefLang={other.lang} className={blog.langSwitch}>
+          <Link prefetch={false} href={`/blog/${other.slug}`} hrefLang={other.lang} className={blog.langSwitch}>
             {/* no flag emoji: Windows shows them as two letters */}
             {en ? "FR · Lire en français" : "EN · Read in English"}
           </Link>
@@ -109,7 +109,7 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
       <div className={blog.body} lang={post.lang} dangerouslySetInnerHTML={{ __html: await renderPost(post) }} />
 
       <p className={blog.cta}>
-        <Link href="/" className={legal.cta}>
+        <Link prefetch={false} href="/" className={legal.cta}>
           {t(`Range tes cartes sur le bureau ${SITE_NAME} ▶`, `Track your cards on the ${SITE_NAME} desk ▶`)}
         </Link>
       </p>
@@ -120,7 +120,7 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
           <ul className={blog.list}>
             {more.map((p) => (
               <li key={p.slug}>
-                <Link href={`/blog/${p.slug}`} className={blog.note}>
+                <Link prefetch={false} href={`/blog/${p.slug}`} className={blog.note}>
                   <time dateTime={p.date}>{formatDate(p.date, p.lang)}</time>
                   <b>{p.title}</b>
                 </Link>
@@ -131,7 +131,7 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
       )}
 
       <p>
-        <Link href="/blog">{t("← tous les articles", "← all posts")}</Link>
+        <Link prefetch={false} href="/blog">{t("← tous les articles", "← all posts")}</Link>
       </p>
     </LegalPage>
   );

@@ -42,10 +42,10 @@ export async function HomeText({ en }: { en: boolean }) {
               your wanted list.
             </p>
             <nav>
-              <Link href="/a-propos">About</Link> · <Link href="/en/sets">Sets: card lists and prices</Link> · <Link href="/en/release-calendar">Release calendar</Link> · <Link href="/blog">Blog</Link> ·{" "}
-              <Link href="/confidentialite">Privacy policy</Link> · <Link href="/conditions">Terms of use</Link> · <Link href="/contact">Contact</Link> ·{" "}
-              <Link href="/mentions-legales">Legal notice</Link> ·{" "}
-              <Link href="/" hrefLang="fr">
+              <Link prefetch={false} href="/a-propos">About</Link> · <Link prefetch={false} href="/en/sets">Sets: card lists and prices</Link> · <Link prefetch={false} href="/en/release-calendar">Release calendar</Link> · <Link prefetch={false} href="/blog">Blog</Link> ·{" "}
+              <Link prefetch={false} href="/confidentialite">Privacy policy</Link> · <Link prefetch={false} href="/conditions">Terms of use</Link> · <Link prefetch={false} href="/contact">Contact</Link> ·{" "}
+              <Link prefetch={false} href="/mentions-legales">Legal notice</Link> ·{" "}
+              <Link prefetch={false} href="/" hrefLang="fr">
                 En français
               </Link>
             </nav>
@@ -65,12 +65,12 @@ export async function HomeText({ en }: { en: boolean }) {
               TCGplayer), et partage ta liste de recherche.
             </p>
             <nav>
-              <Link href="/a-propos">À propos</Link> · <Link href="/extensions">Extensions : listes des cartes et prix</Link> ·{" "}
-              <Link href="/calendrier-des-sorties">Calendrier des sorties</Link> ·{" "}
-              <Link href="/blog">Blog</Link> · <Link href="/confidentialite">Règles de confidentialité</Link> ·{" "}
-              <Link href="/conditions">Conditions d&apos;utilisation</Link> · <Link href="/contact">Contact</Link> ·{" "}
-              <Link href="/mentions-legales">Mentions légales</Link> ·{" "}
-              <Link href="/en" hrefLang="en">
+              <Link prefetch={false} href="/a-propos">À propos</Link> · <Link prefetch={false} href="/extensions">Extensions : listes des cartes et prix</Link> ·{" "}
+              <Link prefetch={false} href="/calendrier-des-sorties">Calendrier des sorties</Link> ·{" "}
+              <Link prefetch={false} href="/blog">Blog</Link> · <Link prefetch={false} href="/confidentialite">Règles de confidentialité</Link> ·{" "}
+              <Link prefetch={false} href="/conditions">Conditions d&apos;utilisation</Link> · <Link prefetch={false} href="/contact">Contact</Link> ·{" "}
+              <Link prefetch={false} href="/mentions-legales">Mentions légales</Link> ·{" "}
+              <Link prefetch={false} href="/en" hrefLang="en">
                 In English
               </Link>
             </nav>

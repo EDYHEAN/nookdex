@@ -49,7 +49,7 @@ export function ShopShelf({
       </ul>
       {max && all.length > max && (
         <p className={styles.more}>
-          <Link href={`${SHOP_PATH}#${group.id}`}>
+          <Link prefetch={false} href={`${SHOP_PATH}#${group.id}`}>
             Les {all.length} produits {group.name} sur Amazon →
           </Link>
         </p>

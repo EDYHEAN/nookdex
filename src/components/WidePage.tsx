@@ -15,7 +15,7 @@ export function WidePage({ en = false, crumbs, children }: { en?: boolean; crumb
   return (
     <div className={styles.page}>
       <header className={styles.bar}>
-        <Link href={home} className={styles.brand}>
+        <Link prefetch={false} href={home} className={styles.brand}>
           <img src="/email/warwick.png" alt="" width={40} height={40} />
           <span>{SITE_NAME}</span>
         </Link>
@@ -23,11 +23,11 @@ export function WidePage({ en = false, crumbs, children }: { en?: boolean; crumb
           {crumbs.map((c, i) => (
             <span key={c.href}>
               {i > 0 && <i aria-hidden> › </i>}
-              <Link href={c.href}>{c.label}</Link>
+              <Link prefetch={false} href={c.href}>{c.label}</Link>
             </span>
           ))}
         </nav>
-        <Link href={home} className={styles.open}>
+        <Link prefetch={false} href={home} className={styles.open}>
           {t("Ouvrir mon bureau", "Open my desk")} ▶
         </Link>
       </header>
@@ -44,18 +44,18 @@ export function WidePage({ en = false, crumbs, children }: { en?: boolean; crumb
               "Your Pokémon collection in binders, on a cosy hand-painted desk. Tick your cards, follow their value every day, check your trades at card shows. Free, no ads, on computer and phone.",
             )}
           </p>
-          <Link href={home} className={styles.open}>
+          <Link prefetch={false} href={home} className={styles.open}>
             {t("Commencer ma collection", "Start my collection")} ▶
           </Link>
         </div>
       </aside>
 
       <footer className={styles.foot}>
-        <Link href={t("/extensions", "/en/sets")}>{t("Toutes les extensions", "All sets")}</Link>
-        <Link href={t("/calendrier-des-sorties", "/en/release-calendar")}>{t("Calendrier des sorties", "Release calendar")}</Link>
-        <Link href="/blog">Blog</Link>
-        <Link href="/a-propos">{t("À propos", "About")}</Link>
-        <Link href="/mentions-legales">{t("Mentions légales", "Legal notice")}</Link>
+        <Link prefetch={false} href={t("/extensions", "/en/sets")}>{t("Toutes les extensions", "All sets")}</Link>
+        <Link prefetch={false} href={t("/calendrier-des-sorties", "/en/release-calendar")}>{t("Calendrier des sorties", "Release calendar")}</Link>
+        <Link prefetch={false} href="/blog">Blog</Link>
+        <Link prefetch={false} href="/a-propos">{t("À propos", "About")}</Link>
+        <Link prefetch={false} href="/mentions-legales">{t("Mentions légales", "Legal notice")}</Link>
       </footer>
     </div>
   );
