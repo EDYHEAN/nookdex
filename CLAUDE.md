@@ -114,7 +114,7 @@ doesn't show.
   `funnel_ping` (writes) and `funnel_stats(since)` (counts by source), docs/supabase.sql; production on nookdex.com only.
   Nothing personal, nothing tied to the account (/confidentialite says so). Vercel Analytics' referrers (Johan's dashboard,
   no API) give the visits; this gives what they do.
-- Weekly report (2026-10-17): Mondays 02:17 UTC (GitHub delays scheduled runs by hours) the Action « Chiffres de la semaine » (`scripts/analytics.mjs`: funnel_stats,
+- Weekly report (2026-10-17): Sundays 20:17 UTC (GitHub delays scheduled runs by hours: on Mondays at 02:17 it once ran after the routine) the Action « Chiffres de la semaine » (`scripts/analytics.mjs`: funnel_stats,
   growth_stats, activity_stats, Search Console with the `GSC_SERVICE_ACCOUNT` secret) writes `docs/reports/data/<date>.json`; the
   Claude routine « Rapport de la semaine NookDex » writes `docs/reports/<date>.md` and its e-mail `<date>.html` (from
   `docs/reports/mail-template.html`); « Mail du rapport » sends that to contact@nookdex.com via Brevo (`BREVO_API_KEY` secret).
