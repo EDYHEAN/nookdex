@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { loadSets, neededSets } from "@/lib/catalog";
+import { catalogSet, loadSets, neededSets } from "@/lib/catalog";
 import { askPlayers, signIn, signInWithGoogle, useCloud, usePlayers } from "@/lib/cloud";
 import { NAME_PARTS, SITE_NAME } from "@/lib/site";
 import { sfx } from "@/lib/sound";
@@ -20,6 +20,8 @@ interface Props {
   onExplore: () => void;
   /** "My collection is on Pokécardex": the OS's import, no first binder to pick */
   onImport: () => void;
+  /** the set of the card page they came from (« Ajouter à ma collection »): offered first */
+  startSet?: string;
 }
 
 /**
@@ -27,7 +29,7 @@ interface Props {
  * back). The account comes later, once the player has a few cards (`room/SavePrompt`). A player coming back on a new
  * device signs in from the nickname card ("already have an account?"); App closes this screen once their save is in.
  */
-export function Welcome({ onPick, onDone, onExplore, onImport }: Props) {
+export function Welcome({ onPick, onDone, onExplore, onImport, startSet }: Props) {
   const profile = useStore((s) => s.profile);
   const binders = useStore((s) => s.binders);
   const { email, firstName, status } = useCloud();
@@ -53,6 +55,9 @@ export function Welcome({ onPick, onDone, onExplore, onImport }: Props) {
   useEffect(() => {
     if (step === "hello") input.current?.focus();
   }, [step]);
+
+  const start = startSet ? catalogSet(startSet) : undefined;
+  const [starting, setStarting] = useState(false);
 
   const finish = () => {
     setLeaving(true);
@@ -332,6 +337,25 @@ export function Welcome({ onPick, onDone, onExplore, onImport }: Props) {
                   {t(
                     "Une extension à compléter, ou un classeur libre où tu ranges ce que tu veux. Tu pourras en ajouter d'autres sur l'étagère.",
                     "A set to complete, or a free binder for whatever you like. You can add more on the shelf later.",
+                  )}
+                  {start && (
+                    <button
+                      className={`${styles.go} ${styles.startSet}`}
+                      disabled={starting}
+                      onClick={async () => {
+                        sfx.stamp();
+                        setStarting(true);
+                        try {
+                          await onPick({ kind: "set", setId: start.id });
+                          finish();
+                        } catch {
+                          setStarting(false);
+                        }
+                      }}
+                      onPointerEnter={sfx.hover}
+                    >
+                      {t(`Commencer par ${start.name} ▶`, `Start with ${start.name} ▶`)}
+                    </button>
                   )}
                   <button
                     className={styles.explore}

@@ -2,12 +2,12 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { APP_VERSION } from "@/data/changelog";
 import { MAX_BINDERS, shelfBinders } from "@/lib/binders";
 import { bareId, keyOf } from "@/lib/cardLang";
-import { binderSets, loadSet, loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
+import { binderSets, catalogSet, loadSet, loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { returningFromSignIn, startCloud, useCloud } from "@/lib/cloud";
 import { setMuted, sfx, startAmbient, stopAmbient, unlockOnFirstGesture } from "@/lib/sound";
 import { OS_NAME } from "@/lib/site";
@@ -329,6 +329,35 @@ export function App() {
     setTimeout(() => setOpen({ binderId: home.id, focusCardId: cardId }), 350);
   };
 
+  /**
+   * A card page's « Ajouter à ma collection » (CardPageView) comes back with ?carte=<card key>: a player gets its binder
+   * (or its sheet, "Je l'ai !" there); a newcomer's welcome offers its set as the first binder.
+   */
+  const askedCard = useSearchParams().get("carte");
+  const askedSet = askedCard ? setIdOfCard(askedCard) : undefined;
+  const startSet = askedSet && !catalogSet(askedSet)?.extra ? askedSet : undefined;
+  /** the card asked for, once dealt with (the welcome deals with it by its first binder) */
+  const handledCard = useRef<string | null>(null);
+  const dropAskedCard = () => {
+    handledCard.current = askedCard;
+    if (askedCard) window.history.replaceState(null, "", window.location.pathname);
+  };
+  useEffect(() => {
+    if (!askedCard) handledCard.current = null;
+    if (!askedCard || !askedSet || !entered || !cloud.ready || welcome || handledCard.current === askedCard) return;
+    dropAskedCard();
+    loadSet(askedSet).then(
+      () => {
+        if (!useSets.getState().cards[askedCard]) return;
+        // a card no binder holds: its sheet over the OS's "Toutes les cartes" ("Je l'ai !" there asks where it goes)
+        if (!homeOf(askedCard)) setComputer({ x: window.innerWidth / 2, y: window.innerHeight / 2, tab: "cards" });
+        void goToCard(askedCard);
+      },
+      () => {},
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [askedCard, entered, cloud.ready, welcome]);
+
   /** A new binder: download its cards, then put it on the shelf. */
   const addBinder = async (choice: BinderChoice) => {
     if (choice.kind === "set") await loadSet(choice.setId);
@@ -647,12 +676,16 @@ export function App() {
                 setTimeout(() => setTour(true), 1300);
               }, 450);
             }}
-            onDone={() => setWelcome(false)}
+            onDone={() => {
+              dropAskedCard();
+              setWelcome(false);
+            }}
             onExplore={() => {
               sfx.boot();
               setComputer({ x: window.innerWidth / 2, y: window.innerHeight / 2, tab: "cards" });
             }}
             onImport={openImport}
+            startSet={startSet}
           />
         )}
       {tour && (

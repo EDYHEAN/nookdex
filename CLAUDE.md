@@ -112,7 +112,8 @@ doesn't show.
   landing page, the days it came back and its steps (profile, binder, cards10, account, game). Short links for posts add the
   source: `/reddit`, `/en/reddit`, `/facebook`, `/en/facebook` (next.config `redirects`; a new place: add one there). Supabase `funnel` behind
   `funnel_ping` (writes) and `funnel_stats(since)` (counts by source), docs/supabase.sql; production on nookdex.com only.
-  Nothing personal, nothing tied to the account (/confidentialite says so). Vercel Analytics' referrers (Johan's dashboard,
+  Nothing personal, nothing tied to the account (/confidentialite says so). A visit counts at the device's first gesture
+  (tap, click, key, wheel; 2026-10-26: robots in a plain Chrome were ~95 % of "direct"): "direct" drops from then on. Vercel Analytics' referrers (Johan's dashboard,
   no API) give the visits; this gives what they do.
 - Weekly report (2026-10-17): Sundays 20:17 UTC (GitHub delays scheduled runs by hours: on Mondays at 02:17 it once ran after the routine) the Action « Chiffres de la semaine » (`scripts/analytics.mjs`: funnel_stats,
   growth_stats, activity_stats, Search Console with the `GSC_SERVICE_ACCOUNT` secret) writes `docs/reports/data/<date>.json`; the

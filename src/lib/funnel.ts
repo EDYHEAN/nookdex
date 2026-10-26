@@ -94,16 +94,31 @@ async function ping(s: Sent, step?: FunnelStep) {
   await supabase.rpc("funnel_ping", { p_device: id, p_source: s.source, p_landing: s.landing, p_lang: navigator.language.slice(0, 5), p_step: step ?? null });
 }
 
-/** A visit: once a day per device. */
+/**
+ * Some robots wear a plain Chrome's user-agent: 1,037 of the week's 1,108 "direct" devices (report of 2026-10-26) were
+ * en-US, landed on a card page, never came back nor did anything. A robot renders the page but never touches it: a
+ * visit counts at the first real gesture (a tap, a click, a key, the wheel; not a scroll, a script scrolls too).
+ */
+const GESTURES = ["pointerdown", "keydown", "touchstart", "wheel"] as const;
+
+/** A visit: once a day per device, at its first gesture. */
 export function funnelVisit() {
-  // (the id first: a new one starts over what was sent)
-  if (!live() || !device()) return;
-  const s = sent();
-  const today = new Date().toLocaleDateString("sv-SE");
-  if (s.day === today) return;
-  s.day = today;
-  save(s);
-  void ping(s).catch(() => {});
+  if (!live()) return;
+  const go = (e: Event) => {
+    if (!e.isTrusted) return;
+    stop();
+    // (the id first: a new one starts over what was sent)
+    if (!device()) return;
+    const s = sent();
+    const today = new Date().toLocaleDateString("sv-SE");
+    if (s.day === today) return;
+    s.day = today;
+    save(s);
+    void ping(s).catch(() => {});
+  };
+  const stop = () => GESTURES.forEach((g) => window.removeEventListener(g, go, true));
+  GESTURES.forEach((g) => window.addEventListener(g, go, { capture: true, passive: true }));
+  return stop;
 }
 
 /**

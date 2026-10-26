@@ -9,9 +9,18 @@ import { setPagePath } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import cal from "@/components/ReleaseCalendar.module.css";
 
-const TITLE = "Invitations Amazon Pokémon : les produits du moment";
-const DESCRIPTION =
-  "Les coffrets Dresseur d'élite, displays, bundles et coffrets Pokémon vendus sur invitation par Amazon.fr, extension par extension, avec le lien pour demander ton invitation.";
+/**
+ * The two newest sets by name, without the series ("Règne Delta", not "Méga-Évolution Règne Delta"): the searches that
+ * find this page are « regne delta amazon » (report of 2026-10-26), a generic title got few of their clicks.
+ */
+const [newest, second] = shopGroups
+  .filter((g) => g.date)
+  .sort((a, b) => b.date!.localeCompare(a.date!))
+  .map((g) => ({ ...g, short: g.name.replace(/^Méga-Évolution /, "") }));
+const TITLE = newest
+  ? `Invitations Amazon Pokémon : ${newest.short}${second ? ` et ${second.short}` : ""}`
+  : "Invitations Amazon Pokémon : les produits du moment";
+const DESCRIPTION = `${newest ? `Demande ton invitation Amazon.fr pour ${newest.name} (${newest.code ? `${newest.code}, ` : ""}${formatDate(newest.date!, "fr")}) : ` : ""}les coffrets Dresseur d'élite, displays, bundles et coffrets Pokémon vendus sur invitation par Amazon.fr, extension par extension.`;
 
 export const metadata: Metadata = {
   title: `${TITLE} · ${SITE_NAME}`,
