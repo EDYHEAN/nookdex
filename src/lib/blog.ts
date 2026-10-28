@@ -221,7 +221,7 @@ function amazonShelf(id: string, lang: BlogLang) {
       `<b>${esc(p.name)}</b><span class="blog-shop-go">${soon ? "Précommander" : p.asin ? "Demander l'invitation" : "Voir sur Amazon"}</span></a>`
     );
   });
-  const more = all.length > 4 ? `<a href="${SHOP_PATH}#${esc(g.id)}">Les ${all.length} produits ${esc(g.name)} sur Amazon →</a> · ` : "";
+  const more = `<a href="${SHOP_PATH}#${esc(g.id)}">${all.length > 4 ? `Les ${all.length} produits ${esc(g.name)} sur Amazon` : `Toutes les invitations Amazon ${esc(g.name)}`} →</a> · `;
   return `<div class="blog-shop">${cards.join("")}</div><p class="blog-shop-note">${more}${esc(AMAZON_NOTICE)}</p>`;
 }
 

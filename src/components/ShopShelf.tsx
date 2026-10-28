@@ -47,10 +47,11 @@ export function ShopShelf({
           );
         })}
       </ul>
-      {max && all.length > max && (
+      {/* always there with a cap, even when all show (me04-me06 have 4): the set pages' link to the invitations page */}
+      {max && (
         <p className={styles.more}>
           <Link prefetch={false} href={`${SHOP_PATH}#${group.id}`}>
-            Les {all.length} produits {group.name} sur Amazon →
+            {all.length > max ? `Les ${all.length} produits ${group.name} sur Amazon →` : `Toutes les invitations Amazon ${group.name} →`}
           </Link>
         </p>
       )}

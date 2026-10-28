@@ -67,6 +67,7 @@ export async function HomeText({ en }: { en: boolean }) {
             <nav>
               <Link prefetch={false} href="/a-propos">À propos</Link> · <Link prefetch={false} href="/extensions">Extensions : listes des cartes et prix</Link> ·{" "}
               <Link prefetch={false} href="/calendrier-des-sorties">Calendrier des sorties</Link> ·{" "}
+              <Link prefetch={false} href="/invitations-amazon">Invitations Amazon Pokémon</Link> ·{" "}
               <Link prefetch={false} href="/blog">Blog</Link> · <Link prefetch={false} href="/confidentialite">Règles de confidentialité</Link> ·{" "}
               <Link prefetch={false} href="/conditions">Conditions d&apos;utilisation</Link> · <Link prefetch={false} href="/contact">Contact</Link> ·{" "}
               <Link prefetch={false} href="/mentions-legales">Mentions légales</Link> ·{" "}
