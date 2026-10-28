@@ -21,9 +21,16 @@ export async function cardPageMetadata(lang: PageLang, set: string, slug: string
   const fr = lang === "fr";
   const { card } = p;
   const price = p.prices[0]?.trend;
-  const title = fr
-    ? `${card.name} ${p.printed} (${p.set.name}) : prix et cote · ${SITE_NAME}`
-    : `${card.name} ${p.printed} (${p.set.name}): price and value · ${SITE_NAME}`;
+  // the price itself in the title (2026-10-28: 404 card pages, 828 views, 3 clicks in 28 days, most of them on
+  // « <card> prix » / « 147196 euros » at positions 3-10): the answer is in the result. Google shows the site name above it.
+  const title =
+    price != null
+      ? fr
+        ? `${card.name} ${p.printed} (${p.set.name}) : ${money(price, p)}, prix du jour`
+        : `${card.name} ${p.printed} (${p.set.name}): ${money(price, p)}, today's price`
+      : fr
+        ? `${card.name} ${p.printed} (${p.set.name}) : prix et cote · ${SITE_NAME}`
+        : `${card.name} ${p.printed} (${p.set.name}): price and value · ${SITE_NAME}`;
   const description = fr
     ? `${card.name} ${p.printed}, ${p.set.name}${card.rarity ? ` (${card.rarity})` : ""} : ${price != null ? `${money(price, p)} au prix tendance Cardmarket du jour` : "son prix Cardmarket"}, sa courbe de prix et ses versions.`
     : `${card.name} ${p.printed}, ${p.set.name}${card.rarity ? ` (${card.rarity})` : ""}: ${price != null ? `${money(price, p)} at today's TCGplayer market price` : "its TCGplayer price"}, its price history and versions.`;
