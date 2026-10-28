@@ -414,6 +414,20 @@ doesn't show.
   raw.githubusercontent.com: swipe the slides, share them or the video from the phone (caption copied on the way), tick
   « publié » (Supabase `social_done`, docs/supabase.sql). Posts made by hand are `prerendered`.
 
+## Vercel quotas and bots
+
+- The Hobby plan's limits (Active CPU 4 h, 1 M function invocations, 1 M CDN requests a month) were passed in October 2026
+  by crawlers on the ~45,000 card pages, not by players (~40). #201 (2026-10-26): the pages whose address says their
+  language are cached a day on Vercel's CDN (next.config `headers`), SEO pages don't prefetch, robots.txt turns away SEO
+  tools and scrapers (search engines and AI answer engines stay).
+- Vercel Firewall (project → Firewall, readable and editable from the Vercel MCP: `get_firewall_config`,
+  `update_firewall_config`), custom rules: « Challenge OVH scrapers » (AS16276, 2026-10-26), then the same scraper on
+  Hetzner (2026-10-28: one IP, 46.4.94.214, made 46k of the day's 88k requests, HTTP/1.1, a script): « Deny Hetzner scraper
+  IP » and « Challenge Hetzner scrapers » (AS24940). A challenge stops a script and lets a person on a VPN through.
+- Before blocking: look at Firewall → Traffic (Top IPs, Top AS Names, Top JA4). A hosting provider's AS (OVH, Hetzner,
+  DigitalOcean…) with no search engine in it: challenge it. Never Google (AS15169), Microsoft/Bing (AS8075), Apple, Amazon
+  as a whole (AI and search crawlers live there): block one IP there instead. A scraper moved to another host: same again.
+
 ## GitHub Actions
 
 - `prices.yml` (daily 11:00 UTC): `fetch-set --force` then `--force --lang=en` / `--lang=ja` refresh binder-set prices
