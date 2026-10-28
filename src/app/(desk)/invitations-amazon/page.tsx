@@ -16,17 +16,27 @@ import cal from "@/components/ReleaseCalendar.module.css";
 const [newest, second] = shopGroups
   .filter((g) => g.date)
   .sort((a, b) => b.date!.localeCompare(a.date!))
-  .map((g) => ({ ...g, short: g.name.replace(/^Méga-Évolution /, "") }));
-const TITLE = newest
-  ? `Invitations Amazon Pokémon : ${newest.short}${second ? ` et ${second.short}` : ""}`
-  : "Invitations Amazon Pokémon : les produits du moment";
-const DESCRIPTION = `${newest ? `Demande ton invitation Amazon.fr pour ${newest.name} (${newest.code ? `${newest.code}, ` : ""}${formatDate(newest.date!, "fr")}) : ` : ""}les coffrets Dresseur d'élite, displays, bundles et coffrets Pokémon vendus sur invitation par Amazon.fr, extension par extension.`;
+  // « 30e » as people type it, not the superscript « 30ᵉ »
+  .map((g) => ({ ...g, short: g.name.replace(/^Méga-Évolution /, "").replace(/ᵉ/g, "e") }));
+const soon = !!newest && newest.date! > new Date().toISOString().slice(0, 10);
+/** Under 60 characters, without the site name (Google cut the old one at 70): before the release the set leads, for
+ * « regne delta amazon », the page's best query (GSC, October 2026) */
+const TITLE = !newest
+  ? "Invitations Amazon Pokémon : les produits du moment"
+  : soon
+    ? `${newest.short} sur Amazon : invitation Pokémon et précommande`
+    : `Invitation Amazon Pokémon : ${newest.short}${second ? ` et ${second.short}` : ""}`;
+/** Under 155 characters (the old one, 226, was cut) */
+const DESCRIPTION = newest
+  ? `ETB, display et bundle ${newest.short} (${newest.code ? `${newest.code}, ` : ""}${formatDate(newest.date!, "fr")}) sur Amazon.fr : demande ton invitation, c'est gratuit.${second ? ` Aussi ${second.short}.` : ""}`
+  : "Les coffrets Dresseur d'élite, displays et bundles Pokémon vendus sur invitation par Amazon.fr : demande ton invitation, c'est gratuit.";
 
 export const metadata: Metadata = {
-  title: `${TITLE} · ${SITE_NAME}`,
+  title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: { canonical: SHOP_PATH },
-  openGraph: { type: "website", url: SHOP_PATH, siteName: SITE_NAME, title: TITLE, description: DESCRIPTION, locale: "fr_FR" },
+  // a page's openGraph replaces the root one: without its image the shares had none
+  openGraph: { type: "website", url: SHOP_PATH, siteName: SITE_NAME, title: TITLE, description: DESCRIPTION, locale: "fr_FR", images: ["/opengraph-image.jpg"] },
 };
 
 const FAQ = [
@@ -54,6 +64,8 @@ const ld = (data: object) => <script type="application/ld+json" dangerouslySetIn
 export default function InvitationsAmazon() {
   const count = shopGroups.reduce((n, g) => n + g.products.length, 0);
   const today = new Date().toISOString().slice(0, 10);
+  // the newest set first (the page's searches are about it), then the file's order
+  const groups = newest ? [shopGroups.find((g) => g.id === newest.id)!, ...shopGroups.filter((g) => g.id !== newest.id)] : shopGroups;
   return (
     <LegalPage path={SHOP_PATH} title={TITLE}>
       {ld({
@@ -71,24 +83,14 @@ export default function InvitationsAmazon() {
         mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
       })}
 
+      {/* one sentence, then the buttons: on a phone the first one sat at 1 154 px, under the summary and the set chips */}
       <p className={cal.answer}>
         <b>En bref</b>
-        Amazon vend les produits Pokémon scellés sur invitation : ouvre la fiche, demande ton invitation (c&apos;est gratuit), et Amazon t&apos;écrit si
-        tu peux l&apos;acheter, au prix public. Voici les {count} produits du moment, extension par extension.
-        <small>Mis à jour le {formatDate(shopUpdated, "fr")}.</small>
+        Demande ton invitation sur la fiche Amazon (c&apos;est gratuit) : Amazon t&apos;écrit si tu peux acheter, au prix public. {count} produits,
+        mis à jour le {formatDate(shopUpdated, "fr")}.
       </p>
 
-      {/* a chip per set: straight to its products */}
-      <p>
-        {shopGroups.map((g, i) => (
-          <span key={g.id}>
-            {i > 0 && " · "}
-            <a href={`#${g.id}`}>{g.name}</a>
-          </span>
-        ))}
-      </p>
-
-      {shopGroups.map((g) => {
+      {groups.map((g, i) => {
         const page = g.setId ? setPagePath("fr", g.setId) : null;
         return (
           <div key={g.id} id={g.id}>
@@ -103,6 +105,17 @@ export default function InvitationsAmazon() {
               </p>
             )}
             <ShopShelf group={g} place="invit" notice={false} />
+            {/* a chip per set, once the newest set's buttons are on screen: straight to the others' products */}
+            {i === 0 && (
+              <p>
+                {groups.slice(1).map((o, j) => (
+                  <span key={o.id}>
+                    {j > 0 && " · "}
+                    <a href={`#${o.id}`}>{o.name}</a>
+                  </span>
+                ))}
+              </p>
+            )}
           </div>
         );
       })}
