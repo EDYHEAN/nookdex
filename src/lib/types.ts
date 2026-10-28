@@ -21,6 +21,13 @@ export interface CardPrice {
   cmId?: number;
   /** English cards TCGplayer doesn't sell: Cardmarket's price, converted to dollars */
   cm?: true;
+  /** A trend 20 times off the card's sales (fetch-set's saneTrend): the raw one. A Cardmarket trend is then replaced by
+   * the 7-day (or 30-day) sales average, a TCGplayer asking price with no sale by null */
+  trendRaw?: number;
+  trendHoloRaw?: number;
+  /** English cards: TCGplayer had no sale, the trend is the middle of the listings */
+  ask?: true;
+  askHolo?: true;
 }
 
 export interface CardData {

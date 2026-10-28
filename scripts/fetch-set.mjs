@@ -203,6 +203,7 @@ function tcgplayerPrice(tp, cm) {
     trend: round(base?.marketPrice ?? base?.midPrice),
     lowHolo: round(holo?.lowPrice),
     trendHolo: round(holo?.marketPrice ?? holo?.midPrice),
+    ...askOnly(base, holo),
     avg7: p.avg7,
     avg30: p.avg30,
     avg7Holo: p.avg7Holo,
@@ -242,6 +243,15 @@ const plain = (s) =>
 /** "TG05/TG30" -> "TG5", "007" -> "7": the printed number, compared without its leading zeros */
 const numKey = (n) => String(n ?? "").split("/")[0].trim().toUpperCase().replace(/(^|[A-Z])0+(\d)/g, "$1$2");
 
+/**
+ * TCGplayer's market price comes from sales; with none, the trend falls back to the middle of the listings, an asking
+ * price: flagged, so saneTrends can drop an absurd one (Umbreon H30 Skyridge: one listing at $11,000, no sale, 2026-10).
+ */
+const askOnly = (base, holo) => ({
+  ...(base && base.marketPrice == null && base.midPrice != null ? { ask: true } : {}),
+  ...(holo && holo.marketPrice == null && holo.midPrice != null ? { askHolo: true } : {}),
+});
+
 /** The card's TCGplayer price from TCGCSV's rows (one per print: Normal, Holofoil, Reverse Holofoil). */
 function tcgcsvPrice(rows, old) {
   const by = new Map(rows.map((r) => [r.subTypeName, r]));
@@ -250,9 +260,9 @@ function tcgcsvPrice(rows, old) {
   const trend = round(base?.marketPrice ?? base?.midPrice);
   const trendHolo = round(holo?.marketPrice ?? holo?.midPrice);
   if (trend == null && trendHolo == null) return null;
-  // the ↗ ↘ arrow keeps Cardmarket's averages (only their ratio is used)
-  const { cm: _, ...rest } = old;
-  return { ...rest, low: round(base?.lowPrice), trend, lowHolo: round(holo?.lowPrice), trendHolo, tp: (base ?? holo).productId };
+  // the ↗ ↘ arrow keeps Cardmarket's averages (only their ratio is used); the old flags go, today's say it again
+  const { cm: _, ask: _a, askHolo: _h, trendRaw: _t, trendHoloRaw: _th, ...rest } = old;
+  return { ...rest, low: round(base?.lowPrice), trend, lowHolo: round(holo?.lowPrice), trendHolo, ...askOnly(base, holo), tp: (base ?? holo).productId };
 }
 
 /** Fills the set's English cards that have no TCGplayer price; returns how many were found. */
@@ -1079,6 +1089,52 @@ try {
   // the guide unreachable: TCGdex's prices stay
   console.warn(`Cardmarket guide skipped (${e.message})`);
 }
+
+/**
+ * A trend that's 20 times off the card's own sales is a glitch, not a price (2026-10-28: the Base Set Charizard read
+ * 0,02 € next to ~430 € of sales; 97 French and Japanese prices like it). Checked against the same source and product only:
+ * - a Cardmarket trend (French, Japanese, English cards TCGplayer doesn't sell) against Cardmarket's 7- and 30-day sales
+ *   averages: replaced by the 7-day one (the 30-day one if the 7-day is off too), the raw trend kept in trendRaw;
+ * - a TCGplayer price only when it's an asking price (no sale) and 20 times above Cardmarket's averages: dropped (null).
+ *   A TCGplayer sales price is never touched: Cardmarket's product can be another print (Nidoking 150/147 Aquapolis, a
+ *   $500 secret rare, is matched to the plain Nidoking's 5 €).
+ */
+const OFF = 20;
+function saneTrend(p, key, avg7, avg30, k) {
+  const v = p[key];
+  const [a7, a30] = [p[avg7] > 0 ? p[avg7] * k : null, p[avg30] > 0 ? p[avg30] * k : null];
+  if (v == null || (a7 == null && a30 == null)) return false;
+  const ref = a7 != null && a30 != null ? Math.sqrt(a7 * a30) : (a7 ?? a30);
+  if (v >= ref / OFF && v <= ref * OFF) return false;
+  const tcgplayer = EN && !p.cm;
+  if (tcgplayer) {
+    if (!p[key === "trend" ? "ask" : "askHolo"] || v < ref * OFF) return false;
+    p[`${key}Raw`] = v;
+    p[key] = null;
+    return true;
+  }
+  p[`${key}Raw`] = v;
+  p[key] = round(a7 != null && (a30 == null || (a7 >= a30 / OFF && a7 <= a30 * OFF)) ? a7 : a30);
+  return true;
+}
+let fixed = 0;
+for (const c of catalog) {
+  const file = `${OUT}/${c.id}.json`;
+  if (!existsSync(file)) continue;
+  const data = JSON.parse(await readFile(file, "utf8"));
+  // Cardmarket's averages are euros; English Cardmarket prices are converted to dollars (cardmarketInDollars)
+  const k = EN && data.currency === "USD" ? RATE.rate : 1;
+  let n = 0;
+  for (const card of data.cards) {
+    if (!card.price) continue;
+    if (saneTrend(card.price, "trend", "avg7", "avg30", k)) n++;
+    if (saneTrend(card.price, "trendHolo", "avg7Holo", "avg30Holo", k)) n++;
+  }
+  if (!n) continue;
+  await writeFile(file, JSON.stringify(data));
+  fixed += n;
+}
+console.log(`prices 20 times off their sales: ${fixed} fixed`);
 
 // Card counts come from the downloaded files (sub-sets included, cards without scans dropped).
 const index = [];

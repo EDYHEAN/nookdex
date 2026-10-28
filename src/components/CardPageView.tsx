@@ -32,8 +32,8 @@ export async function cardPageMetadata(lang: PageLang, set: string, slug: string
         ? `${card.name} ${p.printed} (${p.set.name}) : prix et cote · ${SITE_NAME}`
         : `${card.name} ${p.printed} (${p.set.name}): price and value · ${SITE_NAME}`;
   const description = fr
-    ? `${card.name} ${p.printed}, ${p.set.name}${card.rarity ? ` (${card.rarity})` : ""} : ${price != null ? `${money(price, p)} au prix tendance Cardmarket du jour` : "son prix Cardmarket"}, sa courbe de prix et ses versions.`
-    : `${card.name} ${p.printed}, ${p.set.name}${card.rarity ? ` (${card.rarity})` : ""}: ${price != null ? `${money(price, p)} at today's TCGplayer market price` : "its TCGplayer price"}, its price history and versions.`;
+    ? `${card.name} ${p.printed}, ${p.set.name}${card.rarity ? ` (${card.rarity})` : ""} : ${price != null ? `${money(price, p)} ${p.prices[0].avg ? "en moyenne des ventes Cardmarket sur 7 jours" : "au prix tendance Cardmarket du jour"}` : "son prix Cardmarket"}, sa courbe de prix et ses versions.`
+    : `${card.name} ${p.printed}, ${p.set.name}${card.rarity ? ` (${card.rarity})` : ""}: ${price != null ? `${money(price, p)} ${p.prices[0].avg ? "as its 7-day sales average" : "at today's TCGplayer market price"}` : "its TCGplayer price"}, its price history and versions.`;
   const languages = { [lang]: p.path, ...(p.other ? { [p.other.lang]: p.other.path } : {}) };
   return {
     title,
@@ -154,6 +154,7 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
                   <small>{x.label}</small>
                   <b>{x.trend != null ? money(x.trend, p) : "—"}</b>
                   {x.low != null && <span>{t(`à partir de ${money(x.low, p)}`, `from ${money(x.low, p)}`)}</span>}
+                  {x.avg && <span>{t("moyenne des ventes sur 7 jours *", "7-day sales average *")}</span>}
                 </div>
               ))}
             </div>
@@ -167,6 +168,12 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
           )}
           <p className={styles.source}>
             {t(`Prix tendance ${market}, mis à jour le ${day}${fr ? " (toutes langues d'impression confondues)" : ""}.`, `${market} market price, updated ${day}.`)}
+            {/* the price shown isn't the day's trend: say why */}
+            {p.prices.some((x) => x.avg) &&
+              t(
+                ` * Le prix tendance du jour s'écartait de plus de 20 fois des ventes réelles (une vente isolée) : c'est la moyenne des ventes qui est affichée.`,
+                ` * Today's trend was over 20 times off the actual sales (one odd sale): the sales average is shown instead.`,
+              )}
           </p>
 
           <div className={styles.cta}>

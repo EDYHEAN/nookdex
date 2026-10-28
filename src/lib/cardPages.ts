@@ -37,7 +37,8 @@ export interface CardPage {
   /** "234/091" */
   printed: string;
   /** the plain and the reverse/holo prices, as the binders read them */
-  prices: { label: string; trend: number | null; low: number | null }[];
+  /** avg: the day's trend was a glitch, this is the card's sales average (fetch-set's saneTrend) */
+  prices: { label: string; trend: number | null; low: number | null; avg?: boolean }[];
   /** the last week's average against the last month's (%), when both are known and it moved */
   move: number | null;
   /** its trend day by day (public/history, since 2026-10-04) */
@@ -65,8 +66,10 @@ export async function cardPage(lang: PageLang, setSlug: string, slug: string): P
   const prices = card.unavailable
     ? []
     : [
-        { label: plain ? (fr ? "Normale" : "Normal") : fr ? "Holo" : "Holo", trend: p.trend, low: p.low },
-        ...(plain && (p.trendHolo || p.lowHolo) ? [{ label: card.variants.includes("holo") ? "Holo / reverse" : "Reverse", trend: p.trendHolo, low: p.lowHolo }] : []),
+        { label: plain ? (fr ? "Normale" : "Normal") : fr ? "Holo" : "Holo", trend: p.trend, low: p.low, avg: p.trendRaw != null && p.trend != null },
+        ...(plain && (p.trendHolo || p.lowHolo)
+          ? [{ label: card.variants.includes("holo") ? "Holo / reverse" : "Reverse", trend: p.trendHolo, low: p.lowHolo, avg: p.trendHoloRaw != null && p.trendHolo != null }]
+          : []),
       ].filter((x) => x.trend != null || x.low != null);
   const move = p.avg7 && p.avg30 && Math.abs(p.avg7 / p.avg30 - 1) >= 0.05 ? (p.avg7 / p.avg30 - 1) * 100 : null;
 
@@ -130,8 +133,8 @@ export function cardFaq(p: CardPage): { q: string; a: string }[] {
   if (main?.trend != null)
     out.push(
       fr
-        ? { q: `Combien vaut ${name} (${set}) ?`, a: `Au ${day}, ${name} vaut ${m(main.trend)} (prix tendance ${market}${main.low != null ? `, à partir de ${m(main.low)}` : ""}).` }
-        : { q: `How much is ${name} (${set}) worth?`, a: `As of ${day}, ${name} is worth ${m(main.trend)} (${market} market price${main.low != null ? `, from ${m(main.low)}` : ""}).` },
+        ? { q: `Combien vaut ${name} (${set}) ?`, a: `Au ${day}, ${name} vaut ${m(main.trend)} (${main.avg ? `moyenne des ventes ${market} sur 7 jours` : `prix tendance ${market}`}${main.low != null ? `, à partir de ${m(main.low)}` : ""}).` }
+        : { q: `How much is ${name} (${set}) worth?`, a: `As of ${day}, ${name} is worth ${m(main.trend)} (${main.avg ? `${market} 7-day sales average` : `${market} market price`}${main.low != null ? `, from ${m(main.low)}` : ""}).` },
     );
   const rev = p.prices[1];
   if (rev?.trend != null)
