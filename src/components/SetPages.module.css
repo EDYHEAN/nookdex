@@ -127,6 +127,30 @@
   list-style: none;
 }
 
+/* the index's most expensive cards: a numbered list in columns, like a price list pinned in the notebook */
+.top ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  /* the numbers sit outside their item, in the gap: room for "25." */
+  gap: 4px 3em;
+  margin: 8px 0 24px;
+  padding-left: 1.6em;
+  line-height: 1.25;
+}
+
+.top b {
+  font-weight: normal;
+}
+
+.top .price {
+  white-space: nowrap;
+}
+
+.top small {
+  color: var(--ink-soft);
+  font-size: 0.8em;
+}
+
 /* the index: one paper tile per set, logo on top */
 .grid {
   display: grid;

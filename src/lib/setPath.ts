@@ -45,6 +45,8 @@ const INDEX: Record<PageLang, ReturnType<typeof index>> = { fr: index(rawFr as C
 /** Every set with a page in a language, newest first (the catalog's order). */
 export const setPageEntries = (lang: PageLang) => INDEX[lang].all;
 export const setBySlug = (lang: PageLang, slug: string) => INDEX[lang].bySlug.get(slug);
+/** The set with a page that holds a TCGdex set id (sub-sets included), with its slug */
+export const setEntryOf = (lang: PageLang, setId: string) => INDEX[lang].byId.get(setId);
 /** The page of a set (a TCGdex set id, sub-sets included) in a card language; null for Japanese cards or an unknown set. */
 export function setPagePath(lang: CardLang, setId: string): string | null {
   if (lang === "ja") return null;

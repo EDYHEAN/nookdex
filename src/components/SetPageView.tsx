@@ -4,9 +4,9 @@ import { notFound } from "next/navigation";
 import { cardGallery, formatDate, num } from "@/lib/blog";
 import { AMAZON_NOTICE, amazonSearch, inShops } from "@/lib/amazon";
 import { shopOfSet } from "@/lib/amazonShop";
-import { keyOf } from "@/lib/cardLang";
+import { currencyOf, keyOf } from "@/lib/cardLang";
 import { type PageLang, SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
-import { cardSlug } from "@/lib/cardPages";
+import { cardSlug, topCards } from "@/lib/cardPages";
 import { cardCount, money, setFaq, setPage, trendOf } from "@/lib/setPages";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import type { CardData } from "@/lib/types";
@@ -273,9 +273,11 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
 }
 
 /** Every set with a page, by series, newest first: the shelf of the set pages. */
-export function SetIndexView({ lang }: { lang: PageLang }) {
+export async function SetIndexView({ lang }: { lang: PageLang }) {
   const fr = lang === "fr";
   const t = (f: string, e: string) => (fr ? f : e);
+  const top = await topCards(lang);
+  const price = { lang, currency: currencyOf(lang) };
   const series = new Map<string, { name: string; sets: { name: string; code: string; year: string; path: string; logo: string | null; total: number }[] }>();
   for (const e of setPageEntries(lang)) {
     const s = series.get(e.set.serie) ?? { name: e.set.serieName, sets: [] };
@@ -323,6 +325,38 @@ export function SetIndexView({ lang }: { lang: PageLang }) {
           </ul>
         </section>
       ))}
+
+      {/* plain links to the most wanted card pages (lib/cardPages topCards): how Google finds them, one click from here */}
+      {[
+        { list: top.all, title: t("Les cartes Pokémon les plus chères", "The most expensive Pokémon cards") },
+        // "Méga-Évolution et Écarlate et Violet" would read badly: the series names side by side, in quotes
+        {
+          list: top.recent,
+          title: t(`Les plus chères des séries ${top.series.map((s) => `« ${s} »`).join(" et ")}`, `The most expensive ${top.series.join(" and ")} cards`),
+        },
+      ].map(
+        ({ list, title }) =>
+          list.length > 0 && (
+            <nav key={title} className={styles.top} aria-label={title}>
+              <h2>{title}</h2>
+              <p className={styles.other}>
+                {t("Prix tendance Cardmarket du jour, toutes langues d'impression mêlées.", "Today's TCGplayer market prices, English cards.")}
+              </p>
+              <ol>
+                {list.map((c) => (
+                  <li key={c.path}>
+                    <Link prefetch={false} href={c.path}>
+                      <b>
+                        {c.name} {c.num}
+                      </b>
+                    </Link>{" "}
+                    <small>{c.set}</small> <span className={styles.price}>{money(c.trend, price)}</span>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          ),
+      )}
     </LegalPage>
   );
 }

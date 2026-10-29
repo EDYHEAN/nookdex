@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { CARD_SITEMAPS } from "@/lib/cardPages";
 import { IS_PRODUCTION, SITE_URL } from "@/lib/site";
 
 // Crawlers that bring no player: SEO tools' own indexes, ad and dataset scrapers (2026-10-26: with the ~41,000 card
@@ -30,7 +31,7 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: UNWANTED, disallow: "/" },
       { userAgent: "*", allow: "/" },
     ],
-    // the site, then the card pages (app/cartes/sitemap.ts)
-    sitemap: [`${SITE_URL}/sitemap.xml`, `${SITE_URL}/cartes/sitemap/fr.xml`, `${SITE_URL}/cartes/sitemap/en.xml`],
+    // the site, then the card pages in their slices (app/cartes/sitemap.ts)
+    sitemap: [`${SITE_URL}/sitemap.xml`, ...CARD_SITEMAPS.map((s) => `${SITE_URL}/cartes/sitemap/${s.id}.xml`)],
   };
 }

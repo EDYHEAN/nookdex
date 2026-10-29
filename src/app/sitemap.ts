@@ -1,29 +1,36 @@
 import type { MetadataRoute } from "next";
 import { allPosts, translationOf } from "@/lib/blog";
+import { setLastmod } from "@/lib/cardPages";
 import { pricesUpdatedOf } from "@/lib/setPages";
-import { SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
+import { type PageLang, SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
 import { SITE_URL } from "@/lib/site";
+import type { CatalogSet } from "@/lib/types";
 
-/** Set pages: each with its twin in the other language (same TCGdex id), and the day its prices were last refreshed. */
+/**
+ * Set pages: each with its twin in the other language (same TCGdex id), and the last day the cards it puts forward really
+ * moved (lib/cardPages setLastmod; an extra set, without a price history: no lastmod). It used to be the day of the
+ * prices: every set "changed today", a lastmod Google learns to ignore.
+ */
 async function setPages(): Promise<MetadataRoute.Sitemap> {
   const fr = new Map(setPageEntries("fr").map((e) => [e.set.id, `${SITE_URL}${SET_PAGES_ROOT.fr}/${e.slug}`]));
   const en = new Map(setPageEntries("en").map((e) => [e.set.id, `${SITE_URL}${SET_PAGES_ROOT.en}/${e.slug}`]));
-  const page = async (lang: "fr" | "en", id: string, url: string) => ({
-    url,
-    lastModified: (await pricesUpdatedOf(lang, id)) ?? undefined,
+  const page = async (lang: PageLang, set: CatalogSet) => ({
+    url: (lang === "fr" ? fr : en).get(set.id)!,
+    lastModified: await setLastmod(lang, set),
     // prices move every day (the prices Action)
     changeFrequency: "daily" as const,
     priority: 0.7,
-    alternates: fr.has(id) && en.has(id) ? { languages: { fr: fr.get(id)!, en: en.get(id)! } } : undefined,
+    alternates: fr.has(set.id) && en.has(set.id) ? { languages: { fr: fr.get(set.id)!, en: en.get(set.id)! } } : undefined,
   });
-  return Promise.all([...[...fr].map(([id, url]) => page("fr", id, url)), ...[...en].map(([id, url]) => page("en", id, url))]);
+  return Promise.all((["fr", "en"] as const).flatMap((lang) => setPageEntries(lang).map((e) => page(lang, e.set))));
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = allPosts();
   const pages = await setPages();
-  // the home and the indexes show today's prices too: the newest refresh of any set
-  const prices = pages.reduce<string | undefined>((max, p) => (typeof p.lastModified === "string" && (!max || p.lastModified > max) ? p.lastModified : max), undefined);
+  // the home, the indexes (their most expensive cards) and the market do show today's prices: the newest refresh of a set
+  const days = await Promise.all(setPageEntries("fr").map((e) => pricesUpdatedOf("fr", e.set.id)));
+  const prices = days.reduce<string | undefined>((max, d) => (d && (!max || d > max) ? d : max), undefined);
   const home = { languages: { fr: SITE_URL, en: `${SITE_URL}/en` } };
   const calendar = { languages: { fr: `${SITE_URL}/calendrier-des-sorties`, en: `${SITE_URL}/en/release-calendar` } };
   const sets = { languages: { fr: `${SITE_URL}/extensions`, en: `${SITE_URL}/en/sets` } };

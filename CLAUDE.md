@@ -255,6 +255,13 @@ doesn't show.
   ~45 000 pages: drawn on each visit like the rest of the site (the root layout reads the visitor's language: a
   `revalidate` or `generateStaticParams` there asks for a static page and breaks in production, DYNAMIC_SERVER_USAGE), linked from the set page's card list, listed in
   `/cartes/sitemap/fr.xml` and `en.xml` (built with the deploy, named in robots.txt).
+- Sitemap lastmod and discovery (2026-10-29): a card page's lastmod is the last day its price moved > 10 % and ≥ 0.10 €/$
+  from the price before it in `public/history` (`lastMoveOf`), else its first priced day; a set page's, the latest of its 8
+  dearest cards'; extra sets (no history) get none. It used to be the day of the prices (every URL "changed today", ignored).
+  The card sitemaps are cut per language: `<lang>-top.xml` (> 5 €/$), `<lang>-recent.xml` (sets of the last 12 months),
+  `<lang>.xml` the rest (`CARD_SITEMAPS`, all in robots.txt; submit the new ones in Search Console to read each slice's
+  indexing). `/extensions` and `/en/sets` end with 50 plain links to card pages (`topCards`, from the search index): the 25
+  dearest (2 per set at most) and the 25 dearest of the two latest series, so Google finds them one click from the index.
 - `/` is the French home for search engines (they send no language), `/en` the English one (hreflang between them). The
   home text (`HomeText`) carries `WebApplication` JSON-LD; its title is written visibly on the loader's paper (hidden
   once the room is in: `html[data-room]`, set by App). Landing on `/en…` starts the room in English (`resolveLang`).
