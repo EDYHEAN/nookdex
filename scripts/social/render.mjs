@@ -23,6 +23,9 @@ const PRICES = args.includes("--prices") && args.splice(args.indexOf("--prices")
 const NO_VIDEO = args.includes("--no-video") && args.splice(args.indexOf("--no-video"), 1);
 const ONLY = args;
 const POSTS = join(SOCIAL, "posts");
+// the studio's spots (end of this file): public URL and key, as in src/lib/site.ts
+const SUPABASE_URL = "https://xwqhucccldraieyiycvt.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Fn4KmAAhKl7crl-R_ZCHWw_OkFukB2i";
 const RENDERS = join(SOCIAL, "renders");
 setAssets(join(SOCIAL, "assets"));
 
@@ -480,3 +483,30 @@ await browser?.close();
 mkdirSync(RENDERS, { recursive: true });
 writeFileSync(join(RENDERS, "index.json"), JSON.stringify({ updated: new Date().toISOString(), posts: index }, null, 1) + "\n");
 console.log(`index: ${index.length} posts`);
+
+/**
+ * The zoom / find spots Johan draws in the studio (Supabase social_spots, readable by anyone), copied here for the routine
+ * with the posts that used each one: any zoom, find or reveal slide on its card (the answer would be the same Pokémon).
+ * Supabase out of reach: the last copy stays.
+ */
+const spotsOf = async () => {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/social_spots?select=id,card,kind,rect,label,created_at&order=created_at`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+  });
+  if (!r.ok) throw new Error(`social_spots: HTTP ${r.status}`);
+  return r.json();
+};
+try {
+  const slides = ids.flatMap((id) => {
+    const post = JSON.parse(readFileSync(join(POSTS, id, "post.json"), "utf8"));
+    return [...(post.slides ?? []), ...(post.motion ?? [])].map((s) => ({ id, s }));
+  });
+  const spots = (await spotsOf()).map((sp) => ({
+    ...sp,
+    used: [...new Set(slides.filter(({ s }) => (s.card === sp.card && (s.type === "zoom" || s.type === "find")) || (s.type === "reveal" && s.items?.some((it) => it.card === sp.card))).map(({ id }) => id))],
+  }));
+  writeFileSync(join(RENDERS, "spots.json"), JSON.stringify({ updated: new Date().toISOString(), spots }, null, 1) + "\n");
+  console.log(`spots: ${spots.length}, ${spots.filter((s) => !s.used.length).length} not used yet`);
+} catch (e) {
+  console.log(`spots: kept as they were (${e.message})`);
+}

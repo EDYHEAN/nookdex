@@ -55,6 +55,31 @@ create policy "studio: johan" on public.social_done for all
 grant select, insert, update, delete on table public.social_done to authenticated;
 notify pgrst, 'reload schema';
 
+-- The studio's « Zones »: the zoom / find spots Johan draws on a card for the social games (docs/social.md). Anyone may
+-- read them (the render Action copies them to the social branch for the routine, with the public key); only his accounts
+-- write them.
+create table if not exists public.social_spots (
+  id         bigint generated always as identity primary key,
+  card       text not null,
+  kind       text not null check (kind in ('zoom', 'find')),
+  rect       integer[] not null check (cardinality(rect) = 4),
+  label      text check (char_length(label) <= 60),
+  created_at timestamptz not null default now()
+);
+
+alter table public.social_spots enable row level security;
+
+drop policy if exists "spots: read" on public.social_spots;
+create policy "spots: read" on public.social_spots for select using (true);
+drop policy if exists "spots: johan" on public.social_spots;
+create policy "spots: johan" on public.social_spots for all
+  using ((auth.jwt() ->> 'email') in ('johan.trigeard@gmail.com', 'contact@nookdex.com', 'johan@nookdex.com'))
+  with check ((auth.jwt() ->> 'email') in ('johan.trigeard@gmail.com', 'contact@nookdex.com', 'johan@nookdex.com'));
+
+grant select on table public.social_spots to anon, authenticated;
+grant insert, update, delete on table public.social_spots to authenticated;
+notify pgrst, 'reload schema';
+
 -- The NookBoy's ladder (the game in the Game Boy on the desk): one row per finished run. Read and written only through
 -- the two functions below: they keep a score plausible (a wave lasts 30 s) and the names short.
 create table if not exists public.game_scores (

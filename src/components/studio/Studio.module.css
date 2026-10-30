@@ -333,3 +333,254 @@
   color: #ffd35a;
   box-shadow: 0 0 0 2px #ffd35a;
 }
+
+/* « Zones »: the zoom / find spots drawn on a card (Spots.tsx) */
+.spots .hint {
+  color: #b9afd6;
+}
+
+.search {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.search input,
+.keep input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 8px 12px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: #f4ecdc;
+  color: #2b2230;
+  font: inherit;
+  font-size: 20px;
+  box-shadow: 0 0 0 3px #2b2230;
+}
+
+.search button {
+  width: 52px;
+  border: 0;
+  border-radius: 8px;
+  background: #ffd35a;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px #2b2230;
+}
+
+.picks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.picks button {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.picks button:hover {
+  transform: translateY(-3px) rotate(-1deg);
+}
+
+.picks img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 600 / 825;
+  border-radius: 6px;
+  background: #2a2140;
+}
+
+.kinds {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.kinds button {
+  flex: 1;
+  min-height: 46px;
+  border: 0;
+  border-radius: 8px;
+  background: #2a2140;
+  color: #b9afd6;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kinds .on {
+  background: #ffd35a;
+  color: #2b2230;
+}
+
+.kinds .ghost {
+  flex: none;
+  width: 46px;
+}
+
+.canvas {
+  position: relative;
+  /* short enough that « Garder » shows under it on a phone */
+  width: min(100%, 420px, 60vh * 600 / 825);
+  aspect-ratio: 600 / 825;
+  margin: 12px auto 0;
+  border-radius: 14px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  cursor: crosshair;
+  box-shadow: 0 0 0 3px #2b2230;
+}
+
+.canvas img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mask {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(43, 34, 48, 0.82);
+  color: #b9afd6;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.zoomRect {
+  position: absolute;
+  border: 3px dashed #ffd35a;
+  border-radius: 4px;
+  box-shadow: 0 0 0 999px rgba(21, 15, 31, 0.55);
+  cursor: move;
+}
+
+.findRect {
+  position: absolute;
+  border: 3px dashed #ffd35a;
+  border-radius: 40%;
+  cursor: move;
+}
+
+.keep {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.keep > div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crop {
+  flex: none;
+  display: block;
+  border-radius: 8px;
+  background-repeat: no-repeat;
+  box-shadow: 0 0 0 3px #2b2230;
+}
+
+.spotsHead {
+  margin: 26px 0 10px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 12px;
+  color: #8dffc0;
+}
+
+.saved {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.saved figure {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 10px 8px 8px;
+  border-radius: 10px;
+  background: #f4ecdc;
+  color: #2b2230;
+  box-shadow: 0 0 0 3px #2b2230;
+}
+
+.saved figcaption {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  font-size: 17px;
+  line-height: 1.05;
+  text-align: center;
+}
+
+.saved figcaption b {
+  font-weight: normal;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.saved figcaption span {
+  color: #3f8f5a;
+}
+
+.usedSpot {
+  opacity: 0.55;
+}
+
+.usedSpot figcaption span {
+  color: #6f6068;
+}
+
+.findThumb {
+  position: relative;
+  display: block;
+  width: 96px;
+}
+
+.findThumb img {
+  display: block;
+  width: 100%;
+  border-radius: 5px;
+}
+
+.findThumb span {
+  position: absolute;
+  border: 2px solid #ffd35a;
+  border-radius: 40%;
+  backdrop-filter: blur(2px);
+}
+
+.drop {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 16px;
+  background: #2b2230;
+  color: #f4ecdc;
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
