@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-12",
+  "time": "18:30",
+  "platforms": [
+    "tiktok",
+    "reels"
+  ],
+  "kind": "fact",
+  "format": "post",
+  "title": "TikTok : une commune à 60 €, une ultra rare à 3 €",
+  "note": "Vidéo TikTok + Reel. Prix redessinés la veille et le jour même : vérifie que chaque commune vaut toujours plus que son ultra rare. Métamorph UR : scan anglais (Détective Pikachu).",
+  "prices": true,
+  "caption": "Une commune qui vaut plus qu'une ultra rare 😳 (Et ce Pikachu de 2005… est un Métamorph.) Regarde bien tes vieilles communes avant de les ranger au fond d'une boîte.\n\nTu en as une qui vaut cher ? 👇\n\n#pokemontcg #cartespokemon #pokemonfr #kyurem #metamorph",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "COMMUNE VS ULTRA RARE",
+      "title": "La commune<br>gagne",
+      "size": 100,
+      "cards": [
+        "swsh11-174",
+        "dv1-21",
+        "det1-17"
+      ],
+      "banner": "CHECK TES COMMUNES"
+    },
+    {
+      "type": "price",
+      "card": "dv1-21",
+      "name": "COMMUNE · 2012"
+    },
+    {
+      "type": "price",
+      "card": "swsh11-174",
+      "name": "ULTRA RARE · 2022"
+    },
+    {
+      "type": "price",
+      "card": "ex11-63",
+      "name": "COMMUNE · 2005"
+    },
+    {
+      "type": "price",
+      "card": "det1-17",
+      "name": "ULTRA RARE · 2019"
+    },
+    {
+      "type": "end",
+      "title": "Check tes<br>communes !",
+      "lead": "La cote de chaque carte, chaque jour"
+    }
+  ]
+}
