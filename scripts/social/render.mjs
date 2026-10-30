@@ -173,7 +173,8 @@ const SLIDES = {
        ${s.list?.length ? `<ul>${s.list.map((l) => `<li>${txt(l)}</li>`).join("")}</ul>` : ""}
        ${cards.length ? `<div class="fan ${cards.length === 2 ? "two" : ""}">${cards.map((c) => `<img src="${c.hi}">`).join("")}</div>` : ""}
        ${s.asset ? `<div class="shot"><img src="${asset(s.asset)}"></div>` : ""}
-       ${s.ending ? `<p class="lead" style="margin-top:${cards.length || s.asset ? 22 : "auto"}px">${txt(s.ending)}</p>` : ""}`,
+       ${s.ending ? `<p class="lead" style="margin-top:${cards.length || s.asset ? 22 : "auto"}px">${txt(s.ending)}</p>` : ""}
+       ${cards.length || s.asset || s.ending ? "" : `<i style="margin-top:auto"></i>`}`,
     );
   },
   /** one card and its price (a top 5) */
