@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-13",
+  "time": "18:30",
+  "platforms": [
+    "instagram"
+  ],
+  "kind": "fact",
+  "format": "post",
+  "title": "Qui monte, qui chute : les cotes depuis le 4 octobre",
+  "note": "Courbes depuis le 4 octobre, redessinées la veille et le jour même : vérifie que Ptéra V et Entei V montent toujours, Méga-Dracaufeu Y-ex, Pikachu-ex et Mew VMAX chutent toujours, comme le dit la légende.",
+  "prices": true,
+  "caption": "Les cotes Cardmarket, jour après jour, depuis le 4 octobre 📈📉\nPtéra V et Entei V s'envolent, Méga-Dracaufeu Y-ex, Pikachu-ex et Mew VMAX dégringolent.\n\nTu vends ou tu gardes ? 👇\nSuis la cote de ta collec sur nookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #ptera #mew #pokemonfr",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "DEPUIS LE 4 OCTOBRE",
+      "title": "Qui monte ?<br>Qui chute ?",
+      "size": 100,
+      "cards": [
+        "swsh11-180",
+        "swsh12.5gg-GG36",
+        "me02.5-277"
+      ]
+    },
+    {
+      "type": "curve",
+      "card": "swsh11-180"
+    },
+    {
+      "type": "curve",
+      "card": "swsh12.5gg-GG36"
+    },
+    {
+      "type": "curve",
+      "card": "me02.5-294"
+    },
+    {
+      "type": "curve",
+      "card": "me02.5-277"
+    },
+    {
+      "type": "curve",
+      "card": "swsh8-268"
+    },
+    {
+      "type": "end",
+      "kicker": "ET TOI ?",
+      "title": "Tu vends ou<br>tu gardes ?",
+      "lead": "Suis la cote de tes cartes, chaque jour"
+    }
+  ]
+}
