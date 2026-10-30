@@ -200,3 +200,32 @@
     animation: none;
   }
 }
+
+/* the new-binder sheet's « Ajouter <set> ▶ » of a ?classeur link, like the welcome's « Commencer par … » */
+.startSet {
+  display: block;
+  margin: 12px 0 6px;
+  padding: 14px 18px;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 5px 5px 0 var(--ink);
+  transition:
+    transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1),
+    box-shadow 0.15s;
+}
+
+.startSet:hover {
+  transform: translate(-2px, -3px);
+  box-shadow: 7px 8px 0 var(--ink);
+}
+
+.startSet:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
