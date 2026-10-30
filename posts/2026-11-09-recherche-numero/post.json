@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-09",
+  "time": "18:30",
+  "platforms": [
+    "instagram"
+  ],
+  "kind": "feature",
+  "format": "post",
+  "title": "Le numéro imprimé",
+  "note": "Feature de la semaine de sortie : la recherche par numéro imprimé dans un classeur libre (carnet de route). Photo et capture : le Carapuce Expedition 131/165.",
+  "prices": false,
+  "caption": "Tes boosters sont ouverts, et maintenant tu ranges 🔍\n\nDans un classeur libre NookDex, tape le nom de la carte et le numéro imprimé dessus (« carapuce 131/165 ») : c'est la bonne qui sort, pas toutes ses cousines.\nEn FR, en EN ou en JAP, avec sa cote du jour.\n\nTu ranges tes cartes comment, toi ? 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #collectionpokemon #pokemonfr #regnedelta",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "BOOSTERS OUVERTS ?",
+      "title": "Tape le<br>numéro",
+      "size": 120,
+      "cards": [
+        "sv07-148",
+        "ecard1-131",
+        "sv03.5-170"
+      ],
+      "banner": "LA BONNE CARTE, DIRECT"
+    },
+    {
+      "type": "paper",
+      "kicker": "1 · LA CARTE EN MAIN",
+      "title": "Lis son numéro,",
+      "em": "en bas de la carte",
+      "lead": "Ici : 131/165.",
+      "asset": "carapuce-recto-verso.jpg"
+    },
+    {
+      "type": "paper",
+      "kicker": "2 · DANS UN CLASSEUR LIBRE",
+      "title": "Tape son nom",
+      "em": "et son numéro",
+      "asset": "search.jpg",
+      "list": [
+        "« carapuce 131/165 »",
+        "la bonne carte sort seule, pas toutes ses cousines",
+        "en FR, EN ou JAP, avec sa cote du jour"
+      ]
+    },
+    {
+      "type": "end",
+      "kicker": "TES BOOSTERS OUVERTS ?",
+      "title": "Range-les<br>en 2 secondes",
+      "lead": "Gratuit et sans pub"
+    }
+  ]
+}
