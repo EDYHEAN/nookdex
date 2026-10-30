@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-15",
+  "time": "18:30",
+  "platforms": [
+    "tiktok",
+    "reels"
+  ],
+  "kind": "fact",
+  "format": "post",
+  "title": "TikTok : Méga ou pas Méga ?",
+  "note": "Vidéo TikTok + Reel. Prix redessinés la veille et le jour même : vérifie que Latias-ex vaut toujours plus que Méga-Latias-ex (sinon changer la slide « Raté »).",
+  "prices": true,
+  "caption": "Méga = plus cher ? Raté 😏 Et la Latias de 2006 n'a pas dit son dernier mot.\n\nTeam Méga ou pas ? 👇\n\n#pokemontcg #latias #cartespokemon #pokemonfr #megaevolution",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "MEGA OU PAS MEGA ?",
+      "title": "Méga =<br>plus cher ?",
+      "size": 100,
+      "cards": [
+        "me01-181",
+        "sv08-239",
+        "ex15-95"
+      ]
+    },
+    {
+      "type": "price",
+      "card": "me01-181",
+      "name": "MEGA-EVOLUTION · 2025"
+    },
+    {
+      "type": "price",
+      "card": "sv08-239",
+      "name": "ETINCELLES DEFERLANTES · 2024"
+    },
+    {
+      "type": "paper",
+      "kicker": "MEGA = PLUS CHER ?",
+      "title": "Raté.",
+      "em": "La Latias simple gagne",
+      "lead": "Et la doyenne, de 2006 ?"
+    },
+    {
+      "type": "price",
+      "card": "ex15-95",
+      "name": "ILE DES DRAGONS · 2006"
+    },
+    {
+      "type": "end",
+      "title": "Team Méga<br>ou pas ?",
+      "lead": "La cote de tes cartes, chaque jour"
+    }
+  ]
+}
