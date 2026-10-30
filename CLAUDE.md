@@ -130,6 +130,9 @@ doesn't show.
 - Welcome (`src/components/shelf/Welcome.tsx`): 1. nickname → 2. first binder, or "explore every card first" (NookDex OS
   → "Toutes les cartes"; their first binder from the shelf's + then starts the tour). No account asked first (Johan,
   2026-10-13: it held people back); "Déjà un compte ?" on the nickname card signs a returning player in.
+- `?classeur=<set id>` (the Instagram bio's link in a release week, e.g. `nookdex.com/?classeur=me06`): a newcomer's
+  welcome offers that set first (like a card page's `?carte=`), a player gets that binder open, or the new-binder sheet
+  with « Ajouter <set> ▶ » on top. A set not in the catalog yet is ignored (the visitor lands on the desk as usual).
 - The account comes later (`room/SavePrompt.tsx`): a player without one who owns 10 cards gets a short card in the calm
   room (after any trophy toast; Google or an e-mail link). "Plus tard" waits for 15 more cards and 3 days (localStorage
   `nookdex:save-ask`, per device); the cat's tip waits for another visit. NookDex OS → Save signs in at any time.

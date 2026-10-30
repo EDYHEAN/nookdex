@@ -335,7 +335,18 @@ export function App() {
    */
   const askedCard = useSearchParams().get("carte");
   const askedSet = askedCard ? setIdOfCard(askedCard) : undefined;
-  const startSet = askedSet && !catalogSet(askedSet)?.extra ? askedSet : undefined;
+  /**
+   * ?classeur=<set id> (the Instagram bio's link in a release week, Johan 2026-10-30): a newcomer's welcome offers that set
+   * as the first binder, a player gets it open, or the new-binder sheet with it on top. A bare id follows the site's card
+   * language; a set not listed yet (before TCGdex has it) is ignored: the visitor just lands on the desk.
+   */
+  const askedBinder = useSearchParams().get("classeur");
+  const binderSet = useMemo(() => {
+    if (!askedBinder) return undefined;
+    const set = catalogSet(askedBinder.includes(":") ? askedBinder : keyOf(currentLang(), askedBinder));
+    return set && !set.extra ? set.id : undefined;
+  }, [askedBinder]);
+  const startSet = (askedSet && !catalogSet(askedSet)?.extra ? askedSet : undefined) ?? binderSet;
   /** the card asked for, once dealt with (the welcome deals with it by its first binder) */
   const handledCard = useRef<string | null>(null);
   const dropAskedCard = () => {
@@ -357,6 +368,26 @@ export function App() {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [askedCard, entered, cloud.ready, welcome]);
+
+  /** the set of ?classeur, once dealt with (a newcomer's welcome deals with it by its first binder) */
+  const handledBinder = useRef(false);
+  const [addStart, setAddStart] = useState<string>();
+  useEffect(() => {
+    if (!binderSet || !entered || !cloud.ready || welcome || handledBinder.current) return;
+    handledBinder.current = true;
+    window.history.replaceState(null, "", window.location.pathname);
+    loadSet(binderSet).then(
+      () => {
+        const { binders } = useStore.getState();
+        const b = shelfBinders(binders).find((x) => x.setId === binderSet);
+        if (b) return setOpen({ binderId: b.id });
+        if (binders.length >= MAX_BINDERS) return;
+        setAddStart(binderSet);
+        setAdding(true);
+      },
+      () => {},
+    );
+  }, [binderSet, entered, cloud.ready, welcome]);
 
   /** A new binder: download its cards, then put it on the shelf. */
   const addBinder = async (choice: BinderChoice) => {
@@ -568,17 +599,44 @@ export function App() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={(e) => {
-              if (e.target === e.currentTarget) setAdding(false);
+              if (e.target !== e.currentTarget) return;
+              setAdding(false);
+              setAddStart(undefined);
             }}
           >
             <BinderPicker
               title={tr("Nouveau classeur", "New binder")}
-              subtitle={tr(`Il prendra la place libre de l'étagère (${binders.length + 1}/${MAX_BINDERS}).`, `It takes the free spot on the shelf (${binders.length + 1}/${MAX_BINDERS}).`)}
+              subtitle={
+                <>
+                  {tr(`Il prendra la place libre de l'étagère (${binders.length + 1}/${MAX_BINDERS}).`, `It takes the free spot on the shelf (${binders.length + 1}/${MAX_BINDERS}).`)}
+                  {addStart && catalogSet(addStart) && (
+                    <button
+                      className={styles.startSet}
+                      onClick={async () => {
+                        sfx.stamp();
+                        const first = !userBinders.length;
+                        const id = await addBinder({ kind: "set", setId: addStart });
+                        setAddStart(undefined);
+                        setAdding(false);
+                        setTimeout(() => setOpen({ binderId: id }), 450);
+                        if (first) {
+                          setTourSoon(true);
+                          setTimeout(() => setTour(true), 1750);
+                        }
+                      }}
+                      onPointerEnter={sfx.hover}
+                    >
+                      {tr(`Ajouter ${catalogSet(addStart)?.name} ▶`, `Add ${catalogSet(addStart)?.name} ▶`)}
+                    </button>
+                  )}
+                </>
+              }
               onPick={async (choice) => {
                 // a player who went exploring before their first binder gets the tour with it
                 const first = !userBinders.length;
                 const id = await addBinder(choice);
                 setAdding(false);
+                setAddStart(undefined);
                 if (first)
                   setTimeout(() => {
                     setOpen({ binderId: id });
@@ -589,6 +647,7 @@ export function App() {
               onClose={() => {
                 sfx.click();
                 setAdding(false);
+                setAddStart(undefined);
               }}
             />
           </motion.div>
@@ -678,6 +737,10 @@ export function App() {
             }}
             onDone={() => {
               dropAskedCard();
+              if (askedBinder) {
+                handledBinder.current = true;
+                window.history.replaceState(null, "", window.location.pathname);
+              }
               setWelcome(false);
             }}
             onExplore={() => {
