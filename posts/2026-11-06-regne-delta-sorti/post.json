@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-06",
+  "time": "18:30",
+  "platforms": [
+    "instagram"
+  ],
+  "kind": "news",
+  "format": "post",
+  "title": "Règne Delta est sorti !",
+  "note": "Jour de sortie. Faits : pokemon.com. Si le classeur ME06 n'est pas encore dispo dans l'app le jour J, changer la slide 3. Ajoute un sticker « C'est le jour » en story.",
+  "prices": false,
+  "caption": "Règne Delta est sorti ! 🐉 Méga-Évolution : Règne Delta (ME06), en boutique aujourd'hui, partout le même jour.\n\n✦ plus de 135 cartes, dont plus de 35 illustrations spéciales\n✦ Méga-Rayquaza-ex, Méga-Golemastoc-ex, Méga-Sepiatroce-ex et Méga-Sarmuraï-ex\n✦ des cartes promo Kyogre, Groudon et Giratina chez les revendeurs participants\n\nTu ouvres tes boosters quand ? Et ta meilleure carte ? 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #regnedelta #megarayquaza #pokemonfr",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "C'EST LE JOUR",
+      "title": "Règne<br>Delta",
+      "size": 120,
+      "asset": "regne-delta-boosters.jpg",
+      "banner": "EN BOUTIQUE AUJOURD'HUI"
+    },
+    {
+      "type": "paper",
+      "kicker": "CE QU'IL Y A DEDANS",
+      "title": "Règne Delta",
+      "em": "ME06",
+      "list": [
+        "Plus de 135 cartes, dont plus de 35 illustrations spéciales",
+        "Plus de 20 cartes Dresseur",
+        "4 Méga-ex : Rayquaza, Golemastoc, Sepiatroce et Sarmuraï",
+        "Des promos Kyogre, Groudon et Giratina chez certains revendeurs"
+      ]
+    },
+    {
+      "type": "paper",
+      "kicker": "SUR NOOKDEX",
+      "title": "Ton classeur",
+      "em": "Règne Delta",
+      "lead": "Coche tes cartes une à une, ou « J'ai tout » d'un clic. Celles qui te manquent ? En wishlist ★",
+      "asset": "wishbinder.jpg"
+    },
+    {
+      "type": "end",
+      "title": "Tu as eu<br>quoi ?",
+      "lead": "Montre ta meilleure carte en commentaire"
+    }
+  ]
+}
