@@ -166,7 +166,8 @@ post has none. A progress bar on top tells how many scenes are left (people stay
   lists them: `{ id, card, kind: "zoom" | "find", rect: [x, y, w, h], label, used: [post ids] }`. Use the ones whose
   `used` is empty: a `zoom` slide takes `card` and `rect` as they are, a `find` slide takes `card` and `blur` = `rect`;
   `label` is Johan's hint of what the spot shows (« la queue »), for the caption or the reveal's `name`, never the
-  slide's label. Copy the rect exactly: that's how a spot is known as used. No spot left: no zoom / find post that week.
+  slide's label. A spot counts as used once a zoom or find post shows its card (the answer would repeat). No spot
+  left: no zoom / find post that week.
   The older spots, written here by hand:
   - zoom `sv03.5-174` Nidoking, belly and claws `[270, 250, 128, 160]`
   - zoom `sv03.5-171` Carabaffe, tail `[350, 320, 128, 160]`

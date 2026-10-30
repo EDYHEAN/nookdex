@@ -53,6 +53,13 @@ const devSave = (list: Spot[]) => {
   } catch {}
 };
 
+const quote = (s: string) => `'${s.replace(/'/g, "''")}'`;
+const asSql = (list: Spot[]) =>
+  `insert into public.social_spots (card, kind, rect, label, created_at) values\n${[...list]
+    .reverse()
+    .map((s) => `  (${quote(s.card)}, ${quote(s.kind)}, '{${s.rect.join(",")}}', ${s.label ? quote(s.label) : "null"}, ${quote(s.created_at)})`)
+    .join(",\n")};`;
+
 export function Spots() {
   const assets = useSets((s) => s.assets);
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -198,6 +205,12 @@ export function Spots() {
       <h2 className={styles.spotsHead}>
         En réserve · {spots.filter((s) => !used[s.id]?.length).length} prête{spots.filter((s) => !used[s.id]?.length).length > 1 ? "s" : ""}
       </h2>
+      {/* ?dev keeps the spots on this device: copied as an insert to paste in Supabase's SQL editor */}
+      {DEV && spots.length > 0 && (
+        <button className={styles.big} onClick={() => void navigator.clipboard.writeText(asSql(spots)).then(() => (sfx.pop(), say("SQL copié ✓")))}>
+          📋 Copier les {spots.length} zones en SQL
+        </button>
+      )}
       <div className={styles.saved}>
         {spots.map((s) => {
           const r = byKey.get(s.card);

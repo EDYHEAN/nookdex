@@ -486,7 +486,7 @@ console.log(`index: ${index.length} posts`);
 
 /**
  * The zoom / find spots Johan draws in the studio (Supabase social_spots, readable by anyone), copied here for the routine
- * with the posts that used each one: a zoom slide on the same card and rect, a find slide on the same card and blur.
+ * with the posts that used each one: any zoom, find or reveal slide on its card (the answer would be the same Pokémon).
  * Supabase out of reach: the last copy stays.
  */
 const spotsOf = async () => {
@@ -501,10 +501,9 @@ try {
     const post = JSON.parse(readFileSync(join(POSTS, id, "post.json"), "utf8"));
     return [...(post.slides ?? []), ...(post.motion ?? [])].map((s) => ({ id, s }));
   });
-  const same = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === 4 && a.every((v, i) => Math.abs(v - b[i]) <= 2);
   const spots = (await spotsOf()).map((sp) => ({
     ...sp,
-    used: [...new Set(slides.filter(({ s }) => s.card === sp.card && (sp.kind === "zoom" ? s.type === "zoom" && same(s.rect, sp.rect) : s.type === "find" && same(s.blur, sp.rect))).map(({ id }) => id))],
+    used: [...new Set(slides.filter(({ s }) => (s.card === sp.card && (s.type === "zoom" || s.type === "find")) || (s.type === "reveal" && s.items?.some((it) => it.card === sp.card))).map(({ id }) => id))],
   }));
   writeFileSync(join(RENDERS, "spots.json"), JSON.stringify({ updated: new Date().toISOString(), spots }, null, 1) + "\n");
   console.log(`spots: ${spots.length}, ${spots.filter((s) => !s.used.length).length} not used yet`);
