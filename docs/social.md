@@ -161,14 +161,18 @@ post has none. A progress bar on top tells how many scenes are left (people stay
   the set files; prefer recent sets (their scans are sharp).
 - **Devine le prix** (`duel` ×3 + `duelAnswers`): pairs where the answer surprises (an old holo vs a new illustration,
   the same Pokémon in two sets). `prices: true`.
-- **Zoom / find**: the routine can't look at the pictures, so it only uses the spots below (checked by eye). Never the
-  head (too easy).
+- **Zoom / find**: the routine can't look at the pictures, so it only uses spots checked by eye. Never the head (too easy).
+  **Johan draws them in the studio** (nookdex.com/studio → « Zones »), and `renders/spots.json` on the `social` branch
+  lists them: `{ id, card, kind: "zoom" | "find", rect: [x, y, w, h], label, used: [post ids] }`. Use the ones whose
+  `used` is empty: a `zoom` slide takes `card` and `rect` as they are, a `find` slide takes `card` and `blur` = `rect`;
+  `label` is Johan's hint of what the spot shows (« la queue »), for the caption or the reveal's `name`, never the
+  slide's label. Copy the rect exactly: that's how a spot is known as used. No spot left: no zoom / find post that week.
+  The older spots, written here by hand:
   - zoom `sv03.5-174` Nidoking, belly and claws `[270, 250, 128, 160]`
   - zoom `sv03.5-171` Carabaffe, tail `[350, 320, 128, 160]`
   - zoom `sv03.5-179` M. Mime, legs and shoes `[190, 276, 128, 160]`
   - find `sv04-195` Zébibron in the forest, blur `[350, 268, 115, 158]`
-  Already used in October (`2026-10-28-zoom`): don't repeat them within two months. New spots are added here by a
-  local session that can look at the cards.
+  Already used in October (`2026-10-28-zoom`): don't repeat them within two months.
 
 ## Captions
 

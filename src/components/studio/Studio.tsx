@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { signInWithGoogle, supabase } from "@/lib/cloud";
 import { SOCIAL_RENDERS, STUDIO_EMAIL_HASHES } from "@/lib/site";
 import { sfx } from "@/lib/sound";
+import { Spots } from "./Spots";
 import styles from "./Studio.module.css";
 
 /** instagram: the carousel; reels: the video as an Instagram Reel; tiktok: the video */
@@ -136,6 +137,8 @@ export function Studio() {
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [past, setPast] = useState(false);
+  /** the zoom / find spots to draw (Spots.tsx) */
+  const [zones, setZones] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const { done, toggle, online } = useDone(allowed);
 
@@ -203,15 +206,19 @@ export function Studio() {
           {!online && posts && <span className={styles.warn}> · hors ligne : les coches partiront dès que possible</span>}
         </p>
         <div className={styles.tabs}>
-          <button className={!past ? styles.on : ""} onClick={() => setPast(false)}>
+          <button className={!past && !zones ? styles.on : ""} onClick={() => (setPast(false), setZones(false))}>
             À venir
           </button>
-          <button className={past ? styles.on : ""} onClick={() => setPast(true)}>
+          <button className={past && !zones ? styles.on : ""} onClick={() => (setPast(true), setZones(false))}>
             Passés
+          </button>
+          <button className={zones ? styles.on : ""} onClick={() => setZones(true)}>
+            Zones
           </button>
         </div>
       </header>
-      {weeks.map(([week, list]) => (
+      {zones && <Spots />}
+      {!zones && weeks.map(([week, list]) => (
         <section key={week} className={styles.week}>
           <h2>Semaine du {day(week).replace(/^\S+ /, "")}</h2>
           {list.map((p) => (

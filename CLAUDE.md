@@ -423,6 +423,9 @@ doesn't show.
 - `/studio` (noindex, Johan's accounts only: hashes in `STUDIO_EMAIL_HASHES`; `?dev` in dev) lists them from
   raw.githubusercontent.com: swipe the slides, share them or the video from the phone (caption copied on the way), tick
   « publié » (Supabase `social_done`, docs/supabase.sql). Posts made by hand are `prerendered`.
+- `/studio` → « Zones » (`studio/Spots.tsx`, 2026-10-30): Johan picks a card and draws a zoom or find spot on it with a
+  finger (Supabase `social_spots`, public read, his accounts write); `render.mjs` copies them to `renders/spots.json`
+  with the posts that used each, and the routine takes the unused ones (docs/social.md). `?dev` keeps them on the device.
 
 ## Vercel quotas and bots
 
