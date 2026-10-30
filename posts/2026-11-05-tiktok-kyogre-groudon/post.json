@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-05",
+  "time": "18:30",
+  "platforms": [
+    "tiktok",
+    "reels"
+  ],
+  "kind": "fun",
+  "format": "post",
+  "title": "TikTok : Kyogre ou Groudon ?",
+  "note": "Jeu, vidéo TikTok + Reel. Les prix sont redessinés la veille et le jour même (la réponse suit les prix du jour). Manche 3 : scans anglais de L'appel des Légendes (TCGdex n'a pas le scan FR).",
+  "prices": true,
+  "caption": "Kyogre ou Groudon : lequel vaut le plus ? 🌊🌋 3 manches, dis ton score en commentaire 👇\n\n#pokemontcg #kyogre #groudon #quiz #cartespokemon",
+  "slides": [
+    {
+      "type": "duel",
+      "label": "KYOGRE OU GROUDON · 1/3",
+      "a": "xy5-150",
+      "b": "xy5-148"
+    },
+    {
+      "type": "duel",
+      "label": "KYOGRE OU GROUDON · 2/3",
+      "a": "sm7-81",
+      "b": "sm7-46"
+    },
+    {
+      "type": "duel",
+      "label": "KYOGRE OU GROUDON · 3/3",
+      "a": "col1-12",
+      "b": "col1-6"
+    },
+    {
+      "type": "duelAnswers",
+      "rounds": [
+        [
+          "xy5-150",
+          "xy5-148"
+        ],
+        [
+          "sm7-81",
+          "sm7-46"
+        ],
+        [
+          "col1-12",
+          "col1-6"
+        ]
+      ]
+    }
+  ]
+}
