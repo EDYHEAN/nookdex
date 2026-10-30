@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-04",
+  "time": "18:30",
+  "platforms": [
+    "instagram"
+  ],
+  "kind": "fun",
+  "format": "post",
+  "title": "Le casting de Règne Delta",
+  "note": "Page de classeur : les 4 Méga-ex du set, les 3 légendaires des cartes promo (Kyogre, Groudon, Giratina) et deux dragons. Leurs plus belles cartes d'avant (pas des cartes de Règne Delta).",
+  "prices": false,
+  "caption": "Le casting de Règne Delta, version classeur 🎬\n\nLes 4 Méga-ex du set (Rayquaza, Golemastoc, Sepiatroce, Sarmuraï), les 3 légendaires des cartes promo (Kyogre, Groudon, Giratina)… et deux dragons pour l'ambiance. Leurs plus belles cartes d'avant.\n\nLequel tu veux en Méga ? 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #regnedelta #megarayquaza #pokemonfr",
+  "slides": [
+    {
+      "type": "grid",
+      "label": "LE CASTING DE REGNE DELTA",
+      "cards": [
+        "xy5-148",
+        "swsh7-194",
+        "sv04-199",
+        "sv10.5b-123",
+        "swsh11-186",
+        "xy4-115",
+        "sv04-246",
+        "me02.5-290",
+        "me02-101"
+      ]
+    },
+    {
+      "type": "end",
+      "title": "Lequel tu veux<br>en Méga ?",
+      "lead": "Dis-le en commentaire"
+    }
+  ]
+}
