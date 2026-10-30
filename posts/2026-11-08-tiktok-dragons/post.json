@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-08",
+  "time": "18:30",
+  "platforms": [
+    "tiktok"
+  ],
+  "tiktok": "photos",
+  "kind": "fun",
+  "format": "post",
+  "title": "TikTok : la page des dragons",
+  "note": "Carrousel photo TikTok (mode photo). Un son tendance.",
+  "prices": true,
+  "caption": "La page des dragons 🐉 Swipe jusqu'au bout pour voir ce que vaut Méga-Dracolosse.\n\nTu prends laquelle ? 👇\n\n#pokemontcg #dragon #dracolosse #cartespokemon #pokemonfr",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "LES DRAGONS",
+      "title": "La page<br>des dragons",
+      "size": 110,
+      "cards": [
+        "sv10.5b-166",
+        "me02.5-290",
+        "sv10-232"
+      ],
+      "banner": "TU PRENDS LAQUELLE ?"
+    },
+    {
+      "type": "grid",
+      "label": "9 ILLUSTRATIONS DE DRAGONS",
+      "cards": [
+        "me02.5-290",
+        "sv10.5b-166",
+        "sv10.5w-166",
+        "sv10-232",
+        "sv09-187",
+        "sv04-253",
+        "sv03.5-181",
+        "sv10.5b-147",
+        "sv08-203"
+      ]
+    },
+    {
+      "type": "price",
+      "card": "me02.5-290",
+      "name": "ET CELLE-CI VAUT…"
+    },
+    {
+      "type": "end",
+      "title": "Tu prends<br>laquelle ?",
+      "lead": "Fais-en ta wishlist sur NookDex"
+    }
+  ]
+}
