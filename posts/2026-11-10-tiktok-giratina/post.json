@@ -1,0 +1,74 @@
+{
+  "date": "2026-11-10",
+  "time": "18:30",
+  "platforms": [
+    "tiktok",
+    "reels"
+  ],
+  "kind": "fact",
+  "format": "post",
+  "title": "TikTok : les 5 Giratina les plus chers",
+  "note": "Vidéo TikTok + Reel. Prix redessinés la veille et le jour même : vérifie l'ordre du top 5 (le Giratina V n°185 est monté vite en octobre, s'il repasse sous le n°212, inverser #4 et #5). Twist : n°185 et n°186, même Giratina V, même set.",
+  "prices": true,
+  "caption": "Les 5 Giratina les plus chers 👻 Et le twist : deux fois la même carte… ou presque.\n\nTu l'aurais deviné ? 👇\n\n#pokemontcg #giratina #cartespokemon #pokemonfr #regnedelta",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "TOP 5",
+      "title": "Giratina",
+      "size": 100,
+      "cards": [
+        "swsh11-212",
+        "swsh11-186",
+        "swsh12.5gg-GG69"
+      ],
+      "banner": "LES 5 PLUS CHERS"
+    },
+    {
+      "type": "price",
+      "card": "swsh11-212",
+      "rank": 5,
+      "name": "ORIGINE PERDUE · 2022"
+    },
+    {
+      "type": "price",
+      "card": "swsh11-185",
+      "rank": 4,
+      "name": "ORIGINE PERDUE · 2022"
+    },
+    {
+      "type": "price",
+      "card": "smp-SM151",
+      "rank": 3,
+      "name": "PROMO SOLEIL ET LUNE"
+    },
+    {
+      "type": "price",
+      "card": "swsh12.5gg-GG69",
+      "rank": 2,
+      "name": "ZENITH SUPREME · 2023"
+    },
+    {
+      "type": "price",
+      "card": "swsh11-186",
+      "rank": 1,
+      "name": "ORIGINE PERDUE · 2022"
+    },
+    {
+      "type": "paper",
+      "kicker": "LE TWIST",
+      "title": "Même set,",
+      "em": "même Giratina V",
+      "lead": "Le n°185 et le n°186 d'Origine Perdue. Seule l'illustration change… et la cote explose.",
+      "cards": [
+        "swsh11-185",
+        "swsh11-186"
+      ]
+    },
+    {
+      "type": "end",
+      "title": "Tu le<br>savais ?",
+      "lead": "La cote de tes cartes, chaque jour"
+    }
+  ]
+}
