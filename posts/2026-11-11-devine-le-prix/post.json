@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-11",
+  "time": "18:30",
+  "platforms": [
+    "instagram"
+  ],
+  "kind": "fun",
+  "format": "post",
+  "title": "Jeu : devine le prix",
+  "note": "Prix redessinés la veille et le jour même : la dernière slide suit les prix du jour. Manche 3 : le Dracaufeu de Générations a une cote qui bouge, vérifie la réponse.",
+  "prices": true,
+  "caption": "Petit jeu : devine le prix 💸\n\n3 manches, à chaque fois le même Pokémon : une vieille carte contre une récente. A ou B, laquelle vaut le plus ?\nLa solution est sur la dernière slide.\n\nDis-nous ton score en commentaire 👇 (3/3 = expert certifié)\nPrix tendance Cardmarket du {day:sv03}, ceux de toutes tes cartes sur nookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #quiz #pokemonfr #psykokwak",
+  "slides": [
+    {
+      "type": "duel",
+      "label": "DEVINE LE PRIX · 1/3",
+      "a": "sv03.5-175",
+      "b": "ecard2-104"
+    },
+    {
+      "type": "duel",
+      "label": "DEVINE LE PRIX · 2/3",
+      "a": "bw7-150",
+      "b": "swsh7-182"
+    },
+    {
+      "type": "duel",
+      "label": "DEVINE LE PRIX · 3/3",
+      "a": "sv03-228",
+      "b": "g1-RC5"
+    },
+    {
+      "type": "duelAnswers",
+      "rounds": [
+        [
+          "sv03.5-175",
+          "ecard2-104"
+        ],
+        [
+          "bw7-150",
+          "swsh7-182"
+        ],
+        [
+          "sv03-228",
+          "g1-RC5"
+        ]
+      ]
+    }
+  ]
+}
