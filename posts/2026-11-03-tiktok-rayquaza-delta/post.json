@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-03",
+  "time": "18:30",
+  "platforms": [
+    "tiktok",
+    "reels"
+  ],
+  "kind": "fact",
+  "format": "post",
+  "title": "TikTok : il y a 20 ans, Rayquaza était déjà δ",
+  "note": "Vidéo TikTok + Reel (même vidéo). Un son tendance dans l'appli. Île des Dragons (EX, novembre 2006), cartes ex δ. Les prix sont redessinés la veille et le jour même.",
+  "prices": true,
+  "caption": "Il y a 20 ans, Rayquaza était déjà δ 🐉 Île des Dragons, 2006 : ses ex δ valent aujourd'hui une petite fortune.\n\nTu l'avais, toi ? 👇\n\n#pokemontcg #rayquaza #cartespokemon #pokemonfr #regnedelta",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "IL Y A 20 ANS",
+      "title": "Rayquaza<br>δ",
+      "size": 110,
+      "cards": [
+        "ex15-95",
+        "ex15-97",
+        "ex15-91"
+      ],
+      "banner": "ILE DES DRAGONS · 2006"
+    },
+    {
+      "type": "price",
+      "card": "ex15-95",
+      "rank": 3,
+      "name": "ILE DES DRAGONS · 2006"
+    },
+    {
+      "type": "price",
+      "card": "ex15-91",
+      "rank": 2,
+      "name": "ILE DES DRAGONS · 2006"
+    },
+    {
+      "type": "price",
+      "card": "ex15-97",
+      "rank": 1,
+      "name": "ILE DES DRAGONS · 2006"
+    },
+    {
+      "type": "paper",
+      "kicker": "LE 6 NOVEMBRE",
+      "title": "20 ans après,",
+      "em": "Rayquaza règne encore",
+      "lead": "Méga-Rayquaza-ex, dans Règne Delta."
+    },
+    {
+      "type": "end",
+      "title": "Tu l'avais,<br>toi ?",
+      "lead": "La cote de tes cartes, chaque jour"
+    }
+  ]
+}
