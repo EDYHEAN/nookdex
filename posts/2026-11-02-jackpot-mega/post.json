@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-02",
+  "time": "18:30",
+  "platforms": [
+    "instagram"
+  ],
+  "kind": "fact",
+  "format": "post",
+  "title": "Le jackpot de chaque set Méga",
+  "note": "J-4 avant Règne Delta. Les 5 sets numérotés ME01 à ME05 (Héros Transcendants, hors série, est cité dans la légende). Prix redessinés la veille et le jour même : vérifie que chaque carte est toujours la plus chère de son set (ME01 Méga-Gardevoir-ex et ME04 Méga-Amphinobi-ex Méga Hyper Rare devancent de peu une autre carte). Les Méga Hyper Rare dorées ont un scan tout jaune : c'est la vraie carte.",
+  "prices": true,
+  "caption": "Le jackpot de chaque set Méga-Évolution 💎 Swipe : la carte la plus chère de chaque set, de ME01 à ME05.\n\nLe roi ? Méga-Dracaufeu X-ex de Flammes Fantasmagoriques, {price:me02-125}. Et hors série, le Pikachu-ex de Héros Transcendants grimpe à {price:me02.5-276}.\nPrix tendance Cardmarket du {day:me02}.\n\nRègne Delta (ME06) sort vendredi. Ton pronostic : quelle carte sera son jackpot ? 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #megaevolution #regnedelta #pokemonfr",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "J-4 · REGNE DELTA",
+      "title": "Jackpot<br>Méga",
+      "size": 120,
+      "cards": [
+        "me01-187",
+        "me02-125",
+        "me05-116"
+      ],
+      "banner": "LA PLUS CHERE DE CHAQUE SET"
+    },
+    {
+      "type": "price",
+      "kicker": "ME01 · MEGA-EVOLUTION",
+      "card": "me01-187"
+    },
+    {
+      "type": "price",
+      "kicker": "ME02 · FLAMMES FANTASMAGORIQUES",
+      "card": "me02-125"
+    },
+    {
+      "type": "price",
+      "kicker": "ME03 · EQUILIBRE PARFAIT",
+      "card": "me03-121"
+    },
+    {
+      "type": "price",
+      "kicker": "ME04 · CHAOS ASCENDANT",
+      "card": "me04-122"
+    },
+    {
+      "type": "price",
+      "kicker": "ME05 · NUIT NOIRE",
+      "card": "me05-116"
+    },
+    {
+      "type": "end",
+      "kicker": "ME06 · LE 6 NOVEMBRE",
+      "title": "Et Règne Delta ?",
+      "lead": "Ton pronostic en commentaire : quelle carte sera son jackpot ?"
+    }
+  ]
+}
