@@ -4,7 +4,7 @@ import { Marked, type Token } from "marked";
 import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
 import rawJa from "@/data/catalog-ja.json";
-import { AMAZON_NOTICE, tagAmazonLinks } from "./amazon";
+import { AMAZON_NOTICE, AMAZON_NOTICE_EN, tagAmazonLinks } from "./amazon";
 import { KIND_LABEL, SHOP_PATH, byInterest, productHref, productPic, shopGroups } from "./amazonShop";
 import { bareId, currencyOf, langOfKey, type CardLang } from "./cardLang";
 import { setFile } from "./setFiles";
@@ -238,8 +238,10 @@ export async function renderPost(post: Post) {
   let i = 0;
   const md = post.body.replace(RUN, () => `${blocks[i++]}\n\n`).replace(AMAZON_LINE, (_, id: string) => `${amazonShelf(id.trim(), post.lang)}\n\n`);
   const html = new Marked({ gfm: true }).parse(md, { async: false });
-  // wide tables scroll sideways on a phone instead of squeezing their columns; amazon.fr links carry our tag (lib/amazon)
-  return tagAmazonLinks(html.replace(/<table>/g, '<div class="blog-table"><table>').replace(/<\/table>/g, "</table></div>"));
+  // wide tables scroll sideways on a phone instead of squeezing their columns; Amazon links carry our tag (lib/amazon)
+  const out = tagAmazonLinks(html.replace(/<table>/g, '<div class="blog-table"><table>').replace(/<\/table>/g, "</table></div>"));
+  // an English post with an amazon.com link: the US program's sentence under it (a French one has it under its ::amazon cards)
+  return post.lang === "en" && out.includes("amazon.com/") ? `${out}<p class="blog-shop-note">${esc(AMAZON_NOTICE_EN)}</p>` : out;
 }
 
 /* ---------- FAQ: the "## Questions fréquentes" section, for the FAQPage structured data ---------- */

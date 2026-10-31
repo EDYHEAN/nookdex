@@ -75,7 +75,9 @@ fréquentes »: one or two sentences (Amazon sells it by invitation, free to ask
 « Expédié et vendu par Amazon »), then the line `::amazon[<group id>]` on its own: the site draws that set's products
 there (official pictures, a button each, the program's sentence under them) from `src/data/amazon-products.json` (add
 the group first if it isn't there, see below). A plain link elsewhere in the text may point to `/invitations-amazon`.
-Never for single cards (those are Cardmarket), never in English posts (`::amazon` draws nothing there).
+Never for single cards (those are Cardmarket). `::amazon` draws nothing in an English post; an English post about a set
+coming out or still in the shops may hold one plain amazon.com search link (« Pokemon TCG <set name> »), in its « Where to
+buy » sentence: NookDex is an Amazon.com Associate too, the site adds the tag (`nookdex-20`) and `rel="sponsored"`.
 
 ### Keeping the Amazon products up to date (`src/data/amazon-products.json`)
 

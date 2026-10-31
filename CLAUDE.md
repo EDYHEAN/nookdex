@@ -286,7 +286,12 @@ doesn't show.
   French pages only (the tag pays on amazon.fr): « Précommander sur Amazon » on the calendar's coming sets and products,
   a line on the set pages of sets out within two years, one link at most in a French blog post (docs/blog.md; the tag and
   `rel="sponsored"` added by `tagAmazonLinks`). The program's sentence (`AMAZON_NOTICE`) on each of those pages and on
-  /a-propos. The account closes without 3 sales in its first 180 days. Never for single cards (Cardmarket).
+  /a-propos. The account closes without 3 sales in its first 180 days (3 shipped in October 2026: kept). Never for single cards (Cardmarket).
+- English pages (Johan, 2026-10-31: the /en pages get English traffic, the US most of it): Amazon Associates US, tag
+  `nookdex-20` (`AMAZON_US_TAG`, `amazonOn(lang)`): « Pre-order on Amazon » on the English calendar, a line on the English
+  set pages of sets out within two years (amazon.com searches, no product cards: those are amazon.fr's), the US sentence
+  (`AMAZON_NOTICE_EN`) there and on the English /a-propos; an amazon.com link in an English post gets the tag. Same 3 sales
+  in 180 days (from 2026-10-31). OneLink (UK, Canada… sent to their own Amazon) is set in that account, not in the code.
 - The products (Johan, 2026-10-19: put them forward, a call to action wherever they show): `src/data/amazon-products.json`
   (a group per set, `setId` = its FR id; a product = `asin` -> amazon.fr/dp, else a search), `lib/amazonShop`, cards drawn by
   `ShopShelf` (official picture, kind, name, a big yellow button: « Demander l'invitation », Amazon sells sealed Pokémon
