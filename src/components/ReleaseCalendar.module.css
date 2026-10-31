@@ -138,6 +138,13 @@
   font-size: 0.8em;
 }
 
+/* « Lien affilié », right by its Amazon link */
+.affiliate {
+  color: var(--ink-soft);
+  white-space: nowrap;
+  font-size: 0.75em;
+}
+
 .past {
   padding: 0 !important;
   list-style: none;

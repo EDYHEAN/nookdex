@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatDate } from "@/lib/blog";
-import { amazonNotice, amazonOn, amazonSearch } from "@/lib/amazon";
+import { affiliateLabel, amazonOn, amazonSearch } from "@/lib/amazon";
 import { SHOP_PATH, shopOfSet } from "@/lib/amazonShop";
 import { daysUntil, type Release, releases } from "@/lib/releases";
 import { SET_PAGES_ROOT, type PageLang } from "@/lib/setPath";
@@ -171,9 +171,17 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
                     {/* its boosters and boxes to preorder (Amazon affiliate, lib/amazon: amazon.fr, amazon.com on the English page),
                         as cards below once known (French page) */}
                     {amazonOn(lang) && r.region === "intl" && r.kind !== "event" && !shopOf(r) && (
-                      <a href={amazonSearch(fr ? `Pokémon ${r.name}` : `Pokemon TCG ${r.name}`, "calendrier", lang)} target="_blank" rel="sponsored noopener">
-                        {t("Précommander sur Amazon ↗", "Pre-order on Amazon ↗")}
-                      </a>
+                      <span>
+                        <a
+                          href={amazonSearch(fr ? `Pokémon ${r.name}` : `Pokemon TCG ${r.name}`, "calendrier", lang)}
+                          target="_blank"
+                          rel="sponsored noopener"
+                          data-amazon-place="calendrier"
+                        >
+                          {t("Voir les précommandes ↗", "See pre-orders on Amazon ↗")}
+                        </a>{" "}
+                        <small className={styles.affiliate}>{affiliateLabel(lang)}</small>
+                      </span>
                     )}
                     {r.source && (
                       <a className={styles.source} href={r.source} target="_blank" rel="noopener">
@@ -184,7 +192,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
                 </div>
                 {shopOf(r) && (
                   <div className={styles.shop}>
-                    <ShopShelf group={shopOf(r)!} place="calendrier" max={4} notice={false} />
+                    <ShopShelf group={shopOf(r)!} place="calendrier" max={4} />
                   </div>
                 )}
               </li>
@@ -232,7 +240,6 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
         {t(`Calendrier mis à jour le ${formatDate(updated, "fr")}.`, `Calendar updated ${formatDate(updated, "en")}.`)}{" "}
         <Link prefetch={false} href={SET_PAGES_ROOT[lang]}>{t("Toutes les extensions et leurs prix →", "Every set and its prices →")}</Link>
       </p>
-      {amazonOn(lang) && <p className={styles.updated}>{amazonNotice(lang)}</p>}
     </LegalPage>
   );
 }

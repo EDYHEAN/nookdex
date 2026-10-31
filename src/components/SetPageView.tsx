@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cardGallery, formatDate, num } from "@/lib/blog";
-import { AMAZON_NOTICE, amazonNotice, amazonOn, amazonSearch, inShops } from "@/lib/amazon";
+import { affiliateLabel, amazonOn, amazonSearch, inShops } from "@/lib/amazon";
 import { shopOfSet } from "@/lib/amazonShop";
 import { currencyOf, keyOf } from "@/lib/cardLang";
 import { type PageLang, SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
@@ -159,21 +159,21 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
         {fr && shop && <ShopShelf group={shop} place="extension" max={4} title={`Boosters et coffrets ${name} sur Amazon`} />}
         {fr && !shop && inShops(p.set.releaseDate) && (
           <p className={styles.other}>
-            <a href={amazonSearch(`Pokémon ${name} booster`, "extension")} target="_blank" rel="sponsored noopener">
+            <a href={amazonSearch(`Pokémon ${name} booster`, "extension")} target="_blank" rel="sponsored noopener" data-amazon-place="extension">
               Boosters, coffrets et displays de {name} sur Amazon ↗
             </a>
             <br />
-            <small>{AMAZON_NOTICE}</small>
+            <small>{affiliateLabel("fr")}</small>
           </p>
         )}
         {/* an English set page: a search on amazon.com while the set is in the shops (the products' cards are amazon.fr's) */}
         {!fr && amazonOn("en") && inShops(p.set.releaseDate) && (
           <p className={styles.other}>
-            <a href={amazonSearch(`Pokemon TCG ${name}`, "extension", "en")} target="_blank" rel="sponsored noopener">
+            <a href={amazonSearch(`Pokemon TCG ${name}`, "extension", "en")} target="_blank" rel="sponsored noopener" data-amazon-place="extension">
               {name} booster packs, Elite Trainer Boxes and booster boxes on Amazon ↗
             </a>
             <br />
-            <small>{amazonNotice("en")}</small>
+            <small>{affiliateLabel("en")}</small>
           </p>
         )}
 

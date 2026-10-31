@@ -1,26 +1,25 @@
 import Link from "next/link";
-import { AMAZON_NOTICE, type AmazonPlace } from "@/lib/amazon";
-import { KIND_LABEL, SHOP_PATH, byInterest, productHref, productPic, type ShopGroup } from "@/lib/amazonShop";
+import { affiliateLabel, type AmazonPlace } from "@/lib/amazon";
+import { KIND_LABEL, SHOP_PATH, byInterest, goLabel, productHref, productPic, type ShopGroup } from "@/lib/amazonShop";
 import styles from "./ShopShelf.module.css";
 
 /**
  * A set's (or a line's) sealed products on amazon.fr, as cards: the official picture, what it is, and a big button
  * (Johan, 2026-10-19: put the products forward, a call to action wherever they show). The whole card is the link.
- * French pages only. `max` shows the first few (the most looked for) and a link to the full page.
+ * French pages only. `max` shows the first few (the most looked for) and a link to the full page. « Liens affiliés » under
+ * them (the program's sentence is on /conditions and /a-propos).
  */
 export function ShopShelf({
   group,
   place,
   max,
   title,
-  notice = true,
 }: {
   group: ShopGroup;
   /** where it shows: its Amazon tracking id */
   place: AmazonPlace;
   max?: number;
   title?: string;
-  notice?: boolean;
 }) {
   const all = byInterest(group.products);
   const shown = max ? all.slice(0, max) : all;
@@ -34,14 +33,13 @@ export function ShopShelf({
           const pic = productPic(p, group);
           return (
             <li key={p.asin ?? p.name}>
-              <a className={styles.card} href={productHref(p, place)} target="_blank" rel="sponsored noopener">
+              <a className={styles.card} href={productHref(p, place)} target="_blank" rel="sponsored noopener" data-amazon-place={place}>
                 <span className={styles.pic}>
                   {pic ? <img src={pic.src} width={pic.w} height={pic.h} alt={`${KIND_LABEL[p.kind]} ${group.name}`} loading="lazy" /> : null}
                 </span>
                 <span className={styles.kind}>{KIND_LABEL[p.kind]}</span>
                 <span className={styles.name}>{p.name}</span>
-                {/* Amazon sells the sealed Pokémon products by invitation; before they're listed, a search */}
-                <span className={styles.go}>{soon ? "Précommander" : p.asin ? "Demander l'invitation" : "Voir sur Amazon"}</span>
+                <span className={styles.go}>{goLabel(p, soon)}</span>
               </a>
             </li>
           );
@@ -55,7 +53,7 @@ export function ShopShelf({
           </Link>
         </p>
       )}
-      {notice && <p className={styles.notice}>{AMAZON_NOTICE}</p>}
+      <p className={styles.notice}>{affiliateLabel("fr", shown.length > 1)}</p>
     </section>
   );
 }

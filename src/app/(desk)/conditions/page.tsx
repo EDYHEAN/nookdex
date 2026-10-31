@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { serverLang } from "@/lib/serverLang";
 import { LegalPage } from "@/components/LegalPage";
 import Link from "next/link";
+import { AMAZON_NOTICE, AMAZON_NOTICE_EN, amazonOn } from "@/lib/amazon";
 import { SITE_NAME } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Fr() {
   return (
-    <LegalPage path="/conditions" title="Conditions d'utilisation" updated="16 octobre 2026">
+    <LegalPage path="/conditions" title="Conditions d'utilisation" updated="31 octobre 2026">
       <p>{SITE_NAME} est gratuit. En l&apos;utilisant, tu acceptes ces quelques règles.</p>
 
       <h2>Le service</h2>
@@ -39,6 +40,13 @@ function Fr() {
         voir les <Link href="/mentions-legales">mentions légales</Link>.
       </p>
 
+      {/* the program's sentence lives here and on /a-propos; by the buttons only « Lien affilié » (Johan, 2026-10-31) */}
+      <h2 id="amazon">Les liens Amazon</h2>
+      <p>
+        Les liens vers Amazon (boosters et coffrets scellés, jamais de cartes à l&apos;unité) sont des liens affiliés, marqués « Lien affilié » :
+        ils ne changent rien à ton prix. {AMAZON_NOTICE}
+      </p>
+
       <h2>Pokémon</h2>
       <p>
         {SITE_NAME} est un projet de fan, non officiel, sans lien avec Nintendo, Creatures, GAME FREAK ou The Pokémon Company. Pokémon et les noms et
@@ -55,7 +63,7 @@ function Fr() {
 
 function En() {
   return (
-    <LegalPage path="/conditions" title="Terms of use" updated="16 October 2026" en>
+    <LegalPage path="/conditions" title="Terms of use" updated="31 October 2026" en>
       <p>{SITE_NAME} is free. By using it, you accept these few rules.</p>
 
       <h2>The service</h2>
@@ -79,6 +87,16 @@ function En() {
         The optional decorations have their own <Link href="/conditions-de-vente">terms of sale</Link>. Who publishes the site: see the{" "}
         <Link href="/mentions-legales">legal notice</Link>.
       </p>
+
+      {amazonOn("en") && (
+        <>
+          <h2 id="amazon">Amazon links</h2>
+          <p>
+            The links to Amazon (sealed booster packs and boxes, never single cards) are affiliate links, marked &quot;Affiliate link&quot;: they
+            don&apos;t change your price. {AMAZON_NOTICE_EN}
+          </p>
+        </>
+      )}
 
       <h2>Pokémon</h2>
       <p>
