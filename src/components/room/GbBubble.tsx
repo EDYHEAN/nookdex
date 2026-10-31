@@ -69,12 +69,12 @@ export function GbBubble({ x, y, active }: { x: number; y: number; active: boole
         [t(`Vague ${top.wave}`, `Wave ${top.wave}`), t("qui dit mieux ?", "who beats it?")],
         [t(`Détrône ${name} !`, `Dethrone ${name}!`), t("clic pour jouer", "click to play")],
       ];
-  // the Panthéon's first names among the lines: "Fabio et Xibros, premiers à la vague 300"
+  // the Panthéon's first names open the round (the news first): "Fabio et Xibros, premiers à la vague 300"
   if (hall.length) {
     const [a, b] = hall.map((h) => short(h.name));
     const who = b ? t(`${a} et ${b}`, `${a} and ${b}`) : a;
     const what = b ? t(`premiers à la vague ${LAST_WAVE}`, `first to wave ${LAST_WAVE}`) : t(`1er à la vague ${LAST_WAVE}`, `first to wave ${LAST_WAVE}`);
-    lines.splice(1, 0, [who, what]);
+    lines.unshift([who, what]);
   }
   const [head, sub] = lines[say % lines.length];
   return (

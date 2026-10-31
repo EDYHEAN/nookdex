@@ -506,7 +506,7 @@ function PaintedRoomView({
           )}
           {/* a new poster catches the light (drawn again for each one) */}
           {posterGlint > 0 && (
-            <span key={posterGlint} className={styles.poster} style={place(POSTER_BOX)} aria-hidden>
+            <span key={`glint-${posterGlint}`} className={styles.poster} style={place(POSTER_BOX)} aria-hidden>
               <i className={styles.posterGlint} style={{ maskImage: `url(${sceneImg(`posters/${poster}-night.webp`)})`, WebkitMaskImage: `url(${sceneImg(`posters/${poster}-night.webp`)})` }} />
             </span>
           )}
@@ -664,7 +664,7 @@ function PaintedRoomView({
             </button>
           )}
           {page === 0 && trade.count > 0 && (
-            <span key={trade.count} className={styles.ballBadge} style={{ left: TRADE.x + TRADE.w - 36, top: TRADE.y - 30 }} aria-hidden>
+            <span key={`trade-${trade.count}`} className={styles.ballBadge} style={{ left: TRADE.x + TRADE.w - 36, top: TRADE.y - 30 }} aria-hidden>
               {trade.count > 999 ? "999+" : trade.count}
             </span>
           )}
@@ -801,7 +801,7 @@ function PaintedRoomView({
             </span>
           )}
           {petting > 0 && (
-            <span key={petting} className={styles.hearts} style={{ left: SCENE.catAwake.x + 120, top: SCENE.catAwake.y }} aria-hidden>
+            <span key={`pet-${petting}`} className={styles.hearts} style={{ left: SCENE.catAwake.x + 120, top: SCENE.catAwake.y }} aria-hidden>
               <i>♥</i>
               <i>♥</i>
               <i>♥</i>
@@ -1053,7 +1053,7 @@ function PaintedRoomView({
             aria-hidden
           />
           {fresh > 0 && (
-            <span key={fresh} className={styles.ballBadge} style={{ left: BALL.cx + 30, top: BALL.cy - 78 }} aria-hidden>
+            <span key={`badge-${fresh}`} className={styles.ballBadge} style={{ left: BALL.cx + 30, top: BALL.cy - 78 }} aria-hidden>
               {fresh}
             </span>
           )}
@@ -1083,7 +1083,7 @@ function PaintedRoomView({
           {/* the purple box beside the ball: the cards no binder holds, their number pencilled on its label */}
           <span className={`${styles.ballGlow} ${styles.boxGlow} ${boxHover ? styles.ballGlowOn : ""}`} style={{ left: BOX.cx - 150, top: BOX.cy - 110 }} aria-hidden />
           {inBox > 0 && (
-            <span key={inBox} className={styles.boxCount} style={{ left: BOX_LABEL.cx, top: BOX_LABEL.cy }} aria-hidden>
+            <span key={`box-${inBox}`} className={styles.boxCount} style={{ left: BOX_LABEL.cx, top: BOX_LABEL.cy }} aria-hidden>
               {inBox > 999 ? "999+" : inBox}
             </span>
           )}
