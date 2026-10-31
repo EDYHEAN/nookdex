@@ -999,8 +999,9 @@ export class Game {
         while (s.evolves[p.stage] && p.level >= s.evolves[p.stage][1]) p.dex = s.evolves[p.stage++][0];
         p.pendingLevels += tierPicks(from);
         p.pack = tierPicks(from);
-        // a moment to get going before the first foes reach you
-        p.invuln = 3;
+        // a moment to get going before the first foes reach you: longer from wave 200 (a touch there takes 30 % of the HP,
+        // a player still reading the HUD was down in 4 s: Johan, 2026-10-31)
+        p.invuln = from >= 200 ? 6 : 3;
       }
       p.maxHp = this.computeMaxHp();
       p.hp = p.maxHp;
@@ -2464,9 +2465,11 @@ export class Game {
         gsfx.levelUp();
         break;
       }
+      // the tornadoes are born well ahead and move off: born at 20 px they gathered the crowd right where the player was
+      // heading (Johan, 2026-10-31: « je me suis suicidé en packant les mobs sur moi »)
       case "twister":
         this.fx.push({
-          kind: "tornado", x: this.x + this.aimV.x * 20, y: this.y + this.aimV.y * 20, vx: this.aimV.x * 40, vy: this.aimV.y * 40,
+          kind: "tornado", x: this.x + this.aimV.x * 60, y: this.y + this.aimV.y * 60, vx: this.aimV.x * 60, vy: this.aimV.y * 60,
           t: 0, life: 4 + 0.3 * L, r: 34 * this.area, dmg: (6 + 3 * L) * pw, tick: 0, elem: "fly",
         });
         gsfx.wave();
@@ -2637,7 +2640,7 @@ export class Game {
         for (let i = -1; i <= 1; i++) {
           const a = Math.atan2(this.aimV.y, this.aimV.x) + i * 0.9;
           this.fx.push({
-            kind: "tornado", x: this.x + Math.cos(a) * 24, y: this.y + Math.sin(a) * 24, vx: Math.cos(a) * 45, vy: Math.sin(a) * 45,
+            kind: "tornado", x: this.x + Math.cos(a) * 64, y: this.y + Math.sin(a) * 64, vx: Math.cos(a) * 60, vy: Math.sin(a) * 60,
             t: 0, life: 4, r: 46 * this.area, dmg: 28 * pw, tick: 0, elem: "fly",
           });
         }
