@@ -91,33 +91,54 @@ export function ProductRail({ group, place, max }: { group: ShopGroup; place: Am
   );
 }
 
-/** what people look for on amazon.com, drawn: no product pictures of ours there, a search each */
-const US_KINDS: { kind: ShopKind; label: string; q: string }[] = [
-  { kind: "etb", label: "Elite Trainer Box", q: "Elite Trainer Box" },
-  { kind: "display", label: "Booster Box", q: "Booster Box" },
-  { kind: "bundle", label: "Booster Bundle", q: "Booster Bundle" },
-  { kind: "tripack", label: "3-Pack Blister", q: "3 Pack Blister" },
+/** what people look for, drawn: no product pictures of ours on amazon.com (nor for an older French set), a search each */
+const KINDS: { kind: ShopKind; fr: string; en: string; q: { fr: string; en: string } }[] = [
+  { kind: "etb", fr: "Coffret Dresseur d'élite", en: "Elite Trainer Box", q: { fr: "Coffret Dresseur d'élite", en: "Elite Trainer Box" } },
+  { kind: "display", fr: "Display", en: "Booster Box", q: { fr: "Display", en: "Booster Box" } },
+  { kind: "bundle", fr: "Bundle", en: "Booster Bundle", q: { fr: "Bundle", en: "Booster Bundle" } },
+  { kind: "tripack", fr: "Tripack", en: "3-Pack Blister", q: { fr: "Tripack", en: "3 Pack Blister" } },
 ];
 
-/** an English page's set on amazon.com: its four kinds of products, drawn, each a search */
-export function KindTiles({ name, place, soon }: { name: string; place: AmazonPlace; soon: boolean }) {
+/** a set's four kinds of products, drawn, each a search on amazon.fr (amazon.com on an English page) */
+export function KindTiles({ name, place, soon, lang = "en" }: { name: string; place: AmazonPlace; soon: boolean; lang?: Lang }) {
+  const fr = lang === "fr";
   return (
     <>
       <ul className={s.kinds}>
-        {US_KINDS.map((k) => (
+        {KINDS.map((k) => (
           <li key={k.kind}>
-            <a href={amazonSearch(`Pokemon TCG ${name} ${k.q}`, place, "en")} target="_blank" rel="sponsored noopener" data-amazon-place={place}>
+            <a
+              href={amazonSearch(fr ? `Pokémon ${name} ${k.q.fr}` : `Pokemon TCG ${name} ${k.q.en}`, place, lang)}
+              target="_blank"
+              rel="sponsored noopener"
+              data-amazon-place={place}
+            >
               <span dangerouslySetInnerHTML={{ __html: kindArt(k.kind) }} style={{ display: "contents" }} />
-              <b>{k.label}</b>
+              <b>{fr ? k.fr : k.en}</b>
               <span className={`${s.btn} ${s.sm}`}>
-                {soon ? "Pre-orders" : "On Amazon"} <span className={s.arr}>↗</span>
+                {soon ? (fr ? "Précommandes" : "Pre-orders") : fr ? "Sur Amazon" : "On Amazon"} <span className={s.arr}>↗</span>
               </span>
             </a>
           </li>
         ))}
       </ul>
-      <Affiliate lang="en" many />
+      <Affiliate lang={lang} many />
     </>
+  );
+}
+
+/** the hero's stage with a card standing under the lamp (a set page: its dearest card, what its boosters hide) */
+export function CardStage({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className={s.stageW}>
+      <div className={s.stage}>
+        <span className={s.glow} />
+        <div className={`${s.solo} ${s.scan}`}>
+          <img src={`${src}/high.webp`} width={600} height={837} alt={alt} fetchPriority="high" />
+        </div>
+      </div>
+      <div className={s.desk} />
+    </div>
   );
 }
 

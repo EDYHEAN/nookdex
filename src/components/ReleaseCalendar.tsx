@@ -116,7 +116,9 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
       : amazonSearch(fr ? `Pokémon ${heroSet.name}` : `Pokemon TCG ${heroName}`, "calendrier", lang);
   const heroLabel = top ? goLabel(top, coming) : coming ? t("Voir les précommandes", "See pre-orders on Amazon") : t("Voir sur Amazon", "See it on Amazon");
   const pic = top && group ? productPic(top, group) : null;
-  const fan = group ? boosterPics(group) : [];
+  // the set's French boosters on the French page only: the English one draws the box (Johan, 2026-10-31: no French
+  // packaging on the English pages)
+  const fan = group && fr ? boosterPics(group) : [];
   const thumb = pic ?? fan[0] ?? null;
   const days = heroSet ? daysUntil(heroSet.date) : 0;
   const heroPost = heroSet?.post;
@@ -126,6 +128,8 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
       head={
         <>
           <h1 className={s.eyebrow}>{t("Calendrier des sorties du JCC Pokémon", "Pokémon TCG release calendar")}</h1>
+          {/* a set out already (the hero shows the latest once the next is out): its logo, in the page's language */}
+          {heroSet.logo && <img className={s.setLogo} src={heroSet.logo} alt="" />}
           <p className={s.big}>{heroName}</p>
           <p className={s.when}>
             {coming ? t("Prochaine sortie", "Next release") : t("Dernière sortie", "Latest release")}
@@ -135,7 +139,9 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           {coming && days > 0 && <Countdown day={heroSet.date} days={daysLeft(heroSet.date)} lang={lang} />}
         </>
       }
-      stage={<Stage pic={pic} kind={top?.kind ?? (fan.length ? null : "etb")} fan={fan} alt={t(`Boosters ${heroName}`, `${heroName} booster packs`)} />}
+      stage={
+        <Stage pic={pic} kind={top?.kind ?? (fan.length ? null : "etb")} fan={fan} alt={t(`Boosters ${heroName}`, `${heroName} Elite Trainer Box`)} />
+      }
       buy={
         <>
           {top && (

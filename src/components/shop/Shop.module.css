@@ -1336,3 +1336,126 @@
   background: linear-gradient(180deg, #1d1529, #2a2040);
   border-bottom: 3px solid var(--ink);
 }
+
+/* a card standing under the lamp (a set page's dearest card) */
+.scan img {
+  max-height: 196px;
+  border-radius: 4.5% / 3.3%;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    0 16px 22px rgba(0, 0, 0, 0.5);
+  filter: none;
+  transform: rotate(-3deg);
+}
+
+@media (min-width: 900px) {
+  .scan img {
+    max-height: 350px;
+  }
+}
+
+/* a hero with no product (an index): the head alone */
+.heroWrap.flat {
+  grid-template-columns: 1fr;
+  grid-template-areas: "head";
+  padding-bottom: 28px;
+}
+
+/* the set's logo over its name, in the hero */
+.setLogo {
+  display: block;
+  width: min(190px, 50vw);
+  height: auto;
+  /* a tall logo (the Wizards ones) no taller than a wide one */
+  max-height: 72px;
+  object-fit: contain;
+  object-position: left center;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5));
+}
+
+@media (min-width: 900px) {
+  .setLogo {
+    width: 300px;
+    max-height: 110px;
+  }
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 2px 0 10px;
+}
+
+/* a set's name under its logo: a size down, the logo already says it */
+.setName {
+  font-size: clamp(22px, 6vw, 36px);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1.5px solid rgba(239, 227, 200, 0.35);
+  border-radius: 999px;
+  background: rgba(239, 227, 200, 0.06);
+  color: var(--moon);
+  font-size: 14px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6fd08a;
+  box-shadow: 0 0 0 3px rgba(111, 208, 138, 0.25);
+}
+
+/* the set's figures (its facts, a <dl>): numbers in VT323 */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  padding: 4px 8px 3px;
+  border: 1.5px solid rgba(239, 227, 200, 0.25);
+  border-radius: 12px;
+  background: rgba(239, 227, 200, 0.05);
+}
+
+.stats dd {
+  margin: 0;
+  font-family: var(--vt);
+  font-size: 21px;
+  line-height: 1;
+  color: #fff6e2;
+}
+
+.stats dt {
+  font-size: 12px;
+  color: rgba(239, 227, 200, 0.65);
+}
+
+@media (min-width: 900px) {
+  .stats dd {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 899px) {
+  /* a phone: the set's hero shorter, its button near the first screen's bottom */
+  .scan img {
+    max-height: 170px;
+  }
+
+  .solo:has(img) {
+    height: 180px;
+  }
+}

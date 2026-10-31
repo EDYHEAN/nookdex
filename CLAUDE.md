@@ -295,7 +295,7 @@ doesn't show.
   in 180 days (from 2026-10-31). OneLink (UK, Canada… sent to their own Amazon) is set in that account, not in the code.
 - The products (Johan, 2026-10-19: put them forward, a call to action wherever they show): `src/data/amazon-products.json`
   (a group per set, `setId` = its FR id; a product = `asin` -> amazon.fr/dp, else a search), `lib/amazonShop`, cards drawn by
-  `ShopShelf` (official picture, kind, name, a big yellow button: « Demander l'invitation », Amazon sells sealed Pokémon
+  `ProductRail` / `ProductCard` (components/shop: official picture, kind, name, a big yellow button: « Demander l'invitation », Amazon sells sealed Pokémon
   by invitation; « Précommander » before the release on its own page, « Voir les précommandes » on a search: `goLabel`). On `/invitations-amazon` (a notebook tab, French only, FAQ), on a
   set's page (its 4 most looked-for) and under a coming set in the calendar. Pictures: the official ones from Poképédia
   (`scripts/fetch-amazon-pics.mjs` -> `public/amazon/`, `src/data/amazon-pics.json`; the daily prices Action fetches the
@@ -304,14 +304,22 @@ doesn't show.
   `data-amazon-place`: invit, calendrier, extension, carte, blog, accessoires, `<place>-bar` for a sticky bar; Supabase
   `amazon_clicks`, the weekly report). A tracking id per place (`AMAZON_TAGS`: invit, extension, calendrier, blog; Amazon's reports split the sales by them). In a French blog post,
   `::amazon[<group id>]` draws the cards (« Où acheter … ? » section, docs/blog.md).
-- « Sous la lampe » (Johan, 2026-10-31): `/invitations-amazon` and the calendar (FR, EN) are shop pages, full width
+- « Sous la lampe » (Johan, 2026-10-31): `/invitations-amazon`, the calendar and the set pages with their index (FR, EN) are
+  shop pages, full width
   (`WidePage shop`: night bar, « Mon bureau », the tabs), a night hero (`components/shop`: `ShopHero`, `Stage`, `Countdown`,
   `ProductRail`, EN `KindTiles`, the phone's `StickyBuy`, styles in `Shop.module.css`), one yellow button per screen, the
   desk's own green. They're drawn **without the room** (`lib/roomless`: ClientApp mounts it once the visitor goes to the desk;
   one who came from it keeps it; the layout skips the loader's logo preload there, the proxy passes the path): before,
   the room's `day.webp` was their LCP and its h1 came first. The funnel's visit and the Amazon clicks live in ClientApp
   (`Audience`), not in the room. A product never shows another's picture: its own, else the set's booster for a bundle,
-  tripack or blister, else its kind drawn (`lib/kindArt`). Set logos have a small `<logo>-sm.webp` beside them (fetch-set).
+  tripack or blister, else its kind drawn (`lib/kindArt`); the English pages never show the French packaging (drawn kinds,
+  the English logo). Set logos have `<logo>-sm.webp` (320 px) and `-md.webp` (640 px) beside them (fetch-set).
+- A set's page (`SetPageView`): in the shops (out within two years), its hero sells (amazon.fr's top product, else a search;
+  amazon.com on /en), then « le rayon » (its products, else its four kinds drawn, each a search), its dearest cards with our
+  prices (linked to their pages), « Elles se cachent dans les boosters » (no odds, no « instead of N € »: teens read it),
+  the desk's green block. Older: no Amazon at all, the hero's button is the desk (`/?classeur=<set>`: its binder offered or
+  opened), the dearest card stands under the lamp. Every SEO block stays (facts as a `<dl>`, text, rarities, every card,
+  FAQ, posts, hreflang).
 
 ## Sharing a binder
 
