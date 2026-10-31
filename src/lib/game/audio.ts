@@ -132,6 +132,12 @@ export const gsfx = {
   rare() {
     [12, 16, 19, 24, 28].forEach((n, i) => tone({ freq: semi(523, n), type: "sine", dur: 0.2, vol: 0.05, delay: i * 0.05, dest: out() }));
   },
+  /** a Ligue boss's entrance: a long growl under the band */
+  roar() {
+    tone({ freq: 140, to: 70, type: "sawtooth", dur: 0.9, vol: 0.07, delay: 0.15, dest: out() });
+    tone({ freq: 210, to: 90, type: "square", dur: 0.7, vol: 0.04, delay: 0.2, dest: out() });
+    noise({ dur: 0.9, vol: 0.1, type: "lowpass", freq: 600, to: 150, delay: 0.15, dest: out() });
+  },
   /** a letter typed on the screen (the Panthéon's name) */
   blip() {
     if (!throttle("blip", 40)) return;

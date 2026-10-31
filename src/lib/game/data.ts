@@ -737,6 +737,66 @@ export const BOSSES: BossDef[] = [
   { dex: 151, hp: 12000, speed: 52, dmg: 36, r: 12, moves: ["teleport", "strikes", "radial", "aimed"], shot: "psy", title: ["joue avec toi.", "is playing with you."] },
 ];
 
+/* ---------------- La Ligue: the waves past 300 (Johan, 2026-10-31: two players reached 300 in October) ---------------- */
+
+/**
+ * A Ligue wave's foes and bosses: this much more HP than the wave before, compounding on top of the classic curve (which
+ * goes on in a straight line), and this much more damage. Tuned with a god-mode bot from the Ligue's start tier (level 600,
+ * a full build, 2026-10-31): x1.10 a wave, a Dratini's bosses outlast their enrage from wave 360 and it's walled at 380
+ * (x1.05: still clearing 420; x1.12: walled at 370); a Squirtle's walled at 330, whatever the rate (no growth per level).
+ */
+export const LIGUE_HP = 1.1;
+export const LIGUE_DMG = 1.02;
+/** the most one blow takes past wave 300: from 30 % of the max HP up to 60 % by wave 375 */
+export const ligueHitCap = (w: number) => Math.min(0.6, 0.3 + (0.3 * Math.max(0, w - 300)) / 75);
+/** the Ligue's ranks by the wave reached, a pip each (readable without colour) */
+export const LIGUE_RANKS: { from: number; name: Txt }[] = [
+  { from: 325, name: ["BRONZE", "BRONZE"] },
+  { from: 350, name: ["ARGENT", "SILVER"] },
+  { from: 375, name: ["OR", "GOLD"] },
+  { from: 400, name: ["PLATINE", "PLATINUM"] },
+  { from: 450, name: ["MAITRE", "MASTER"] },
+];
+export const ligueRank = (w: number) => LIGUE_RANKS.filter((r) => w >= r.from).length;
+/** a damage share a Ligue boss takes from the types it resists */
+export const RESIST = 0.4;
+/**
+ * The Conseil 4, a giga boss every 10th Ligue wave in turn (310 Olga, 320 Aldo, 330 Agatha, 340 Peter), then Le Maître
+ * every 50th (350, 400…): three bosses at once. Each resists its own type and one more (Peter: « les dragons ne craignent
+ * pas les dragons »), and has the late bosses' affixes.
+ */
+export interface LigueBoss {
+  name: Txt;
+  resist: Elem[];
+  boss: BossDef;
+}
+export const COUNCIL: LigueBoss[] = [
+  {
+    name: ["OLGA", "LORELEI"], resist: ["ice", "water"],
+    boss: { dex: 131, hp: 9000, speed: 30, dmg: 34, r: 22, moves: ["spiral", "rain", "fan"], shot: "ice", title: ["gèle l'arène.", "freezes the arena."], giga: true },
+  },
+  {
+    name: ["ALDO", "BRUNO"], resist: ["fight", "dark"],
+    boss: { dex: 68, hp: 9500, speed: 40, dmg: 36, r: 22, moves: ["charge", "slam", "rain"], shot: "fight", title: ["serre les poings.", "clenches his fists."], giga: true },
+  },
+  {
+    name: ["AGATHA", "AGATHA"], resist: ["ghost", "poison"],
+    boss: { dex: 94, hp: 9000, speed: 36, dmg: 34, r: 22, moves: ["teleport", "spiral", "rain"], shot: "ghost", title: ["ricane dans l'ombre.", "cackles in the dark."], giga: true },
+  },
+  {
+    name: ["PETER", "LANCE"], resist: ["dragon", "fly"],
+    boss: { dex: 149, hp: 10000, speed: 42, dmg: 36, r: 22, moves: ["charge", "fan", "rain"], shot: "dragon", title: ["les dragons ne craignent pas les dragons.", "dragons don't fear dragons."], giga: true },
+  },
+];
+/** Le Maître's three: Pidgeot, Alakazam, then Arcanine or Rhydon in turn */
+export const MASTER_NAME: Txt = ["LE MAITRE", "THE CHAMPION"];
+export const MASTER: LigueBoss[] = [
+  { name: ["ROUCARNAGE", "PIDGEOT"], resist: ["fly"], boss: { dex: 18, hp: 9000, speed: 52, dmg: 34, r: 15, moves: ["charge", "aimed"], shot: "fly", title: ["fond du ciel.", "dives from the sky."] } },
+  { name: ["ALAKAZAM", "ALAKAZAM"], resist: ["psy"], boss: { dex: 65, hp: 8000, speed: 38, dmg: 34, r: 14, moves: ["teleport", "radial", "aimed"], shot: "psy", title: ["lit dans tes pensées.", "reads your mind."] } },
+  { name: ["ARCANIN", "ARCANINE"], resist: ["fire"], boss: { dex: 59, hp: 9500, speed: 50, dmg: 36, r: 15, moves: ["charge", "radial"], shot: "fire", title: ["rugit.", "roars."] } },
+  { name: ["RHINOFEROS", "RHYDON"], resist: ["ground"], boss: { dex: 112, hp: 11000, speed: 30, dmg: 38, r: 16, moves: ["slam", "charge"], shot: "ground", title: ["fait trembler le sol.", "shakes the ground."] } },
+];
+
 /** experience to reach the next level */
 export const xpFor = (level: number) => Math.round(4 + level * 3 + Math.pow(level, 1.7) + 0.9 * Math.max(0, level - 15) ** 2);
 

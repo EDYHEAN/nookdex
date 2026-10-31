@@ -79,14 +79,18 @@ export async function myRewards(): Promise<string[]> {
   return error || !data ? [] : data.map((r: { reward: string }) => r.reward);
 }
 
-/** saves a run; its rank in its board, or null when the ladder can't be reached */
-export async function submitScore(name: string, run: RunStats): Promise<number | null> {
+/**
+ * saves a run; its rank in its board, "refused" when the server finds it implausible (too quick for its waves: a run
+ * jumped through in dev, or tampered with; retrying won't help), or null when the ladder can't be reached
+ */
+export async function submitScore(name: string, run: RunStats): Promise<number | "refused" | null> {
   try {
     localStorage.setItem(NAME_KEY, name);
   } catch {}
   const args = { p_name: name, p_wave: run.wave, p_kills: run.kills, p_level: run.level, p_starter: run.starter, p_seconds: run.seconds };
   const { data, error } = await supabase.rpc("game_submit2", { ...args, p_mode: run.mode, p_day: run.day ?? null, p_start: run.start });
   if (!error) return data as number;
+  if (error.message?.includes("implausible")) return "refused";
   if (run.mode !== "classic") return null;
   const old = await supabase.rpc("game_submit", args);
   return old.error ? null : (old.data as number);
