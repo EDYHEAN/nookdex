@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cardGallery, formatDate, num } from "@/lib/blog";
-import { affiliateLabel, amazonOn, amazonSearch, inShops } from "@/lib/amazon";
-import { shopOfSet } from "@/lib/amazonShop";
+import { formatDate, num } from "@/lib/blog";
+import { amazonOn, amazonSearch, inShops } from "@/lib/amazon";
+import { KIND_LABEL, SHOP_PATH, boosterPics, byInterest, goLabel, productHref, productPic, shopOfSet } from "@/lib/amazonShop";
+import { kindArt } from "@/lib/kindArt";
 import { currencyOf, keyOf } from "@/lib/cardLang";
 import { type PageLang, SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
 import { cardSlug, topCards } from "@/lib/cardPages";
 import { cardCount, money, setFaq, setPage, trendOf } from "@/lib/setPages";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import type { CardData } from "@/lib/types";
-import blog from "./Blog.module.css";
-import legal from "./LegalPage.module.css";
-import { LegalPage } from "./LegalPage";
-import { ShopShelf } from "./ShopShelf";
-import styles from "./SetPages.module.css";
+import { Affiliate, AmazonButton, CardStage, KindTiles, ProductRail, Stage } from "./shop/ShopBits";
+import { ShopHero } from "./shop/ShopHero";
+import { StickyBuy } from "./shop/StickyBuy";
+import s from "./shop/Shop.module.css";
+import c from "./shop/SetShop.module.css";
+import { WidePage } from "./WidePage";
 
 /**
  * One set's page, French cards (/extensions/<slug>) or English ones (/en/sets/<slug>): its cards, today's prices, the most
@@ -54,6 +56,20 @@ export async function setPageMetadata(lang: PageLang, slug: string): Promise<Met
 
 const ld = (data: object) => <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 
+/** a set's logo: the site's small webp ones (fetch-set makes them beside the PNG, some of which weigh 1 MB), else TCGdex's */
+const logoOf = (logo: string | null, big = false) =>
+  !logo
+    ? null
+    : logo.startsWith("/")
+      ? { src: `${logo}-sm.webp`, srcSet: big ? `${logo}-sm.webp 320w, ${logo}-md.webp 640w` : undefined }
+      : { src: `${logo}.png`, srcSet: undefined };
+
+/**
+ * A set's page under the lamp (« Sous la lampe », Johan 2026-10-31; WidePage shop, drawn without the room). While the set
+ * is in the shops (out within two years): its products in the hero and « le rayon » (amazon.fr's, else searches by kind;
+ * amazon.com's on an English page), its dearest cards, the desk after them. Older: the desk is the hero's button, no
+ * Amazon. Every word of the old page stays: the facts, the text, the rarities, every card, the FAQ, the posts.
+ */
 export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string }) {
   const p = await setPage(lang, slug);
   if (!p) notFound();
@@ -66,16 +82,135 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
   const faq = setFaq(p);
   const url = `${SITE_URL}${p.path}`;
   const root = SET_PAGES_ROOT[lang];
-  const logo = p.set.logo ? `${p.set.logo}.png` : null;
+  const logo = logoOf(p.set.logo, true);
   /** "186/195": the number as printed on the card */
   const numOf = (c: CardData) => num(c, p.data);
-  const shop = shopOfSet(p.set.id);
-  const gallery = await cardGallery(
-    p.top.slice(0, 8).map((c) => keyOf(lang, c.id)),
-    lang,
+  // the shop: amazon.fr's products of a French set, else searches; nothing once the set is out of the shops
+  const inShop = amazonOn(lang) && inShops(p.set.releaseDate);
+  const shop = fr && inShop ? shopOfSet(p.set.id) : undefined;
+  const soon = !!shop?.date && shop.date > new Date().toISOString().slice(0, 10);
+  const product = shop ? byInterest(shop.products)[0] : undefined;
+  const pic = product && shop ? productPic(product, shop) : null;
+  const fan = shop ? boosterPics(shop) : [];
+  const buyHref = product ? productHref(product, "extension") : amazonSearch(fr ? `Pokémon ${name} booster` : `Pokemon TCG ${name}`, "extension", lang);
+  // the boosters, quietly: the bundle (six of them) if it's listed, else a search
+  const bundle = shop?.products.find((x) => x.kind === "bundle");
+  const boostersHref = bundle ? productHref(bundle, "extension") : amazonSearch(fr ? `Pokémon ${name} booster` : `Pokemon TCG ${name} booster`, "extension", lang);
+  // the desk with this set's binder (App: ?classeur= offers it, or opens it)
+  const deskHref = `${fr ? "/" : "/en"}?classeur=${encodeURIComponent(keyOf(lang, p.set.id))}`;
+  const jackpot = p.top.filter((c) => c.img).slice(0, 8);
+  const best = jackpot[0];
+  const bestPrice = p.top[0] ? trendOf(p.top[0]) : null;
+  const thumb = pic ?? fan[0] ?? null;
+
+  const hero = (
+    <ShopHero
+      head={
+        <>
+          {logo && (
+            <img className={s.setLogo} src={logo.src} srcSet={logo.srcSet} sizes="(min-width: 900px) 300px, 62vw" alt={`${p.set.serieName} ${name}`} />
+          )}
+          <h1 className={s.title}>
+            <span className={`${s.big} ${s.setName}`}>{name}</span>
+            <span className="sr-only">{t(" : ", ": ")}</span>
+            <span className={s.rest}>{t("liste des cartes et prix", "card list and prices")}</span>
+          </h1>
+          {inShop && (
+            <p className={s.pills}>
+              <span className={s.pill}>
+                <i className={s.dot} />
+                {t("En boutique", "In shops")}
+              </span>
+            </p>
+          )}
+          <dl className={s.stats}>
+            <div>
+              <dt>{t("Cartes", "Cards")}</dt>
+              <dd>{beyond ? `${n} (${official} + ${beyond})` : n}</dd>
+            </div>
+            {p.priced > 0 && (
+              <div>
+                <dt>{t("Une de chaque", "One of each")}</dt>
+                <dd>≈ {money(p.total, p)}</dd>
+              </div>
+            )}
+            {bestPrice != null && (
+              <div>
+                <dt>{t("La plus chère", "Top card")}</dt>
+                <dd>{money(bestPrice, p)}</dd>
+              </div>
+            )}
+            {p.set.releaseDate && (
+              <div>
+                <dt>{t("Sortie", "Released")}</dt>
+                <dd>{formatDate(p.set.releaseDate, lang)}</dd>
+              </div>
+            )}
+            <div>
+              <dt>{t("Code", "Code")}</dt>
+              <dd>{p.set.code}</dd>
+            </div>
+            <div>
+              <dt>{t("Série", "Series")}</dt>
+              <dd>{p.set.serieName}</dd>
+            </div>
+          </dl>
+        </>
+      }
+      stage={
+        shop && product ? (
+          <Stage pic={pic} kind={product.kind} fan={fan} alt={pic ? `${KIND_LABEL[product.kind]} ${name}` : `Boosters ${name}`} />
+        ) : best ? (
+          <CardStage src={best.img!} alt={`${best.name} ${numOf(best)} · ${name}`} />
+        ) : undefined
+      }
+      buy={
+        inShop ? (
+          <>
+            <p className={s.what}>
+              <b>{product ? product.name : t(`Boosters et coffrets ${name}`, `${name} packs and boxes`)}</b>
+              {product && !product.name.startsWith(KIND_LABEL[product.kind]) && ` · ${KIND_LABEL[product.kind]}`}
+            </p>
+            <div className={s.btns}>
+              <AmazonButton id="hero-cta" href={buyHref} place="extension" size="lg" nudge>
+                {product ? goLabel(product, soon) : t("Voir sur Amazon", "See it on Amazon")}
+              </AmazonButton>
+            </div>
+            <ul className={s.reassure}>
+              {product?.asin && !soon ? (
+                <>
+                  <li>Gratuit</li>
+                  <li>Au prix public</li>
+                  <li>Amazon t&apos;écrit si c&apos;est ton tour</li>
+                </>
+              ) : (
+                <li>{t("Vérifie « Expédié et vendu par Amazon »", "Check “Ships from and sold by Amazon”")}</li>
+              )}
+            </ul>
+            <Affiliate lang={lang} />
+          </>
+        ) : (
+          <>
+            <p className={s.what}>
+              <b>{t(`Ta collection ${name}`, `Your ${name} collection`)}</b>
+            </p>
+            <div className={s.btns}>
+              <Link prefetch={false} href={deskHref} className={`${s.btn} ${s.lg} ${s.green}`}>
+                {t("Coche tes cartes ▶", "Tick your cards ▶")}
+              </Link>
+            </div>
+            <ul className={s.reassure}>
+              <li>{t("Gratuit, sans compte pour commencer", "Free, no account to start")}</li>
+              <li>{t(`Prix ${market} du jour`, `Today's ${market} prices`)}</li>
+            </ul>
+          </>
+        )
+      }
+    />
   );
+
   return (
-    <LegalPage path={root} title={t(`${name} : liste des cartes et prix`, `${name}: card list and prices`)} en={!fr}>
+    <WidePage en={!fr} shop={root} crumbs={[{ href: root, label: t("Extensions", "Sets") }, { href: p.path, label: name }]} hero={hero}>
       {ld({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -92,151 +227,164 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
         mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
       })}
 
-      <div className={styles.head}>
-        {logo && (
-          <img className={styles.logo} src={logo} alt={name} loading="lazy" />
+      <p>
+        {fr ? (
+          <>
+            Les {n} cartes de <b>{name}</b>, extension de la série {p.set.serieName}
+            {beyond ? ` (${official} numérotées et ${beyond} au-delà : cartes secrètes et séries spéciales)` : ""}, avec leur rareté et leur
+            prix tendance Cardmarket, mis à jour le {day}. Les prix Cardmarket mélangent toutes les langues d&apos;impression de la carte.
+          </>
+        ) : (
+          <>
+            All {n} cards of <b>{name}</b>, a {p.set.serieName} set{beyond ? ` (${official} in the official numbering and ${beyond} beyond it: secret rares and special sub-sets)` : ""}, with
+            their rarity and TCGplayer market price for English cards, updated {day}. Cards TCGplayer doesn&apos;t sell show
+            Cardmarket&apos;s price, converted to dollars.
+          </>
         )}
-        <dl className={styles.facts}>
-          <div>
-            <dt>{t("Code", "Code")}</dt>
-            <dd>{p.set.code}</dd>
-          </div>
-          <div>
-            <dt>{t("Série", "Series")}</dt>
-            <dd>{p.set.serieName}</dd>
-          </div>
-          {p.set.releaseDate && (
-            <div>
-              <dt>{t("Sortie", "Released")}</dt>
-              <dd>{formatDate(p.set.releaseDate, lang)}</dd>
-            </div>
-          )}
-          <div>
-            <dt>{t("Cartes", "Cards")}</dt>
-            <dd>{beyond ? `${n} (${official} + ${beyond})` : n}</dd>
-          </div>
-          {p.priced > 0 && (
-            <div>
-              <dt>{t("Une de chaque", "One of each")}</dt>
-              <dd>≈ {money(p.total, p)}</dd>
-            </div>
-          )}
-        </dl>
-      </div>
-
-      <div className={blog.body}>
-        <p>
-          {fr ? (
-            <>
-              Les {n} cartes de <b>{name}</b>, extension de la série {p.set.serieName}
-              {beyond ? ` (${official} numérotées et ${beyond} au-delà : cartes secrètes et séries spéciales)` : ""}, avec leur rareté et leur
-              prix tendance Cardmarket, mis à jour le {day}. Les prix Cardmarket mélangent toutes les langues d&apos;impression de la carte.
-            </>
-          ) : (
-            <>
-              All {n} cards of <b>{name}</b>, a {p.set.serieName} set{beyond ? ` (${official} in the official numbering and ${beyond} beyond it: secret rares and special sub-sets)` : ""}, with
-              their rarity and TCGplayer market price for English cards, updated {day}. Cards TCGplayer doesn&apos;t sell show
-              Cardmarket&apos;s price, converted to dollars.
-            </>
-          )}
-        </p>
-        {p.other && (
-          <p className={styles.other}>
-            <Link prefetch={false} href={p.other.path} hrefLang={p.other.lang}>
-              {fr ? `EN · ${p.other.name}: the English cards and their TCGplayer prices` : `FR · ${p.other.name} : les cartes françaises et leurs prix Cardmarket`}
-            </Link>
-          </p>
-        )}
-
-        <p className={blog.cta}>
-          <Link prefetch={false} href={fr ? "/" : "/en"} className={legal.cta}>
-            {t(`Coche tes cartes de ${name} sur le bureau ${SITE_NAME} ▶`, `Tick your ${name} cards on the ${SITE_NAME} desk ▶`)}
+      </p>
+      {p.other && (
+        <p className={c.other}>
+          <Link prefetch={false} href={p.other.path} hrefLang={p.other.lang}>
+            {fr ? `EN · ${p.other.name}: the English cards and their TCGplayer prices` : `FR · ${p.other.name} : les cartes françaises et leurs prix Cardmarket`}
           </Link>
         </p>
+      )}
 
-        {/* a French set's sealed products on Amazon (affiliate, lib/amazonShop): its cards with their pictures, else a search
-            while it's still in the shops (out within two years) */}
-        {fr && shop && <ShopShelf group={shop} place="extension" max={4} title={`Boosters et coffrets ${name} sur Amazon`} />}
-        {fr && !shop && inShops(p.set.releaseDate) && (
-          <p className={styles.other}>
-            <a href={amazonSearch(`Pokémon ${name} booster`, "extension")} target="_blank" rel="sponsored noopener" data-amazon-place="extension">
-              Boosters, coffrets et displays de {name} sur Amazon ↗
-            </a>
-            <br />
-            <small>{affiliateLabel("fr")}</small>
+      {/* « le rayon »: the set's sealed products while it's in the shops (Amazon affiliate, lib/amazon): amazon.fr's products
+          of a French set with their pictures, else its four kinds drawn, each a search (amazon.com on an English page) */}
+      {inShop && (
+        <section className={c.sec}>
+          <h2>{fr ? <>Le rayon <em>{name}</em></> : <>The <em>{name}</em> shelf</>}</h2>
+          <p className={c.sub}>
+            {shop
+              ? `${shop.products.length} produit${shop.products.length > 1 ? "s" : ""} scellé${shop.products.length > 1 ? "s" : ""}, sur invitation Amazon.`
+              : t("Ses boîtes et ses boosters, sur Amazon.", "Its boxes and booster packs, on Amazon.")}
           </p>
-        )}
-        {/* an English set page: a search on amazon.com while the set is in the shops (the products' cards are amazon.fr's) */}
-        {!fr && amazonOn("en") && inShops(p.set.releaseDate) && (
-          <p className={styles.other}>
-            <a href={amazonSearch(`Pokemon TCG ${name}`, "extension", "en")} target="_blank" rel="sponsored noopener" data-amazon-place="extension">
-              {name} booster packs, Elite Trainer Boxes and booster boxes on Amazon ↗
-            </a>
-            <br />
-            <small>{affiliateLabel("en")}</small>
-          </p>
-        )}
+          {shop ? <ProductRail group={shop} place="extension" max={4} /> : <KindTiles name={name} place="extension" soon={false} lang={lang} />}
+          {shop && (
+            <p className={c.other}>
+              <Link prefetch={false} href={`${SHOP_PATH}#${shop.id}`}>
+                {shop.products.length > 4 ? `Les ${shop.products.length} produits ${name} sur Amazon →` : `Toutes les invitations Amazon ${name} →`}
+              </Link>
+            </p>
+          )}
+        </section>
+      )}
 
-        {gallery && (
-          <>
-            <h2>{t(`Les cartes les plus chères de ${name}`, `The most expensive ${name} cards`)}</h2>
-            <div dangerouslySetInnerHTML={{ __html: gallery }} />
-          </>
-        )}
+      {jackpot.length > 0 && (
+        <section className={c.sec}>
+          <h2>{fr ? <>Les cartes les plus chères de <em>{name}</em></> : <>The most expensive <em>{name}</em> cards</>}</h2>
+          <p className={c.sub}>{t(`Prix tendance Cardmarket du ${day}, toutes langues mêlées.`, `TCGplayer market prices, ${day}.`)}</p>
+          <ul className={c.jack}>
+            {jackpot.map((card) => {
+              const price = trendOf(card);
+              return (
+                <li key={card.id}>
+                  <Link prefetch={false} href={`${p.path}/${cardSlug(card)}`}>
+                    <img
+                      src={`${card.img}/low.webp`}
+                      srcSet={`${card.img}/low.webp 245w, ${card.img}/high.webp 600w`}
+                      sizes="(min-width: 760px) 270px, 45vw"
+                      width={245}
+                      height={342}
+                      alt={`${card.name} ${numOf(card)} · ${name}`}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <b>{price != null ? money(price, p) : "—"}</b>
+                    <small>
+                      {card.name} · {numOf(card)}
+                    </small>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+          {/* the boosters they come in, said plainly (no odds, no « instead of 173 € »: teens read this, Johan 2026-10-31) */}
+          {inShop && (
+            <>
+              <div className={c.hide}>
+                <p>
+                  <b>{t(`Elles se cachent dans les boosters ${name}`, `They hide in ${name} booster packs`)}</b>
+                </p>
+                <AmazonButton href={boostersHref} place="extension">
+                  {bundle ? t("Le bundle sur Amazon", "The bundle on Amazon") : t("Boosters sur Amazon", "Booster packs on Amazon")}
+                </AmazonButton>
+              </div>
+              <Affiliate lang={lang} />
+            </>
+          )}
+        </section>
+      )}
 
-        {p.rarities.length > 1 && (
-          <>
-            <h2>{t("Les raretés", "Rarities")}</h2>
-            <div className="blog-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>{t("Rareté", "Rarity")}</th>
-                    <th>{t("Cartes", "Cards")}</th>
-                    <th>{t("Valeur (une de chaque)", "Value (one of each)")}</th>
+      {/* the desk, after the products: green, never in an Amazon hero */}
+      <div className={s.app}>
+        <p>
+          {inShop
+            ? t(`Tes boosters ouverts ? Coche tes cartes de ${name} et suis leur cote chaque jour.`, `Opened your packs? Tick your ${name} cards and follow their value every day.`)
+            : t(`Coche tes cartes de ${name} et suis leur cote chaque jour, sur le bureau ${SITE_NAME}.`, `Tick your ${name} cards and follow their value every day, on the ${SITE_NAME} desk.`)}
+        </p>
+        <Link prefetch={false} href={deskHref} className={`${s.btn} ${s.green}`}>
+          {t("Coche tes cartes ▶", "Tick your cards ▶")}
+        </Link>
+      </div>
+
+      {p.rarities.length > 1 && (
+        <section className={c.sec}>
+          <h2>{t("Les raretés", "Rarities")}</h2>
+          <div className={c.table}>
+            <table>
+              <thead>
+                <tr>
+                  <th>{t("Rareté", "Rarity")}</th>
+                  <th>{t("Cartes", "Cards")}</th>
+                  <th>{t("Valeur (une de chaque)", "Value (one of each)")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {p.rarities.map((r) => (
+                  <tr key={r.rarity}>
+                    <td>{r.rarity}</td>
+                    <td>{r.count}</td>
+                    <td>{r.value ? money(r.value, p) : "—"}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {p.rarities.map((r) => (
-                    <tr key={r.rarity}>
-                      <td>{r.rarity}</td>
-                      <td>{r.count}</td>
-                      <td>{r.value ? money(r.value, p) : "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
+      <section className={c.sec}>
         <h2>{t(`Liste des ${n} cartes de ${name}`, `All ${n} ${name} cards`)}</h2>
-        <p className={styles.other}>{t(`Prix tendance ${market} du ${day}.`, `${market} market prices, ${day}.`)}</p>
+        <p className={c.sub}>{t(`Prix tendance ${market} du ${day}.`, `${market} market prices, ${day}.`)}</p>
         {/* every card with its scan: what people come to see (and what image search finds), loaded as the page scrolls */}
-        <ul className={styles.cards}>
-          {p.data.cards.map((c) => {
-            const price = trendOf(c);
-            const label = `${c.name} ${numOf(c)}`;
+        <ul className={c.cards}>
+          {p.data.cards.map((card) => {
+            const price = trendOf(card);
+            const label = `${card.name} ${numOf(card)}`;
             return (
-              <li key={c.id} className={styles.card}>
+              <li key={card.id}>
                 {/* its own page (lib/cardPages): how search engines find the cards */}
-                <Link prefetch={false} href={`${p.path}/${cardSlug(c)}`} className={styles.cardLink}>
-                {c.img ? (
-                  <img src={`${c.img}/low.webp`} alt={`${label} · ${name}`} width={245} height={342} loading="lazy" decoding="async" />
-                ) : (
-                  // taken out by TCGdex for now (see CardBack in the binders)
-                  <span className={styles.back}>{t("Bientôt de retour", "Back soon")}</span>
-                )}
-                <small>{numOf(c)}</small>
-                <b>{c.name}</b>
-                {c.rarity && <small>{c.rarity}</small>}
-                <span className={styles.price}>{price != null ? money(price, p) : "—"}</span>
+                <Link prefetch={false} href={`${p.path}/${cardSlug(card)}`}>
+                  {card.img ? (
+                    <img src={`${card.img}/low.webp`} alt={`${label} · ${name}`} width={245} height={342} loading="lazy" decoding="async" />
+                  ) : (
+                    // taken out by TCGdex for now (see CardBack in the binders)
+                    <span className={c.back}>{t("Bientôt de retour", "Back soon")}</span>
+                  )}
+                  <small>{numOf(card)}</small>
+                  <b>{card.name}</b>
+                  {card.rarity && <small>{card.rarity}</small>}
+                  <span className={c.price}>{price != null ? money(price, p) : "—"}</span>
                 </Link>
               </li>
             );
           })}
         </ul>
+      </section>
 
+      <section className={s.faq} data-sticky-stop>
         <h2>{t("Questions fréquentes", "FAQ")}</h2>
         {faq.map((f) => (
           <div key={f.q}>
@@ -244,15 +392,15 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
             <p>{f.a}</p>
           </div>
         ))}
-      </div>
+      </section>
 
       {p.posts.length > 0 && (
-        <nav className={blog.more} aria-label={t("Sur le blog", "On the blog")}>
+        <nav className={c.sec} aria-label={t("Sur le blog", "On the blog")}>
           <h2>{t("Sur le blog", "On the blog")}</h2>
-          <ul className={blog.list}>
+          <ul className={c.links}>
             {p.posts.map((post) => (
               <li key={post.slug}>
-                <Link prefetch={false} href={`/blog/${post.slug}`} className={blog.note}>
+                <Link prefetch={false} href={`/blog/${post.slug}`}>
                   <time dateTime={post.date}>{formatDate(post.date, post.lang)}</time>
                   <b>{post.title}</b>
                 </Link>
@@ -263,12 +411,12 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
       )}
 
       {p.series.length > 0 && (
-        <nav className={styles.series} aria-label={p.set.serieName}>
+        <nav className={c.sec} aria-label={p.set.serieName}>
           <h2>{t(`Les autres extensions ${p.set.serieName}`, `Other ${p.set.serieName} sets`)}</h2>
-          <ul>
-            {p.series.map((s) => (
-              <li key={s.path}>
-                <Link prefetch={false} href={s.path}>{s.name}</Link>
+          <ul className={c.links}>
+            {p.series.map((x) => (
+              <li key={x.path}>
+                <Link prefetch={false} href={x.path}>{x.name}</Link>
               </li>
             ))}
           </ul>
@@ -278,7 +426,19 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
       <p>
         <Link prefetch={false} href={root}>{t("← toutes les extensions", "← all sets")}</Link>
       </p>
-    </LegalPage>
+
+      {inShop && (
+        <StickyBuy
+          target="hero-cta"
+          href={buyHref}
+          place="extension-bar"
+          thumb={thumb ? <img src={thumb.src} width={thumb.w} height={thumb.h} alt="" loading="lazy" /> : <span dangerouslySetInnerHTML={{ __html: kindArt("etb") }} />}
+          title={name}
+          sub={product ? product.name : t("Boosters et coffrets", "Packs and boxes")}
+          label={product?.asin && !soon ? "L'invitation" : t("Sur Amazon", "On Amazon")}
+        />
+      )}
+    </WidePage>
   );
 }
 
@@ -288,43 +448,50 @@ export async function SetIndexView({ lang }: { lang: PageLang }) {
   const t = (f: string, e: string) => (fr ? f : e);
   const top = await topCards(lang);
   const price = { lang, currency: currencyOf(lang) };
+  const root = SET_PAGES_ROOT[lang];
   const series = new Map<string, { name: string; sets: { name: string; code: string; year: string; path: string; logo: string | null; total: number }[] }>();
   for (const e of setPageEntries(lang)) {
-    const s = series.get(e.set.serie) ?? { name: e.set.serieName, sets: [] };
-    s.sets.push({
+    const x = series.get(e.set.serie) ?? { name: e.set.serieName, sets: [] };
+    x.sets.push({
       name: e.set.name,
       code: e.set.code,
       year: e.set.releaseDate?.slice(0, 4) ?? "",
-      path: `${SET_PAGES_ROOT[lang]}/${e.slug}`,
-      logo: e.set.logo ? `${e.set.logo}.png` : null,
+      path: `${root}/${e.slug}`,
+      logo: logoOf(e.set.logo)?.src ?? null,
       total: e.set.total,
     });
-    series.set(e.set.serie, s);
+    series.set(e.set.serie, x);
   }
+  const hero = (
+    <ShopHero
+      head={
+        <>
+          <p className={s.eyebrow}>{t("Prix du jour", "Today's prices")}</p>
+          <h1 className={`${s.big} ${c.bigSm}`}>{t("Les extensions du JCC Pokémon", "Pokémon TCG sets")}</h1>
+          <p className={s.lede}>
+            {fr
+              ? "Chaque extension du JCC Pokémon en français : la liste de ses cartes, leur rareté et leur prix Cardmarket mis à jour chaque jour."
+              : "Every Pokémon TCG set in English: its card list, rarities and TCGplayer prices, updated every day."}
+          </p>
+        </>
+      }
+    />
+  );
   return (
-    <LegalPage path={SET_PAGES_ROOT[lang]} title={t("Les extensions du JCC Pokémon", "Pokémon TCG sets")} en={!fr}>
-      <p>
-        {fr
-          ? "Chaque extension du JCC Pokémon en français : la liste de ses cartes, leur rareté et leur prix Cardmarket mis à jour chaque jour."
-          : "Every Pokémon TCG set in English: its card list, rarities and TCGplayer prices, updated every day."}
-      </p>
-      <p>
+    <WidePage en={!fr} shop={root} crumbs={[{ href: root, label: t("Extensions", "Sets") }]} hero={hero}>
+      <p className={c.other}>
         <Link prefetch={false} href={fr ? "/en/sets" : "/extensions"} hrefLang={fr ? "en" : "fr"}>
           {fr ? "EN · The English sets and their TCGplayer prices" : "FR · Les extensions en français et leurs prix Cardmarket"}
         </Link>
       </p>
-      {[...series.values()].map((s) => (
-        <section key={s.name}>
-          <h2>{s.name}</h2>
-          <ul className={styles.grid}>
-            {s.sets.map((set) => (
+      {[...series.values()].map((x) => (
+        <section key={x.name} className={c.sec}>
+          <h2>{x.name}</h2>
+          <ul className={c.grid}>
+            {x.sets.map((set) => (
               <li key={set.path}>
-                <Link prefetch={false} href={set.path} className={styles.tile}>
-                  {set.logo ? (
-                    <img src={set.logo} alt="" loading="lazy" />
-                  ) : (
-                    <span className={styles.noLogo}>{set.code}</span>
-                  )}
+                <Link prefetch={false} href={set.path} className={c.tile}>
+                  <span className={c.tileLogo}>{set.logo ? <img src={set.logo} alt="" loading="lazy" /> : <span>{set.code}</span>}</span>
                   <b>{set.name}</b>
                   <small>
                     {set.code} · {set.year} · {set.total} {t("cartes", "cards")}
@@ -342,31 +509,31 @@ export async function SetIndexView({ lang }: { lang: PageLang }) {
         // "Méga-Évolution et Écarlate et Violet" would read badly: the series names side by side, in quotes
         {
           list: top.recent,
-          title: t(`Les plus chères des séries ${top.series.map((s) => `« ${s} »`).join(" et ")}`, `The most expensive ${top.series.join(" and ")} cards`),
+          title: t(`Les plus chères des séries ${top.series.map((x) => `« ${x} »`).join(" et ")}`, `The most expensive ${top.series.join(" and ")} cards`),
         },
       ].map(
         ({ list, title }) =>
           list.length > 0 && (
-            <nav key={title} className={styles.top} aria-label={title}>
+            <nav key={title} className={`${c.sec} ${c.top}`} aria-label={title}>
               <h2>{title}</h2>
-              <p className={styles.other}>
+              <p className={c.sub}>
                 {t("Prix tendance Cardmarket du jour, toutes langues d'impression mêlées.", "Today's TCGplayer market prices, English cards.")}
               </p>
               <ol>
-                {list.map((c) => (
-                  <li key={c.path}>
-                    <Link prefetch={false} href={c.path}>
+                {list.map((card) => (
+                  <li key={card.path}>
+                    <Link prefetch={false} href={card.path}>
                       <b>
-                        {c.name} {c.num}
+                        {card.name} {card.num}
                       </b>
                     </Link>{" "}
-                    <small>{c.set}</small> <span className={styles.price}>{money(c.trend, price)}</span>
+                    <small>{card.set}</small> <span className={c.price}>{money(card.trend, price)}</span>
                   </li>
                 ))}
               </ol>
             </nav>
           ),
       )}
-    </LegalPage>
+    </WidePage>
   );
 }

@@ -798,12 +798,13 @@ await pool(catalog, 6, async (c) => {
     }
   }
   c.logo = `/${LOGOS.replace(/^public\//, "")}/${c.id}`;
-  // a small one beside it (<logo>-sm.webp, 320 px): the calendar's shelf of sets shows ten at once, and some of the PNGs
-  // weigh 1 MB (lib/releases)
-  const small = `${LOGOS}/${c.id}-sm.webp`;
-  if (!existsSync(small)) {
+  // smaller ones beside it (<logo>-sm.webp, 320 px; -md, 640 px): the calendar's shelf of sets shows ten at once, a set
+  // page's hero one big, and some of the PNGs weigh 1 MB (lib/releases, components/SetPageView)
+  for (const [tag, w] of [["sm", 320], ["md", 640]]) {
+    const out = `${LOGOS}/${c.id}-${tag}.webp`;
+    if (existsSync(out)) continue;
     sharp ??= (await import("sharp")).default;
-    await sharp(file).resize({ width: 320, withoutEnlargement: true }).webp({ quality: 82 }).toFile(small);
+    await sharp(file).resize({ width: w, withoutEnlargement: true }).webp({ quality: 82 }).toFile(out);
   }
 });
 
