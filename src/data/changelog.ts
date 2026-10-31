@@ -35,6 +35,10 @@ export const CHANGELOG: Release[] = [
         fr: "La Classic Collection des 30 ans porte ses vrais numéros (Lugia 149/147).",
         en: "The 30th's Classic Collection shows its real numbers (Lugia 149/147).",
       },
+      {
+        fr: "Nook Survivors : un Panthéon pour la vague 300, le record de chaque Pokémon, et ton score part tout seul au classement.",
+        en: "Nook Survivors: a Hall of Fame for wave 300, each Pokémon's record, and your score goes to the ladder by itself.",
+      },
     ],
   },
   {
