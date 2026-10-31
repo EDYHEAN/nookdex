@@ -798,6 +798,13 @@ await pool(catalog, 6, async (c) => {
     }
   }
   c.logo = `/${LOGOS.replace(/^public\//, "")}/${c.id}`;
+  // a small one beside it (<logo>-sm.webp, 320 px): the calendar's shelf of sets shows ten at once, and some of the PNGs
+  // weigh 1 MB (lib/releases)
+  const small = `${LOGOS}/${c.id}-sm.webp`;
+  if (!existsSync(small)) {
+    sharp ??= (await import("sharp")).default;
+    await sharp(file).resize({ width: 320, withoutEnlargement: true }).webp({ quality: 82 }).toFile(small);
+  }
 });
 
 // Extra sets: every other French set (older series, promos, energies), searchable in the free binders.

@@ -13,7 +13,7 @@ import { setMuted, sfx, startAmbient, stopAmbient, unlockOnFirstGesture } from "
 import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
 import { useTrophyWatch } from "@/lib/useTrophyWatch";
-import { funnelStep, funnelVisit, watchAmazonClicks } from "@/lib/funnel";
+import { funnelStep } from "@/lib/funnel";
 import { claimAsk, useAskFree, useValued, useWantAsk } from "@/lib/calm";
 import { startShareSync } from "@/lib/share";
 import { startMailOptin } from "@/lib/mailOptin";
@@ -141,11 +141,9 @@ export function App() {
   const profile = useStore((s) => s.profile);
   const cloud = useCloud();
   const trade = useTradeMat();
-  // the funnel (lib/funnel): a visit a day, and each step the first time it's reached
+  // the funnel (lib/funnel): each step the first time it's reached (the visit and the Amazon clicks: ClientApp, on every page)
   const binderCount = useStore((s) => s.binders.length);
   const copyCount = useStore((s) => Object.values(s.collection).reduce((n, c) => n + c.length, 0));
-  useEffect(funnelVisit, []);
-  useEffect(watchAmazonClicks, []);
   useEffect(() => void (profile && funnelStep("profile")), [profile]);
   useEffect(() => void (binderCount && funnelStep("binder")), [binderCount]);
   useEffect(() => void (copyCount >= 10 && funnelStep("cards10")), [copyCount]);

@@ -1,6 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { isRoomless } from "@/lib/roomless";
 import { LoaderStill } from "./LoaderStill";
 
 /**
@@ -26,6 +29,37 @@ const App = dynamic(() => afterLogoPaint().then(() => import("./App")).then((m) 
   loading: () => <LoaderStill />,
 });
 
+/**
+ * The room, except on a page drawn without it (lib/roomless: the Amazon pages): there it waits until the visitor goes to the
+ * desk (« Mon bureau »), and then stays, like for a visitor who came from the desk (back to it without a reload).
+ */
 export function ClientApp() {
-  return <App />;
+  const path = usePathname();
+  const [room, setRoom] = useState(() => !isRoomless(path));
+  if (!room && !isRoomless(path)) setRoom(true);
+  return (
+    <>
+      <Audience />
+      {room && <App />}
+    </>
+  );
+}
+
+/**
+ * The funnel's visit and the Amazon clicks (lib/funnel) on every page, room or not: the Amazon pages are drawn without
+ * it. Their own chunk, asked for once the page is up.
+ */
+function Audience() {
+  useEffect(() => {
+    let stops: (() => void)[] = [];
+    let gone = false;
+    void import("@/lib/funnel").then((f) => {
+      if (!gone) stops = [f.funnelVisit(), f.watchAmazonClicks()].filter((s): s is () => void => !!s);
+    });
+    return () => {
+      gone = true;
+      stops.forEach((s) => s());
+    };
+  }, []);
+  return null;
 }
