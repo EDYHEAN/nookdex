@@ -1370,13 +1370,13 @@ export default function NookBoy({ origin, onClose }: Props) {
               <b className={styles.waveTune}>
                 {plainTiers.length > 1 && (
                   <i onClick={(e) => (e.stopPropagation(), turnTier(-1))} aria-label={t("vague d'avant", "earlier wave")}>
-                    <Pix art="left" />
+                    <Pix art="left" scale={2} />
                   </i>
                 )}
                 {t("VAGUE", "WAVE")} {plainTier}
                 {plainTiers.length > 1 && (
                   <i onClick={(e) => (e.stopPropagation(), turnTier(1))} aria-label={t("vague d'après", "later wave")}>
-                    <Pix art="right" />
+                    <Pix art="right" scale={2} />
                   </i>
                 )}
               </b>

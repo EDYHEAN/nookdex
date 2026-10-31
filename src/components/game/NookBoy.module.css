@@ -1302,14 +1302,27 @@
   gap: 5px;
 }
 
+/* big arrows with a wide hit area: a slip beside them would start the run (Johan, 2026-10-31) */
 .waveTune i {
   display: inline-flex;
-  padding: 2px;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  margin: -6px 0;
+  border-radius: 3px;
+  background: var(--c2);
+  box-shadow: 0 0 0 1px var(--c0);
   cursor: pointer;
 }
 
 .waveTune i:hover {
+  background: #ffc93d;
   transform: translateY(-1px);
+}
+
+.waveTune i:active {
+  transform: translateY(1px);
 }
 
 .ui .lgTile.lgLocked {
