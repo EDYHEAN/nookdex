@@ -1348,7 +1348,10 @@ export default function NookBoy({ origin, onClose }: Props) {
                   gsfx.move();
                   g.select(i);
                 }}
-                onClick={() => press("a")}
+                // with start tiers to pick, a click only picks the Pokémon (it used to start the run at once, so a mouse never
+                // reached the tiers: Johan, 2026-10-31); « C'est parti » or a double click starts
+                onClick={() => (tiers.length > 1 && selectMode !== "coop" ? gsfx.ok() : press("a"))}
+                onDoubleClick={() => tiers.length > 1 && selectMode !== "coop" && press("a")}
                 aria-label={nameOf(st.dex)}
               />
             ))}
@@ -1413,6 +1416,11 @@ export default function NookBoy({ origin, onClose }: Props) {
                 </span>
               )}
             </div>
+          )}
+          {tiers.length > 1 && selectMode !== "coop" && (
+            <button className={styles.goBtn} onClick={() => press("a")} onPointerEnter={() => gsfx.move()}>
+              {t("C'EST PARTI", "LET'S GO")} <Pix art="right" />
+            </button>
           )}
           <p className={styles.keys}>
             {selectMode === "coop"

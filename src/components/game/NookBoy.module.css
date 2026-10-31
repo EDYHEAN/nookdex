@@ -1359,6 +1359,34 @@
   bottom: 10px;
 }
 
+/* with start tiers: a click picks the Pokémon, this starts the run (a mouse could never reach the tiers before) */
+.goBtn {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  translate: -50% 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px 4px;
+  border: 0;
+  border-radius: 3px;
+  background: #ffc93d;
+  color: var(--c0);
+  font: 8px/1 var(--font-press), monospace;
+  box-shadow: 0 0 0 1px var(--c0), 0 2px 0 var(--c0);
+  cursor: pointer;
+}
+
+.goBtn:hover {
+  translate: -50% -1px;
+}
+
+.goBtn:active {
+  translate: -50% 1px;
+  box-shadow: 0 0 0 1px var(--c0);
+}
+
 /* level up: three cards */
 .level {
   position: absolute;
