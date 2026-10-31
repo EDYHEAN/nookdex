@@ -5,6 +5,7 @@ import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
 import rawJa from "@/data/catalog-ja.json";
 import { affiliateLabel, tagAmazonLinks } from "./amazon";
+import { kindArt } from "./kindArt";
 import { KIND_LABEL, SHOP_PATH, byInterest, goLabel, productHref, productPic, shopGroups } from "./amazonShop";
 import { bareId, currencyOf, langOfKey, type CardLang } from "./cardLang";
 import { setFile } from "./setFiles";
@@ -214,7 +215,7 @@ function amazonShelf(id: string, lang: BlogLang) {
   const soon = !!g.date && g.date > new Date().toISOString().slice(0, 10);
   const cards = all.slice(0, 4).map((p) => {
     const pic = productPic(p, g);
-    const img = pic ? `<img src="${pic.src}" width="${pic.w}" height="${pic.h}" alt="${esc(`${KIND_LABEL[p.kind]} ${g.name}`)}" loading="lazy">` : "";
+    const img = pic ? `<img src="${pic.src}" width="${pic.w}" height="${pic.h}" alt="${esc(`${KIND_LABEL[p.kind]} ${g.name}`)}" loading="lazy">` : kindArt(p.kind);
     return (
       `<a class="blog-shop-card" href="${esc(productHref(p, "blog"))}" target="_blank" rel="sponsored noopener" data-amazon-place="blog">` +
       `<span class="blog-shop-pic">${img}</span><span class="blog-shop-kind">${esc(KIND_LABEL[p.kind])}</span>` +

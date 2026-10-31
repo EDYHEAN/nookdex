@@ -28,6 +28,8 @@ export interface Release {
   post?: string;
   /** its TCGdex id (a set): its products on Amazon (lib/amazonShop) */
   setId?: string;
+  /** its logo (a set out already, from the catalog) */
+  logo?: string | null;
 }
 
 /** setId: the TCGdex id the set will have, so it shows once when it reaches the catalog */
@@ -64,6 +66,9 @@ export function releases(lang: PageLang, today = new Date().toISOString().slice(
       href: setPagePath(lang, s.id),
       out: true,
       post: postOfSet.get(s.id),
+      setId: s.id,
+      // the site's small one (fetch-set makes it beside the PNG, some of which weigh 1 MB), else TCGdex's
+      logo: s.logo?.startsWith("/") ? `${s.logo}-sm.webp` : s.logo && `${s.logo}.png`,
     })),
     // Japanese sets have no page of their own (their names are Japanese)
     ...recent(rawJa as CatalogSet[]).map((s) => ({ date: s.releaseDate!, region: "jp" as const, kind: "set" as const, name: s.name, code: s.code, out: true })),

@@ -57,7 +57,25 @@ export const goLabel = (p: ShopProduct, soon: boolean) =>
 export const productHref = (p: ShopProduct, place: AmazonPlace) => (p.asin ? amazonProduct(p.asin, place) : amazonSearch(p.q ?? `Pokémon ${p.name}`, place));
 
 const PICS = pics as Record<string, { src: string; w: number; h: number }>;
-export const productPic = (p: ShopProduct, g: ShopGroup) => (p.pic && PICS[p.pic]) || (g.pic && PICS[g.pic]) || null;
+export type ProductPic = { src: string; w: number; h: number };
+/** the kinds made of boosters: the set's booster stands for them while their own picture is missing */
+const OF_BOOSTERS: ShopKind[] = ["bundle", "tripack", "blister"];
+/**
+ * its official picture; none yet: the set's booster for a bundle, a tripack or a blister, else nothing (a drawn tile,
+ * lib/kindArt: Règne Delta's Elite Trainer Box and display showed a booster, Johan 2026-10-31)
+ */
+export const productPic = (p: ShopProduct, g: ShopGroup): ProductPic | null =>
+  (p.pic && PICS[p.pic]) || (OF_BOOSTERS.includes(p.kind) && g.pic && PICS[g.pic]) || null;
+/** the set's boosters (its picture, the products' booster pictures): the hero's fan when its box has no picture */
+export const boosterPics = (g: ShopGroup) =>
+  [...new Set([g.pic, ...g.products.map((p) => p.pic)])].flatMap((k) => (k && PICS[k] && /\/booster-/.test(PICS[k].src) ? [PICS[k]] : []));
+
+/** a set's name as people say it: "Méga-Évolution : Règne Delta (ME06)" -> "Règne Delta", "Mega Evolution: Delta Reign" -> "Delta Reign" */
+export const shortSetName = (name: string) =>
+  name
+    .replace(/\s*\([^)]*\)\s*$/, "")
+    .replace(/^.*?\s:\s|^[^:]*:\s/, "")
+    .replace(/^(Méga-Évolution|Mega Evolution)\s+/, "");
 
 /** the products to show first: the boxes people look for (ETB, display, bundle), then the rest */
 const ORDER: ShopKind[] = ["etb", "display", "bundle", "box", "collection", "pokebox", "tripack", "tin", "blister"];

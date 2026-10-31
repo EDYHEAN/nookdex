@@ -304,6 +304,14 @@ doesn't show.
   `data-amazon-place`: invit, calendrier, extension, carte, blog, accessoires, `<place>-bar` for a sticky bar; Supabase
   `amazon_clicks`, the weekly report). A tracking id per place (`AMAZON_TAGS`: invit, extension, calendrier, blog; Amazon's reports split the sales by them). In a French blog post,
   `::amazon[<group id>]` draws the cards (« Où acheter … ? » section, docs/blog.md).
+- « Sous la lampe » (Johan, 2026-10-31): `/invitations-amazon` and the calendar (FR, EN) are shop pages, full width
+  (`WidePage shop`: night bar, « Mon bureau », the tabs), a night hero (`components/shop`: `ShopHero`, `Stage`, `Countdown`,
+  `ProductRail`, EN `KindTiles`, the phone's `StickyBuy`, styles in `Shop.module.css`), one yellow button per screen, the
+  desk's own green. They're drawn **without the room** (`lib/roomless`: ClientApp mounts it once the visitor goes to the desk;
+  one who came from it keeps it; the layout skips the loader's logo preload there, the proxy passes the path): before,
+  the room's `day.webp` was their LCP and its h1 came first. The funnel's visit and the Amazon clicks live in ClientApp
+  (`Audience`), not in the room. A product never shows another's picture: its own, else the set's booster for a bundle,
+  tripack or blister, else its kind drawn (`lib/kindArt`). Set logos have a small `<logo>-sm.webp` beside them (fetch-set).
 
 ## Sharing a binder
 

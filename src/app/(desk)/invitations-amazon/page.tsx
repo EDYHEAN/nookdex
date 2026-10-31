@@ -1,12 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalPage } from "@/components/LegalPage";
-import { ShopShelf } from "@/components/ShopShelf";
-import { SHOP_PATH, shopGroups, shopUpdated } from "@/lib/amazonShop";
+import { WidePage } from "@/components/WidePage";
+import { Countdown } from "@/components/shop/Countdown";
+import { OpenHash } from "@/components/shop/OpenHash";
+import { Affiliate, AmazonButton, ProductRail, Stage } from "@/components/shop/ShopBits";
+import { ShopHero } from "@/components/shop/ShopHero";
+import { StickyBuy } from "@/components/shop/StickyBuy";
+import s from "@/components/shop/Shop.module.css";
+import {
+  KIND_LABEL,
+  SHOP_PATH,
+  boosterPics,
+  byInterest,
+  goLabel,
+  productHref,
+  productPic,
+  shopGroups,
+  shopUpdated,
+  shortSetName,
+} from "@/lib/amazonShop";
 import { formatDate } from "@/lib/blog";
+import { kindArt } from "@/lib/kindArt";
+import { daysUntil } from "@/lib/releases";
 import { setPagePath } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import cal from "@/components/ReleaseCalendar.module.css";
 
 /**
  * The two newest sets by name, without the series ("Règne Delta", not "Méga-Évolution Règne Delta"): the searches that
@@ -59,14 +76,80 @@ const FAQ = [
 
 const ld = (data: object) => <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 
-/** The sealed Pokémon products Amazon.fr sells (mostly by invitation), set by set: a French page (lib/amazonShop). */
+const longDay = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+
+/**
+ * The sealed Pokémon products Amazon.fr sells (mostly by invitation), set by set: a French page (lib/amazonShop). A shop
+ * page (« Sous la lampe », WidePage shop, drawn without the room): the newest set in the hero, its products, how the
+ * invitation works, the other sets folded.
+ */
 export default function InvitationsAmazon() {
   const count = shopGroups.reduce((n, g) => n + g.products.length, 0);
   const today = new Date().toISOString().slice(0, 10);
   // the newest set first (the page's searches are about it), then the file's order
-  const groups = newest ? [shopGroups.find((g) => g.id === newest.id)!, ...shopGroups.filter((g) => g.id !== newest.id)] : shopGroups;
+  const first = newest ? shopGroups.find((g) => g.id === newest.id)! : shopGroups[0];
+  const rest = shopGroups.filter((g) => g !== first);
+  const top = first ? byInterest(first.products)[0] : undefined;
+  const pic = top ? productPic(top, first) : null;
+  const fan = first ? boosterPics(first) : [];
+  const heroHref = top ? productHref(top, "invit") : null;
+  const page = first?.setId ? setPagePath("fr", first.setId) : null;
+  const days = first?.date ? daysUntil(first.date) : 0;
+  // the h1 says the title, its set's name big
+  const big = newest ? (soon ? newest.short : `${newest.short}${second ? ` et ${second.short}` : ""}`) : null;
+  const [pre, post] = big && TITLE.includes(big) ? TITLE.split(big) : [TITLE, ""];
+
+  const hero = first && top && (
+    <ShopHero
+      head={
+        <>
+          <p className={s.eyebrow}>Invitations Amazon</p>
+          <h1 className={s.title}>
+            {pre && <span className={s.rest}>{pre.trim()}</span>}
+            {big && <span className={s.big}>{big}</span>}
+            {post && <span className={s.rest}>{post.trim()}</span>}
+          </h1>
+          {first.date && (
+            <p className={s.when}>
+              {first.code && `${first.code} · `}
+              {first.date > today ? "Sort le " : "Sorti le "}
+              <b>{longDay(first.date)}</b>
+            </p>
+          )}
+          {first.date && days > 0 && <Countdown day={first.date} days={days} lang="fr" />}
+        </>
+      }
+      stage={<Stage pic={pic} kind={top.kind} fan={fan} alt={pic ? `${KIND_LABEL[top.kind]} ${first.name}` : `Boosters ${first.name}`} />}
+      buy={
+        <>
+          <p className={s.what}>
+            <b>{top.name}</b>
+            {/* its kind, unless its name says it */}
+            {!top.name.startsWith(KIND_LABEL[top.kind]) && ` · ${KIND_LABEL[top.kind]}`}
+          </p>
+          <div className={s.btns}>
+            <AmazonButton id="hero-cta" href={heroHref!} place="invit" size="lg" nudge>
+              {goLabel(top, soon)}
+            </AmazonButton>
+            {page && (
+              <Link prefetch={false} href={page} className={`${s.btn} ${s.alt}`}>
+                Les cartes et leurs prix
+              </Link>
+            )}
+          </div>
+          <ul className={s.reassure}>
+            <li>Gratuit</li>
+            <li>Sans engagement</li>
+            <li>Au prix public</li>
+          </ul>
+          <Affiliate lang="fr" />
+        </>
+      }
+    />
+  );
+
   return (
-    <LegalPage path={SHOP_PATH} title={TITLE}>
+    <WidePage shop={SHOP_PATH} crumbs={[{ href: SHOP_PATH, label: "Invitations Amazon" }]} hero={hero}>
       {ld({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -81,56 +164,119 @@ export default function InvitationsAmazon() {
         inLanguage: "fr",
         mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
       })}
+      <OpenHash />
+      {!hero && <h1>{TITLE}</h1>}
 
-      {/* one sentence, then the buttons: on a phone the first one sat at 1 154 px, under the summary and the set chips */}
-      <p className={cal.answer}>
+      <p className={s.answer}>
         <b>En bref</b>
         Demande ton invitation sur la fiche Amazon (c&apos;est gratuit) : Amazon t&apos;écrit si tu peux acheter, au prix public. {count} produits,
         mis à jour le {formatDate(shopUpdated, "fr")}.
       </p>
 
-      {groups.map((g, i) => {
-        const page = g.setId ? setPagePath("fr", g.setId) : null;
+      <h2>Comment marche l&apos;invitation ?</h2>
+      <ol className={s.steps}>
+        <li>
+          <span>
+            <b>Tu la demandes</b>
+            Un bouton sur la fiche du produit, sur Amazon.fr.
+          </span>
+        </li>
+        <li>
+          <span>
+            <b>Amazon t&apos;écrit</b>
+            Si tu es retenu, un e-mail t&apos;invite à l&apos;acheter, pour un temps limité.
+          </span>
+        </li>
+        <li>
+          <span>
+            <b>Tu paies le prix public</b>
+            Vérifie « Expédié et vendu par Amazon » : pas de revendeur au-dessus.
+          </span>
+        </li>
+      </ol>
+
+      {first && (
+        <section id={first.id}>
+          <h2>
+            {first.name}
+            {first.code ? ` (${first.code})` : ""}
+          </h2>
+          {(first.date || page) && (
+            <p>
+              {first.date && `${first.date > today ? "Sort le" : "Sortie le"} ${formatDate(first.date, "fr")}. `}
+              {page && <Link prefetch={false} href={page}>Les cartes de l&apos;extension et leurs prix →</Link>}
+            </p>
+          )}
+          <ProductRail group={first} place="invit" />
+          {/* a chip per set: straight to the others' products */}
+          <ul className={s.chips}>
+            {rest.map((o) => (
+              <li key={o.id}>
+                <a href={`#${o.id}`}>{shortSetName(o.name)}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {rest.map((g) => {
+        const gp = g.setId ? setPagePath("fr", g.setId) : null;
         return (
-          <div key={g.id} id={g.id}>
-            <h2>
-              {g.name}
-              {g.code ? ` (${g.code})` : ""}
-            </h2>
-            {(g.date || page) && (
-              <p>
-                {g.date && `${g.date > today ? "Sort le" : "Sortie le"} ${formatDate(g.date, "fr")}. `}
-                {page && <Link href={page}>Les cartes de l&apos;extension et leurs prix →</Link>}
-              </p>
-            )}
-            <ShopShelf group={g} place="invit" />
-            {/* a chip per set, once the newest set's buttons are on screen: straight to the others' products */}
-            {i === 0 && (
-              <p>
-                {groups.slice(1).map((o, j) => (
-                  <span key={o.id}>
-                    {j > 0 && " · "}
-                    <a href={`#${o.id}`}>{o.name}</a>
-                  </span>
-                ))}
-              </p>
-            )}
-          </div>
+          <details key={g.id} id={g.id} className={s.group}>
+            <summary>
+              <h2>
+                {g.name}
+                {g.code ? ` (${g.code})` : ""}
+              </h2>
+              <small>
+                {g.products.length} produit{g.products.length > 1 ? "s" : ""}
+              </small>
+            </summary>
+            <div className={s.groupBody}>
+              {(g.date || gp) && (
+                <p>
+                  {g.date && `${g.date > today ? "Sort le" : "Sortie le"} ${formatDate(g.date, "fr")}. `}
+                  {gp && <Link prefetch={false} href={gp}>Les cartes de l&apos;extension et leurs prix →</Link>}
+                </p>
+              )}
+              <ProductRail group={g} place="invit" />
+            </div>
+          </details>
         );
       })}
 
-      <h2>Questions fréquentes</h2>
-      {FAQ.map((f) => (
-        <div key={f.q}>
-          <h3 className={cal.q}>{f.q}</h3>
-          <p>{f.a}</p>
-        </div>
-      ))}
+      <section className={s.faq} data-sticky-stop>
+        <h2>Questions fréquentes</h2>
+        {FAQ.map((f) => (
+          <div key={f.q}>
+            <h3>{f.q}</h3>
+            <p>{f.a}</p>
+          </div>
+        ))}
+      </section>
 
-      <p className={cal.updated}>
+      <p className={s.small}>
         Les liens vers Amazon sont des liens affiliés : ils ne changent rien à ton prix (<Link href="/conditions#amazon">conditions</Link>). Visuels
         des produits : The Pokémon Company, via <a href="https://www.pokepedia.fr">Poképédia</a>.
       </p>
-    </LegalPage>
+
+      {first && top && heroHref && (
+        <StickyBuy
+          target="hero-cta"
+          href={heroHref}
+          place="invit-bar"
+          thumb={
+            (pic ?? fan[0]) ? (
+              <img src={(pic ?? fan[0])!.src} width={(pic ?? fan[0])!.w} height={(pic ?? fan[0])!.h} alt="" loading="lazy" />
+            ) : (
+              <span dangerouslySetInnerHTML={{ __html: kindArt(top.kind) }} />
+            )
+          }
+          title={days > 0 ? `${shortSetName(first.name)} · J-${days}` : shortSetName(first.name)}
+          sub={top.name}
+          label={soon ? "Précommandes" : top.asin ? "L'invitation" : "Sur Amazon"}
+        />
+      )}
+    </WidePage>
   );
 }

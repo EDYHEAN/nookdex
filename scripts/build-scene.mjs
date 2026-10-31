@@ -488,6 +488,11 @@ Object.assign(meta, {
 });
 
 await sharp(plate, { raw: { width: W, height: H, channels: 3 } }).webp({ quality: 84 }).toFile(`${OUT}/plate.webp`);
+// The shop pages' night hero (components/ShopHero): the room under a dark veil, so small and soft is enough (20-40 KB, the
+// plate is 470 KB); a phone takes the 960 one
+for (const w of [960, 1400]) {
+  await sharp(`${OUT}/plate.webp`).resize(w).blur(1.5).webp({ quality: 50, effort: 6 }).toFile(`${OUT}/hero-night-${w}.webp`);
+}
 await sharp(`${SRC}/sky.jpg`).resize(1600).webp({ quality: 80 }).toFile(`${OUT}/sky.webp`);
 await sharp(`${SRC}/sky-day.jpg`).resize(1600).webp({ quality: 80 }).toFile(`${OUT}/sky-day.webp`);
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { affiliateLabel, type AmazonPlace } from "@/lib/amazon";
+import { kindArt } from "@/lib/kindArt";
 import { KIND_LABEL, SHOP_PATH, byInterest, goLabel, productHref, productPic, type ShopGroup } from "@/lib/amazonShop";
 import styles from "./ShopShelf.module.css";
 
@@ -35,7 +36,12 @@ export function ShopShelf({
             <li key={p.asin ?? p.name}>
               <a className={styles.card} href={productHref(p, place)} target="_blank" rel="sponsored noopener" data-amazon-place={place}>
                 <span className={styles.pic}>
-                  {pic ? <img src={pic.src} width={pic.w} height={pic.h} alt={`${KIND_LABEL[p.kind]} ${group.name}`} loading="lazy" /> : null}
+                  {/* no picture of it yet: its kind, drawn (never a booster for a box) */}
+                  {pic ? (
+                    <img src={pic.src} width={pic.w} height={pic.h} alt={`${KIND_LABEL[p.kind]} ${group.name}`} loading="lazy" />
+                  ) : (
+                    <span className={styles.art} dangerouslySetInnerHTML={{ __html: kindArt(p.kind) }} />
+                  )}
                 </span>
                 <span className={styles.kind}>{KIND_LABEL[p.kind]}</span>
                 <span className={styles.name}>{p.name}</span>

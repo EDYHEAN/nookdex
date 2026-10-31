@@ -57,6 +57,13 @@
   filter: drop-shadow(0 4px 4px rgba(43, 34, 48, 0.25));
 }
 
+/* a product with no picture yet: its kind, drawn (lib/kindArt) */
+.art svg {
+  display: block;
+  width: 104px;
+  height: 104px;
+}
+
 .kind {
   align-self: flex-start;
   margin-bottom: 4px;

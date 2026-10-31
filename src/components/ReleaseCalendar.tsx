@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { formatDate } from "@/lib/blog";
-import { affiliateLabel, amazonOn, amazonSearch } from "@/lib/amazon";
-import { SHOP_PATH, shopOfSet } from "@/lib/amazonShop";
+import { amazonOn, amazonSearch, inShops } from "@/lib/amazon";
+import { KIND_LABEL, SHOP_PATH, boosterPics, byInterest, goLabel, productHref, productPic, shopOfSet, shortSetName } from "@/lib/amazonShop";
+import { kindArt } from "@/lib/kindArt";
 import { daysUntil, type Release, releases } from "@/lib/releases";
 import { SET_PAGES_ROOT, type PageLang } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import { LegalPage } from "./LegalPage";
-import { ShopShelf } from "./ShopShelf";
-import legal from "./LegalPage.module.css";
-import styles from "./ReleaseCalendar.module.css";
+import { Countdown } from "./shop/Countdown";
+import { Affiliate, AmazonButton, KindTiles, ProductRail, Stage } from "./shop/ShopBits";
+import { ShopHero } from "./shop/ShopHero";
+import { StickyBuy } from "./shop/StickyBuy";
+import s from "./shop/Shop.module.css";
+import { WidePage } from "./WidePage";
 
-/** The release calendar: French page /calendrier-des-sorties, English one /en/release-calendar (hreflang twins). */
+/**
+ * The release calendar: French page /calendrier-des-sorties, English one /en/release-calendar (hreflang twins). A shop page
+ * (« Sous la lampe », WidePage shop, drawn without the room): the next set in the hero with its countdown and its products.
+ */
 export const CALENDAR_PATH: Record<PageLang, string> = { fr: "/calendrier-des-sorties", en: "/en/release-calendar" };
 
 export function calendarMetadata(lang: PageLang): Metadata {
@@ -93,8 +99,80 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
     },
   ].filter(Boolean) as { q: string; a: string }[];
 
+  // the hero: the next set (the latest once it's out), its products, the countdown (« Sous la lampe », Johan 2026-10-31)
+  const heroSet = nextSet ?? lastSet;
+  const coming = !!nextSet && heroSet === nextSet;
+  const group = heroSet?.setId ? shopOfSet(heroSet.setId) : undefined;
+  const top = fr && group ? byInterest(group.products)[0] : undefined;
+  const heroName = heroSet ? shortSetName(heroSet.name) : "";
+  const series = heroSet && /\s?:\s/.test(heroSet.name) ? heroSet.name.split(/\s?:\s/)[0] : null;
+  const longDay = (d: string) =>
+    day(d).toLocaleDateString(fr ? "fr-FR" : "en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+  const heroHref = !heroSet || !amazonOn(lang)
+    ? null
+    : top && group
+      ? productHref(top, "calendrier")
+      : amazonSearch(fr ? `Pokémon ${heroSet.name}` : `Pokemon TCG ${heroName}`, "calendrier", lang);
+  const heroLabel = top ? goLabel(top, coming) : coming ? t("Voir les précommandes", "See pre-orders on Amazon") : t("Voir sur Amazon", "See it on Amazon");
+  const pic = top && group ? productPic(top, group) : null;
+  const fan = group ? boosterPics(group) : [];
+  const thumb = pic ?? fan[0] ?? null;
+  const days = heroSet ? daysUntil(heroSet.date) : 0;
+  const heroPost = heroSet?.post;
+
+  const hero = heroSet && (
+    <ShopHero
+      head={
+        <>
+          <h1 className={s.eyebrow}>{t("Calendrier des sorties du JCC Pokémon", "Pokémon TCG release calendar")}</h1>
+          <p className={s.big}>{heroName}</p>
+          <p className={s.when}>
+            {coming ? t("Prochaine sortie", "Next release") : t("Dernière sortie", "Latest release")}
+            {series && ` · ${series}`}
+            {heroSet.code && ` · ${heroSet.code}`} · <b>{longDay(heroSet.date)}</b>
+          </p>
+          {coming && days > 0 && <Countdown day={heroSet.date} days={days} lang={lang} />}
+        </>
+      }
+      stage={<Stage pic={pic} kind={top?.kind ?? (fan.length ? null : "etb")} fan={fan} alt={t(`Boosters ${heroName}`, `${heroName} booster packs`)} />}
+      buy={
+        <>
+          {top && (
+            <p className={s.what}>
+              <b>{top.name}</b>
+              {/* its kind, unless its name says it */}
+              {!top.name.startsWith(KIND_LABEL[top.kind]) && ` · ${KIND_LABEL[top.kind]}`}
+            </p>
+          )}
+          <div className={s.btns}>
+            {heroHref && (
+              <AmazonButton id="hero-cta" href={heroHref} place="calendrier" size="lg" nudge>
+                {heroLabel}
+              </AmazonButton>
+            )}
+            {heroPost && (
+              <Link prefetch={false} href={`/blog/${heroPost}`} className={`${s.btn} ${s.alt}`}>
+                {t("Lire le guide", "Read the guide")}
+              </Link>
+            )}
+          </div>
+          <ul className={s.reassure}>
+            <li>{t("Date officielle, avec sa source", "Official date, with its source")}</li>
+            {group && fr && <li>Sur invitation, au prix public</li>}
+            <li>{t("Vérifie « Expédié et vendu par Amazon »", "Check “Ships from and sold by Amazon”")}</li>
+          </ul>
+          {heroHref && <Affiliate lang={lang} />}
+        </>
+      }
+    />
+  );
+
+  /** a set out this past year, on its own shelf (logo, date, page, Amazon); the rest (events, Japan) as a list */
+  const shelf = past.filter((r) => r.region === "intl" && r.kind === "set" && r.href);
+  const others = past.filter((r) => !shelf.includes(r));
+
   return (
-    <LegalPage path={CALENDAR_PATH[lang]} title={t("Calendrier des sorties du JCC Pokémon", "Pokémon TCG release calendar")} en={!fr}>
+    <WidePage en={!fr} shop={CALENDAR_PATH[lang]} crumbs={[{ href: CALENDAR_PATH[lang], label: t("Calendrier des sorties", "Release calendar") }]} hero={hero}>
       {ld({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -110,10 +188,12 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           inLanguage: lang,
           mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
         })}
+      {/* no hero (nothing coming, nothing out this year): the page's title on the paper */}
+      {!hero && <h1>{t("Calendrier des sorties du JCC Pokémon", "Pokémon TCG release calendar")}</h1>}
 
       {/* the answer first: what "prochaine sortie pokemon" looks for, in one sentence */}
       {nextSet && (
-        <p className={styles.answer}>
+        <p className={s.answer}>
           <b>{t("En bref", "In short")}</b>
           {t("La prochaine extension Pokémon en France : ", "The next Pokémon TCG set: ")}
           <strong>{nextSet.name}</strong>
@@ -131,13 +211,6 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           {fr ? "EN · In English" : "FR · En français"}
         </Link>
       </p>
-      {fr && (
-        <p>
-          <Link prefetch={false} href={SHOP_PATH} className={legal.cta}>
-            Les invitations Amazon du moment ▶
-          </Link>
-        </p>
-      )}
 
       {!upcoming.length && (
         <>
@@ -147,99 +220,142 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
       )}
       {months.map((m) => (
         <section key={m.key}>
-          <h2>{ofMonth(m.label)}</h2>
-          <ol className={styles.upcoming}>
+          <h2 className={s.month}>{ofMonth(m.label)}</h2>
+          <ol className={s.events}>
             {m.items.map((r) => {
-            const d = daysUntil(r.date);
-            return (
-              <li key={r.date + r.name} className={styles.item}>
-                <time className={styles.leaf} dateTime={r.date}>
-                  <small>{day(r.date).toLocaleDateString(fr ? "fr-FR" : "en-GB", { month: "short" })}</small>
-                  <b>{day(r.date).getUTCDate()}</b>
-                  <small>{day(r.date).getUTCFullYear()}</small>
-                </time>
-                <div>
-                  <p className={styles.tags}>
-                    <span className={styles[r.kind]}>{kind(r)}</span>
-                    <span>{region(r)}</span>
-                    <span className={styles.count}>{d === 0 ? t("aujourd'hui !", "today!") : d === 1 ? t("demain", "tomorrow") : t(`dans ${d} jours`, `in ${d} days`)}</span>
-                  </p>
-                  <h3>{r.name}</h3>
-                  {r.note && <p>{r.note}</p>}
-                  <p className={styles.links}>
-                    {r.post && <Link prefetch={false} href={`/blog/${r.post}`}>{t("Lire le guide →", "Read the guide →")}</Link>}
-                    {/* its boosters and boxes to preorder (Amazon affiliate, lib/amazon: amazon.fr, amazon.com on the English page),
-                        as cards below once known (French page) */}
-                    {amazonOn(lang) && r.region === "intl" && r.kind !== "event" && !shopOf(r) && (
-                      <span>
-                        <a
-                          href={amazonSearch(fr ? `Pokémon ${r.name}` : `Pokemon TCG ${r.name}`, "calendrier", lang)}
-                          target="_blank"
-                          rel="sponsored noopener"
-                          data-amazon-place="calendrier"
-                        >
-                          {t("Voir les précommandes ↗", "See pre-orders on Amazon ↗")}
-                        </a>{" "}
-                        <small className={styles.affiliate}>{affiliateLabel(lang)}</small>
+              const d = daysUntil(r.date);
+              const g = shopOf(r);
+              // its boosters and boxes on Amazon (lib/amazon): amazon.fr's products as cards on the French page (a search
+              // while none is known), amazon.com searches by kind on the English one
+              const onAmazon = amazonOn(lang) && r.region === "intl" && r.kind !== "event";
+              return (
+                <li key={r.date + r.name} className={s.ev} id={r.setId ? `sortie-${r.setId}` : undefined}>
+                  <time className={s.date} dateTime={r.date}>
+                    <small>{day(r.date).toLocaleDateString(fr ? "fr-FR" : "en-GB", { month: "short", timeZone: "UTC" })}</small>
+                    <b>{day(r.date).getUTCDate()}</b>
+                    <i>{day(r.date).getUTCFullYear()}</i>
+                  </time>
+                  <div>
+                    <p className={s.tags}>
+                      <span className={`${s.tag} ${r.kind === "set" ? s.tagSet : ""}`}>{kind(r)}</span>
+                      <span className={s.tag}>{region(r)}</span>
+                      <span className={`${s.tag} ${s.tagSoon}`}>
+                        {d === 0 ? t("aujourd'hui !", "today!") : d === 1 ? t("demain", "tomorrow") : t(`dans ${d} jours`, `in ${d} days`)}
                       </span>
+                    </p>
+                    <h3>{r.name}</h3>
+                    {r.note && <p>{r.note}</p>}
+                    <p className={s.links}>
+                      {r.post && <Link prefetch={false} href={`/blog/${r.post}`}>{t("Lire le guide →", "Read the guide →")}</Link>}
+                      {r.source && (
+                        <a href={r.source} target="_blank" rel="noopener">
+                          {t("Source officielle", "Official source")} ↗
+                        </a>
+                      )}
+                      {g && (
+                        <Link prefetch={false} href={`${SHOP_PATH}#${g.id}`}>
+                          Toutes les invitations {shortSetName(g.name)} →
+                        </Link>
+                      )}
+                    </p>
+                    {onAmazon && g && <ProductRail group={g} place="calendrier" max={4} />}
+                    {onAmazon && !g && !fr && r.kind === "set" && <KindTiles name={shortSetName(r.name)} place="calendrier" soon />}
+                    {onAmazon && !g && (fr || r.kind !== "set") && (
+                      <div className={s.btns}>
+                        <AmazonButton href={amazonSearch(fr ? `Pokémon ${r.name}` : `Pokemon TCG ${r.name}`, "calendrier", lang)} place="calendrier" alt>
+                          {t("Voir les précommandes", "See pre-orders on Amazon")}
+                        </AmazonButton>
+                        <Affiliate lang={lang} />
+                      </div>
                     )}
-                    {r.source && (
-                      <a className={styles.source} href={r.source} target="_blank" rel="noopener">
-                        {t("Source", "Source")} ↗
-                      </a>
-                    )}
-                  </p>
-                </div>
-                {shopOf(r) && (
-                  <div className={styles.shop}>
-                    <ShopShelf group={shopOf(r)!} place="calendrier" max={4} />
                   </div>
-                )}
-              </li>
-            );
-          })}
+                </li>
+              );
+            })}
           </ol>
         </section>
       ))}
 
-      <h2>{t("Sorties de l'année", "This past year")}</h2>
-      <ul className={styles.past}>
-        {past.map((r) => (
-          <li key={r.date + r.name}>
-            <time dateTime={r.date}>{formatDate(r.date, lang)}</time>
-            <span>
-              {r.href ? <Link prefetch={false} href={r.href}>{r.name}</Link> : r.name}
-              {r.code && <small> · {r.code}</small>}
-              {r.post && (
+      <h2 className={s.month}>{t("Sorties de l'année", "This past year")}</h2>
+      {shelf.length > 0 && (
+        <>
+          <ul className={s.shelf}>
+            {shelf.map((r) => (
+              <li key={r.date + r.name}>
+                <Link prefetch={false} href={r.href!} className={s.logo}>
+                  {r.logo ? <img src={r.logo} alt={r.name} loading="lazy" /> : r.name}
+                </Link>
                 <small>
-                  {" · "}
-                  <Link prefetch={false} href={`/blog/${r.post}`}>{t("le guide", "the guide")}</Link>
+                  <time dateTime={r.date}>{formatDate(r.date, lang)}</time>
+                  {r.post && (
+                    <>
+                      {" · "}
+                      <Link prefetch={false} href={`/blog/${r.post}`}>{t("le guide", "the guide")}</Link>
+                    </>
+                  )}
                 </small>
-              )}
-            </span>
-            <small>
-              {kind(r)} · {region(r)}
-            </small>
-          </li>
-        ))}
-      </ul>
+                {amazonOn(lang) && inShops(r.date) && (
+                  <AmazonButton href={amazonSearch(fr ? `Pokémon ${r.name}` : `Pokemon TCG ${r.name}`, "calendrier", lang)} place="calendrier" size="sm" alt>
+                    {t("Sur Amazon", "On Amazon")}
+                  </AmazonButton>
+                )}
+              </li>
+            ))}
+          </ul>
+          {amazonOn(lang) && <Affiliate lang={lang} many />}
+        </>
+      )}
+      {others.length > 0 && (
+        <ul className={s.others}>
+          {others.map((r) => (
+            <li key={r.date + r.name}>
+              <time dateTime={r.date}>{formatDate(r.date, lang)}</time>
+              <span>
+                {r.href ? <Link prefetch={false} href={r.href}>{r.name}</Link> : r.name}
+                {r.code && <small> · {r.code}</small>}
+                {r.post && (
+                  <small>
+                    {" · "}
+                    <Link prefetch={false} href={`/blog/${r.post}`}>{t("le guide", "the guide")}</Link>
+                  </small>
+                )}
+              </span>
+              <small>
+                {kind(r)} · {region(r)}
+              </small>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {faq.length > 0 && (
-        <>
+        <section className={s.faq} data-sticky-stop>
           <h2>{t("Questions fréquentes", "FAQ")}</h2>
           {faq.map((f) => (
             <div key={f.q}>
-              <h3 className={styles.q}>{f.q}</h3>
+              <h3>{f.q}</h3>
               <p>{f.a}</p>
             </div>
           ))}
-        </>
+        </section>
       )}
 
-      <p className={styles.updated}>
+      <p className={s.small}>
         {t(`Calendrier mis à jour le ${formatDate(updated, "fr")}.`, `Calendar updated ${formatDate(updated, "en")}.`)}{" "}
         <Link prefetch={false} href={SET_PAGES_ROOT[lang]}>{t("Toutes les extensions et leurs prix →", "Every set and its prices →")}</Link>
       </p>
-    </LegalPage>
+
+      {heroSet && heroHref && (
+        <StickyBuy
+          target="hero-cta"
+          href={heroHref}
+          place="calendrier-bar"
+          thumb={thumb ? <img src={thumb.src} width={thumb.w} height={thumb.h} alt="" loading="lazy" /> : <span dangerouslySetInnerHTML={{ __html: kindArt("etb") }} />}
+          title={coming ? t(`${heroName} · J-${days}`, `${heroName} · in ${days} days`) : heroName}
+          sub={coming ? t(`Sort le ${formatDate(heroSet.date, "fr")}`, `Out ${formatDate(heroSet.date, "en")}`) : t("Sur Amazon", "On Amazon")}
+          label={coming ? t("Précommandes", "Pre-orders") : top?.asin ? "L'invitation" : t("Sur Amazon", "On Amazon")}
+        />
+      )}
+    </WidePage>
   );
 }
