@@ -74,7 +74,7 @@ export const PALETTES: Palette[] = [
 ];
 
 /** the colours of everything that isn't a sprite, in the colour palette */
-const COLORS = {
+export const COLORS = {
   grass: "#7fb26a",
   grassDark: "#5f9457",
   grassLight: "#9cc77f",
@@ -162,6 +162,16 @@ const lum = (hex: string) => {
   return 0.3 * (n >> 16) + 0.59 * ((n >> 8) & 255) + 0.11 * (n & 255);
 };
 const shadeOf = (l: number) => (l < 60 ? 0 : l < 125 ? 1 : l < 195 ? 2 : 3);
+/**
+ * On a palette of four shades, the HUD's colours by role, not by brightness (2026-10-31: gold, hpLow, hp, xp, uiDim and
+ * psy all fell on the grass's shade): text light on the HUD's dark plate, the rest one shade down. Gold and danger then
+ * share a shade with the text: they get a shape too (a ★, an inverted chip blinking).
+ */
+const ROLE_SHADE: Partial<Record<ColorKey, number>> = {
+  ui: 3, gold: 3, coin: 3, coin2: 3, hpLow: 3, white: 3, xp2: 3,
+  uiDim: 2, hp: 2, hpMid: 2, xp: 2, psy: 2, heal: 2,
+  uiDark: 0, ink: 0,
+};
 
 export class Gfx {
   atlas: HTMLImageElement | HTMLCanvasElement;
@@ -188,7 +198,7 @@ export class Gfx {
     this.palette = p;
     const shades = p.shades;
     this.c = { ...COLORS };
-    if (shades) for (const k of Object.keys(COLORS) as ColorKey[]) this.c[k] = shades[shadeOf(lum(COLORS[k]))];
+    if (shades) for (const k of Object.keys(COLORS) as ColorKey[]) this.c[k] = shades[ROLE_SHADE[k] ?? shadeOf(lum(COLORS[k]))];
     let got = this.cache.get(p.id);
     if (!got) {
       const atlas = shades ? quantize(this.source, shades) : this.source;

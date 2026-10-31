@@ -9,7 +9,8 @@ import { AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, PACTS, PARAGONS, PARAGON_WAVE, BIOM
 import { gsfx, music } from "@/lib/game/audio";
 import { DEFI_WINS_KEY, Game, LIGUE_START, MAX_WAVE, TIERS, dailyOf, dailyReward, pickAt, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase, type RunStats } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
-import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
+import { ATLAS_URL, COLORS, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas, type ColorKey } from "@/lib/game/gfx";
+import { ITEM_ICONS, TYPE_ICONS } from "@/lib/game/icons";
 import { lastName, legends, myRewards, starterRecords, submitScore, topScores, type Legend, type Period, type Score } from "@/lib/game/scores";
 import { PURSE_CAP, bestWave, buyLevel, reachStarterWave, reachWave, setGold, usePension, wonDefi } from "@/lib/pensionStore";
 import { unlock } from "@/lib/trophyStore";
@@ -96,7 +97,8 @@ function readOptions(): Options {
 
 /** the shell, in game pixels; the screen inside is 320x288 */
 const SHELL_W = 380;
-const SHELL_H = 450;
+/** 434 (450 until 2026-10-31): a 900px-tall window fits it at exactly 2x, the pixel font sharp */
+const SHELL_H = 434;
 
 const KEYS: Record<string, Button> = {
   ArrowUp: "up", KeyW: "up", ArrowDown: "down", KeyS: "down", ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right",
@@ -112,7 +114,8 @@ export default function NookBoy({ origin, onClose }: Props) {
   const fit = Math.min((vp.h - 32) / SHELL_H, (vp.w - 80) / SHELL_W);
   const dpr = typeof window === "undefined" ? 1 : window.devicePixelRatio || 1;
   const snapped = Math.floor(fit * dpr) / dpr;
-  const scale = Math.max(0.5, snapped >= fit * 0.85 ? snapped : fit);
+  // (within 20 %: a 1080px-tall window keeps 2x rather than a blurry 2.41x)
+  const scale = Math.max(0.5, snapped >= fit * 0.8 ? snapped : fit);
   /** the keys' reminder, left of the console when there's room */
   const hintW = (vp.w - SHELL_W * scale) / 2 - 36;
   const nickname = useStore((s) => s.profile?.name) ?? "";
@@ -162,6 +165,8 @@ export default function NookBoy({ origin, onClose }: Props) {
   const [guide, setGuide] = useState({ tab: 0, page: 0 });
   /** the guide opened from the pause (Johan, 2026-10-20: what goes with what, mid-run) */
   const [pauseGuide, setPauseGuide] = useState(false);
+  /** the pause's one panel (2026-10-31, three side by side were a wall of text): 0 the build, 1 the stats, 2 the combos */
+  const [pausePanel, setPausePanel] = useState(0);
   /** the Pension's screen, open over the menu or the game over: it spends the purse */
   const [pension, setPension] = useState(false);
   /** the Pension's grid scrolls: how many tiles are still out of sight below (its "▼ 6 more" chip) */
@@ -759,6 +764,10 @@ export default function NookBoy({ origin, onClose }: Props) {
       return eng.pause(true);
     }
     if (p === "paused") {
+      if (b === "left" || b === "right") {
+        gsfx.move();
+        return setPausePanel((k) => (k + (b === "left" ? 2 : 1)) % 3);
+      }
       if (b === "up" || b === "down") {
         gsfx.move();
         setCursor((c) => (c + (b === "up" ? 2 : 1)) % 3);
@@ -1178,7 +1187,7 @@ export default function NookBoy({ origin, onClose }: Props) {
         const evo = mon.evolves.map(([dex, l]) => `${nameOf(dex)} (${t("N.", "lv")}${l})`).join(", ");
         return (
           <div className={styles.page}>
-            <h2>{t("DÉFI DU JOUR", "DAILY CHALLENGE")}</h2>
+            <h2>{t("DEFI DU JOUR", "DAILY CHALLENGE")}</h2>
             <div className={`${styles.box} ${styles.daily}`}>
               <p className={styles.dailyDay}>
                 {new Date(today() + "T12:00:00Z").toLocaleDateString(lang === "fr" ? "fr-FR" : "en-GB", { weekday: "long", day: "numeric", month: "long" })} ·{" "}
@@ -1229,7 +1238,7 @@ export default function NookBoy({ origin, onClose }: Props) {
         const st = STARTERS[d.starter];
         return (
           <div className={styles.page}>
-            <h2>{t("DÉFI DU JOUR", "DAILY CHALLENGE")}</h2>
+            <h2>{t("DEFI DU JOUR", "DAILY CHALLENGE")}</h2>
             <div className={`${styles.box} ${styles.daily}`}>
               <p className={styles.dailyDay}>{new Date(d.day + "T12:00:00Z").toLocaleDateString(lang === "fr" ? "fr-FR" : "en-GB", { weekday: "long", day: "numeric", month: "long" })}</p>
               <p className={styles.dailyStarter}>
@@ -1335,7 +1344,7 @@ export default function NookBoy({ origin, onClose }: Props) {
       }
       return (
         <div className={styles.page}>
-          <h2>{t("CRÉDITS", "CREDITS")}</h2>
+          <h2>{t("CREDITS", "CREDITS")}</h2>
           <div className={`${styles.box} ${styles.credits}`}>
             <p>{t("Un jeu de fan, gratuit et non officiel, fait pour NookDex.", "A free, unofficial fan game, made for NookDex.")}</p>
             <p>
@@ -1419,9 +1428,9 @@ export default function NookBoy({ origin, onClose }: Props) {
           <h2>
             {selectMode === "coop"
               ? coopFirst == null
-                ? t("J1 : CHOISIS TON POKéMON", "P1: CHOOSE YOUR POKéMON")
-                : t("J2 : CHOISIS TON POKéMON", "P2: CHOOSE YOUR POKéMON")
-              : t("CHOISIS TON POKéMON", "CHOOSE YOUR POKéMON")}
+                ? t("J1 : CHOISIS TON POKEMON", "P1: CHOOSE YOUR POKEMON")
+                : t("J2 : CHOISIS TON POKEMON", "P2: CHOOSE YOUR POKEMON")
+              : t("CHOISIS TON POKEMON", "CHOOSE YOUR POKEMON")}
           </h2>
           <div className={styles.pickRow}>
             {g.roster.map((st, i) => (
@@ -1442,7 +1451,7 @@ export default function NookBoy({ origin, onClose }: Props) {
           <div className={`${styles.box} ${styles.starter}`}>
             <p className={styles.starterName}>
               {nameOf(s.dex)} <span className={styles.type}>{say(s.basic.name, lang)}</span>
-              {s.reward && <span className={styles.legend}>{t("LÉGENDAIRE", "LEGENDARY")}</span>}
+              {s.reward && <span className={styles.legend}>{t("LEGENDAIRE", "LEGENDARY")}</span>}
             </p>
             {/* the ones to unlock: their talent says more than a blurb (and there's room for one only) */}
             {s.unlock && s.talent ? (
@@ -1465,7 +1474,7 @@ export default function NookBoy({ origin, onClose }: Props) {
           {tiers.length === 1 && nextTier && bestWave(levels) >= 15 && (
             <div className={styles.tiers}>
               <span className={styles.tierLock}>
-                🔒 {t("DÉPART", "START")} {t("V", "W")}
+                🔒 {t("DEPART", "START")} {t("V", "W")}
                 {nextTier}
               </span>
             </div>
@@ -1490,7 +1499,7 @@ export default function NookBoy({ origin, onClose }: Props) {
               : g.time !== g.startAt
               ? `${t("NIVEAU", "LEVEL")} ${g.level - g.pendingLevels + 1} !`
               : g.startAt > 0
-                ? t(`DÉPART · ENCORE ${g.pendingLevels}`, `HEAD START · ${g.pendingLevels} LEFT`)
+                ? t(`DEPART · ENCORE ${g.pendingLevels}`, `HEAD START · ${g.pendingLevels} LEFT`)
                 : t("SAC À DOS !", "BACKPACK!")}
           </h2>
           <div className={styles.cards}>
@@ -1724,7 +1733,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (phase === "paused")
       return (
         <div className={styles.pause}>
-          <Recap g={g} lang={lang} t={t} />
+          <Recap g={g} lang={lang} t={t} panel={pausePanel} onPanel={(k) => k !== pausePanel && (gsfx.move(), setPausePanel(k))} />
           <ul className={`${styles.box} ${styles.menu}`}>
             <li className={styles.menuTitle}>PAUSE</li>
             {[t("Reprendre", "Resume"), t("Guide", "Guide"), t("Abandonner", "Give up")].map((l, i) => (
@@ -2141,63 +2150,97 @@ export default function NookBoy({ origin, onClose }: Props) {
   );
 }
 
-/** the pause's recap: moves, items, and the combos to look for */
-function Recap({ g, lang, t }: { g: Game; lang: Lang; t: (fr: string, en: string) => string }) {
-  const combos = combosOf(g);
+/**
+ * A pictogram of lib/game/icons in the menus: k the screen's darkest shade, w its lightest, a its own colour (on the Game
+ * Boy palettes, the middle shade)
+ */
+function Icon({ rows, a, scale = 1 }: { rows: string[]; a?: ColorKey; scale?: number }) {
+  const w = Math.max(...rows.map((r) => r.length)), h = rows.length;
+  return (
+    <svg className={styles.icon} width={w * scale} height={h * scale} viewBox={`0 0 ${w} ${h}`} shapeRendering="crispEdges" aria-hidden>
+      {rows.flatMap((r, y) =>
+        [...r].map((ch, x) =>
+          ch === "." ? null : <rect key={`${x}.${y}`} x={x} y={y} width={1} height={1} className={styles[`ic_${ch}`]} style={ch === "a" && a ? { ["--ic" as string]: COLORS[a] } : undefined} />,
+        ),
+      )}
+    </svg>
+  );
+}
+
+/**
+ * The pause's panel (2026-10-31: three boxes of small text side by side were too much): the build, the stats or the
+ * combos, one at a time, switched with ◀ ▶ or its chips
+ */
+function Recap({ g, lang, t, panel, onPanel }: { g: Game; lang: Lang; t: (fr: string, en: string) => string; panel: number; onPanel: (k: number) => void }) {
+  // the run's own combos (both halves held), four at most, each with its two types' pictograms
+  const combos = combosOf(g).filter((x) => x.both).slice(0, 4);
+  const types = new Set<Elem>([g.starter.type, ...g.moves.map((m) => MOVES.find((d) => d.id === m.id)!.type)]);
+  const chips: [string, string][] = [["BUILD", "BUILD"], ["STATS", "STATS"], ["COMBOS", "COMBOS"]];
   return (
     <div className={styles.recap}>
-      <div className={styles.box}>
-        <p className={styles.recapTitle}>{t("CAPACITÉS", "MOVES")}</p>
-        {g.moves.length ? (
-          g.moves.map((m) => {
-            const d = MOVES.find((x) => x.id === m.id)!;
-            return (
-              <p key={m.id} className={styles.recapRow}>
-                <span>{say(d.name, lang)}</span> <i>{"●".repeat(m.level)}</i>
-              </p>
-            );
-          })
-        ) : (
-          <p className={styles.dim}>{t("aucune pour l'instant", "none yet")}</p>
-        )}
-        <p className={styles.recapTitle}>{t("OBJETS", "ITEMS")}</p>
-        {g.items.length ? (
-          g.items.map((it) => (
-            <p key={it.id} className={styles.recapRow}>
-              <span>{say(ITEMS.find((x) => x.id === it.id)!.name, lang)}</span> <i>{"●".repeat(it.level)}</i>
-            </p>
-          ))
-        ) : (
-          <p className={styles.dim}>{t("aucun pour l'instant", "none yet")}</p>
-        )}
-        {g.cur.paragons.length > 0 && (
-          <>
-            <p className={styles.recapTitle}>PARAGON</p>
-            <p>{g.cur.paragons.map((id) => say(PARAGONS.find((x) => x.id === id)!.name, lang)).join(", ")}</p>
-          </>
-        )}
-      </div>
-      <div className={styles.box}>
-        <p className={styles.recapTitle}>{t("STATS", "STATS")}</p>
-        {statsOf(g, t).map(([k, v, max]) => (
-          <p key={k} className={styles.stat}>
-            {k} <i>{v}</i>
-            {max && <b className={styles.statMax}>MAX</b>}
-          </p>
+      <div className={styles.recapChips}>
+        {chips.map((c, k) => (
+          <button key={k} className={k === panel ? styles.on : ""} onPointerEnter={() => onPanel(k)} onClick={() => onPanel(k)}>
+            {k === 0 && <Pix art="left" />}
+            {t(c[0], c[1])}
+            {k === 2 && <Pix art="right" />}
+          </button>
         ))}
       </div>
       <div className={styles.box}>
-        <p className={styles.recapTitle}>{t("TES COMBOS", "YOUR COMBOS")}</p>
-        {combos.length ? (
-          combos.map(({ c, both }) => (
-            <p key={c.on + c.by} className={both ? styles.comboOn : ""}>
-              {both ? "✓ " : ""}
-              {say(c.name, lang)}
-            </p>
-          ))
-        ) : (
-          <p className={styles.dim}>{t("Mélange les types pour en trouver !", "Mix the types to find some!")}</p>
+        {panel === 0 && (
+          <>
+            {g.moves.map((m) => {
+              const d = MOVES.find((x) => x.id === m.id)!;
+              return (
+                <p key={m.id} className={styles.recapRow}>
+                  <span className={`${styles.recapIcon} ${styles[`t_${d.type}`]}`}>
+                    <Icon rows={TYPE_ICONS[d.type]} />
+                  </span>
+                  <span>{say(d.name, lang)}</span> <i>{"●".repeat(m.level)}</i>
+                </p>
+              );
+            })}
+            {g.items.map((it) => (
+              <p key={it.id} className={styles.recapRow}>
+                <span className={styles.recapIcon}>
+                  <Icon rows={ITEM_ICONS[it.id].rows} a={ITEM_ICONS[it.id].a} />
+                </span>
+                <span>{say(ITEMS.find((x) => x.id === it.id)!.name, lang)}</span> <i>{"●".repeat(it.level)}</i>
+              </p>
+            ))}
+            {!g.moves.length && !g.items.length && <p className={styles.dim}>{t("Rien encore.", "Nothing yet.")}</p>}
+            {g.cur.paragons.length > 0 && <p className={styles.dim}>PARAGON · {g.cur.paragons.map((id) => say(PARAGONS.find((x) => x.id === id)!.name, lang)).join(", ")}</p>}
+          </>
         )}
+        {panel === 1 &&
+          statsOf(g, t).map(([k, v, max]) => (
+            <p key={k} className={styles.stat}>
+              {k} <i>{v}</i>
+              {max && <b className={styles.statMax}>MAX</b>}
+            </p>
+          ))}
+        {panel === 2 &&
+          (combos.length ? (
+            combos.map(({ c }) => {
+              // the type that puts the state, among the run's
+              const on = STATUS_BY[c.on].find((e) => types.has(e)) ?? STATUS_BY[c.on][0];
+              return (
+                <p key={c.on + c.by} className={styles.recapRow}>
+                  <span className={`${styles.recapIcon} ${styles[`t_${on}`]}`}>
+                    <Icon rows={TYPE_ICONS[on]} />
+                  </span>
+                  <b>+</b>
+                  <span className={`${styles.recapIcon} ${styles[`t_${c.by}`]}`}>
+                    <Icon rows={TYPE_ICONS[c.by]} />
+                  </span>
+                  <span>{say(c.name, lang)}</span> <i>×{c.mul}</i>
+                </p>
+              );
+            })
+          ) : (
+            <p className={styles.dim}>{t("Aucun combo encore : le Guide les liste tous.", "No combo yet: the Guide lists them all.")}</p>
+          ))}
       </div>
     </div>
   );
@@ -2268,7 +2311,27 @@ function guideRows(tab: number, lang: Lang): [string, string][] {
       say(m.name, lang),
       `= ${say(MOVES.find((x) => x.id === m.evo!.from)!.name, lang)} ${lang === "fr" ? "niv. 5" : "lv 5"} + ${say(ITEMS.find((x) => x.id === m.evo!.item)!.name, lang)}`,
     ]);
-  if (tab === 3) return ITEMS.map((it) => [say(it.name, lang), say(it.desc, lang)]);
+  if (tab === 3) {
+    const fr = lang === "fr";
+    const ground: [string, string][] = fr
+      ? [
+          ["Bonbon XP", "de l'expérience (le gros en vaut 10)."],
+          ["Pépite", "de l'or, pour Kecleon et la Pension."],
+          ["Super Bonbon", "un niveau d'un coup."],
+          ["Baie Oran", "soigne un peu."],
+          ["Œuf Chance", "soigne beaucoup (Leveinard)."],
+          ["Aimant", "attire tous les bonbons."],
+        ]
+      : [
+          ["XP Candy", "experience (the big one is worth 10)."],
+          ["Nugget", "gold, for Kecleon and the Pension."],
+          ["Rare Candy", "a level at once."],
+          ["Oran Berry", "heals a little."],
+          ["Lucky Egg", "heals a lot (Chansey)."],
+          ["Magnet", "pulls every candy in."],
+        ];
+    return [...ground, ...ITEMS.map((it) => [say(it.name, lang), say(it.desc, lang)] as [string, string])];
+  }
   // the late game: the bosses' affixes and anger, the Paragon cards, Kecleon's pacts
   if (tab === 5) {
     const fr = lang === "fr";
@@ -2565,7 +2628,7 @@ function cardDef(c: Choice): { name: Txt; desc: Txt } | undefined {
   return undefined;
 }
 const cardTag = (c: Choice, t: (fr: string, en: string) => string) =>
-  ({ move: t("CAPACITÉ", "MOVE"), item: t("OBJET", "ITEM"), heal: t("SOIN", "HEAL"), evolve: t("ÉVOLUTION", "EVOLUTION"), bonus: "BONUS", pack: "BUILD", paragon: "PARAGON" })[c.kind];
+  ({ move: t("CAPACITE", "MOVE"), item: t("OBJET", "ITEM"), heal: t("SOIN", "HEAL"), evolve: t("EVOLUTION", "EVOLUTION"), bonus: "BONUS", pack: "BUILD", paragon: "PARAGON" })[c.kind];
 
 function Good(props: {
   c: Choice;
