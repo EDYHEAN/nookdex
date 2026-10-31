@@ -770,6 +770,26 @@
   transform: translateY(-1px);
 }
 
+/* the views' arrows: big chips, most players switch views with the mouse (Johan, 2026-10-31) */
+.lTitle button {
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  margin: 0 6px;
+  border-radius: 3px;
+  background: var(--c2);
+  box-shadow: 0 0 0 1px var(--c0);
+}
+
+.lTitle button:hover {
+  background: #ffc93d;
+}
+
+.lDots button {
+  padding: 4px;
+}
+
 .lDots {
   display: flex;
   justify-content: center;

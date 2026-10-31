@@ -396,7 +396,8 @@ doesn't show.
   evolved, a card per level (past a full build: stacking boosts), all of them as a build pack picked out of 3 (`PACKS` in lib/game/data: 15 builds of
   4 moves + 4 items, drawn by rarity, legendaries rare and broken, Johan 2026-10-18: luck, not a build menu; the moves raised and evolved first, then the items); a ramp then (`RAMP`: foes trickle in, the full crowd after 60 s, the tier's boss after 30 s, 3 s
   untouchable at first, Johan 2026-10-18: cornered at once otherwise); its clock starts there (the ladder's time check holds) and the ladder shows "↱50"
-  (`start`, `game_submit2` v4). The old
+  (`start`, `game_submit2` v4). The start is a second step of the starter screen (« Choisis ton départ »: a wave tile with big ◀ ▶ chips, the
+  Ligue's tile; a click on a starter only picks it once tiers exist: most players use the mouse in the menus, Johan 2026-10-31). The old
   daily (`dailyOf`, a wave to reach) ran until 2026-10-14; the **daily challenge** below replaced it. A moment after each boss falls, a **break**: the field is cleared, then the
   Pokémon Center's heal (no screen: forgetting moves was dropped, Johan 2026-10-13), the levels won, Kecleon's stall (cards, heal, reroll, swap: give a move or an item, take one of 3 drawn at its level; prices follow `waveGold`),
   a 3-2-1. Statuses and combos: `COMBOS` in lib/game/data.

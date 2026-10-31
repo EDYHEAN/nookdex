@@ -23,6 +23,7 @@ export const CHANGELOG: Release[] = [
       { fr: "Un Panthéon pour ceux qui ont atteint la vague 300.", en: "A Hall of Fame for those who reached wave 300." },
       { fr: "Le record de chaque Pokémon dans le classement.", en: "Each Pokémon's record on the ladder." },
       { fr: "Ton score n'est plus perdu : il part tout seul au classement.", en: "Your score is never lost: it goes to the ladder by itself." },
+      { fr: "Choisis ton départ à la souris : un starter, puis une vague ou la Ligue.", en: "Pick your start with the mouse: a starter, then a wave or the League." },
     ],
   },
   {

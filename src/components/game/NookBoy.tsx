@@ -1274,11 +1274,11 @@ export default function NookBoy({ origin, onClose }: Props) {
           <div className={`${styles.page} ${styles.lPage}`}>
             <h2 className={styles.lTitle}>
               <button onPointerEnter={() => gsfx.move()} onClick={() => turnView(-1)} aria-label={t("Vue précédente", "Previous view")}>
-                <Pix art="left" />
+                <Pix art="left" scale={2} />
               </button>
               <span>{say(BOARDS[board].label, lang)}</span>
               <button onPointerEnter={() => gsfx.move()} onClick={() => turnView(1)} aria-label={t("Vue suivante", "Next view")}>
-                <Pix art="right" />
+                <Pix art="right" scale={2} />
               </button>
             </h2>
             <div className={styles.lDots}>
