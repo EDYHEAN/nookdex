@@ -1037,11 +1037,13 @@ declare
   utc date := (now() at time zone 'utc')::date;
   timed boolean := p_mode in ('defi', 'ligue') or p_wave >= 300;
   top integer := case p_mode when 'daily' then 500 when 'ligue' then 3000 else 300 end;
+  -- the Ligue's levels go past 1000 (a variable: Supabase's SQL editor cut the statement at a line ending in "end")
+  max_level integer := case when p_mode = 'ligue' then 20000 else 1000 end;
 begin
   if clean = '' then clean := 'Dresseur'; end if;
   if p_mode not in ('classic', 'daily', 'coop', 'defi', 'ligue') then raise exception 'unknown mode'; end if;
   if p_mode in ('daily', 'defi') and (p_day is null or p_day < utc - 1 or p_day > utc + 1) then raise exception 'not today'; end if;
-  if p_kills < 0 or p_kills > p_seconds * 40 + 40 or p_level < 1 or p_level > case when p_mode = 'ligue' then 20000 else 1000 end
+  if p_kills < 0 or p_kills > p_seconds * 40 + 40 or p_level < 1 or p_level > max_level
      or p_starter not in (1, 4, 7, 25, 94, 150, 63, 133, 58, 131, 129, 66, 143, 32, 74, 173, 147)
      or p_start not in (1, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300) or p_start > p_wave
      or (p_start > 1 and p_mode not in ('classic', 'coop', 'ligue')) or (p_start = 300 and p_mode <> 'ligue')
