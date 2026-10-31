@@ -27,6 +27,7 @@ export const CHANGELOG: Release[] = [
       { fr: "Choisis ton départ à la souris : un starter, puis une vague ou la Ligue.", en: "Pick your start with the mouse: a starter, then a wave or the League." },
       { fr: "Le calendrier des sorties en grand, avec le compte à rebours de la prochaine extension.", en: "The release calendar, full size, with a countdown to the next set." },
       { fr: "Les pages d'extension en grand aussi, leurs cartes les plus chères en vitrine.", en: "The set pages full size too, their most valuable cards on show." },
+      { fr: "Les pages des cartes s'ouvrent bien plus vite.", en: "Card pages open much faster." },
     ],
   },
   {

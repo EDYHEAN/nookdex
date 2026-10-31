@@ -7,12 +7,15 @@ import { type CardPage, cardFaq, cardPage } from "@/lib/cardPages";
 import { money } from "@/lib/setPages";
 import { type PageLang, SET_PAGES_ROOT } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { ProtectIt, SealedBlock } from "./shop/CardShop";
 import { WidePage } from "./WidePage";
 import styles from "./CardPage.module.css";
 
 /**
  * One card's page (lib/cardPages): its scan, today's price on its market (each version), its curve since early October,
  * the same Pokémon in the other sets, a door to the desk. Written for « <card> <number> prix » / « <card> price ».
+ * Drawn without the room (lib/roomless: crawlers open ~45,000 of these), in the shop pages' shell; under the desk's button,
+ * its set's sealed products while it's in the shops, and sleeves for a card worth 20 € or more (shop/CardShop).
  */
 
 export async function cardPageMetadata(lang: PageLang, set: string, slug: string): Promise<Metadata> {
@@ -106,6 +109,7 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
   return (
     <WidePage
       en={!fr}
+      shop={root}
       crumbs={[
         { href: root, label: t("Extensions", "Sets") },
         { href: p.setPath, label: p.set.name },
@@ -190,6 +194,9 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
               </Link>
             </p>
           )}
+          {/* never the single card (that's Cardmarket's): its set's boxes while they're in the shops, sleeves for a dear one */}
+          <SealedBlock lang={lang} setId={p.set.id} setName={p.set.name} releaseDate={p.set.releaseDate} />
+          <ProtectIt lang={lang} price={p.prices[0]?.trend} />
         </div>
       </section>
 

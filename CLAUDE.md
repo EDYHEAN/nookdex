@@ -304,8 +304,8 @@ doesn't show.
   `data-amazon-place`: invit, calendrier, extension, carte, blog, accessoires, `<place>-bar` for a sticky bar; Supabase
   `amazon_clicks`, the weekly report). A tracking id per place (`AMAZON_TAGS`: invit, extension, calendrier, blog; Amazon's reports split the sales by them). In a French blog post,
   `::amazon[<group id>]` draws the cards (« Où acheter … ? » section, docs/blog.md).
-- « Sous la lampe » (Johan, 2026-10-31): `/invitations-amazon`, the calendar and the set pages with their index (FR, EN) are
-  shop pages, full width
+- « Sous la lampe » (Johan, 2026-10-31): `/invitations-amazon`, the calendar, the set pages with their index and the card
+  pages (FR, EN) are shop pages, full width
   (`WidePage shop`: night bar, « Mon bureau », the tabs), a night hero (`components/shop`: `ShopHero`, `Stage`, `Countdown`,
   `ProductRail`, EN `KindTiles`, the phone's `StickyBuy`, styles in `Shop.module.css`), one yellow button per screen, the
   desk's own green. They're drawn **without the room** (`lib/roomless`: ClientApp mounts it once the visitor goes to the desk;
@@ -319,7 +319,12 @@ doesn't show.
   prices (linked to their pages), « Elles se cachent dans les boosters » (no odds, no « instead of N € »: teens read it),
   the desk's green block. Older: no Amazon at all, the hero's button is the desk (`/?classeur=<set>`: its binder offered or
   opened), the dearest card stands under the lamp. Every SEO block stays (facts as a `<dl>`, text, rarities, every card,
-  FAQ, posts, hreflang).
+  FAQ, posts, hreflang). A phone shows three of the facts (cards, one of each, release), the rest from a tablet up.
+- A card's page (`CardPageView`, roomless too: crawlers open ~45,000 of them, the room was 3 MB a visit): the desk's green
+  « Ajouter à ma collection » first (`/?carte=`), then, while its set is in the shops, « Elle se cache dans les boosters
+  <set> » (`shop/CardShop` `SealedBlock`: one product up front, the bundle when listed, two small; FR products, else searches
+  by kind; place `carte`), and « Protège-la » for a card worth 20 €/$ or more, any set (sleeves and toploaders, place
+  `accessoires`). Never the single card. Server drawn, no script added.
 
 ## Sharing a binder
 

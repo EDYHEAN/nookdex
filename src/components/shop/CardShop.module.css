@@ -1,0 +1,225 @@
+/* A card page's sealed block and « Protège-la » (CardShop): the night room's lamp over the products, under the desk's button */
+
+.sealed {
+  position: relative;
+  margin-top: 22px;
+  padding: 16px 14px 14px;
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  border-radius: 24px;
+  color: var(--moon);
+  background:
+    radial-gradient(55% 75% at 22% 70%, rgba(var(--lamp), 0.42), transparent 70%),
+    linear-gradient(160deg, var(--night-3), var(--night) 75%);
+  box-shadow: 4px 5px 0 var(--ink);
+}
+
+.sealed h2 {
+  margin: 6px 0 12px !important;
+  font-family: var(--pixel);
+  font-weight: normal;
+  font-size: 13px !important;
+  line-height: 1.55;
+  color: #fff6e2 !important;
+}
+
+/* the product up front: picture on the desk's edge, its name, its button; the whole of it is the link */
+.feat {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 12px;
+  align-items: center;
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+.ph {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  height: 118px;
+}
+
+.ph::after {
+  content: "";
+  position: absolute;
+  left: -16px;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  background: linear-gradient(180deg, #e0a868 0 3px, var(--wood) 3px 8px, var(--wood-2) 8px);
+  border-top: 2px solid var(--ink);
+}
+
+.ph img,
+.ph svg {
+  position: relative;
+  z-index: 1;
+  width: auto;
+  max-width: 96px;
+  max-height: 104px;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.55));
+  transform: rotate(-6deg);
+  transition: transform 0.3s var(--spring);
+}
+
+.ph svg {
+  width: 86px;
+  height: 86px;
+}
+
+.feat:hover .ph img,
+.feat:hover .ph svg {
+  transform: rotate(0) translateY(-4px) scale(1.05);
+}
+
+.k {
+  font-family: var(--vt);
+  font-size: 18px;
+  line-height: 1;
+  color: var(--cta);
+}
+
+.feat b {
+  display: block;
+  margin: 2px 0 0;
+  font-size: 16px;
+  line-height: 1.25;
+  color: #fff6e2;
+}
+
+.go {
+  grid-column: 1 / -1;
+}
+
+.feat:hover .go {
+  --bg: var(--cta-hover);
+}
+
+/* the two small ones */
+.others {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 10px !important;
+  padding: 0 !important;
+  list-style: none;
+}
+
+.others li {
+  flex: 1;
+  min-width: 0;
+}
+
+.others a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 6px 10px 6px 6px;
+  border: 1.5px solid rgba(239, 227, 200, 0.3);
+  border-radius: 12px;
+  background: rgba(239, 227, 200, 0.05);
+  color: var(--moon) !important;
+  font-size: 14px;
+  line-height: 1.2;
+  text-decoration: none !important;
+  transition:
+    background 0.15s,
+    transform 0.15s var(--spring);
+}
+
+.others a:hover {
+  background: rgba(239, 227, 200, 0.12);
+  transform: translateY(-2px);
+}
+
+.others img,
+.others svg {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+/* « Lien affilié » on the night */
+.sealed .aff {
+  color: rgba(239, 227, 200, 0.55);
+}
+
+.sealed .aff::before {
+  background: rgba(239, 227, 200, 0.55);
+  color: var(--night);
+}
+
+@media (min-width: 900px) {
+  .sealed {
+    padding: 20px 22px 16px;
+  }
+
+  .sealed h2 {
+    font-size: 15px !important;
+  }
+
+  .feat {
+    grid-template-columns: 150px 1fr auto;
+    gap: 18px;
+  }
+
+  .ph {
+    height: 150px;
+  }
+
+  .ph img {
+    max-width: 150px;
+    max-height: 138px;
+  }
+
+  .ph svg {
+    width: 120px;
+    height: 120px;
+  }
+
+  .ph::after {
+    left: -22px;
+  }
+
+  .go {
+    grid-column: 3;
+  }
+
+  .feat b {
+    font-size: 18px;
+  }
+}
+
+/* « Protège-la »: one line, quiet */
+.protect {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border: 2px dashed var(--ink-soft);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.4);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.protect span {
+  color: var(--ink-soft);
+}
+
+.protect a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  font-weight: 650;
+}
+
+.protect small {
+  color: var(--ink-soft);
+  font-size: 12.5px;
+}
