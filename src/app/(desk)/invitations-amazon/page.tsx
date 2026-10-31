@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage } from "@/components/LegalPage";
 import { ShopShelf } from "@/components/ShopShelf";
-import { AMAZON_NOTICE } from "@/lib/amazon";
 import { SHOP_PATH, shopGroups, shopUpdated } from "@/lib/amazonShop";
 import { formatDate } from "@/lib/blog";
 import { setPagePath } from "@/lib/setPath";
@@ -104,7 +103,7 @@ export default function InvitationsAmazon() {
                 {page && <Link href={page}>Les cartes de l&apos;extension et leurs prix →</Link>}
               </p>
             )}
-            <ShopShelf group={g} place="invit" notice={false} />
+            <ShopShelf group={g} place="invit" />
             {/* a chip per set, once the newest set's buttons are on screen: straight to the others' products */}
             {i === 0 && (
               <p>
@@ -129,8 +128,8 @@ export default function InvitationsAmazon() {
       ))}
 
       <p className={cal.updated}>
-        Les liens vers Amazon sont des liens affiliés : ils ne changent rien à ton prix. {AMAZON_NOTICE} Visuels des produits : The Pokémon Company, via{" "}
-        <a href="https://www.pokepedia.fr">Poképédia</a>.
+        Les liens vers Amazon sont des liens affiliés : ils ne changent rien à ton prix (<Link href="/conditions#amazon">conditions</Link>). Visuels
+        des produits : The Pokémon Company, via <a href="https://www.pokepedia.fr">Poképédia</a>.
       </p>
     </LegalPage>
   );

@@ -46,6 +46,13 @@ export const KIND_LABEL: Record<ShopKind, string> = {
   tin: "Mini Tin",
 };
 
+/**
+ * its button: Amazon sells the sealed Pokémon products by invitation; before the release its page takes pre-orders, and
+ * before it's listed a search, which only shows pre-orders (Johan, 2026-10-31: a search isn't a pre-order)
+ */
+export const goLabel = (p: ShopProduct, soon: boolean) =>
+  p.asin ? (soon ? "Précommander" : "Demander l'invitation") : soon ? "Voir les précommandes" : "Voir sur Amazon";
+
 /** its page on amazon.fr (else a search), with the tracking id of the place it shows on */
 export const productHref = (p: ShopProduct, place: AmazonPlace) => (p.asin ? amazonProduct(p.asin, place) : amazonSearch(p.q ?? `Pokémon ${p.name}`, place));
 

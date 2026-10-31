@@ -6,6 +6,7 @@
 // reached. Supabase `funnel` behind `funnel_ping` (docs/supabase.sql); read by `funnel_stats`, counts only. A pure
 // audience measure of the site's own (no consent needed: the id lives 13 months at most, the rows as long).
 
+import { amazonPlaceOf } from "@/lib/amazon";
 import { supabase } from "@/lib/cloud";
 import { useStore } from "@/lib/store";
 
@@ -122,14 +123,20 @@ export function funnelVisit() {
 }
 
 /**
- * A click on an Amazon link (the affiliate links, lib/amazon): counted by day and by the page it was on (its first path
- * segment: calendrier-des-sorties, extensions, blog), nothing else (Supabase amazon_click). The sales are in Johan's
- * Amazon dashboard (no API for it); this says which links get clicked.
+ * A click on an Amazon link (the affiliate links, lib/amazon, amazon.fr and amazon.com): counted by day and by the place
+ * the link says it's on (`data-amazon-place`: invit, calendrier, extension, carte, blog, accessoires, *-bar; "-us" for
+ * amazon.com, `amazonPlaceOf`), nothing else (Supabase amazon_click). The sales are in Johan's Amazon dashboard (no API
+ * for it); this says which links get clicked. In dev it only says so in the console.
  */
 export function watchAmazonClicks() {
   const on = (e: MouseEvent) => {
-    if (!(e.target as Element | null)?.closest?.('a[href*="amazon.fr"]') || !live()) return;
-    const place = (location.pathname.split("/")[1] || "home").slice(0, 40);
+    const a = (e.target as Element | null)?.closest?.<HTMLAnchorElement>('a[href*="amazon.fr/"], a[href*="amazon.com/"]');
+    if (!a) return;
+    const place = amazonPlaceOf(a, location.pathname);
+    if (!live()) {
+      if (process.env.NODE_ENV !== "production") console.info("[amazon click]", place, a.href);
+      return;
+    }
     void supabase.rpc("amazon_click", { p_place: place }).then(
       () => {},
       () => {},

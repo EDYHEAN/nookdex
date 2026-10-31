@@ -283,24 +283,26 @@ doesn't show.
 ## Amazon affiliate
 
 - Club Partenaires Amazon.fr (Johan, 2026-10-19), tag `nookdex-21` (`lib/amazon`): searches on amazon.fr for sealed products, on
-  French pages only (the tag pays on amazon.fr): « Précommander sur Amazon » on the calendar's coming sets and products,
+  French pages only (the tag pays on amazon.fr): « Voir les précommandes » (a search isn't a pre-order) on the calendar's coming sets and products,
   a line on the set pages of sets out within two years, one link at most in a French blog post (docs/blog.md; the tag and
-  `rel="sponsored"` added by `tagAmazonLinks`). The program's sentence (`AMAZON_NOTICE`) on each of those pages and on
-  /a-propos. The account closes without 3 sales in its first 180 days (3 shipped in October 2026: kept). Never for single cards (Cardmarket).
+  `rel="sponsored"` added by `tagAmazonLinks`). By each group of Amazon links only a small grey « Lien affilié » /
+  "Affiliate link" (`affiliateLabel`, Johan 2026-10-31: no "I earn…" by the buttons); the programs' sentences
+  (`AMAZON_NOTICE`, `AMAZON_NOTICE_EN`) are on /conditions (its "Amazon" section) and /a-propos. The account closes without 3 sales in its first 180 days (3 shipped in October 2026: kept). Never for single cards (Cardmarket).
 - English pages (Johan, 2026-10-31: the /en pages get English traffic, the US most of it): Amazon Associates US, tag
-  `nookdex-20` (`AMAZON_US_TAG`, `amazonOn(lang)`): « Pre-order on Amazon » on the English calendar, a line on the English
-  set pages of sets out within two years (amazon.com searches, no product cards: those are amazon.fr's), the US sentence
-  (`AMAZON_NOTICE_EN`) there and on the English /a-propos; an amazon.com link in an English post gets the tag. Same 3 sales
+  `nookdex-20` (`AMAZON_US_TAG`, `amazonOn(lang)`): « See pre-orders on Amazon » on the English calendar, a line on the English
+  set pages of sets out within two years (amazon.com searches, no product cards: those are amazon.fr's), per-place US ids ready in
+  `AMAZON_US_TAGS` (all `nookdex-20` until Johan creates them); an amazon.com link in an English post gets the tag. Same 3 sales
   in 180 days (from 2026-10-31). OneLink (UK, Canada… sent to their own Amazon) is set in that account, not in the code.
 - The products (Johan, 2026-10-19: put them forward, a call to action wherever they show): `src/data/amazon-products.json`
   (a group per set, `setId` = its FR id; a product = `asin` -> amazon.fr/dp, else a search), `lib/amazonShop`, cards drawn by
   `ShopShelf` (official picture, kind, name, a big yellow button: « Demander l'invitation », Amazon sells sealed Pokémon
-  by invitation; « Précommander » before the release). On `/invitations-amazon` (a notebook tab, French only, FAQ), on a
+  by invitation; « Précommander » before the release on its own page, « Voir les précommandes » on a search: `goLabel`). On `/invitations-amazon` (a notebook tab, French only, FAQ), on a
   set's page (its 4 most looked-for) and under a coming set in the calendar. Pictures: the official ones from Poképédia
   (`scripts/fetch-amazon-pics.mjs` -> `public/amazon/`, `src/data/amazon-pics.json`; the daily prices Action fetches the
   missing ones; `lib/shop` is the skins shop, not this). The blog routine keeps the products up to date (docs/blog.md).
-  Clicks counted by page (`watchAmazonClicks`, Supabase `amazon_clicks`, the weekly report). A tracking id per place
-  (`AMAZON_TAGS`: invit, extension, calendrier, blog; Amazon's reports split the sales by them). In a French blog post,
+  Clicks counted by place (`watchAmazonClicks`, amazon.fr and amazon.com, "-us" for the latter; each link's
+  `data-amazon-place`: invit, calendrier, extension, carte, blog, accessoires, `<place>-bar` for a sticky bar; Supabase
+  `amazon_clicks`, the weekly report). A tracking id per place (`AMAZON_TAGS`: invit, extension, calendrier, blog; Amazon's reports split the sales by them). In a French blog post,
   `::amazon[<group id>]` draws the cards (« Où acheter … ? » section, docs/blog.md).
 
 ## Sharing a binder

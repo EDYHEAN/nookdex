@@ -4,8 +4,8 @@ import { Marked, type Token } from "marked";
 import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
 import rawJa from "@/data/catalog-ja.json";
-import { AMAZON_NOTICE, AMAZON_NOTICE_EN, tagAmazonLinks } from "./amazon";
-import { KIND_LABEL, SHOP_PATH, byInterest, productHref, productPic, shopGroups } from "./amazonShop";
+import { affiliateLabel, tagAmazonLinks } from "./amazon";
+import { KIND_LABEL, SHOP_PATH, byInterest, goLabel, productHref, productPic, shopGroups } from "./amazonShop";
 import { bareId, currencyOf, langOfKey, type CardLang } from "./cardLang";
 import { setFile } from "./setFiles";
 import { setPagePath } from "./setPath";
@@ -216,13 +216,13 @@ function amazonShelf(id: string, lang: BlogLang) {
     const pic = productPic(p, g);
     const img = pic ? `<img src="${pic.src}" width="${pic.w}" height="${pic.h}" alt="${esc(`${KIND_LABEL[p.kind]} ${g.name}`)}" loading="lazy">` : "";
     return (
-      `<a class="blog-shop-card" href="${esc(productHref(p, "blog"))}" target="_blank" rel="sponsored noopener">` +
+      `<a class="blog-shop-card" href="${esc(productHref(p, "blog"))}" target="_blank" rel="sponsored noopener" data-amazon-place="blog">` +
       `<span class="blog-shop-pic">${img}</span><span class="blog-shop-kind">${esc(KIND_LABEL[p.kind])}</span>` +
-      `<b>${esc(p.name)}</b><span class="blog-shop-go">${soon ? "Précommander" : p.asin ? "Demander l'invitation" : "Voir sur Amazon"}</span></a>`
+      `<b>${esc(p.name)}</b><span class="blog-shop-go">${esc(goLabel(p, soon))}</span></a>`
     );
   });
   const more = `<a href="${SHOP_PATH}#${esc(g.id)}">${all.length > 4 ? `Les ${all.length} produits ${esc(g.name)} sur Amazon` : `Toutes les invitations Amazon ${esc(g.name)}`} →</a> · `;
-  return `<div class="blog-shop">${cards.join("")}</div><p class="blog-shop-note">${more}${esc(AMAZON_NOTICE)}</p>`;
+  return `<div class="blog-shop">${cards.join("")}</div><p class="blog-shop-note">${more}${affiliateLabel("fr", cards.length > 1)}</p>`;
 }
 
 /** The post's HTML: Markdown (the routine's own text, from this repo) with its cards drawn from the site's data. */
@@ -240,8 +240,9 @@ export async function renderPost(post: Post) {
   const html = new Marked({ gfm: true }).parse(md, { async: false });
   // wide tables scroll sideways on a phone instead of squeezing their columns; Amazon links carry our tag (lib/amazon)
   const out = tagAmazonLinks(html.replace(/<table>/g, '<div class="blog-table"><table>').replace(/<\/table>/g, "</table></div>"));
-  // an English post with an amazon.com link: the US program's sentence under it (a French one has it under its ::amazon cards)
-  return post.lang === "en" && out.includes("amazon.com/") ? `${out}<p class="blog-shop-note">${esc(AMAZON_NOTICE_EN)}</p>` : out;
+  // an English post with an amazon.com link: « Affiliate link » under it (a French one has it under its ::amazon cards;
+  // the programs' sentences are on /conditions and /a-propos)
+  return post.lang === "en" && out.includes("amazon.com/") ? `${out}<p class="blog-shop-note">${affiliateLabel("en", true)}</p>` : out;
 }
 
 /* ---------- FAQ: the "## Questions fréquentes" section, for the FAQPage structured data ---------- */
