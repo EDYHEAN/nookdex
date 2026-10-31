@@ -7,7 +7,7 @@ import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, PACTS, PARAGONS, PARAGON_WAVE, BIOMES, BIOME_WAVES, BONUSES, COMBOS, MOVES, ITEMS, NAMES, PACKS, PENSION, STATUSES, STATUS_NOTES, WEATHERS, type Txt, OBJECTS, RANK_WAVES, RARITY, STARTERS, ownsObject, pensionCost, pensionMax, rankOf, rankOfLevel, say, unlockProgress, unlockedStarters, waveStart, type Elem, type Lang, type Unlock } from "@/lib/game/data";
 import { gsfx, music } from "@/lib/game/audio";
-import { DEFI_WINS_KEY, Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickAt, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
+import { DEFI_WINS_KEY, Game, LIGUE_START, MAX_WAVE, TIERS, dailyOf, dailyReward, pickAt, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase, type RunStats } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
 import { lastName, legends, myRewards, starterRecords, submitScore, topScores, type Legend, type Period, type Score } from "@/lib/game/scores";
@@ -46,6 +46,8 @@ const BOARDS: { mode: Mode; period: Period; label: [string, string]; view?: "rec
   { mode: "classic", period: "all", label: ["TOUT TEMPS", "ALL TIME"] },
   { mode: "coop", period: "season", label: ["COOP", "CO-OP"] },
   { mode: "classic", period: "all", label: ["PAR POKEMON", "BY POKEMON"], view: "records" },
+  // the Ligue (2026-10-31): the waves past 300, all time (its runs are long and few)
+  { mode: "ligue", period: "all", label: ["LIGUE", "LEAGUE"] },
   { mode: "classic", period: "all", label: ["PANTHEON", "HALL OF FAME"], view: "hall" },
 ];
 /**
@@ -54,6 +56,14 @@ const BOARDS: { mode: Mode; period: Period; label: [string, string]; view?: "rec
  */
 const ladderCache = new Map<number, Score[] | null>();
 const asked = { board: 0 };
+const ask = (i: number) => (asked.board = i);
+/**
+ * After a boss (its break, the game over, the Ligue's choice) the buttons wait a moment: keys held through the fight skip
+ * nothing. Outside React: the input handlers read it.
+ */
+const lock = { until: 0 };
+const lockFor = (ms: number) => (lock.until = performance.now() + ms);
+const locked = () => performance.now() < lock.until;
 /** the records' grid: 2 columns of 5 */
 const TILE_COLS = 2;
 /** the daily challenge replaced the old daily on DEFI_FROM (UTC day): its board, its screen, its runs */
@@ -73,6 +83,8 @@ interface Options {
   music: boolean;
 }
 const OPTIONS_KEY = "nookdex:game-options";
+/** the Ligue's start tier picked once on this device (its ▲ hint on the starter screen stops) */
+const LIGUE_HINT_KEY = "nookdex:ligue-hint";
 const DEFAULTS: Options = { fire: "auto", manual: false, palette: 0, music: true };
 function readOptions(): Options {
   try {
@@ -138,9 +150,6 @@ export default function NookBoy({ origin, onClose }: Props) {
   /** the game over's « NOUVEAU RECORD ! » (the best wave overall, or with that starter), its wave counting up */
   const [record, setRecord] = useState<{ dex?: number; from: number; to: number } | null>(null);
   const [recShown, setRecShown] = useState(0);
-  /** after a boss (its break, the game over) the buttons wait a moment: keys held through the fight skip nothing */
-  const lockUntil = useRef(0);
-  const locked = () => performance.now() < lockUntil.current;
   /**
    * The records' tiles: every starter of the select screen (a silhouette while it's locked for this player), then any
    * other one with a record (Mewtwo, Gengar: given by hand), each with its best run if there's one
@@ -199,6 +208,8 @@ export default function NookBoy({ origin, onClose }: Props) {
           setRev((r) => r + 1);
           // a new menu starts on its first card (the stall kept the last screen's cursor)
           if (eng.phase === "levelup" || (eng.phase === "shop" && was !== "shop")) setCursor(0);
+          // the Ligue's choice: no tile picked during its lock (then the Ligue's, in the phase's effect)
+          if (eng.phase === "legend" && was !== "legend") setCursor(-1);
           was = eng.phase;
         };
         setG(eng);
@@ -302,7 +313,7 @@ export default function NookBoy({ origin, onClose }: Props) {
   /** opens a board on the page with the player's own name, else the top; `fresh`: a run was just sent, no cached rows */
   const openLadder = async (i = board, fresh = false) => {
     setBoard(i);
-    asked.board = i;
+    ask(i);
     const b = boardOf(i);
     const mine = (rows: { name: string }[] | null | undefined, pageOf: (i: number) => number) => {
       const me = rows?.findIndex((r) => r.name.toLowerCase() === lastName("").trim().toLowerCase()) ?? -1;
@@ -346,6 +357,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     setRecord(null);
     setCrowning(null);
     fails.current = 0;
+    classicSent.current = false;
     unlock("game-first");
     settled.current = false;
     const st = usePension.getState();
@@ -424,6 +436,25 @@ export default function NookBoy({ origin, onClose }: Props) {
   /** the start tiers reached (1 = from the start), and the next one: shown locked, something to aim at */
   const tiers = [1, ...TIERS.filter((w) => bestWave(levels) >= w)];
   const nextTier = TIERS.find((w) => bestWave(levels) < w);
+  /** the strip's plain tiers (the Ligue's is a chip of its own at its end), the 5 shown around the one picked (3 by the chip) */
+  const plainTiers = tiers.filter((w) => w < LIGUE_START);
+  const tierShown = tiers.includes(LIGUE_START) ? 3 : 5;
+  const tierAt = tier === LIGUE_START ? plainTiers.length - 1 : plainTiers.indexOf(tier);
+  const tierFrom = Math.max(0, Math.min(tierAt - 1, plainTiers.length - tierShown));
+  /** the Ligue's start was picked once on this device: its ▲ hint is done */
+  const [ligueSeen] = useState(() => {
+    try {
+      return !!localStorage.getItem(LIGUE_HINT_KEY);
+    } catch {
+      return true;
+    }
+  });
+  useEffect(() => {
+    if (tier !== LIGUE_START) return;
+    try {
+      localStorage.setItem(LIGUE_HINT_KEY, "1");
+    } catch {}
+  }, [tier]);
   /** what opens a starter, and how far the player is: "Atteins la vague 30 avec Bulbizarre · record V22" */
   const unlockText = (u: Unlock) => {
     const [have, need] = unlockProgress(u, levels);
@@ -493,6 +524,11 @@ export default function NookBoy({ origin, onClose }: Props) {
     if ((b === "a" || b === "b" || b === "start") && locked()) return;
     // the crowning: A opens the Panthéon on the new name, B leaves it for the game over
     if (crowning) {
+      // over the Ligue's choice, the crowning only gives way to it
+      if (p === "legend" && (b === "a" || b === "b" || b === "start")) {
+        gsfx.ok();
+        return setCrowning(null);
+      }
       if (b === "a" || b === "start") return toHall();
       if (b === "b") {
         gsfx.back();
@@ -502,6 +538,14 @@ export default function NookBoy({ origin, onClose }: Props) {
     }
     if (p === "over" && !pension) {
       if (b === "a" || b === "start") overA();
+      return;
+    }
+    if (p === "legend") {
+      // two tiles: ◀ ▶ and A; B does nothing (no run's end by a slip)
+      if (b === "left" || b === "right") {
+        gsfx.move();
+        setCursor((c) => (c === 0 ? 1 : 0));
+      } else if ((b === "a" || b === "start") && cursor >= 0) chooseLegend(cursor);
       return;
     }
     if (p === "title" && screen === "ladder" && BOARDS[board].view === "records" && Array.isArray(ladder) && tiles.length) {
@@ -806,38 +850,65 @@ export default function NookBoy({ origin, onClose }: Props) {
 
   /** the run's tries at the ladder: after two failures A plays again (the ladder is out of reach, not the player's fault) */
   const fails = useRef(0);
+  /** the 300 result of a run gone on into the Ligue went to the ladder (at the 300th's fall, or with the Ligue's own) */
+  const classicSent = useRef(false);
+  /** a result to the ladder; the last wave reached by a name new in the Panthéon: its crowning (once: a run is sent once) */
+  const submit = async (run: RunStats, who: string) => {
+    const rank = await submitScore(who, run);
+    if (rank == null) return null;
+    if (rank <= 3) unlock("game-top3");
+    // the challenge's rank is the day's board
+    if (rank === 1 && run.mode === "defi") unlock("defi-top1");
+    ladderCache.clear();
+    if (run.mode === "classic" && run.wave >= MAX_WAVE) {
+      const was = crowns.has(who.toLowerCase());
+      void legends(true).then((list) => {
+        setHall(list);
+        const at = list?.findIndex((h) => h.name.toLowerCase() === who.toLowerCase()) ?? -1;
+        if (was || at < 0) return;
+        setTyped(0);
+        setCrowning({ name: list![at].name, rank: at + 1 });
+        lockFor(1200);
+        gsfx.fanfare();
+      });
+    }
+    // the run's own board (the daily challenge's is the "daily" one)
+    void openLadder(Math.max(0, BOARDS.findIndex((b) => b.mode === (run.mode === "defi" ? "daily" : run.mode))), true);
+    return rank;
+  };
   const send = async () => {
     const run = g?.lastStats;
     if (!run || sent === "sending" || typeof sent === "number") return;
     setSent("sending");
     const who = name.trim() || t("Dresseur", "Trainer");
-    const rank = await submitScore(who, run);
+    // a Ligue run whose 300 wasn't sent yet (no name then): the 300 first, it can't be lost, then the Ligue's
+    if (run.mode === "ligue" && g?.legendStats && !classicSent.current && (await submit(g.legendStats, who)) != null) classicSent.current = true;
+    const rank = await submit(run, who);
     setSent(rank ?? "error");
-    if (rank != null) {
-      if (rank <= 3) unlock("game-top3");
-      // the challenge's rank is the day's board
-      if (rank === 1 && run.mode === "defi") unlock("defi-top1");
-      gsfx.ok();
-      ladderCache.clear();
-      // the last wave reached: the Panthéon again, its crown on the board at once; a name new there is crowned (once: a
-      // run is sent once)
-      if (run.mode === "classic" && run.wave >= MAX_WAVE) {
-        const was = crowns.has(who.toLowerCase());
-        void legends(true).then((list) => {
-          setHall(list);
-          const at = list?.findIndex((h) => h.name.toLowerCase() === who.toLowerCase()) ?? -1;
-          if (was || at < 0) return;
-          setTyped(0);
-          setCrowning({ name: list![at].name, rank: at + 1 });
-          lockUntil.current = performance.now() + 1200;
-          gsfx.fanfare();
-        });
-      }
-      void openLadder(run.mode === "coop" ? 3 : run.mode === "classic" ? 0 : 1, true);
-    } else {
+    if (rank != null) gsfx.ok();
+    else {
       fails.current++;
       gsfx.back();
     }
+  };
+  /** the 300th boss fell: its result goes to the ladder at once when a name is known, before the choice */
+  const sendLegend = async () => {
+    const run = g?.legendStats;
+    const who = name.trim();
+    if (!run || !who || classicSent.current) return;
+    setSent("sending");
+    const rank = await submit(run, who);
+    if (rank != null) classicSent.current = true;
+    setSent(rank ?? "idle");
+  };
+  /** the choice at the 300th's fall: 0 « Terminer » (the victory's game over), 1 « La Ligue » */
+  const chooseLegend = (k: number) => {
+    if (!g || g.phase !== "legend" || locked()) return;
+    gsfx.ok();
+    if (k === 0) return g.endLegend();
+    setSent("idle");
+    setCursor(0);
+    g.goLigue();
   };
   /**
    * A at the game over (Johan's players lost 2-hour runs to it, 2026-10-31: A played again before the score was sent):
@@ -861,15 +932,23 @@ export default function NookBoy({ origin, onClose }: Props) {
   const pensionOpen = useRef(false);
   const settleRef = useRef(settle);
   const sendRef = useRef(send);
+  const sendLegendRef = useRef(sendLegend);
   useEffect(() => {
     pressRef.current = press;
     pensionOpen.current = pension;
     settleRef.current = settle;
     sendRef.current = send;
+    sendLegendRef.current = sendLegend;
   });
   useEffect(() => {
     // a boss's break and the game over wait a moment for the buttons (keys held through the fight)
-    if (phase === "over" || phase === "shop" || (phase === "levelup" && g?.breakOn)) lockUntil.current = performance.now() + 1200;
+    if (phase === "over" || phase === "shop" || phase === "legend" || (phase === "levelup" && g?.breakOn)) lockFor(1200);
+    // the 300th's fall: its result to the ladder first, then the choice (the Ligue's tile picked once the lock is off)
+    if (phase === "legend") {
+      void sendLegendRef.current();
+      const id = setTimeout(() => setCursor(1), 1200);
+      return () => clearTimeout(id);
+    }
     if (phase === "over") {
       settleRef.current();
       // a name remembered on this device: the score goes to the ladder by itself (the board keeps each name's best run).
@@ -984,6 +1063,30 @@ export default function NookBoy({ origin, onClose }: Props) {
   const screenVars = { "--c0": shades[0], "--c1": shades[1], "--c2": shades[2], "--c3": shades[3] } as React.CSSProperties;
   const nameOf = (dex: number) => say(NAMES[dex] ?? ["?", "?"], lang);
   const run = g?.lastStats;
+
+  /** a name entered in the Panthéon: the crowning, over the game over (or over the Ligue's choice) */
+  const crownView = crowning && (
+    <div className={styles.crowning} onClick={() => press("a")}>
+      <motion.div
+        className={styles.cCrown}
+        initial={{ y: -120 }}
+        animate={{ y: [-120, 0, -18, 0, -5, 0] }}
+        transition={{ duration: 1.1, times: [0, 0.45, 0.62, 0.78, 0.9, 1], ease: "easeIn" }}
+      >
+        <Pix art="crown" scale={6} />
+      </motion.div>
+      <p className={styles.cName}>{crowning.name.slice(0, typed)}</p>
+      {typed >= crowning.name.length && (
+        <motion.p className={styles.cRank} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 12 }}>
+          <b>{t(`${crowning.rank}`, `#${crowning.rank}`)}</b>
+          {t(crowning.rank === 1 ? "ER AU PANTHEON" : "E AU PANTHEON", "IN THE HALL OF FAME")}
+        </motion.p>
+      )}
+      <p className={styles.keys}>
+        {phase === "legend" ? t("A : continuer", "A: go on") : t("A : voir le Panthéon · B : retour", "A: see the hall · B: back")}
+      </p>
+    </div>
+  );
 
   const overlay = (() => {
     if (failed) return <div className={styles.center}><p className={styles.box}>{t("Cartouche illisible… réessaie plus tard.", "Cartridge error… try again later.")}</p></div>;
@@ -1274,15 +1377,34 @@ export default function NookBoy({ origin, onClose }: Props) {
           {/* where the run starts: the tiers reached, the next one locked (shown once the player is getting there) */}
           {(tiers.length > 1 || bestWave(levels) >= 15) && (
             <div className={styles.tiers}>
+              {/* the Ligue's start, new: a ▲ pulses by the label (▴ from V1 wraps round to it) until it's been picked once */}
+              {tiers.includes(LIGUE_START) && !ligueSeen && tier !== LIGUE_START && (
+                <span className={styles.tierHint}>
+                  <Pix art="up" />
+                </span>
+              )}
               <span className={styles.tierLabel}>{t("DÉPART", "START")}</span>
-              {/* 12 tiers don't fit on the screen: the 6 around the one picked (▴ ▾ go through them all) */}
-              {tiers.slice(Math.max(0, Math.min(tiers.indexOf(tier) - 2, tiers.length - 6)), Math.max(0, Math.min(tiers.indexOf(tier) - 2, tiers.length - 6)) + 6).map((w) => (
+              {/* 12 tiers don't fit on the screen: the 5 around the one picked (▴ ▾ go through them all), then the Ligue's */}
+              {plainTiers.slice(tierFrom, tierFrom + tierShown).map((w) => (
                 <button key={w} className={w === tier ? styles.on : ""} onClick={() => w !== tier && (gsfx.move(), setTier(w))}>
                   {t("V", "W")}
                   {w}
                 </button>
               ))}
-              {nextTier && <span className={styles.tierLock}>🔒 {t("V", "W")}{nextTier}</span>}
+              {tiers.includes(LIGUE_START) ? (
+                <button className={`${styles.tierLigue} ${tier === LIGUE_START ? styles.on : ""}`} onClick={() => tier !== LIGUE_START && (gsfx.move(), setTier(LIGUE_START))}>
+                  <Pix art="sword" />
+                  {t("LIGUE", "LEAGUE")}
+                </button>
+              ) : nextTier === LIGUE_START && bestWave(levels) >= 250 ? (
+                // on the way there: what wave 300 opens
+                <span className={styles.tierSoon}>
+                  <Pix art="crown" />
+                  300 → {t("LIGUE", "LEAGUE")}
+                </span>
+              ) : (
+                nextTier && <span className={styles.tierLock}>🔒 {t("V", "W")}{nextTier}</span>
+              )}
               {tier > 1 && (
                 <span className={styles.tierInfo}>
                   {t("N.", "lv")}
@@ -1579,6 +1701,36 @@ export default function NookBoy({ origin, onClose }: Props) {
         </div>
       );
     }
+    if (phase === "legend") {
+      // the 300th boss fell: end here, or go on into the Ligue (two tiles, the Ligue's picked once the lock is off)
+      const tiles: { art: "crown" | "bigSword"; name: [string, string]; sub: [string, string] }[] = [
+        { art: "crown", name: ["TERMINER", "FINISH"], sub: ["Ta victoire, ton Panthéon.", "Your win, your Hall of Fame."] },
+        { art: "bigSword", name: ["LA LIGUE", "THE LEAGUE"], sub: ["Vague 301 et plus, sans Centre.", "Wave 301 on, no Center."] },
+      ];
+      return (
+        <div className={`${styles.page} ${styles.lgPage}`}>
+          <motion.h2 className={styles.lgTitle} initial={{ scale: 1.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.4 }}>
+            {t(`VAGUE ${MAX_WAVE} · LEGENDE`, `WAVE ${MAX_WAVE} · LEGEND`)}
+          </motion.h2>
+          <div className={styles.lgTiles}>
+            {tiles.map((tl, k) => (
+              <button
+                key={k}
+                className={`${styles.lgTile} ${k === cursor ? styles.on : ""}`}
+                onPointerEnter={() => k !== cursor && !locked() && (gsfx.move(), setCursor(k))}
+                onClick={() => chooseLegend(k)}
+              >
+                <Pix art={tl.art} scale={4} />
+                <b>{say(tl.name, lang)}</b>
+                <span>{say(tl.sub, lang)}</span>
+              </button>
+            ))}
+          </div>
+          <p className={`${styles.keys} ${styles.lKeys}`}>{t("◀ ▶ choisir · A : valider", "◀ ▶ choose · A: confirm")}</p>
+          {crownView}
+        </div>
+      );
+    }
     if (phase === "over" && run)
       return (
         <div className={styles.over}>
@@ -1601,28 +1753,11 @@ export default function NookBoy({ origin, onClose }: Props) {
               </span>
             </motion.p>
           )}
-          {crowning && (
-            <div className={styles.crowning} onClick={() => press("a")}>
-              <motion.div
-                className={styles.cCrown}
-                initial={{ y: -120 }}
-                animate={{ y: [-120, 0, -18, 0, -5, 0] }}
-                transition={{ duration: 1.1, times: [0, 0.45, 0.62, 0.78, 0.9, 1], ease: "easeIn" }}
-              >
-                <Pix art="crown" scale={6} />
-              </motion.div>
-              <p className={styles.cName}>{crowning.name.slice(0, typed)}</p>
-              {typed >= crowning.name.length && (
-                <motion.p className={styles.cRank} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 12 }}>
-                  <b>{t(`${crowning.rank}`, `#${crowning.rank}`)}</b>
-                  {t(crowning.rank === 1 ? "ER AU PANTHEON" : "E AU PANTHEON", "IN THE HALL OF FAME")}
-                </motion.p>
-              )}
-              <p className={styles.keys}>{t("A : voir le Panthéon · B : retour", "A: see the hall · B: back")}</p>
-            </div>
-          )}
+          {crownView}
           <p className={`${styles.box} ${styles.ko}`}>
-            {run.won
+            {run.mode === "ligue"
+              ? t(`LIGUE : VAGUE ${run.wave} !`, `LEAGUE: WAVE ${run.wave}!`)
+              : run.won
               ? run.mode === "defi"
                 ? t(`VICTOIRE en ${fmtTime(run.seconds)} !`, `VICTORY in ${fmtTime(run.seconds)}!`)
                 : t(`VICTOIRE : les ${MAX_WAVE} vagues !`, `VICTORY: all ${MAX_WAVE} waves!`)
@@ -1862,6 +1997,7 @@ export default function NookBoy({ origin, onClose }: Props) {
               className={`${styles.canvas} ${pid === 0 && phase === "play" && opts.fire !== "nearest" ? styles.aiming : ""}`}
             />
             {pid === uiOn && (pensionView || overlay) && <div className={styles.ui}>{pensionView || overlay}</div>}
+            {pid !== uiOn && overlay && phase === "legend" && <div className={styles.ui}>{overlay}</div>}
             {pid !== uiOn && overlay && ["levelup", "shop", "evolve"].includes(phase) && (
               <div className={styles.ui}>
                 <p className={`${styles.box} ${styles.waiting}`}>{t(`J${uiOn + 1} choisit…`, `P${uiOn + 1} is choosing…`)}</p>
@@ -2142,6 +2278,8 @@ const PIX_ART = {
   from: ["..t..", ".ttt.", "t.t.t", "..t..", "ttt.."],
   dotOn: [".tt.", "tttt", "tttt", ".tt."],
   dotOff: [".tt.", "t..t", "t..t", ".tt."],
+  sword: ["....t", "...t.", "t.t..", ".t...", "t.t.."],
+  bigSword: ["......kk", ".....kwk", "....kwk.", "k..kwk..", "kk.wk...", ".kk.....", "kykk....", "kk.k...."],
 } as const;
 function Pix({ art, scale = 1 }: { art: keyof typeof PIX_ART; scale?: number }) {
   const rows = PIX_ART[art];
@@ -2206,7 +2344,7 @@ function Ladder(props: {
                       {r.start}
                     </i>
                   )}
-                  {t("V.", "W")}
+                  {r.wave > MAX_WAVE ? <Pix art="sword" /> : t("V.", "W")}
                   {r.wave}
                 </span>
                 {/* the last wave reached: the board ranks those runs by time (v7), so the time is what it shows */}

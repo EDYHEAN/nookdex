@@ -1210,6 +1210,106 @@
 .tierInfo {
   margin-left: 3px;
   font: 11px/1 var(--font-vt), monospace;
+  white-space: nowrap;
+}
+
+/* the Ligue's start: a gold chip at the strip's end; on the way there, what wave 300 opens; its ▲ hint, pulsing */
+.tiers button.tierLigue {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #ffc93d;
+  color: var(--c0);
+}
+
+.screen:not([data-palette="color"]) .tiers button.tierLigue {
+  background: var(--c3);
+}
+
+.tiers button.tierLigue.on {
+  box-shadow: 0 0 0 2px var(--c0), 0 2px 0 var(--c0);
+}
+
+.tierSoon {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.8;
+}
+
+.tierHint {
+  display: inline-flex;
+  animation: tierPulse 0.8s steps(2) 6;
+}
+
+@keyframes tierPulse {
+  50% {
+    transform: translateY(-2px);
+    opacity: 0.4;
+  }
+}
+
+/* the 300th boss fell: « VAGUE 300 · LEGENDE », two tiles (end here, the Ligue) */
+.lgPage {
+  align-items: center;
+  background: color-mix(in srgb, var(--c0) 70%, transparent);
+}
+
+.ui h2.lgTitle {
+  margin: 34px 0 16px;
+  color: #ffc93d;
+}
+
+.screen:not([data-palette="color"]) .ui h2.lgTitle {
+  color: var(--c3);
+}
+
+.lgTiles {
+  display: flex;
+  gap: 12px;
+}
+
+.ui .lgTile {
+  width: 140px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--c3);
+  box-shadow:
+    0 0 0 1px var(--c0),
+    inset 0 0 0 1px var(--c3),
+    inset 0 0 0 2px var(--c1);
+  color: var(--c0);
+}
+
+.ui .lgTile.on {
+  box-shadow:
+    0 0 0 2px var(--c0),
+    inset 0 0 0 3px #ffc93d;
+  transform: translateY(-2px);
+}
+
+.screen:not([data-palette="color"]) .ui .lgTile.on {
+  box-shadow:
+    0 0 0 2px var(--c0),
+    inset 0 0 0 3px var(--c1);
+}
+
+.lgTile b {
+  font: 8px/10px var(--font-press), monospace;
+  font-weight: normal;
+}
+
+.lgTile span {
+  font: 13px/12px var(--font-vt), monospace;
+  color: var(--c1);
+  text-align: center;
 }
 
 .starter {

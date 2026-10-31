@@ -352,6 +352,8 @@ doesn't show.
   function isn't in Supabase yet stays hidden. At the game over a remembered name sends the score by itself, else A sends
   it before A plays again (A used to replay and lose the run); « NOUVEAU RECORD ! » past the best wave (or the starter's);
   a name new in the Panthéon gets the crowning (fanfare). After a boss, buttons wait 1.2 s.
+  v8 (2026-10-31): mode `ligue` (waves 301-3000, start tier 300, ranked by wave then time, a « LIGUE » view before the ♛),
+  the 20 s anti-spam per mode (a run's 300 and its Ligue are two submits).
 - Economy: gold (Nuggets, ~10 % of foes, more from elites, bosses, Chansey) goes in a **purse** kept from run to run
   (`lib/pensionStore` `gold`, in the save and the cloud, the latest wins). A run starts with **no gold** (Johan,
   2026-10-17: a 47k purse bought Kecleon's whole stall and made wave 92 easy); all it picks up goes to the purse at the
@@ -364,6 +366,19 @@ doesn't show.
   it; they used to rise 12 % a wave, out of reach past 40); a start tier brings 5 waves of it (`TIER_GOLD`), never added to
   the purse (`earned`). The best classic/coop wave is kept among the Pension's levels as `wave`
   (`bestWave`, merged the same way). A click beside the console mid-run only pauses it.
+- **La Ligue** (2026-10-31, after two players reached 300): the 300th boss's fall (slow motion, flash) sends the classic or
+  coop result first (the crown can't be lost), then phase `legend`: « ♛ Terminer » (the victory as before) or « ⚔ La Ligue »
+  (`goLigue`: a break, then waves 301+ with no end, `Game.ligue`, RunStats mode `ligue`; its 300 not sent for want of a name
+  goes with the Ligue's at the end). Past 300 (lib/game/data): foes' and bosses' HP x`LIGUE_HP` (1.10) a wave compounding
+  on the classic curve, damage x`LIGUE_DMG` (1.02), `ligueHitCap` 0.3 → 0.6 by wave 375, no Pokémon Center (Kecleon stays).
+  Tuned with the god-mode bot from the start tier (level 600, a full build): Dratini's bosses outlast their enrage from
+  ~360-370 and it's walled at 380-390, Charmander 340 / 370, Squirtle 330 / 340 (x1.05 let Dratini clear 420). Every 10th
+  wave the Conseil 4 in turn (`COUNCIL`: Olga 131, Aldo 68, Agatha 94, Peter 149: giga bosses, each resisting two types at
+  `RESIST` 0.4, Peter Dragon), every 50th Le Maître (`MASTER`: Pidgeot, Alakazam, Arcanine or Rhydon at once, `rush`),
+  each after a band (`intro`, the field frozen 2.5 s). The HUD's badge: a shield, « LIGUE 312 », the rank (`LIGUE_RANKS`:
+  Bronze 325 … Maître 450, a pip each) and the Conseil's 4 pips. « Départ Ligue »: start tier 300 (`LIGUE_START`, level
+  600), the gold chip at the end of the tier strip (▲ from V1); « ♛ 300 → Ligue » shows from wave 250. No new sprite: all
+  those Pokémon were in the atlas (2048x8335, already over the 8192 px texture limit of some GPUs: split it before adding).
 - **Beyond wave 100** (Johan, 2026-10-17): classic and coop runs go on to wave 300 (`MAX_WAVE`, 200 until 2026-10-20; the
   100th boss gives the "Centenaire" trophy, Mega Mewtwo Y at 200 the "Bicentenaire" and comes back as the 300th, the last),
   past 100 candies and gold come by themselves and XP x1.5 (`BEYOND_XP`),

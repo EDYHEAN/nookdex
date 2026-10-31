@@ -336,6 +336,8 @@ const GLYPHS: Record<string, string> = {
   // 2026-10-31: these were dropped silently (« VAGUE 300 · FINALE » had a gap)
   "·": "000000010000000", "✓": "000001001101010", "♛": "000101111111111", "↱": "110001111001000", "▲": "000010111111000",
   "▼": "000111111010000",
+  // the Ligue's HUD: the Conseil 4's pips, the rank's, a sword
+  "●": "000010111010000", "○": "000010101010000", "▮": "000111111111000", "▯": "000111101111000", "⚔": "101010101010101",
 };
 const GLYPH_LIST = Object.keys(GLYPHS);
 const GLYPH_INDEX = new Map(GLYPH_LIST.map((g, i) => [g, i]));

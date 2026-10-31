@@ -1001,3 +1001,78 @@ revoke all on function public.game_hall() from public;
 grant execute on function public.game_records(text) to anon, authenticated;
 grant execute on function public.game_hall() to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- Nook Survivors, v8 (2026-10-31): La Ligue. A run may go on past wave 300 (mode 'ligue', waves 301 to 3000): from a classic
+-- or coop run's victory (its 300 is sent first, as a classic or coop run) or from the Ligue's start tier (300, its clock
+-- starting at wave 300's place like the other tiers). A Ligue board ranks by wave, then time. The 20 s anti-spam is per mode
+-- now: a run's 300 and its Ligue come from the same run. Same signatures as v6/v7: grants kept.
+create or replace function public.game_top2(p_mode text default 'classic', p_period text default 'season', p_day date default null, p_limit integer default 20)
+returns table (name text, wave integer, kills integer, level integer, starter integer, seconds integer, created_at timestamptz, start integer)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select b.name, b.wave, b.kills, b.level, b.starter, b.seconds, b.created_at, b.start from (
+    select distinct on (lower(s.name)) s.* from public.game_scores s
+    where s.mode = p_mode
+      and (p_period = 'all'
+        or (p_period = 'season' and s.created_at >= date_trunc('month', now()))
+        or (p_period = 'day' and s.day = p_day))
+    order by lower(s.name), s.wave desc, case when p_mode in ('defi', 'ligue') or s.wave >= 300 then s.seconds end, s.kills desc, s.seconds
+  ) b
+  order by b.wave desc, case when p_mode in ('defi', 'ligue') or b.wave >= 300 then b.seconds end, b.kills desc, b.seconds
+  limit least(greatest(p_limit, 1), 100)
+$$;
+
+create or replace function public.game_submit2(p_name text, p_wave integer, p_kills integer, p_level integer, p_starter integer, p_seconds integer, p_mode text, p_day date default null, p_start integer default 1)
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  clean text := left(btrim(regexp_replace(coalesce(p_name, ''), '[[:cntrl:]]', '', 'g')), case when p_mode = 'coop' then 35 else 16 end);
+  utc date := (now() at time zone 'utc')::date;
+  timed boolean := p_mode in ('defi', 'ligue') or p_wave >= 300;
+  top integer := case p_mode when 'daily' then 500 when 'ligue' then 3000 else 300 end;
+begin
+  if clean = '' then clean := 'Dresseur'; end if;
+  if p_mode not in ('classic', 'daily', 'coop', 'defi', 'ligue') then raise exception 'unknown mode'; end if;
+  if p_mode in ('daily', 'defi') and (p_day is null or p_day < utc - 1 or p_day > utc + 1) then raise exception 'not today'; end if;
+  if p_kills < 0 or p_kills > p_seconds * 40 + 40 or p_level < 1 or p_level > case when p_mode = 'ligue' then 20000 else 1000 end
+     or p_starter not in (1, 4, 7, 25, 94, 150, 63, 133, 58, 131, 129, 66, 143, 32, 74, 173, 147)
+     or p_start not in (1, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300) or p_start > p_wave
+     or (p_start > 1 and p_mode not in ('classic', 'coop', 'ligue')) or (p_start = 300 and p_mode <> 'ligue')
+     or (p_mode = 'ligue' and p_wave <= 300) then
+    raise exception 'implausible score';
+  end if;
+  if p_mode = 'defi' then
+    if p_wave < 1 or p_wave > 11 or p_seconds < (p_wave - 1) * 6 or p_seconds > 3600 or (p_wave = 11 and p_seconds < 90) then
+      raise exception 'implausible score';
+    end if;
+  -- 2 s a wave at the very least past the start tier's clock, 90 s a wave at most (v6)
+  elsif p_wave < 1 or p_wave > top
+     or p_seconds < (least(p_start, 25) - 1) * 15 + greatest(0, least(p_start, 50) - 25) * 20 + greatest(0, p_start - 50) * 30 + (p_wave - p_start) * 2
+     or (p_wave < top and p_seconds > p_wave * 90 + 600) then
+    raise exception 'implausible score';
+  end if;
+  if exists (select 1 from public.game_scores s where lower(s.name) = lower(clean) and s.mode = p_mode and s.created_at > now() - interval '20 seconds') then
+    raise exception 'too soon';
+  end if;
+  insert into public.game_scores (name, wave, kills, level, starter, seconds, user_id, mode, day, start)
+  values (clean, p_wave, p_kills, p_level, p_starter, p_seconds, auth.uid(), p_mode, case when p_mode in ('daily', 'defi') then p_day end, p_start);
+  return 1 + (
+    select count(*) from (
+      select distinct on (lower(s.name)) s.name, s.wave, s.kills, s.seconds from public.game_scores s
+      where s.mode = p_mode and lower(s.name) <> lower(clean)
+        and (case when p_mode in ('daily', 'defi') then s.day = p_day when p_mode = 'ligue' then true else s.created_at >= date_trunc('month', now()) end)
+      order by lower(s.name), s.wave desc, case when p_mode in ('defi', 'ligue') or s.wave >= 300 then s.seconds end, s.kills desc, s.seconds
+    ) b
+    where b.wave > p_wave
+      or (b.wave = p_wave and timed and (b.seconds < p_seconds or (b.seconds = p_seconds and b.kills > p_kills)))
+      or (b.wave = p_wave and not timed and (b.kills > p_kills or (b.kills = p_kills and b.seconds < p_seconds)))
+  );
+end $$;
+notify pgrst, 'reload schema';

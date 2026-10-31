@@ -5,15 +5,18 @@ import { unlock } from "@/lib/trophyStore";
 import { gsfx, music } from "./audio";
 import {
   BONUSES, BOSSES, COMBOS, ITEMS, PACKS, PACK_ODDS, MAX_ITEMS, MAX_LEVEL, MAX_MOVES, MOVES, NAMES, POOLS, RARITY, RETIRE, REWARD_STARTERS, STARTERS, UNLOCK_STARTERS, WILD, BIOMES, BIOME_WAVES, WEATHERS, type WeatherId, waveLength, waveQuota, waveRate, waveStart, xpFor, WAVE_HURRY,
+  COUNCIL, LIGUE_DMG, LIGUE_HP, MASTER, MASTER_NAME, RESIST, ligueHitCap, ligueRank, LIGUE_RANKS, type LigueBoss,
   AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, type AffixId, PARAGONS, PARAGON_WAVE, type ParagonId, PACTS, PACT_WAVE, type PactId, SHINY, SHINY_BOOST, SHINY_ODDS, CHARM_ODDS, COIN_ODDS, coinValue, waveGold, DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
 } from "./data";
 import { DEFI_DAYS, DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
-import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, type AnimName, type ColorKey, type Gfx } from "./gfx";
+import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, textWidth, type AnimName, type ColorKey, type Gfx } from "./gfx";
 
 /** after each boss, a break: everyone healed, the levels won, shop (Kecleon's), countdown (3-2-1) */
-export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over" | "shop" | "countdown";
+/** legend: the 300th boss fell, the choice between ending there and going on into the Ligue (the shell draws it) */
+export type Phase = "title" | "select" | "play" | "levelup" | "evolve" | "paused" | "dying" | "over" | "shop" | "countdown" | "legend";
 /** "daily": the old daily (a wave to reach in a classic run), until 2026-10-14; "defi": the daily challenge since (lib/game/defi) */
-export type Mode = "classic" | "daily" | "coop" | "defi";
+/** "ligue": a run past wave 300 (its own board), on from a classic or coop run's victory or from the Ligue's start tier */
+export type Mode = "classic" | "daily" | "coop" | "defi" | "ligue";
 /** the classic and coop runs end there, won once its giga boss falls (Johan, 2026-10-17: 100 was too close; 2026-10-20:
  * 200 was reached, on to 300) */
 export const MAX_WAVE = 300;
@@ -33,13 +36,15 @@ const BEYOND_DMG = 0.3;
  * by card after it (Johan, 2026-10-18); past the 48 a full build and its evolutions take, the stacking boosts a run
  * picks then (2 Proteins for a PP Up): without them a wave-125 start knocked out 2 foes in 9 s.
  */
-export const TIERS = [25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275];
+export const TIERS = [25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300];
+/** the Ligue's start tier (« Départ Ligue »): open once wave 300 was reached, the run is a Ligue run from its start */
+export const LIGUE_START = 300;
 /**
  * The level a start tier gives: about a played run's by then (the ladder, 2026-10-18: ~60 at wave 25, ~120 at 50, 148 at
  * 92, the XP curve steepening), wave 25 a little under (a friend found it right with its pack), past 100 as before (no run
  * went that far yet). Wave 50 at 80 was too weak: 40 levels short is 40 boosts short.
  */
-const TIER_LEVEL: Record<number, number> = { 25: 42, 50: 110, 75: 140, 100: 165, 125: 200, 150: 240, 175: 280, 200: 320, 225: 360, 250: 400, 275: 440 };
+const TIER_LEVEL: Record<number, number> = { 25: 42, 50: 110, 75: 140, 100: 165, 125: 200, 150: 240, 175: 280, 200: 320, 225: 360, 250: 400, 275: 440, 300: 600 };
 export const tierLevel = (tier: number) => TIER_LEVEL[tier] ?? Math.round(1.6 * tier);
 /** the types that put a foe in each state (the combos' first half) */
 const STATE_BY: Record<(typeof COMBOS)[number]["on"], Elem[]> = { wet: ["water"], burn: ["fire"], poison: ["poison"], sleep: ["grass", "ice", "dark"], charm: ["fairy"] };
@@ -205,6 +210,8 @@ interface Enemy {
   titan?: boolean;
   /** the classic's last boss (wave 300): beating it wins */
   final?: boolean;
+  /** a Ligue boss's types: their blows do only RESIST of their damage */
+  resist?: Elem[];
   /** a boss's affixes (classic and coop, from wave 50), its shield's HP and what it holds at most, its own clocks */
   affix?: AffixId[];
   shield?: number;
@@ -704,6 +711,20 @@ export class Game {
   pactKept = false;
   /** the break after a boss is on (Center, levels, shop, then the 3-2-1) */
   private inBreak = false;
+  /**
+   * La Ligue (2026-10-31): the run goes on past wave 300 (chosen at the 300th boss's fall, or from the Ligue's start tier).
+   * Its waves never end, its foes' HP compounds, no Pokémon Center; the Conseil 4 every 10th wave, Le Maître every 50th.
+   */
+  ligue = false;
+  /** the classic (or coop) result at wave 300, kept for the shell to send before the Ligue's own */
+  legendStats: RunStats | null = null;
+  /** the Conseil 4 fallen in this round of 50 waves (the HUD's 4 pips), Le Maître's three still standing */
+  council = 0;
+  private rush: Enemy[] = [];
+  /** a Ligue boss's entrance: its band slides in, the field holds still */
+  intro: { t: number; dex: number; name: string; title: string; council: boolean; elem: Elem; affix: AffixId[] } | null = null;
+  /** the 300th boss's fall: a second of slow motion (real time) */
+  private slowT = 0;
   /** for the shell: its screens take no button for a moment after a boss (keys still held from the fight) */
   get breakOn() {
     return this.inBreak;
@@ -937,6 +958,8 @@ export class Game {
     this.shopRerolls = 0;
     this.inBreak = false;
     Object.assign(this, { pact: null, pactOffer: null, pactShown: false, pactKept: false, allies: [] });
+    // the Ligue's start tier: a Ligue run from its first wave
+    Object.assign(this, { ligue: !setup.daily && !setup.defi && (setup.start ?? 1) >= LIGUE_START, legendStats: null, council: 0, rush: [], intro: null, slowT: 0 });
     Object.assign(this, {
       time: 0, kills: 0, wave: 1, enemies: [], shots: [], foes: [], pickups: [], fx: [], parts: [], nums: [], spawnAcc: 0, treasureAt: -1, titanT: 4, titanWave: 0,
       bossAlive: null, bossDue: 0, weather: null, breakAt: 0, shake: 0, flash: 0, dyingT: 0, defiLeft: setup.defi ? DEFI_QUOTA[0] : 0, defiGroupT: 1, defiGap: 0, defiTitans: 0, endAt: 0,
@@ -1460,6 +1483,11 @@ export class Game {
 
   /** advances the game by dt seconds (fixed steps) */
   tick(dt: number) {
+    // the 300th boss's fall in slow motion
+    if (this.slowT > 0) {
+      this.slowT -= dt;
+      dt *= 0.3;
+    }
     this.stepT += Math.min(dt, 0.1);
     while (this.stepT >= STEP) {
       this.stepT -= STEP;
@@ -1489,11 +1517,23 @@ export class Game {
       }
       return;
     }
+    if (this.phase === "legend") {
+      // the 300th's white flash fades behind the choice
+      this.flash = Math.max(0, this.flash - STEP * 3);
+      return this.stepParts(STEP);
+    }
     if (this.phase !== "play") return;
     const dt = STEP;
+    // a Ligue boss's entrance: everything holds still (its clock too) while its band goes by
+    if (this.intro) {
+      this.intro.t -= dt;
+      this.bannerT = 0;
+      if (this.intro.t <= 0) this.intro = null;
+      return this.stepParts(dt);
+    }
     this.time += dt;
 
-    if (this.endAt && this.time >= this.endAt) return this.finish(true);
+    if (this.endAt && this.time >= this.endAt) return this.wave === MAX_WAVE && !this.ligue && !this.setup.defi ? this.legend() : this.finish(true);
     // a new wave once the last foe falls (or its time is up), every fifth one brings a boss
     if (this.setup.defi) this.stepDefi(dt);
     else this.stepWaves(dt);
@@ -1596,8 +1636,48 @@ export class Game {
   }
 
   /** the run's end: its numbers for the game over (a won daily challenge counts as wave 11, the ladder's "done") */
-  private finish(won: boolean) {
+  /**
+   * The 300th boss fell (classic or coop): the result is kept to be sent at once (the shell does it), then the choice,
+   * end here or go on into the Ligue
+   */
+  private legend() {
+    this.endAt = 0;
+    unlock("game-wave100");
+    unlock("game-wave200");
+    unlock("game-wave300");
+    if (this.setup.mode === "coop") unlock("game-coop");
+    this.legendStats = this.statsOf(true);
+    music.stop();
+    gsfx.evolveDone();
+    this.set("legend");
+  }
+  /** « Terminer »: the victory's game over, as before the Ligue */
+  endLegend() {
+    if (this.phase !== "legend") return;
+    this.finish(true);
+  }
+  /** « La Ligue »: on to wave 301, a break first (its shop; the Pokémon Center's last care) */
+  goLigue() {
+    if (this.phase !== "legend") return;
+    this.ligue = true;
+    this.council = 0;
+    for (const p of this.players) p.invuln = 2;
+    this.set("play");
+    this.breakAt = this.time;
+    this.showBanner(this.tr("LA LIGUE", "THE LEAGUE"), this.tr("le Conseil 4 t'attend", "the Elite Four await"));
+  }
+
+  private statsOf(won: boolean): RunStats {
     const daily = this.setup.daily;
+    const met = !!daily && this.wave >= daily.target;
+    return {
+      mode: this.ligue ? "ligue" : this.setup.mode, day: daily?.day ?? this.setup.defi?.day, gold: this.earned, dailyBonus: daily ? dailyReward(this.wave, met) : 0, dailyWon: met, won,
+      wave: this.setup.defi && won ? DEFI_WAVES + 1 : this.wave, kills: this.kills, level: Math.max(...this.players.map((p) => p.level)), seconds: Math.floor(this.time), start: (this.setup.start ?? 1) > 1 && !this.setup.daily && !this.setup.defi ? this.setup.start! : 1,
+      starter: this.players[0].starter.dex, dex: this.players[0].dex, dex2: this.players[1]?.dex, starter2: this.players[1]?.starter.dex,
+    };
+  }
+
+  private finish(won: boolean) {
     if (this.setup.mode === "coop") unlock("game-coop");
     if (won && !this.setup.defi) {
       unlock("game-wave100");
@@ -1605,12 +1685,7 @@ export class Game {
       unlock("game-wave300");
     }
     if (won && this.setup.defi) this.defiWon(this.players[0].starter.dex, Math.floor(this.time));
-    const met = !!daily && this.wave >= daily.target;
-    this.lastStats = {
-      mode: this.setup.mode, day: daily?.day ?? this.setup.defi?.day, gold: this.earned, dailyBonus: daily ? dailyReward(this.wave, met) : 0, dailyWon: met, won,
-      wave: this.setup.defi && won ? DEFI_WAVES + 1 : this.wave, kills: this.kills, level: Math.max(...this.players.map((p) => p.level)), seconds: Math.floor(this.time), start: (this.setup.start ?? 1) > 1 && !this.setup.daily && !this.setup.defi ? this.setup.start! : 1,
-      starter: this.players[0].starter.dex, dex: this.players[0].dex, dex2: this.players[1]?.dex, starter2: this.players[1]?.starter.dex,
-    };
+    this.lastStats = this.statsOf(won);
     music.stop();
     this.set("over");
   }
@@ -1704,7 +1779,7 @@ export class Game {
     if (this.wave % 5 === 0) {
       const b = this.bossAlive;
       // its boss fell, the break is over: on to the next
-      if (this.bossSpawned && !b && !this.breakAt && this.wave < MAX_WAVE) return this.newWave(this.wave + 1);
+      if (this.bossSpawned && !b && !this.breakAt && (this.wave < MAX_WAVE || this.ligue)) return this.newWave(this.wave + 1);
       // standing too long: it gets angry (its wave doesn't end on a clock any more)
       if (b && !b.enraged && this.time - (b.bornT ?? this.time) > ENRAGE_AFTER) {
         b.enraged = true;
@@ -1733,7 +1808,7 @@ export class Game {
       );
       return;
     }
-    if (this.waveT >= waveLength(this.wave) && this.wave < MAX_WAVE) this.newWave(this.wave + 1);
+    if (this.waveT >= waveLength(this.wave) && (this.wave < MAX_WAVE || this.ligue)) this.newWave(this.wave + 1);
   }
 
   /** what's left of the classic wave: its foes still to come and those out */
@@ -1788,26 +1863,19 @@ export class Game {
 
   /** a fifth wave's boss: past wave 100, every 10th is a giga boss of the daily challenge's (Mega Mewtwo Y the 200th and 300th) */
   private spawnBoss(wave: number) {
+    if (this.ligue && wave > MAX_WAVE && wave % 10 === 0) return this.spawnLigue(wave);
     const round = Math.floor((wave / 5 - 1) / BOSSES.length);
     const giga = wave > BEYOND && wave % 10 === 0;
-    const mewtwo = wave === MEWTWO_WAVE || wave >= MAX_WAVE;
+    // Mega Mewtwo Y: the 200th and the 300th only (a Ligue's bosses past it are its own)
+    const mewtwo = wave === MEWTWO_WAVE || wave === MAX_WAVE;
     const b = giga ? DEFI_DAYS[mewtwo ? 0 : ((wave / 10 - 11) % (DEFI_DAYS.length - 1)) + 1].giga : BOSSES[(wave / 5 - 1) % BOSSES.length];
     // past wave 25 they grow tougher still: late in a run they fell in a few seconds
     const mult = (1 + round * 2) * (1 + wave * 0.02) * (1 + Math.min(50, Math.max(0, wave - 25)) * BOSS_LATE_HP);
-    const hp = giga ? GIGA_HP * mult * (mewtwo ? 1.25 : 1) : b.hp * mult;
+    const hp = (giga ? GIGA_HP * mult * (mewtwo ? 1.25 : 1) : b.hp * mult) * this.ligueHp(wave);
     const a = Math.random() * Math.PI * 2;
     const e = this.makeEnemy(b.dex, this.x + Math.cos(a) * 170, this.y + Math.sin(a) * 150);
-    Object.assign(e, { boss: b, hp, max: hp, speed: b.speed, dmg: b.dmg * (1 + round * 0.5) * (1 + wave * 0.04), r: b.r, actT: 3, n: 0, final: wave >= MAX_WAVE, bornT: this.time });
-    // its affixes: one from wave 50, two from 150, never the same twice
-    const nAff = this.setup.defi || this.setup.daily ? 0 : AFFIX_WAVES.filter((w) => wave >= w).length;
-    if (nAff) {
-      const pool = AFFIXES.map((x) => x.id);
-      e.affix = [];
-      while (e.affix.length < nAff) e.affix.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-      if (e.affix.includes("shield")) e.shield = e.shieldMax = hp * 0.3;
-      if (e.affix.includes("swift")) e.speed *= 1.4;
-      Object.assign(e, { quietT: 0, affT: 6 });
-    }
+    Object.assign(e, { boss: b, hp, max: hp, speed: b.speed, dmg: b.dmg * (1 + round * 0.5) * (1 + wave * 0.04) * this.ligueDmg(wave), r: b.r, actT: 3, n: 0, final: wave === MAX_WAVE && !this.ligue, bornT: this.time });
+    this.affixes(e, wave);
     this.enemies.push(e);
     this.bossAlive = e;
     this.bossSpawned = true;
@@ -1821,6 +1889,71 @@ export class Game {
     );
     if (giga) this.shake = 12;
     gsfx.boss();
+    music.boss(true);
+  }
+
+  /** a boss's affixes: one from wave 50, two from 150, never the same twice */
+  private affixes(e: Enemy, wave: number) {
+    const nAff = this.setup.defi || this.setup.daily ? 0 : AFFIX_WAVES.filter((w) => wave >= w).length;
+    if (!nAff) return;
+    const pool = AFFIXES.map((x) => x.id);
+    e.affix = [];
+    while (e.affix.length < nAff) e.affix.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    if (e.affix.includes("shield")) e.shield = e.shieldMax = e.hp * 0.3;
+    if (e.affix.includes("swift")) e.speed *= 1.4;
+    Object.assign(e, { quietT: 0, affT: 6 });
+  }
+
+  /* ---------------- La Ligue ---------------- */
+
+  /** its foes' HP and damage on top of the classic curve: compounding from wave 301 (data LIGUE_HP, LIGUE_DMG) */
+  private ligueHp(wave: number) {
+    return this.ligue && wave > MAX_WAVE ? Math.pow(LIGUE_HP, wave - MAX_WAVE) : 1;
+  }
+  private ligueDmg(wave: number) {
+    return this.ligue && wave > MAX_WAVE ? Math.pow(LIGUE_DMG, wave - MAX_WAVE) : 1;
+  }
+  /** where a Ligue wave is in its round of 50: 1 to 4 the Conseil 4, 5 Le Maître (0: not a 10th wave) */
+  ligueSlot(wave = this.wave) {
+    return wave > MAX_WAVE && wave % 10 === 0 ? ((wave - MAX_WAVE) / 10 - 1) % 5 + 1 : 0;
+  }
+  /** the HUD's badge: the rank reached (0 before Bronze) */
+  get ligueRank() {
+    return ligueRank(this.wave);
+  }
+
+  /**
+   * Every 10th Ligue wave: one of the Conseil 4 (a giga boss), every 50th Le Maître (three bosses at once), each resisting
+   * its types, after a band that says who comes (the field holds still meanwhile)
+   */
+  private spawnLigue(wave: number) {
+    const slot = this.ligueSlot(wave);
+    const master = slot === 5;
+    const round = Math.floor((wave / 5 - 1) / BOSSES.length);
+    const mult = (1 + round * 2) * (1 + wave * 0.02) * (1 + 50 * BOSS_LATE_HP) * this.ligueHp(wave);
+    const defs: LigueBoss[] = master ? [MASTER[0], MASTER[1], MASTER[2 + (Math.floor(wave / 50) % 2)]] : [COUNCIL[slot - 1]];
+    if (slot === 1) this.council = 0;
+    this.rush = defs.map((d, i) => {
+      const b = d.boss;
+      const a = Math.random() * Math.PI * 2 + i * 2.1;
+      const e = this.makeEnemy(b.dex, this.x + Math.cos(a) * 170, this.y + Math.sin(a) * 150);
+      // Le Maître's three share what one giga boss would have
+      const hp = (b.giga ? GIGA_HP : b.hp) * mult * (master ? 0.6 : 1);
+      Object.assign(e, { boss: b, hp, max: hp, speed: b.speed, dmg: b.dmg * (1 + round * 0.5) * (1 + wave * 0.04) * this.ligueDmg(wave), r: b.r, actT: 3 + i, n: 0, bornT: this.time, resist: d.resist });
+      this.affixes(e, wave);
+      this.enemies.push(e);
+      return e;
+    });
+    this.bossAlive = this.rush[0];
+    this.bossSpawned = true;
+    const lead = defs[0];
+    this.intro = {
+      t: 2.5, dex: lead.boss.dex, name: this.tr(...(master ? MASTER_NAME : lead.name)), title: this.tr(lead.boss.title[0], lead.boss.title[1]),
+      council: !master, elem: lead.boss.shot, affix: this.rush[0].affix ?? [],
+    };
+    this.shake = 12;
+    gsfx.boss();
+    gsfx.roar();
     music.boss(true);
   }
 
@@ -1908,7 +2041,8 @@ export class Game {
     }
     this.pickups = [];
     this.cur = keep;
-    const noCenter = this.setup.daily?.mod.noCenter;
+    // no Pokémon Center past wave 300 (the Ligue): only Kecleon's stall
+    const noCenter = this.setup.daily?.mod.noCenter || (this.ligue && this.wave > MAX_WAVE);
     for (const p of this.players) {
       p.down = false;
       if (!noCenter) p.hp = p.maxHp;
@@ -2989,7 +3123,7 @@ export class Game {
       (day && (elem === day[0] || (day[0] === "water" && elem === "elec")) ? day[1] : 1) *
       ((e.boss || e.titan) && this.has("hunter") ? 1.5 : 1) *
       (statused ? 1 + 0.12 * this.itemLevel("razorfang") : 1);
-    const dmg = Math.max(1, Math.round(base * mul * boost * this.weatherMul(elem) * (crit ? this.critMul : 1) * rand(0.9, 1.1)));
+    const dmg = Math.max(1, Math.round(base * mul * boost * this.weatherMul(elem) * (crit ? this.critMul : 1) * rand(0.9, 1.1) * (e.resist?.includes(elem) ? RESIST : 1)));
     if (mul > 1) {
       unlock("game-combo");
       for (let i = 0; i < 5; i++) this.part(e.x, e.y - 10, rand(-40, 40), rand(-60, -10), "gold", 0.4, 2, 60, "spark");
@@ -3059,7 +3193,23 @@ export class Game {
     if (e.titan) unlock("defi-titan");
     if (e.boss?.giga && !this.setup.defi) unlock("game-giga");
     if (e.boss && (this.setup.defi || e.final)) this.bossDown(e);
-    else if (e.boss) {
+    else if (e.boss && this.rush.some((o) => o !== e && !o.dead)) {
+      // Le Maître: the next of its three
+      this.bossAlive = this.rush.find((o) => o !== e && !o.dead)!;
+      for (let i = 0; i < 6; i++) this.drop("candy", e.x + rand(-20, 20), e.y + rand(-20, 20), 8);
+      this.shake = 8;
+      gsfx.boom();
+      const left = this.rush.filter((o) => !o.dead).length;
+      this.showBanner(this.tr(`${this.name(e.dex)} est K.O. !`, `${this.name(e.dex)} fainted!`), this.tr(`encore ${left}`, `${left} to go`));
+    } else if (e.boss) {
+      // a Ligue boss: the Conseil 4's pips light up; Le Maître down, a new round of 50
+      const slot = this.ligue ? this.ligueSlot() : 0;
+      if (slot >= 1 && slot <= 4) this.council = slot;
+      if (slot === 5) {
+        this.council = 0;
+        unlock("game-giga");
+      }
+      this.rush = [];
       unlock("game-boss");
       this.bossAlive = null;
       this.breakAt = this.time + 1.5;
@@ -3088,7 +3238,7 @@ export class Game {
       } else if (this.wave === MEWTWO_WAVE) {
         unlock("game-wave200");
         gsfx.evolveDone();
-        this.showBanner(this.tr("200 VAGUES !", "200 WAVES!"), this.tr(`il reviendra, vague ${MAX_WAVE}…`, `it'll be back, wave ${MAX_WAVE}…`));
+        this.showBanner(this.tr("200 VAGUES !", "200 WAVES!"), this.tr(`il reviendra, vague ${MAX_WAVE}… et la Ligue après`, `it'll be back, wave ${MAX_WAVE}… then the League`));
       } else
         this.showBanner(this.tr(`${this.name(e.dex)} est K.O. !`, `${this.name(e.dex)} fainted!`), this.tr("un Super Bonbon est tombé", "a Rare Candy dropped"));
     } else if (e.w?.act === "treasure") {
@@ -3126,8 +3276,13 @@ export class Game {
     for (let i = 0; i < 8; i++) this.drop("coin", e.x + rand(-24, 24), e.y + rand(-24, 24), 3);
     gsfx.rare();
     if (e.boss!.giga || !this.setup.defi) {
-      // won: everyone untouchable, the foes gone, the end a moment later
-      this.endAt = this.time + 3;
+      // won: everyone untouchable, the foes gone, the end a moment later; the 300th's fall in slow motion, a white flash,
+      // then the choice (legend)
+      this.endAt = this.time + (this.setup.defi ? 3 : 1.2);
+      if (!this.setup.defi) {
+        this.slowT = 1;
+        this.flash = 1.4;
+      }
       this.defiLeft = 0;
       for (const o of this.enemies) if (!o.dead && o !== e) Object.assign(o, { dead: true, deadT: 0 });
       this.foes = [];
@@ -3195,7 +3350,7 @@ export class Game {
     dmg *= this.guard;
     // never more than 30 % of the max HP a blow (Johan, 2026-10-18: past wave 60 any touch was a one-shot, and running
     // through the crowd happens all the time): a run wears down, it doesn't end on one bump
-    dmg = Math.min(dmg, this.maxHp * HIT_CAP);
+    dmg = Math.min(dmg, this.maxHp * (this.ligue ? ligueHitCap(this.wave) : HIT_CAP));
     // Focus Sash: a fatal blow leaves 1 HP, then it needs a while
     const sash = this.itemLevel("sash");
     if (sash && this.hp - dmg <= 0 && this.hp > 1 && this.cur.sashCd <= 0) {
@@ -3241,10 +3396,10 @@ export class Game {
     const eliteOdds = this.setup.defi ? 0.04 + 0.008 * this.wave : Math.max(this.pact === "elite" ? 0.25 : 0, (0.015 + 0.004 * this.wave) * (this.setup.daily?.mod.elite ?? 1));
     const elite = !titan && !!w && w.act !== "treasure" && w.act !== "flop" && Math.random() < eliteOdds;
     const big = titan ? TITAN : null;
-    const hp = (w?.hp ?? 100) * hpMul * (elite ? 4 : 1) * (big?.hp ?? 1);
+    const hp = (w?.hp ?? 100) * hpMul * (elite ? 4 : 1) * (big?.hp ?? 1) * this.ligueHp(this.wave);
     return {
       w, boss: null, dex, x, y, kx: 0, ky: 0, hp, max: hp, speed: (w?.speed ?? 30) * (1 + Math.min(0.35, 0.012 * k)) * (elite ? 0.9 : 1) * (big?.speed ?? 1) * (this.pact === "fury" ? 1.3 : 1),
-      dmg: (w?.dmg ?? 10) * dmgMul * (elite ? 1.5 : 1) * (this.setup.daily?.mod.enemyDmg ?? 1) * (big?.dmg ?? 1),
+      dmg: (w?.dmg ?? 10) * dmgMul * (elite ? 1.5 : 1) * (this.setup.daily?.mod.enemyDmg ?? 1) * (big?.dmg ?? 1) * this.ligueDmg(this.wave),
       r: (w?.r ?? 7) * (elite ? 1.3 : 1) * (big?.scale ?? 1), dir: 0, t: Math.random() * 2, hitT: 0, slowT: 0, sleepT: 0, wetT: 0, burnT: 0, burnDps: 0, poisonT: 0, poisonDps: 0, charmT: 0, dotT: 0.5,
       state: "", stateT: rand(1, 3), actT: 2, elite, titan, z: 0, alpha: 1, aim: { x: 0, y: 0 }, touchT: 0, n: 0, dead: false, deadT: 0, seed: Math.random() * 100,
     };
@@ -5294,7 +5449,18 @@ export class Game {
       g.text(ctx, this.tr(`VAGUE ${this.wave}/${DEFI_WAVES}`, `WAVE ${this.wave}/${DEFI_WAVES}`), SW / 2, 8, "gold", { align: "center" });
       const n = this.defiRemaining;
       if (!this.bossAlive && !this.endAt) g.text(ctx, this.tr(`reste ${n}`, `${n} left`), SW / 2, 15, n <= 5 ? "hpLow" : "uiDim", { align: "center" });
-    } else if (this.wave >= MAX_WAVE) {
+    } else if (this.ligue) {
+      // the Ligue's badge: a shield, « LIGUE 312 » in gold; its rank under it, a pip a rank (readable without colour),
+      // then the Conseil 4 fallen in this round of 50
+      const rank = this.ligueRank;
+      const label = `${this.tr("LIGUE", "LEAGUE")} ${this.wave}`;
+      const w = textWidth(label);
+      pix(ctx, g, PIX.shield, SW / 2 - w / 2 - 8, 11, 0);
+      g.text(ctx, label, SW / 2 + 1, 8, "gold", { align: "center" });
+      const name = rank ? this.tr(...LIGUE_RANKS[rank - 1].name) : this.tr("ASPIRANT", "ROOKIE");
+      const council = "●".repeat(this.council) + "○".repeat(4 - this.council);
+      g.text(ctx, `${name} ${"▮".repeat(rank)}${"▯".repeat(5 - rank)}  ${council}`, SW / 2, 15, "uiDim", { align: "center" });
+    } else if (this.wave === MAX_WAVE) {
       g.text(ctx, this.tr(`VAGUE ${MAX_WAVE} · FINALE`, `WAVE ${MAX_WAVE} · FINAL`), SW / 2, 8, "gold", { align: "center" });
     } else {
       g.text(ctx, this.tr(`VAGUE ${this.wave}`, `WAVE ${this.wave}`), SW / 2, 8, "gold", { align: "center" });
@@ -5391,6 +5557,48 @@ export class Game {
       g.text(ctx, this.banner, x, 101, "gold", { align: "center", scale: 2 });
       if (this.bannerSub) g.text(ctx, this.bannerSub, x - slide * 40, 119, "ui", { align: "center" });
     }
+    if (this.intro) this.drawIntro(ctx);
+  }
+
+  /**
+   * A Ligue boss's entrance: a band from y 36 to 92 slides in from the right, its sprite twice as big, « CONSEIL 4 · ● ● ○ ○ »
+   * (or Le Maître), its name in gold, its type and affixes as 9x9 tiles
+   */
+  private drawIntro(ctx: CanvasRenderingContext2D) {
+    const g = this.gfx, c = g.c, it = this.intro!;
+    const k = it.t > 2.1 ? (it.t - 2.1) / 0.4 : it.t < 0.3 ? -(0.3 - it.t) / 0.3 : 0;
+    const ox = Math.round(k * SW);
+    ctx.fillStyle = c.uiDark;
+    ctx.globalAlpha = 0.85;
+    ctx.fillRect(ox, 36, SW, 56);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = c.gold;
+    ctx.fillRect(ox, 36, SW, 1);
+    ctx.fillRect(ox, 91, SW, 1);
+    // its sprite, twice as big, kept inside the band
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(ox, 37, SW, 54);
+    ctx.clip();
+    g.sprite(ctx, it.dex, "Walk", frameAt(anim(it.dex, "Walk"), this.animT), 2, ox + 46, 88, { scale: 2 });
+    ctx.restore();
+    // those fallen in this round and the one coming
+    const pips = [0, 1, 2, 3].map((i) => (i <= this.council ? "●" : "○")).join(" ");
+    g.text(ctx, it.council ? `${this.tr("CONSEIL 4", "ELITE FOUR")} · ${pips}` : this.tr("LE MAITRE · 3 BOSS", "THE CHAMPION · 3 BOSSES"), ox + 92, 42, "uiDim");
+    g.text(ctx, it.name, ox + 92, 52, "gold", { scale: 2 });
+    g.text(ctx, it.title.toUpperCase(), ox + 92, 66, "ui");
+    const tiles: [ColorKey, string][] = [
+      [TYPE_FX[it.elem][0], ""],
+      ...it.affix.map((id) => ["psy", this.tr(...AFFIXES.find((x) => x.id === id)!.name).slice(0, 1)] as [ColorKey, string]),
+    ];
+    tiles.forEach(([col, ch], i) => {
+      const x = ox + 92 + i * 12, y = 76;
+      ctx.fillStyle = c.ui;
+      ctx.fillRect(x, y, 9, 9);
+      ctx.fillStyle = c[col];
+      ctx.fillRect(x + 1, y + 1, 7, 7);
+      if (ch) g.text(ctx, ch.toUpperCase(), x + 5, y + 2, "uiDark", { align: "center", outline: col });
+    });
   }
 
   /** a radar in the corner: the crowd, the boss, a Chansey */
@@ -5684,6 +5892,20 @@ const PIX = {
     "k...kbbbk...k",
     ".....kkk.....",
   ],
+  // the Ligue's rank badge (11x11): a shield, its gold
+  shield: [
+    "kkkkkkkkkkk",
+    "kyyyyyyyyyk",
+    "kywyyyyyyyk",
+    "kywyyykyyyk",
+    "kyyyykkkyyk",
+    "kyyyyykyyyk",
+    ".kyyyyyyyk.",
+    ".kyyyyyyyk.",
+    "..kyyyyyk..",
+    "...kyyyk...",
+    "....kkk....",
+  ],
 } as const;
 type PixArt = (typeof PIX)[keyof typeof PIX];
 const PIX_KEYS: Record<string, ColorKey> = {
@@ -5691,6 +5913,7 @@ const PIX_KEYS: Record<string, ColorKey> = {
 };
 /** each picture's colours, where they differ from PIX_KEYS */
 const PIX_OWN = new Map<PixArt, Record<string, ColorKey>>([
+  [PIX.shield, { y: "gold", w: "white", k: "uiDark" }],
   [PIX.star, { y: "gold" }],
   [PIX.pebble, { a: "ground", b: "ground2" }],
   [PIX.candy, { a: "xp", b: "xp2", c: "xp" }],

@@ -13,6 +13,19 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.18",
+    date: "2026-10-31",
+    title: { fr: "La Ligue", en: "The League" },
+    items: [
+      { fr: "Après la vague 300 : continue dans la Ligue, sans fin.", en: "After wave 300: carry on into the League, endless." },
+      { fr: "Le Conseil 4 toutes les 10 vagues, le Maître toutes les 50.", en: "The Elite Four every 10 waves, the Champion every 50." },
+      { fr: "Départ Ligue : repars de la vague 300 une fois atteinte.", en: "League start: begin at wave 300 once you've reached it." },
+      { fr: "Un Panthéon pour ceux qui ont atteint la vague 300.", en: "A Hall of Fame for those who reached wave 300." },
+      { fr: "Le record de chaque Pokémon dans le classement.", en: "Each Pokémon's record on the ladder." },
+      { fr: "Ton score n'est plus perdu : il part tout seul au classement.", en: "Your score is never lost: it goes to the ladder by itself." },
+    ],
+  },
+  {
     version: "0.17",
     date: "2026-10-24",
     title: { fr: "Le classeur d'échange", en: "The trade binder" },
@@ -34,10 +47,6 @@ export const CHANGELOG: Release[] = [
       {
         fr: "La Classic Collection des 30 ans porte ses vrais numéros (Lugia 149/147).",
         en: "The 30th's Classic Collection shows its real numbers (Lugia 149/147).",
-      },
-      {
-        fr: "Nook Survivors : un Panthéon pour la vague 300, le record de chaque Pokémon, et ton score part tout seul au classement.",
-        en: "Nook Survivors: a Hall of Fame for wave 300, each Pokémon's record, and your score goes to the ladder by itself.",
       },
     ],
   },
