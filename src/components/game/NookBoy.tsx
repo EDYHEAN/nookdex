@@ -132,7 +132,7 @@ export default function NookBoy({ origin, onClose }: Props) {
   const [opts, setOpts] = useState<Options>(readOptions);
   const [pressed, setPressed] = useState<Partial<Record<Button, boolean>>>({});
   const [name, setName] = useState(() => lastName(nickname));
-  const [sent, setSent] = useState<"idle" | "sending" | "error" | number>("idle");
+  const [sent, setSent] = useState<"idle" | "sending" | "error" | "refused" | number>("idle");
   const [ladder, setLadder] = useState<Score[] | null | "loading">("loading");
   const [ladderPage, setLadderPage] = useState(0);
   const [board, setBoard] = useState(0);
@@ -855,7 +855,7 @@ export default function NookBoy({ origin, onClose }: Props) {
   /** a result to the ladder; the last wave reached by a name new in the Panthéon: its crowning (once: a run is sent once) */
   const submit = async (run: RunStats, who: string) => {
     const rank = await submitScore(who, run);
-    if (rank == null) return null;
+    if (rank == null || rank === "refused") return rank;
     if (rank <= 3) unlock("game-top3");
     // the challenge's rank is the day's board
     if (rank === 1 && run.mode === "defi") unlock("defi-top1");
@@ -882,12 +882,13 @@ export default function NookBoy({ origin, onClose }: Props) {
     setSent("sending");
     const who = name.trim() || t("Dresseur", "Trainer");
     // a Ligue run whose 300 wasn't sent yet (no name then): the 300 first, it can't be lost, then the Ligue's
-    if (run.mode === "ligue" && g?.legendStats && !classicSent.current && (await submit(g.legendStats, who)) != null) classicSent.current = true;
+    if (run.mode === "ligue" && g?.legendStats && !classicSent.current && typeof (await submit(g.legendStats, who)) === "number") classicSent.current = true;
     const rank = await submit(run, who);
     setSent(rank ?? "error");
-    if (rank != null) gsfx.ok();
+    if (typeof rank === "number") gsfx.ok();
     else {
-      fails.current++;
+      // refused: no use trying again, A plays again
+      fails.current = rank === "refused" ? 2 : fails.current + 1;
       gsfx.back();
     }
   };
@@ -899,7 +900,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     setSent("sending");
     const rank = await submit(run, who);
     if (rank != null) classicSent.current = true;
-    setSent(rank ?? "idle");
+    setSent(typeof rank === "number" ? rank : "idle");
   };
   /** the choice at the 300th's fall: 0 « Terminer » (the victory's game over), 1 « La Ligue » */
   const chooseLegend = (k: number) => {
@@ -1842,6 +1843,7 @@ export default function NookBoy({ origin, onClose }: Props) {
                 {sent === "sending" ? "…" : t("Envoyer au classement", "Send to the ladder")}
               </button>
               {sent === "error" && <p className={styles.err}>{t("Classement injoignable, réessaie.", "Couldn't reach the ladder, try again.")}</p>}
+              {sent === "refused" && <p className={styles.err}>{t("Score non retenu : vagues passées trop vite.", "Score not kept: waves cleared too fast.")}</p>}
             </form>
           )}
           <div className={styles.overBtns}>

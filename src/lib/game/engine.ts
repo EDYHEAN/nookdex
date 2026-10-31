@@ -5459,7 +5459,8 @@ export class Game {
       g.text(ctx, label, SW / 2 + 1, 8, "gold", { align: "center" });
       const name = rank ? this.tr(...LIGUE_RANKS[rank - 1].name) : this.tr("ASPIRANT", "ROOKIE");
       const council = "●".repeat(this.council) + "○".repeat(4 - this.council);
-      g.text(ctx, `${name} ${"▮".repeat(rank)}${"▯".repeat(5 - rank)}  ${council}`, SW / 2, 15, "uiDim", { align: "center" });
+      // 2 px lower than the plain waves' line: it touched « LIGUE 312 » (Johan, 2026-10-31)
+      g.text(ctx, `${name} ${"▮".repeat(rank)}${"▯".repeat(5 - rank)}  ${council}`, SW / 2, 17, "uiDim", { align: "center" });
     } else if (this.wave === MAX_WAVE) {
       g.text(ctx, this.tr(`VAGUE ${MAX_WAVE} · FINALE`, `WAVE ${MAX_WAVE} · FINAL`), SW / 2, 8, "gold", { align: "center" });
     } else {
