@@ -123,6 +123,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
               </span>
             </p>
           )}
+          {/* a phone: three of them, the button comes up (the rest stays in the page, shown from a tablet up) */}
           <dl className={s.stats}>
             <div>
               <dt>{t("Cartes", "Cards")}</dt>
@@ -135,7 +136,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
               </div>
             )}
             {bestPrice != null && (
-              <div>
+              <div className={s.fromTablet}>
                 <dt>{t("La plus chère", "Top card")}</dt>
                 <dd>{money(bestPrice, p)}</dd>
               </div>
@@ -146,11 +147,11 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
                 <dd>{formatDate(p.set.releaseDate, lang)}</dd>
               </div>
             )}
-            <div>
+            <div className={s.fromTablet}>
               <dt>{t("Code", "Code")}</dt>
               <dd>{p.set.code}</dd>
             </div>
-            <div>
+            <div className={s.fromTablet}>
               <dt>{t("Série", "Series")}</dt>
               <dd>{p.set.serieName}</dd>
             </div>

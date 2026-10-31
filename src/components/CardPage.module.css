@@ -1,5 +1,7 @@
 /* A card's page (in WidePage): the card big beside its name and price, then its curve, its other versions, the FAQ */
 .hero {
+  /* under the shop pages' tabs (WidePage shop) */
+  margin-top: 22px;
   display: grid;
   grid-template-columns: minmax(220px, 380px) 1fr;
   gap: 32px 44px;

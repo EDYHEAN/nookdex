@@ -1459,3 +1459,10 @@
     height: 180px;
   }
 }
+
+/* the set's facts a phone leaves out (in the page still: a <dl> for search engines) */
+@media (max-width: 759px) {
+  .stats > .fromTablet {
+    display: none;
+  }
+}
