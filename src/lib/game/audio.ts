@@ -132,6 +132,25 @@ export const gsfx = {
   rare() {
     [12, 16, 19, 24, 28].forEach((n, i) => tone({ freq: semi(523, n), type: "sine", dur: 0.2, vol: 0.05, delay: i * 0.05, dest: out() }));
   },
+  /** a letter typed on the screen (the Panthéon's name) */
+  blip() {
+    if (!throttle("blip", 40)) return;
+    tone({ freq: 1175, type: "square", dur: 0.025, vol: 0.03, dest: out() });
+  },
+  /**
+   * The Panthéon's fanfare (2026-10-31: a name entered there is the game's biggest moment, so bigger than an evolution's):
+   * a drum roll, three rising brass calls, then the long major chord with its octave.
+   */
+  fanfare() {
+    for (let i = 0; i < 8; i++) noise({ dur: 0.06, vol: 0.05 + i * 0.008, type: "lowpass", freq: 700, delay: i * 0.06, dest: out() });
+    const at = 0.5;
+    [[0, 4, 7], [2, 5, 9], [4, 7, 11]].forEach((ch, i) =>
+      ch.forEach((n) => tone({ freq: semi(392, n), type: "square", dur: 0.13, vol: 0.03, delay: at + i * 0.18, dest: out() })),
+    );
+    [0, 4, 7, 12, 16].forEach((n) => tone({ freq: semi(523, n), type: "square", dur: 1.4, vol: 0.026, delay: at + 0.6, dest: out() }));
+    tone({ freq: 131, type: "triangle", dur: 1.4, vol: 0.1, delay: at + 0.6, dest: out() });
+    noise({ dur: 0.5, vol: 0.08, type: "highpass", freq: 4000, delay: at + 0.6, dest: out() });
+  },
 };
 
 /* ---------------- the music: a lofi chiptune loop, faster and darker in a boss wave ---------------- */

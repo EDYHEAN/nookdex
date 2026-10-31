@@ -704,6 +704,10 @@ export class Game {
   pactKept = false;
   /** the break after a boss is on (Center, levels, shop, then the 3-2-1) */
   private inBreak = false;
+  /** for the shell: its screens take no button for a moment after a boss (keys still held from the fight) */
+  get breakOn() {
+    return this.inBreak;
+  }
   private shopDone = false;
   countT = 0;
   private cardRng: () => number = Math.random;

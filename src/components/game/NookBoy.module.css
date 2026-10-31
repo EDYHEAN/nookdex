@@ -714,6 +714,408 @@
   margin-top: 4px;
 }
 
+/* pixel art in the menus (Pix): the crown's gold, its light, its outline; t is the text's colour (arrows, dots) */
+.pix {
+  display: inline-block;
+  flex: none;
+  vertical-align: baseline;
+}
+
+.px_k {
+  fill: var(--c0);
+}
+
+.px_y {
+  fill: #ffc93d;
+}
+
+.px_w {
+  fill: #fff6d0;
+}
+
+.px_t {
+  fill: currentColor;
+}
+
+/* DMG, Pocket, Lofi: the crown is c3 outlined c0 (gold would be a plain grey there) */
+.screen:not([data-palette="color"]) .px_y,
+.screen:not([data-palette="color"]) .px_w {
+  fill: var(--c3);
+}
+
+/* the ladder's page: « ◀ SAISON ▶ », its dots, the board, the hint line at the bottom */
+.lPage {
+  padding-bottom: 6px;
+}
+
+.ui h2.lTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.lTitle button,
+.lKeys button {
+  display: inline-flex;
+  padding: 1px 2px;
+  border: 0;
+  background: none;
+  color: var(--c3);
+  cursor: pointer;
+}
+
+.lTitle button:hover {
+  transform: translateY(-1px);
+}
+
+.lDots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 5px;
+  color: var(--c3);
+}
+
+.lDots button {
+  display: inline-flex;
+  padding: 1px;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.lDots button.on,
+.lDots button:hover {
+  opacity: 1;
+}
+
+.lKeys {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+}
+
+.lKeys button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.lKeys span {
+  cursor: pointer;
+}
+
+/* a name in the Panthéon (reached the last wave): its crown 2px before it, its row a little gold */
+.lName .pix {
+  margin-right: 2px;
+}
+
+.ladder li.crowned {
+  background: rgba(255, 201, 61, 0.22);
+}
+
+.screen:not([data-palette="color"]) .ladder li.crowned {
+  background: color-mix(in srgb, var(--c2) 45%, transparent);
+}
+
+.ladder li.me {
+  background: var(--c2);
+}
+
+.lStart .pix {
+  margin-right: 1px;
+}
+
+/* « Par Pokémon »: 2 by 5 tiles of 146x40 (sprite, the wave in gold, who holds it) */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 146px);
+  grid-auto-rows: 40px;
+  gap: 3px 4px;
+  justify-content: center;
+}
+
+.ui .tile {
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  grid-template-rows: 1fr 1fr;
+  align-items: center;
+  padding: 0 6px 0 2px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--c3);
+  box-shadow:
+    0 0 0 1px var(--c0),
+    inset 0 0 0 1px var(--c2);
+  color: var(--c0);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui .tile.on {
+  box-shadow:
+    0 0 0 1px var(--c0),
+    inset 0 0 0 2px var(--c1);
+  transform: translateY(-1px);
+}
+
+.tile .monMid {
+  grid-row: 1 / 3;
+  width: 34px;
+  height: 38px;
+}
+
+.tWave {
+  align-self: end;
+  font: 8px/10px var(--font-press), monospace;
+  color: #c98a00;
+}
+
+.screen:not([data-palette="color"]) .tWave {
+  color: var(--c0);
+}
+
+.tName {
+  align-self: start;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow: hidden;
+  font: 13px/12px var(--font-vt), monospace;
+  white-space: nowrap;
+  color: var(--c1);
+}
+
+.tName i {
+  margin-left: 4px;
+  font-style: normal;
+}
+
+.tile.on .tName {
+  color: var(--c0);
+}
+
+/* a locked starter: its silhouette and a ? */
+.tQ {
+  position: absolute;
+  z-index: 1;
+  left: 15px;
+  top: 15px;
+  font: 8px/1 var(--font-press), monospace;
+  color: var(--c3);
+  text-shadow:
+    1px 0 var(--c0),
+    -1px 0 var(--c0),
+    0 1px var(--c0),
+    0 -1px var(--c0);
+}
+
+/* a silhouette: locked, or nobody played it yet */
+.shadow span {
+  filter: brightness(0);
+  opacity: 0.55;
+}
+
+/* the Panthéon: a podium for the first three, then the rows */
+.hall {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 6px;
+  overflow: hidden;
+}
+
+.podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.place {
+  width: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.place .monMid {
+  width: 34px;
+  height: 30px;
+}
+
+.pName {
+  max-width: 84px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 13px/12px var(--font-vt), monospace;
+}
+
+.pTime {
+  font: 12px/11px var(--font-vt), monospace;
+  color: var(--c1);
+}
+
+.pFree {
+  margin-bottom: 3px;
+  font: 8px/1 var(--font-press), monospace;
+  color: var(--c1);
+}
+
+.step {
+  width: 100%;
+  margin-top: 2px;
+  padding-top: 4px;
+  border-radius: 2px 2px 0 0;
+  background: var(--c2);
+  box-shadow: inset 0 0 0 1px var(--c1);
+  font: 8px/1 var(--font-press), monospace;
+  text-align: center;
+  color: var(--c0);
+}
+
+.place.me .step {
+  background: var(--c1);
+  color: var(--c3);
+}
+
+.pTeaser {
+  margin: 0;
+  font: 13px/1 var(--font-vt), monospace;
+  text-align: center;
+  color: var(--c1);
+}
+
+.monMid {
+  position: relative;
+  width: 26px;
+  height: 24px;
+  flex: none;
+}
+
+/* « NOUVEAU RECORD ! » on the game over: a stamp, askew, between the ladder's five rows and the buttons */
+.stamp {
+  position: absolute;
+  z-index: 2;
+  top: 186px;
+  left: 0;
+  right: 0;
+  width: max-content;
+  margin: 0 auto;
+  padding: 3px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border-radius: 3px;
+  background: var(--c3);
+  box-shadow:
+    0 0 0 2px var(--c0),
+    inset 0 0 0 1px var(--c1);
+  pointer-events: none;
+}
+
+.stamp b {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font: 8px/10px var(--font-press), monospace;
+  font-weight: normal;
+  color: #c98a00;
+}
+
+.stamp span {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font: 16px/16px var(--font-press), monospace;
+  color: var(--c0);
+}
+
+.screen:not([data-palette="color"]) .stamp b {
+  color: var(--c0);
+}
+
+/* a name entered in the Panthéon: the screen dims, a crown drops, the name is typed */
+.crowning {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: color-mix(in srgb, var(--c0) 82%, transparent);
+  cursor: pointer;
+  animation: crownShake 0.35s steps(4) 0.5s;
+}
+
+@keyframes crownShake {
+  25% {
+    transform: translate(-3px, 1px);
+  }
+  50% {
+    transform: translate(3px, -1px);
+  }
+  75% {
+    transform: translate(-2px, 0);
+  }
+}
+
+.cCrown {
+  line-height: 0;
+}
+
+.cName {
+  min-height: 10px;
+  margin: 0;
+  font: 8px/10px var(--font-press), monospace;
+  color: #ffc93d;
+}
+
+.screen:not([data-palette="color"]) .cName {
+  color: var(--c3);
+}
+
+.cRank {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font: 8px/10px var(--font-press), monospace;
+  color: var(--c3);
+}
+
+.cRank b {
+  font: 24px/24px var(--font-press), monospace;
+  font-weight: normal;
+}
+
+.crowning .keys {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  right: 0;
+}
+
+.monMid span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  image-rendering: pixelated;
+}
+
 .mini {
   position: relative;
   width: 14px;

@@ -39,6 +39,35 @@ export async function topScores(mode: Mode = "classic", period: Period = "season
   return old.error ? null : (old.data as Score[]);
 }
 
+/** the best run with each starter, all time (game_records, v7); null while that function isn't in Supabase yet: no tab then */
+export async function starterRecords(mode: Mode = "classic"): Promise<Score[] | null> {
+  const { data, error } = await supabase.rpc("game_records", { p_mode: mode });
+  return error ? null : (data as Score[]);
+}
+
+/** a name in the Panthéon: its first classic run to the last wave */
+export interface Legend {
+  name: string;
+  starter: number;
+  seconds: number;
+  created_at: string;
+  start: number;
+}
+let hall: Promise<Legend[] | null> | null = null;
+/**
+ * The Panthéon: everyone who reached the classic's last wave, earliest first (game_hall, v7), for the crowns, its tab and
+ * the Game Boy's bubble. Asked once a visit (it hardly changes), again after a run sent there; null while the function
+ * isn't in Supabase yet: no crown, no tab.
+ */
+export function legends(fresh = false): Promise<Legend[] | null> {
+  if (!hall || fresh)
+    hall = (async () => {
+      const { data, error } = await supabase.rpc("game_hall");
+      return error ? null : (data as Legend[]);
+    })().catch(() => null);
+  return hall;
+}
+
 /**
  * The signed-in player's rewards (table game_rewards, docs/supabase.sql: each player reads only their own rows, given by
  * hand), e.g. "skin-mewtwo". None without an account.

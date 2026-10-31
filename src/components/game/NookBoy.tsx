@@ -10,7 +10,7 @@ import { gsfx, music } from "@/lib/game/audio";
 import { DEFI_WINS_KEY, Game, MAX_WAVE, TIERS, dailyOf, dailyReward, pickAt, tierLevel, tierPicks, today, type Choice, type FireMode, type Mode, type Phase } from "@/lib/game/engine";
 import { DEFI_FROM, DEFI_WAVES, DEFI_WIN_GOLD, defiOf, defiWaveGold } from "@/lib/game/defi";
 import { ATLAS_URL, Gfx, PALETTES, SH, SPRITES, SW, anim, loadAtlas } from "@/lib/game/gfx";
-import { lastName, myRewards, submitScore, topScores, type Period, type Score } from "@/lib/game/scores";
+import { lastName, legends, myRewards, starterRecords, submitScore, topScores, type Legend, type Period, type Score } from "@/lib/game/scores";
 import { PURSE_CAP, bestWave, buyLevel, reachStarterWave, reachWave, setGold, usePension, wonDefi } from "@/lib/pensionStore";
 import { unlock } from "@/lib/trophyStore";
 import { startAmbient, stopAmbient } from "@/lib/sound";
@@ -27,19 +27,41 @@ interface Props {
 
 type Screen = "boot" | "menu" | "ladder" | "options" | "credits" | "daily" | "guide";
 
-/** the ladder's boards */
-/** a ladder page: what the Game Boy screen holds without scrolling */
+/** a ladder page: what the Game Boy screen holds without scrolling (the Panthéon's first page has its podium on top) */
 const LADDER_ROWS = 15;
-const BOARDS: { mode: Mode; period: Period; label: [string, string] }[] = [
-  { mode: "classic", period: "season", label: ["Saison", "Season"] },
-  { mode: "daily", period: "day", label: ["Défi du jour", "Daily"] },
-  { mode: "classic", period: "all", label: ["Tout temps", "All time"] },
-  { mode: "coop", period: "season", label: ["Coop", "Coop"] },
+const HALL_FIRST = 8;
+/** the Panthéon's pages: the podium and the next 8, then 15 a page */
+const hallPages = (n: number) => 1 + Math.ceil(Math.max(0, n - 3 - HALL_FIRST) / LADDER_ROWS);
+/** a Panthéon entry's page */
+const hallPageOf = (i: number) => (i < 3 + HALL_FIRST ? 0 : 1 + Math.floor((i - 3 - HALL_FIRST) / LADDER_ROWS));
+/**
+ * The ladder's views, one at a time under a « ◀ SAISON ▶ » title and a row of dots (six tabs don't fit the screen); then
+ * the honours (2026-10-31): the record with each Pokémon, and the Panthéon of the runs that reached the last wave. Those
+ * two show once their Supabase functions answer (v7 in docs/supabase.sql), never before. Labels without accents: the
+ * pixel font has no accented capitals.
+ */
+const BOARDS: { mode: Mode; period: Period; label: [string, string]; view?: "records" | "hall" }[] = [
+  { mode: "classic", period: "season", label: ["SAISON", "SEASON"] },
+  { mode: "daily", period: "day", label: ["DEFI DU JOUR", "DAILY"] },
+  { mode: "classic", period: "all", label: ["TOUT TEMPS", "ALL TIME"] },
+  { mode: "coop", period: "season", label: ["COOP", "CO-OP"] },
+  { mode: "classic", period: "all", label: ["PAR POKEMON", "BY POKEMON"], view: "records" },
+  { mode: "classic", period: "all", label: ["PANTHEON", "HALL OF FAME"], view: "hall" },
 ];
+/**
+ * Each board as last fetched this visit, and the one asked last: switching views shows it at once (no "Connecting…"), then
+ * refreshes it (outside React: the menus' closures read it)
+ */
+const ladderCache = new Map<number, Score[] | null>();
+const asked = { board: 0 };
+/** the records' grid: 2 columns of 5 */
+const TILE_COLS = 2;
 /** the daily challenge replaced the old daily on DEFI_FROM (UTC day): its board, its screen, its runs */
 const defiNow = () => today() >= DEFI_FROM;
 const boardOf = (i: number) => (BOARDS[i].mode === "daily" && defiNow() ? { ...BOARDS[i], mode: "defi" as Mode } : BOARDS[i]);
 const fmtTime = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+/** a whole run's time: an hour and more reads 1h41 */
+const fmtRun = (sec: number) => (sec < 3600 ? fmtTime(sec) : `${Math.floor(sec / 3600)}h${String(Math.floor((sec % 3600) / 60)).padStart(2, "0")}`);
 /** the title menu's entries, by screen: where B comes back to */
 const MENU_INDEX: Partial<Record<Screen, number>> = { daily: 2, ladder: 3, guide: 5, options: 6, credits: 7 };
 type Button = "up" | "down" | "left" | "right" | "a" | "b" | "start" | "select";
@@ -101,11 +123,36 @@ export default function NookBoy({ origin, onClose }: Props) {
   const [sent, setSent] = useState<"idle" | "sending" | "error" | number>("idle");
   const [ladder, setLadder] = useState<Score[] | null | "loading">("loading");
   const [ladderPage, setLadderPage] = useState(0);
+  const [board, setBoard] = useState(0);
+  /** the Panthéon (its crowns on every board) and whether the records answer: null, their functions aren't there yet */
+  const [hall, setHall] = useState<Legend[] | null>(null);
+  const [recordsOk, setRecordsOk] = useState(false);
+  /** the ladder's tabs, those two once they answer */
+  const shown = BOARDS.map((_, i) => i).filter((i) => BOARDS[i].view !== "records" || recordsOk).filter((i) => BOARDS[i].view !== "hall" || !!hall);
+  const crowns = useMemo(() => new Set(hall?.map((h) => h.name.toLowerCase())), [hall]);
+  /** a name blinking in the Panthéon (just entered) */
+  const [blink, setBlink] = useState<string | null>(null);
+  /** a name just entered in the Panthéon: the crowning screen over the game over, its letters typed one by one */
+  const [crowning, setCrowning] = useState<{ name: string; rank: number } | null>(null);
+  const [typed, setTyped] = useState(0);
+  /** the game over's « NOUVEAU RECORD ! » (the best wave overall, or with that starter), its wave counting up */
+  const [record, setRecord] = useState<{ dex?: number; from: number; to: number } | null>(null);
+  const [recShown, setRecShown] = useState(0);
+  /** after a boss (its break, the game over) the buttons wait a moment: keys held through the fight skip nothing */
+  const lockUntil = useRef(0);
+  const locked = () => performance.now() < lockUntil.current;
+  /**
+   * The records' tiles: every starter of the select screen (a silhouette while it's locked for this player), then any
+   * other one with a record (Mewtwo, Gengar: given by hand), each with its best run if there's one
+   */
+  const recordRows = BOARDS[board].view === "records" && Array.isArray(ladder) ? ladder : [];
+  const tiles = (g?.roster ?? []).map((s, i) => ({ dex: s.dex, at: i, locked: !!g?.locked(i) }));
+  for (const r of recordRows) if (!tiles.some((x) => x.dex === r.starter)) tiles.push({ dex: r.starter, at: -1, locked: true });
+  const bestOf = (dex: number) => recordRows.find((r) => r.starter === dex);
   /** the guide's tab and page */
   const [guide, setGuide] = useState({ tab: 0, page: 0 });
   /** the guide opened from the pause (Johan, 2026-10-20: what goes with what, mid-run) */
   const [pauseGuide, setPauseGuide] = useState(false);
-  const [board, setBoard] = useState(0);
   /** the Pension's screen, open over the menu or the game over: it spends the purse */
   const [pension, setPension] = useState(false);
   /** the Pension's grid scrolls: how many tiles are still out of sight below (its "▼ 6 more" chip) */
@@ -249,17 +296,36 @@ export default function NookBoy({ origin, onClose }: Props) {
     saveOpts({ ...opts, palette: stepPalette(1) });
   };
 
-  const openLadder = async (i = board) => {
+  useEffect(() => {
+    void legends().then(setHall);
+  }, []);
+  /** opens a board on the page with the player's own name, else the top; `fresh`: a run was just sent, no cached rows */
+  const openLadder = async (i = board, fresh = false) => {
     setBoard(i);
-    setLadder("loading");
+    asked.board = i;
     const b = boardOf(i);
-    const rows = await topScores(b.mode, b.period, b.period === "day" ? today() : undefined);
+    const mine = (rows: { name: string }[] | null | undefined, pageOf: (i: number) => number) => {
+      const me = rows?.findIndex((r) => r.name.toLowerCase() === lastName("").trim().toLowerCase()) ?? -1;
+      setLadderPage(me > 0 ? pageOf(me) : 0);
+    };
+    const byRows = (i: number) => Math.floor(i / LADDER_ROWS);
+    if (b.view !== "hall") setBlink(null);
+    // the records are asked with the first board (their tab shows once they answer); the Panthéon is drawn from `hall`
+    if (!b.view && !recordsOk) void starterRecords(b.mode).then((r) => setRecordsOk(!!r));
+    if (b.view === "hall") return mine(hall, hallPageOf);
+    if (b.view === "records") setCursor(0);
+    const cached = fresh ? undefined : ladderCache.get(i);
+    setLadder(cached === undefined ? "loading" : cached);
+    if (cached !== undefined) mine(cached, byRows);
+    const rows = b.view === "records" ? await starterRecords(b.mode) : await topScores(b.mode, b.period, b.period === "day" ? today() : undefined);
+    ladderCache.set(i, rows);
+    // another tab was opened meanwhile: it keeps the screen
+    if (asked.board !== i) return;
     setLadder(rows);
-    // opens on the page with the player's own name, else the top
-    const me = rows?.findIndex((r) => r.name.toLowerCase() === lastName("").trim().toLowerCase()) ?? -1;
-    setLadderPage(me > 0 ? Math.floor(me / LADDER_ROWS) : 0);
+    if (cached === undefined && b.view !== "records") mine(rows, byRows);
   };
-  const ladderPages = Array.isArray(ladder) ? Math.max(1, Math.ceil(ladder.length / LADDER_ROWS)) : 1;
+  const ladderPages =
+    BOARDS[board].view === "hall" ? hallPages(hall?.length ?? 0) : BOARDS[board].view === "records" ? 1 : Array.isArray(ladder) ? Math.max(1, Math.ceil(ladder.length / LADDER_ROWS)) : 1;
   const turnLadder = (d: number) => {
     const next = Math.min(ladderPages - 1, Math.max(0, ladderPage + d));
     if (next === ladderPage) return gsfx.back();
@@ -277,6 +343,9 @@ export default function NookBoy({ origin, onClose }: Props) {
     setPension(false);
     setBonusTaken(false);
     setFresh([]);
+    setRecord(null);
+    setCrowning(null);
+    fails.current = 0;
     unlock("game-first");
     settled.current = false;
     const st = usePension.getState();
@@ -316,6 +385,14 @@ export default function NookBoy({ origin, onClose }: Props) {
     }
     setGold(gold);
     if (g.setup.mode === "classic" || g.setup.mode === "coop") {
+      // « NOUVEAU RECORD ! » at the game over: past the best wave so far, else past this starter's (a first run sets none)
+      const wave = run?.wave ?? g.wave;
+      const dex = g.players[0].starter.dex;
+      const all = bestWave(st.levels), mine = st.levels[`w${dex}`] ?? 0;
+      if (g.phase === "over" && wave > (g.setup.start ?? 1)) {
+        if (all && wave > all) setRecord({ from: all, to: wave });
+        else if (mine && wave > mine) setRecord({ dex, from: mine, to: wave });
+      }
       reachWave(run?.wave ?? g.wave);
       // each starter's best wave (the engine's: the console may be put away mid-run), if it played past its start tier
       if (g.wave > (g.setup.start ?? 1)) for (const p of g.players) reachStarterWave(p.starter.dex, g.wave);
@@ -413,6 +490,36 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (!eng) return;
     const p = eng.phase;
     if (b === "select") return cyclePalette();
+    if ((b === "a" || b === "b" || b === "start") && locked()) return;
+    // the crowning: A opens the Panthéon on the new name, B leaves it for the game over
+    if (crowning) {
+      if (b === "a" || b === "start") return toHall();
+      if (b === "b") {
+        gsfx.back();
+        setCrowning(null);
+      }
+      return;
+    }
+    if (p === "over" && !pension) {
+      if (b === "a" || b === "start") overA();
+      return;
+    }
+    if (p === "title" && screen === "ladder" && BOARDS[board].view === "records" && Array.isArray(ladder) && tiles.length) {
+      // the tiles: arrows move between them (past the grid's side, the next tab), A to beat that record
+      const n = tiles.length;
+      const edge = (b === "left" && cursor % TILE_COLS === 0) || (b === "right" && (cursor % TILE_COLS === TILE_COLS - 1 || cursor === n - 1));
+      if (!edge && (b === "left" || b === "right")) {
+        gsfx.move();
+        return setCursor((c) => c + (b === "left" ? -1 : 1));
+      }
+      if (b === "up" || b === "down") {
+        const next = cursor + (b === "up" ? -TILE_COLS : TILE_COLS);
+        if (next < 0 || next >= n) return gsfx.back();
+        gsfx.move();
+        return setCursor(next);
+      }
+      if (b === "a") return beat(cursor);
+    }
     if (pension) {
       const n = PENSION.length + OBJECTS.length;
       if (b === "left" || b === "right") {
@@ -452,7 +559,8 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (p === "title" && screen === "ladder" && (b === "up" || b === "down")) return turnLadder(b === "up" ? -1 : 1);
     if (p === "title" && screen === "ladder" && (b === "left" || b === "right")) {
       gsfx.move();
-      return void openLadder((board + (b === "left" ? -1 : 1) + BOARDS.length) % BOARDS.length);
+      const k = Math.max(0, shown.indexOf(board));
+      return void openLadder(shown[(k + (b === "left" ? -1 : 1) + shown.length) % shown.length]);
     }
     if (p === "title" && screen === "daily" && (b === "a" || b === "start")) return startRun("daily");
     if (p === "shop" && eng.swapMode) {
@@ -614,8 +722,32 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (!g || g.phase !== "over" || !run) return;
     gsfx.ok();
     setSent("idle");
+    setRecord(null);
     if (run.mode === "daily" || run.mode === "defi") startRun("daily");
     else g.toSelect();
+  };
+
+  /** a record's tile: « Battre ce record », the starter screen on that Pokémon (a locked one says no) */
+  const beat = (k: number) => {
+    const tl = tiles[k];
+    if (!g || !tl || tl.locked || tl.at < 0) return gsfx.back();
+    gsfx.ok();
+    setCursor(0);
+    setSelectMode("classic");
+    setScreen("menu");
+    g.select(tl.at);
+    g.toSelect();
+  };
+  /** from the crowning: the Panthéon, on the new name (blinking) */
+  const toHall = () => {
+    if (!g) return;
+    gsfx.ok();
+    setCrowning(null);
+    music.stop();
+    g.set("title");
+    setBlink(crowning?.name.toLowerCase() ?? null);
+    setScreen("ladder");
+    void openLadder(BOARDS.findIndex((b) => b.view === "hall"));
   };
 
   /** the guide, from the menu or from the pause: its keys line says where B goes back to */
@@ -672,19 +804,55 @@ export default function NookBoy({ origin, onClose }: Props) {
     setScreen("menu");
   };
 
+  /** the run's tries at the ladder: after two failures A plays again (the ladder is out of reach, not the player's fault) */
+  const fails = useRef(0);
   const send = async () => {
     const run = g?.lastStats;
     if (!run || sent === "sending" || typeof sent === "number") return;
     setSent("sending");
-    const rank = await submitScore(name.trim() || t("Dresseur", "Trainer"), run);
+    const who = name.trim() || t("Dresseur", "Trainer");
+    const rank = await submitScore(who, run);
     setSent(rank ?? "error");
     if (rank != null) {
       if (rank <= 3) unlock("game-top3");
       // the challenge's rank is the day's board
       if (rank === 1 && run.mode === "defi") unlock("defi-top1");
       gsfx.ok();
-      void openLadder(run.mode === "coop" ? 3 : run.mode === "classic" ? 0 : 1);
-    } else gsfx.back();
+      ladderCache.clear();
+      // the last wave reached: the Panthéon again, its crown on the board at once; a name new there is crowned (once: a
+      // run is sent once)
+      if (run.mode === "classic" && run.wave >= MAX_WAVE) {
+        const was = crowns.has(who.toLowerCase());
+        void legends(true).then((list) => {
+          setHall(list);
+          const at = list?.findIndex((h) => h.name.toLowerCase() === who.toLowerCase()) ?? -1;
+          if (was || at < 0) return;
+          setTyped(0);
+          setCrowning({ name: list![at].name, rank: at + 1 });
+          lockUntil.current = performance.now() + 1200;
+          gsfx.fanfare();
+        });
+      }
+      void openLadder(run.mode === "coop" ? 3 : run.mode === "classic" ? 0 : 1, true);
+    } else {
+      fails.current++;
+      gsfx.back();
+    }
+  };
+  /**
+   * A at the game over (Johan's players lost 2-hour runs to it, 2026-10-31: A played again before the score was sent):
+   * the score first. Not sent yet: A sends it (an empty name: A puts the cursor in the field first); sent, or out of reach
+   * twice, A plays again.
+   */
+  const nameField = useRef<HTMLInputElement>(null);
+  const overA = () => {
+    if (typeof sent === "number" || fails.current >= 2) return replay();
+    if (sent === "sending") return;
+    if (!name.trim() && document.activeElement !== nameField.current) {
+      gsfx.move();
+      return nameField.current?.focus();
+    }
+    void send();
   };
 
   /* ---------------- keyboard and mouse ---------------- */
@@ -692,16 +860,43 @@ export default function NookBoy({ origin, onClose }: Props) {
   const pressRef = useRef(press);
   const pensionOpen = useRef(false);
   const settleRef = useRef(settle);
-  const replayRef = useRef(replay);
+  const sendRef = useRef(send);
   useEffect(() => {
     pressRef.current = press;
     pensionOpen.current = pension;
     settleRef.current = settle;
-    replayRef.current = replay;
+    sendRef.current = send;
   });
   useEffect(() => {
-    if (phase === "over") settleRef.current();
+    // a boss's break and the game over wait a moment for the buttons (keys held through the fight)
+    if (phase === "over" || phase === "shop" || (phase === "levelup" && g?.breakOn)) lockUntil.current = performance.now() + 1200;
+    if (phase === "over") {
+      settleRef.current();
+      // a name remembered on this device: the score goes to the ladder by itself (the board keeps each name's best run).
+      // Coop runs wait for their pair of names.
+      if (g?.lastStats && g.lastStats.mode !== "coop" && lastName("").trim()) void sendRef.current();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
+  // the crowning types its name, a blip a letter, once the crown has landed
+  useEffect(() => {
+    if (!crowning || typed >= crowning.name.length) return;
+    const id = setTimeout(() => (gsfx.blip(), setTyped((n) => n + 1)), typed ? 90 : 1300);
+    return () => clearTimeout(id);
+  }, [crowning, typed]);
+  // « NOUVEAU RECORD ! »: its wave counts up from the old best, a coin's ding a step
+  useEffect(() => {
+    if (!record) return;
+    const steps = Math.min(20, record.to - record.from);
+    let k = 0;
+    const id = setInterval(() => {
+      k++;
+      gsfx.coin();
+      setRecShown(Math.round(record.from + ((record.to - record.from) * k) / steps));
+      if (k >= steps) clearInterval(id);
+    }, 60);
+    return () => clearInterval(id);
+  }, [record]);
   useEffect(() => () => settleRef.current(), []);
   useEffect(() => {
     if (!g) return;
@@ -722,6 +917,8 @@ export default function NookBoy({ origin, onClose }: Props) {
       if (b || /^Digit[1-5]$/.test(e.code) || e.code === "KeyM") e.preventDefault();
       set(e.code, true);
       if (e.repeat) return;
+      // after a boss (its break, the game over): no choice by a key still held from the fight
+      if (eng.phase !== "play" && locked() && (b === "a" || b === "b" || b === "start" || /^Digit|^Key[RX]$/.test(e.code))) return;
       if (e.code === "KeyR" && eng.phase === "levelup") return eng.reroll();
       if (e.code === "KeyX" && eng.phase === "levelup") return eng.skip();
       if (/^Digit[1-5]$/.test(e.code)) {
@@ -736,9 +933,10 @@ export default function NookBoy({ origin, onClose }: Props) {
       const inRun = eng.phase === "play";
       if (inRun && (e.code === "Enter" || e.code === "Escape" || e.code === "KeyP")) return pressRef.current("start");
       if (inRun && b !== "select") return;
-      // the game over has its own buttons (and the name field); its Pension screen takes the keys. A (Enter) plays again.
+      // the game over has its own buttons (and the name field); its Pension screen takes the keys. A (Enter) sends the
+      // score, then plays again (press: overA); the crowning over it takes A and B
       if (eng.phase === "over" && !pensionOpen.current) {
-        if (b === "a") replayRef.current();
+        if (b === "a" || b === "b") pressRef.current(b);
         return;
       }
       pressRef.current(b);
@@ -938,34 +1136,73 @@ export default function NookBoy({ origin, onClose }: Props) {
         );
       }
       if (screen === "guide") return guideView(["retour", "back"]);
-      if (screen === "ladder")
+      if (screen === "ladder") {
+        const view = BOARDS[board].view;
+        const at = Math.max(0, shown.indexOf(board));
+        const turnView = (d: number) => (gsfx.move(), void openLadder(shown[(at + d + shown.length) % shown.length]));
         return (
-          <div className={styles.page}>
-            <h2>{t("CLASSEMENT", "LADDER")}</h2>
-            <div className={styles.tabs}>
-              {BOARDS.map((bd, i) => (
-                <button key={i} className={i === board ? styles.on : ""} onClick={() => (gsfx.move(), void openLadder(i))}>
-                  {say(bd.label, lang)}
+          <div className={`${styles.page} ${styles.lPage}`}>
+            <h2 className={styles.lTitle}>
+              <button onPointerEnter={() => gsfx.move()} onClick={() => turnView(-1)} aria-label={t("Vue précédente", "Previous view")}>
+                <Pix art="left" />
+              </button>
+              <span>{say(BOARDS[board].label, lang)}</span>
+              <button onPointerEnter={() => gsfx.move()} onClick={() => turnView(1)} aria-label={t("Vue suivante", "Next view")}>
+                <Pix art="right" />
+              </button>
+            </h2>
+            <div className={styles.lDots}>
+              {shown.map((i) => (
+                <button key={i} className={i === board ? styles.on : ""} aria-label={say(BOARDS[i].label, lang)} onPointerEnter={() => gsfx.move()} onClick={() => (gsfx.ok(), void openLadder(i))}>
+                  <Pix art={BOARDS[i].view === "hall" ? "crown" : i === board ? "dotOn" : "dotOff"} />
                 </button>
               ))}
             </div>
-            <Ladder
-              rows={ladder}
-              nameOf={nameOf}
-              t={t}
-              highlight={lastName("")}
-              timed={boardOf(board).mode === "defi"}
-              page={ladderPage}
-              pages={ladderPages}
-              onTurn={turnLadder}
-            />
-            <p className={styles.keys} onClick={() => press("b")}>
-              {ladderPages > 1
-                ? t("◀ ▶ changer · ▲ ▼ pages · B : retour", "◀ ▶ switch · ▲ ▼ pages · B: back")
-                : t("◀ ▶ changer · B : retour", "◀ ▶ switch · B: back")}
+            {view === "hall" ? (
+              <Hall rows={hall} nameOf={nameOf} t={t} lang={lang} highlight={blink ?? lastName("")} blink={!!blink} page={ladderPage} onTurn={turnLadder} />
+            ) : view === "records" && Array.isArray(ladder) ? (
+              <Records
+                tiles={tiles}
+                bestOf={bestOf}
+                cursor={cursor}
+                crowns={crowns}
+                nameOf={nameOf}
+                t={t}
+                onHover={(k) => k !== cursor && (gsfx.move(), setCursor(k))}
+                onPick={beat}
+              />
+            ) : (
+              <Ladder
+                rows={ladder}
+                nameOf={nameOf}
+                t={t}
+                highlight={lastName("")}
+                timed={boardOf(board).mode === "defi"}
+                crowns={crowns}
+                page={ladderPage}
+                pages={ladderPages}
+                onTurn={turnLadder}
+              />
+            )}
+            <p className={`${styles.keys} ${styles.lKeys}`}>
+              {ladderPages > 1 && (
+                <>
+                  <button disabled={ladderPage === 0} onClick={() => turnLadder(-1)} aria-label={t("Page précédente", "Previous page")}>
+                    <Pix art="up" />
+                  </button>
+                  {ladderPage + 1}/{ladderPages}
+                  <button disabled={ladderPage >= ladderPages - 1} onClick={() => turnLadder(1)} aria-label={t("Page suivante", "Next page")}>
+                    <Pix art="down" />
+                  </button>
+                  {" · "}
+                </>
+              )}
+              {view === "records" && <span onClick={() => beat(cursor)}>{t("A : battre · ", "A: beat it · ")}</span>}
+              <span onClick={() => press("b")}>{t("B : retour", "B: back")}</span>
             </p>
           </div>
         );
+      }
       return (
         <div className={styles.page}>
           <h2>{t("CRÉDITS", "CREDITS")}</h2>
@@ -1345,6 +1582,45 @@ export default function NookBoy({ origin, onClose }: Props) {
     if (phase === "over" && run)
       return (
         <div className={styles.over}>
+          {record && (
+            // past the best wave: a stamp, its wave counting up (with that starter's sprite for its own record)
+            <motion.p
+              className={styles.stamp}
+              initial={{ scale: 2.4, opacity: 0, rotate: -14 }}
+              animate={{ scale: 1, opacity: 1, rotate: -6 }}
+              transition={{ type: "spring", stiffness: 420, damping: 14 }}
+            >
+              <b>
+                <Pix art="star" />
+                {t("NOUVEAU RECORD !", "NEW RECORD!")}
+              </b>
+              <span>
+                {record.dex && <Mini dex={record.dex} label={nameOf(record.dex)} />}
+                {t("V.", "W")}
+                {recShown || record.from}
+              </span>
+            </motion.p>
+          )}
+          {crowning && (
+            <div className={styles.crowning} onClick={() => press("a")}>
+              <motion.div
+                className={styles.cCrown}
+                initial={{ y: -120 }}
+                animate={{ y: [-120, 0, -18, 0, -5, 0] }}
+                transition={{ duration: 1.1, times: [0, 0.45, 0.62, 0.78, 0.9, 1], ease: "easeIn" }}
+              >
+                <Pix art="crown" scale={6} />
+              </motion.div>
+              <p className={styles.cName}>{crowning.name.slice(0, typed)}</p>
+              {typed >= crowning.name.length && (
+                <motion.p className={styles.cRank} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 12 }}>
+                  <b>{t(`${crowning.rank}`, `#${crowning.rank}`)}</b>
+                  {t(crowning.rank === 1 ? "ER AU PANTHEON" : "E AU PANTHEON", "IN THE HALL OF FAME")}
+                </motion.p>
+              )}
+              <p className={styles.keys}>{t("A : voir le Panthéon · B : retour", "A: see the hall · B: back")}</p>
+            </div>
+          )}
           <p className={`${styles.box} ${styles.ko}`}>
             {run.won
               ? run.mode === "defi"
@@ -1406,7 +1682,7 @@ export default function NookBoy({ origin, onClose }: Props) {
           {typeof sent === "number" ? (
             <>
               <p className={styles.rank}>{sent <= 3 ? t(`★ ${sent}e du classement ! ★`, `★ #${sent} on the ladder! ★`) : t(`${sent}e du classement`, `#${sent} on the ladder`)}</p>
-              <Ladder rows={ladder} nameOf={nameOf} t={t} small highlight={name.trim()} timed={run.mode === "defi"} />
+              <Ladder rows={ladder} nameOf={nameOf} t={t} small highlight={name.trim()} timed={run.mode === "defi"} crowns={crowns} />
             </>
           ) : (
             <form
@@ -1419,6 +1695,7 @@ export default function NookBoy({ origin, onClose }: Props) {
               <label>
                 {t("Ton pseudo", "Your name")}
                 <input
+                  ref={nameField}
                   value={name}
                   maxLength={run.mode === "coop" ? 35 : 16}
                   onChange={(e) => setName(e.target.value)}
@@ -1852,8 +2129,33 @@ function combosOf(g: Game) {
 /* ---------------- the ladder ---------------- */
 
 /**
+ * Pixel art for the menus: the fonts have no ✓ ♛ ↱ ▲ (the browser draws them blurry from another font). Rows of letters,
+ * k the outline, y gold, w its light, t the text's own colour; drawn one game pixel a dot.
+ */
+const PIX_ART = {
+  crown: [".k.k.k.", "kykykyk", "kyyyyyk", "kywyyyk", "kkkkkkk"],
+  star: ["...k...", "..kyk..", "kkyyykk", ".kyyyk.", "..kyk..", ".kykyk.", ".kk.kk."],
+  left: ["..t", ".tt", "ttt", ".tt", "..t"],
+  right: ["t..", "tt.", "ttt", "tt.", "t.."],
+  up: ["..t..", ".ttt.", "ttttt"],
+  down: ["ttttt", ".ttt.", "..t.."],
+  from: ["..t..", ".ttt.", "t.t.t", "..t..", "ttt.."],
+  dotOn: [".tt.", "tttt", "tttt", ".tt."],
+  dotOff: [".tt.", "t..t", "t..t", ".tt."],
+} as const;
+function Pix({ art, scale = 1 }: { art: keyof typeof PIX_ART; scale?: number }) {
+  const rows = PIX_ART[art];
+  const w = rows[0].length, h = rows.length;
+  return (
+    <svg className={styles.pix} width={w * scale} height={h * scale} viewBox={`0 0 ${w} ${h}`} shapeRendering="crispEdges" aria-hidden>
+      {rows.flatMap((r, y) => [...r].map((c, x) => (c === "." ? null : <rect key={`${x}.${y}`} x={x} y={y} width={1} height={1} className={styles[`px_${c}`]} />)))}
+    </svg>
+  );
+}
+
+/**
  * A board, page by page like the games' menus (a scrollbar on the Game Boy's screen looked out of place): ▲ ▼ or the wheel
- * turn the pages, the player's own row stands out.
+ * turn the pages (the hint line under it), the player's own row stands out, a Panthéon name wears its crown.
  */
 function Ladder(props: {
   rows: Score[] | null | "loading";
@@ -1862,11 +2164,13 @@ function Ladder(props: {
   small?: boolean;
   highlight?: string;
   timed?: boolean;
+  /** the Panthéon's names (lowercase): a crown before them, their row tinted */
+  crowns?: Set<string>;
   page?: number;
   pages?: number;
   onTurn?: (d: number) => void;
 }) {
-  const { rows, nameOf, t, small, highlight, timed, page = 0, pages = 1, onTurn } = props;
+  const { rows, nameOf, t, small, highlight, timed, crowns, page = 0, pages = 1, onTurn } = props;
   if (rows === "loading") return <p className={`${styles.box} ${styles.blink}`}>{t("Connexion…", "Connecting…")}</p>;
   if (!rows) return <p className={styles.box}>{t("Classement indisponible pour l'instant.", "The ladder is unavailable for now.")}</p>;
   if (!rows.length) return <p className={styles.box}>{t("Personne encore : à toi d'ouvrir le bal !", "Nobody yet: be the first!")}</p>;
@@ -1877,55 +2181,181 @@ function Ladder(props: {
     >
       {(small ? rows.slice(0, 5) : rows.slice(page * LADDER_ROWS, (page + 1) * LADDER_ROWS)).map((r, k) => {
         const i = small ? k : page * LADDER_ROWS + k;
+        const crowned = crowns?.has(r.name.toLowerCase());
+        const me = highlight && r.name.toLowerCase() === highlight.trim().toLowerCase();
         return (
-        <li key={`${r.name}${i}`} className={highlight && r.name.toLowerCase() === highlight.trim().toLowerCase() ? styles.me : ""}>
-          <span className={styles.lRank}>{i + 1}</span>
-          <Mini dex={r.starter} label={nameOf(r.starter)} />
-          <span className={styles.lName}>{r.name}</span>
-          {timed ? (
-            // the daily challenge: the time of the win (wave 11), else how far it went
-            <>
-              <span className={styles.lWave}>{r.wave > DEFI_WAVES ? "✓" : `${t("V.", "W")}${r.wave}`}</span>
-              <span className={styles.lKo}>{fmtTime(r.seconds)}</span>
-            </>
-          ) : (
-            <>
-              <span className={styles.lWave}>
-                {(r.start ?? 1) > 1 && <i className={styles.lStart}>↱{r.start}</i>}
-                {t("V.", "W")}
-                {r.wave}
-              </span>
-              <span className={styles.lKo}>{r.kills} KO</span>
-            </>
-          )}
-        </li>
+          <li key={`${r.name}${i}`} className={`${me ? styles.me : ""} ${crowned ? styles.crowned : ""}`}>
+            <span className={styles.lRank}>{i + 1}</span>
+            <Mini dex={r.starter} label={nameOf(r.starter)} />
+            <span className={styles.lName}>
+              {crowned && <Pix art="crown" />}
+              {r.name}
+            </span>
+            {timed ? (
+              // the daily challenge: the time of the win (wave 11), else how far it went
+              <>
+                <span className={styles.lWave}>{r.wave > DEFI_WAVES ? t("gagné", "won") : `${t("V.", "W")}${r.wave}`}</span>
+                <span className={styles.lKo}>{fmtTime(r.seconds)}</span>
+              </>
+            ) : (
+              <>
+                <span className={styles.lWave}>
+                  {(r.start ?? 1) > 1 && (
+                    <i className={styles.lStart}>
+                      <Pix art="from" />
+                      {r.start}
+                    </i>
+                  )}
+                  {t("V.", "W")}
+                  {r.wave}
+                </span>
+                {/* the last wave reached: the board ranks those runs by time (v7), so the time is what it shows */}
+                <span className={styles.lKo}>{r.wave >= MAX_WAVE ? fmtRun(r.seconds) : `${r.kills} KO`}</span>
+              </>
+            )}
+          </li>
         );
       })}
-      {!small && pages > 1 && (
-        <li className={styles.lPages}>
-          <button disabled={page === 0} onClick={() => onTurn?.(-1)} aria-label={t("Page précédente", "Previous page")}>
-            ▲
-          </button>
-          <span>
-            {page + 1}/{pages}
-          </span>
-          <button disabled={page >= pages - 1} onClick={() => onTurn?.(1)} aria-label={t("Page suivante", "Next page")}>
-            ▼
-          </button>
-        </li>
-      )}
     </ol>
   );
 }
 
-/** a starter's first frame, cut from the atlas */
-function Mini({ dex, label, big }: { dex: number; label: string; big?: boolean }) {
+/**
+ * « Par Pokémon » (2026-10-31): a tile per starter, 2 by 5, its best run on the board (the wave in gold, who holds it);
+ * a starter locked for this player is a silhouette with a ?, one nobody played yet a silhouette with a dash. A on a tile:
+ * the starter screen on that Pokémon, to beat it.
+ */
+function Records(props: {
+  tiles: { dex: number; at: number; locked: boolean }[];
+  bestOf: (dex: number) => Score | undefined;
+  cursor: number;
+  crowns: Set<string>;
+  nameOf: (d: number) => string;
+  t: (fr: string, en: string) => string;
+  onHover: (k: number) => void;
+  onPick: (k: number) => void;
+}) {
+  const { tiles, bestOf, cursor, crowns, nameOf, t, onHover, onPick } = props;
+  return (
+    <div className={styles.tiles}>
+      {tiles.slice(0, TILE_COLS * 5).map((tl, k) => {
+        const best = bestOf(tl.dex);
+        const on = k === cursor;
+        return (
+          <button
+            key={tl.dex}
+            className={`${styles.tile} ${on ? styles.on : ""} ${tl.locked ? styles.tLocked : ""}`}
+            onPointerEnter={() => onHover(k)}
+            onClick={() => onPick(k)}
+          >
+            <Mini dex={tl.dex} label={tl.locked ? "?" : nameOf(tl.dex)} size={1} shadow={tl.locked || !best} />
+            {tl.locked && <b className={styles.tQ}>?</b>}
+            <span className={styles.tWave}>{best ? `${t("V.", "W")}${best.wave}` : "—"}</span>
+            <span className={styles.tName}>
+              {on && !tl.locked ? (
+                t("battre ce record", "beat this record")
+              ) : best ? (
+                <>
+                  {crowns.has(best.name.toLowerCase()) && <Pix art="crown" />}
+                  {best.name}
+                  {best.wave >= MAX_WAVE && <i>{fmtRun(best.seconds)}</i>}
+                </>
+              ) : (
+                ""
+              )}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * The Panthéon (2026-10-31): everyone who reached the last wave, earliest first. A podium for the first three (crowns over
+ * their Pokémon), then a row each: « 4 [mon] Name ↱150 · 12 oct 2h03 ». Empty, the podium waits with its ? on top.
+ */
+function Hall(props: {
+  rows: Legend[] | null;
+  nameOf: (d: number) => string;
+  t: (fr: string, en: string) => string;
+  lang: Lang;
+  highlight?: string;
+  /** the highlighted row blinks: just entered */
+  blink?: boolean;
+  page: number;
+  onTurn: (d: number) => void;
+}) {
+  const { rows, nameOf, t, lang, highlight, blink, page, onTurn } = props;
+  if (!rows) return <p className={styles.box}>{t("Panthéon indisponible pour l'instant.", "The hall is unavailable for now.")}</p>;
+  const day = (iso: string) => new Date(iso).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "short" }).replace(".", "");
+  const isMe = (r: Legend) => !!highlight && r.name.toLowerCase() === highlight.trim().toLowerCase();
+  const meCls = (r: Legend) => (isMe(r) ? `${styles.me} ${blink ? styles.blink : ""}` : "");
+  const list = page === 0 ? rows.slice(3, 3 + HALL_FIRST) : rows.slice(3 + HALL_FIRST + (page - 1) * LADDER_ROWS, 3 + HALL_FIRST + page * LADDER_ROWS);
+  const from = page === 0 ? 3 : 3 + HALL_FIRST + (page - 1) * LADDER_ROWS;
+  return (
+    <div className={`${styles.box} ${styles.hall}`} onWheel={(e) => Math.abs(e.deltaY) > 8 && onTurn(e.deltaY > 0 ? 1 : -1)}>
+      {page === 0 && (
+        <div className={styles.podium}>
+          {[1, 0, 2].map((i) => {
+            const r = rows[i];
+            return (
+              <div key={i} className={`${styles.place} ${r ? meCls(r) : ""}`}>
+                {r ? (
+                  <>
+                    <Pix art="crown" scale={i ? 1 : 2} />
+                    <Mini dex={r.starter} label={nameOf(r.starter)} size={1} />
+                    <span className={styles.pName}>{r.name}</span>
+                    <span className={styles.pTime}>{fmtRun(r.seconds)}</span>
+                  </>
+                ) : (
+                  <b className={styles.pFree}>?</b>
+                )}
+                <span className={styles.step} style={{ height: [40, 32, 24][i] }}>
+                  {i + 1}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {page === 0 && !rows.length && <p className={styles.pTeaser}>{t(`Vague ${MAX_WAVE} : la première place est libre.`, `Wave ${MAX_WAVE}: first place is free.`)}</p>}
+      {list.length > 0 && (
+        <ol className={styles.ladder}>
+          {list.map((r, k) => (
+            <li key={`${r.name}${k}`} className={`${styles.crowned} ${meCls(r)}`}>
+              <span className={styles.lRank}>{from + k + 1}</span>
+              <Mini dex={r.starter} label={nameOf(r.starter)} />
+              <span className={styles.lName}>
+                <Pix art="crown" />
+                {r.name}
+              </span>
+              <span className={styles.lWave}>
+                {(r.start ?? 1) > 1 && (
+                  <i className={styles.lStart}>
+                    <Pix art="from" />
+                    {r.start} ·{" "}
+                  </i>
+                )}
+                {day(r.created_at)}
+              </span>
+              <span className={styles.lKo}>{fmtRun(r.seconds)}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
+}
+
+/** a starter's first frame, cut from the atlas (half size in a board's row, or `size`); `shadow`: a silhouette */
+function Mini({ dex, label, big, size, shadow }: { dex: number; label: string; big?: boolean; size?: number; shadow?: boolean }) {
   const a = useMemo(() => (SPRITES.mons[dex] ? anim(dex, "Idle") : null), [dex]);
-  const cls = big ? styles.monBig : styles.mini;
+  const cls = `${big ? styles.monBig : size ? styles.monMid : styles.mini} ${shadow ? styles.shadow : ""}`;
   if (!a) return <span className={cls} />;
   return (
     <span className={cls} title={label}>
-      <span style={{ width: a.w, height: a.h, backgroundImage: `url(${ATLAS_URL})`, backgroundPosition: `-${a.x}px -${a.y}px`, transform: big ? undefined : `scale(0.5)` }} />
+      <span style={{ width: a.w, height: a.h, backgroundImage: `url(${ATLAS_URL})`, backgroundPosition: `-${a.x}px -${a.y}px`, transform: big ? undefined : `scale(${size ?? 0.5})` }} />
     </span>
   );
 }

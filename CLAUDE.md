@@ -345,7 +345,13 @@ doesn't show.
   checks, the waves' timing (v6: 2 s a wave at least, waves end once cleared), up to wave 300, one run per name every 20 s, best run per name), open to everyone, account
   or not. A board per mode
   (classic, daily then defi, coop) and period (the month's season, the daily's UTC day, all time); `game_top` / `game_submit` are
-  the v1 the client falls back on.
+  the v1 the client falls back on. v7 (2026-10-31, the honours): a run at wave 300 ranks by its time (like the daily
+  challenge), `game_records` (the best run with each starter: « Par Pokémon », a tile each) and `game_hall` (the Panthéon,
+  everyone who reached wave 300 in classic, earliest first: a podium, a pixel crown before their names on every board, the
+  room's Game Boy bubble names the first ones). The ladder is one view at a time (« ◀ SAISON ▶ » and dots); a view whose
+  function isn't in Supabase yet stays hidden. At the game over a remembered name sends the score by itself, else A sends
+  it before A plays again (A used to replay and lose the run); « NOUVEAU RECORD ! » past the best wave (or the starter's);
+  a name new in the Panthéon gets the crowning (fanfare). After a boss, buttons wait 1.2 s.
 - Economy: gold (Nuggets, ~10 % of foes, more from elites, bosses, Chansey) goes in a **purse** kept from run to run
   (`lib/pensionStore` `gold`, in the save and the cloud, the latest wins). A run starts with **no gold** (Johan,
   2026-10-17: a 47k purse bought Kecleon's whole stall and made wave 92 easy); all it picks up goes to the purse at the
