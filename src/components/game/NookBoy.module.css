@@ -195,9 +195,10 @@
 
 /* ---------- the buttons: they sink when pressed (keys or clicks) ---------- */
 
+/* 40px (56 until 2026-10-31): the shell 434px tall, a 900px-tall window gets exactly 2x (1.93x blurred the pixel font) */
 .controls {
   position: relative;
-  height: 56px;
+  height: 40px;
 }
 
 .controls button,
@@ -209,10 +210,10 @@
 
 .dpad {
   position: absolute;
-  left: 26px;
-  top: 2px;
-  width: 54px;
-  height: 54px;
+  left: 28px;
+  top: 1px;
+  width: 42px;
+  height: 42px;
 }
 
 .dpad button,
@@ -225,9 +226,9 @@
 
 .dUp,
 .dDown {
-  left: 18px;
-  width: 18px;
-  height: 19px;
+  left: 14px;
+  width: 14px;
+  height: 15px;
 }
 
 .dUp {
@@ -242,9 +243,9 @@
 
 .dLeft,
 .dRight {
-  top: 18px;
-  width: 19px;
-  height: 18px;
+  top: 14px;
+  width: 15px;
+  height: 14px;
 }
 
 .dLeft {
@@ -258,10 +259,10 @@
 }
 
 .dMid {
-  left: 18px;
-  top: 18px;
-  width: 18px;
-  height: 18px;
+  left: 14px;
+  top: 14px;
+  width: 14px;
+  height: 14px;
   box-shadow: none;
 }
 
@@ -274,10 +275,10 @@
 .ab {
   position: absolute;
   right: 22px;
-  top: 0;
-  width: 92px;
-  height: 52px;
-  border-radius: 26px;
+  top: -2px;
+  width: 84px;
+  height: 42px;
+  border-radius: 21px;
   background: #c4bdb3;
   box-shadow: inset 0 1px 2px #aaa297;
   transform: rotate(-25deg);
@@ -285,9 +286,9 @@
 
 .ab button {
   position: absolute;
-  top: 10px;
-  width: 32px;
-  height: 32px;
+  top: 7px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #a3245e;
   box-shadow:
@@ -298,7 +299,7 @@
 
 .ab button span {
   position: absolute;
-  bottom: -12px;
+  bottom: -10px;
   left: 50%;
   transform: translateX(-50%);
   font: 7px var(--font-press), monospace;
@@ -1439,7 +1440,8 @@
 
 .recap {
   display: flex;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
   align-self: stretch;
   /* a long run's recap shrinks and scrolls: the pause menu always stays on screen (Johan, 2026-10-21: with a full build
      it went below the screen, no way to give up) */
@@ -1450,8 +1452,8 @@
 .recap .box {
   flex: 1;
   min-width: 0;
-  padding: 4px 6px;
-  font: 11px/11px var(--font-vt), monospace;
+  padding: 4px 8px;
+  font: 13px/13px var(--font-vt), monospace;
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -1468,8 +1470,75 @@
 /* a move or an item: its name, then its level's pips on the same line */
 .recap p.recapRow {
   display: flex;
-  gap: 3px;
+  align-items: center;
+  gap: 4px;
+  min-height: 14px;
   white-space: nowrap;
+}
+
+/* the pause's panels, one at a time: BUILD · STATS · COMBOS, big chips (◀ ▶ too) */
+.recapChips {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ui .recapChips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px 3px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--c2);
+  box-shadow: 0 0 0 1px var(--c0);
+  color: var(--c0);
+  font: 8px/1 var(--font-press), monospace;
+}
+
+.ui .recapChips button.on {
+  background: var(--c3);
+  box-shadow:
+    0 0 0 1px var(--c0),
+    0 2px 0 var(--c0);
+  translate: 0 -1px;
+}
+
+/* a move's or a combo's type, an item: its 9x9 pictogram on an 11x11 tile (the type's colour on the colour palette) */
+.recapIcon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--tc, var(--c2));
+  box-shadow: inset 0 0 0 1px var(--c0);
+}
+
+.icon {
+  display: block;
+}
+
+.ic_k {
+  fill: var(--c0);
+}
+
+.ic_w {
+  fill: #ffffff;
+}
+
+.ic_a {
+  fill: var(--ic, var(--c1));
+}
+
+.screen:not([data-palette="color"]) .ic_w {
+  fill: var(--c3);
+}
+
+.screen:not([data-palette="color"]) .ic_a {
+  fill: var(--c1);
 }
 
 .recapRow span {

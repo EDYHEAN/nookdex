@@ -8,6 +8,7 @@ import {
   COUNCIL, LIGUE_DMG, LIGUE_HP, MASTER, MASTER_NAME, RESIST, ligueHitCap, ligueRank, LIGUE_RANKS, type LigueBoss,
   AFFIXES, AFFIX_WAVES, ENRAGE_AFTER, type AffixId, PARAGONS, PARAGON_WAVE, type ParagonId, PACTS, PACT_WAVE, type PactId, SHINY, SHINY_BOOST, SHINY_ODDS, CHARM_ODDS, COIN_ODDS, coinValue, waveGold, DAILY_MODS, type BonusId, type DailyMod, type PensionId, type Rarity, type BossDef, type BossMove, type Elem, type ItemId, type Lang, type MoveId, type PackDef, type PackId, type Starter, type Wild,
 } from "./data";
+import { ITEM_ICONS, TYPE_ICONS } from "./icons";
 import { DEFI_DAYS, DEFI_MONS, DEFI_QUOTA, DEFI_WAVES, DEFI_WILD, TITAN, type Defi } from "./defi";
 import { SH, SW, T, TILE, TYPE_FX, anim, animSeconds, dirOf, frameAt, mon, textWidth, type AnimName, type ColorKey, type Gfx } from "./gfx";
 
@@ -340,7 +341,27 @@ interface Num {
   text: string;
   color: ColorKey;
   big: boolean;
+  /** what it adds up (hits on one foe in a short while are one number), on whom, its cell (16x7 px) */
+  v: number;
+  e: Enemy | null;
+  cx: number;
+  cy: number;
 }
+
+/**
+ * The damage numbers (UI designer, 2026-10-31: late in a run they were a wall over the crowd): 12 on screen at most, the
+ * hits on one foe within NUM_MERGE seconds added up into one number, past NUM_CROWD foes only the crits, the bosses' and
+ * the player's own wounds; short (1.2k, 34k, 1.2M), on a grid of 16x7 cells (a cell taken: no number).
+ */
+const NUM_MAX = 12;
+const NUM_MERGE = 0.25;
+const NUM_CROWD = 40;
+const NUM_CELL_W = 16;
+const NUM_CELL_H = 7;
+export const shortNum = (v: number) => {
+  const d = (x: number) => x.toFixed(1).replace(/\.0$/, "");
+  return v < 1e3 ? String(v) : v < 1e4 ? `${d(v / 1e3)}k` : v < 1e6 ? `${Math.round(v / 1e3)}k` : v < 1e7 ? `${d(v / 1e6)}M` : `${Math.round(v / 1e6)}M`;
+};
 
 const STEP = 1 / 60;
 const PLAYER_R = 7;
@@ -3159,12 +3180,32 @@ export class Game {
     const heavy = e.boss ? 0.15 : 1;
     e.kx += kx * heavy;
     e.ky += ky * heavy;
-    if (this.nums.length > 50) this.nums.shift();
-    this.nums.push({ x: e.x + rand(-4, 4), y: e.y - 14 - (e.boss ? 14 : 0), t: 0, text: mul > 1 ? `${dmg}!` : String(dmg), color: shielded ? "ice" : mul > 1 ? "psy" : crit ? "gold" : "ui", big: crit || mul > 1 });
+    this.addNum(e, e.x, e.y - 14 - (e.boss ? 14 : 0), dmg, shielded ? "ice" : mul > 1 ? "psy" : crit ? "gold" : "ui", { crit, combo: mul > 1 });
     if (!quiet) gsfx.hit(crit);
     const [c1] = TYPE_FX[elem];
     for (let i = 0; i < (crit ? 6 : 2); i++) this.part(e.x, e.y - 8, rand(-50, 50), rand(-60, 10), c1, 0.3, 1, 100, "spark");
     if (e.hp <= 0) this.kill(e);
+  }
+
+  /** a damage number (NUM_MAX…): added to the foe's young one, else in a free cell of the grid, else none */
+  private addNum(e: Enemy | null, x: number, y: number, v: number, color: ColorKey, o: { crit?: boolean; combo?: boolean; mine?: boolean } = {}) {
+    const boss = !!e?.boss;
+    if (!o.crit && !boss && !o.mine && this.enemies.length > NUM_CROWD) return;
+    const big = !!o.crit && boss;
+    if (e) {
+      const n = this.nums.find((m) => m.e === e && m.t < NUM_MERGE);
+      if (n) {
+        n.v += v;
+        if (o.combo || o.crit) n.color = color;
+        n.big ||= big;
+        n.text = `${shortNum(n.v)}${o.combo || n.text.endsWith("!") ? "!" : ""}`;
+        return;
+      }
+    }
+    const cx = Math.round(x / NUM_CELL_W), cy = Math.round(y / NUM_CELL_H);
+    if (this.nums.some((m) => m.cx === cx && m.cy === cy)) return;
+    if (this.nums.length >= NUM_MAX) this.nums.shift();
+    this.nums.push({ x: cx * NUM_CELL_W, y: cy * NUM_CELL_H, cx, cy, t: 0, v, e, big, color, text: `${o.mine ? "-" : ""}${shortNum(v)}${o.combo ? "!" : ""}` });
   }
 
   private kill(e: Enemy) {
@@ -3364,6 +3405,7 @@ export class Game {
       gsfx.shield();
     }
     this.hp -= dmg;
+    this.addNum(null, this.x, this.y - 22, Math.round(dmg), "hpLow", { mine: true });
     this.cur.calmT = 0;
     // a little less breathing room as the waves go on
     this.invuln = Math.max(0.45, 0.8 - this.wave * 0.012);
@@ -3520,8 +3562,7 @@ export class Game {
         if (dot > 0) {
           const d = Math.max(1, Math.round(dot));
           e.hp -= d;
-          if (this.nums.length > 50) this.nums.shift();
-          this.nums.push({ x: e.x + rand(-4, 4), y: e.y - 12, t: 0.2, text: String(d), color: e.poisonDps ? "poison" : "fire", big: false });
+          this.addNum(e, e.x, e.y - 12, d, e.poisonDps ? "poison" : "fire");
           if (e.hp <= 0) {
             this.kill(e);
             continue;
@@ -4596,7 +4637,7 @@ export class Game {
       const k = n.t / 0.7;
       const y = n.y + oy - 10 * Math.sin(Math.min(1, k * 2) * Math.PI * 0.5) - k * 4;
       if (k > 0.8 && Math.floor(n.t * 30) % 2) continue;
-      g.text(ctx, n.text, n.x + ox, y, n.color, { align: "center", scale: n.big && k < 0.2 ? 2 : 1 });
+      g.text(ctx, n.text, n.x + ox, y, n.color, { align: "center", scale: n.big && k < 0.3 ? 2 : 1 });
     }
 
     this.drawLight(ctx);
@@ -5434,9 +5475,12 @@ export class Game {
   private drawHud(ctx: CanvasRenderingContext2D) {
     const g = this.gfx;
     const c = g.c;
-    // experience across the top
+    // experience across the top, then a dark plate under the two lines of the HUD (they sat on the crowd and the snow)
     ctx.fillStyle = c.uiDark;
     ctx.fillRect(0, 0, SW, 4);
+    ctx.globalAlpha = 0.55;
+    ctx.fillRect(0, 4, SW, 18);
+    ctx.globalAlpha = 1;
     ctx.fillStyle = c.xp;
     ctx.fillRect(1, 1, Math.round((SW - 2) * Math.min(1, this.xp / xpFor(this.level))), 2);
     // HP
@@ -5444,14 +5488,19 @@ export class Game {
     g.text(ctx, this.tr(`N.${this.level}`, `LV${this.level}`), 4, 8, "ui");
     ctx.fillStyle = c.uiDark;
     ctx.fillRect(28, 8, 62, 6);
+    // low HP blinks (a shape, not only a colour: the Game Boy palettes have four shades)
+    const low = hpK <= 0.2, blink = Math.floor(this.time * 4) % 2 === 0;
     ctx.fillStyle = c[hpK > 0.5 ? "hp" : hpK > 0.2 ? "hpMid" : "hpLow"];
-    ctx.fillRect(29, 9, Math.round(60 * hpK), 4);
-    g.text(ctx, `${Math.ceil(this.hp)}/${this.maxHp}`, 94, 8, hpK > 0.2 || Math.floor(this.time * 4) % 2 ? "ui" : "hpLow");
+    if (!low || blink) ctx.fillRect(29, 9, Math.round(60 * hpK), 4);
+    // « /max » only while it fits (5 digits ran into the wave's label)
+    const hpText = this.maxHp > 9999 ? String(Math.ceil(this.hp)) : `${Math.ceil(this.hp)}/${this.maxHp}`;
+    if (low) this.danger(ctx, hpText, 94, 8, "left");
+    else g.text(ctx, hpText, 94, 8, "ui");
     // wave and its clock; the daily challenge's: what's left of the wave
     if (this.setup.defi) {
       g.text(ctx, this.tr(`VAGUE ${this.wave}/${DEFI_WAVES}`, `WAVE ${this.wave}/${DEFI_WAVES}`), SW / 2, 8, "gold", { align: "center" });
       const n = this.defiRemaining;
-      if (!this.bossAlive && !this.endAt) g.text(ctx, this.tr(`reste ${n}`, `${n} left`), SW / 2, 15, n <= 5 ? "hpLow" : "uiDim", { align: "center" });
+      if (!this.bossAlive && !this.endAt) g.text(ctx, this.tr(`reste ${n}`, `${n} left`), SW / 2, 15, n <= 5 ? "gold" : "uiDim", { align: "center" });
     } else if (this.ligue) {
       // the Ligue's badge: a shield, « LIGUE 312 » in gold; its rank under it, a pip a rank (readable without colour),
       // then the Conseil 4 fallen in this round of 50
@@ -5471,19 +5520,19 @@ export class Game {
       // the foes left to knock out, and the most the wave still lasts (a boss's: its bar says it all)
       if (this.wave % 5 && !this.waveGap) {
         const n = this.waveRemaining, left = Math.max(0, Math.ceil(waveLength(this.wave) - this.waveT));
-        g.text(ctx, `${this.tr(`reste ${n}`, `${n} left`)}  0:${String(left).padStart(2, "0")}`, SW / 2, 15, n <= 5 || left <= 5 ? "hpLow" : "uiDim", { align: "center" });
+        g.text(ctx, `${this.tr(`reste ${n}`, `${n} left`)}  0:${String(left).padStart(2, "0")}`, SW / 2, 15, n <= 5 || left <= 5 ? "gold" : "uiDim", { align: "center" });
       }
     }
     g.text(ctx, `KO ${this.kills}`, SW - 4, 8, "ui", { align: "right" });
-    this.drawPickup(ctx, { kind: "coin", x: 8, y: 20, z: 0, vz: 1, value: 0, pull: false, t: 0 }, 0, 0);
-    g.text(ctx, String(this.gold), 15, 18, "gold");
+    this.drawPickup(ctx, { kind: "coin", x: 8, y: 18, z: 0, vz: 1, value: 0, pull: false, t: 0 }, 0, 0);
+    g.text(ctx, shortNum(this.gold), 15, 15, "gold");
     const daily = this.setup.daily;
     if (daily)
-      g.text(ctx, this.wave >= daily.target ? this.tr("DEFI REUSSI", "CHALLENGE MET") : this.tr(`OBJECTIF : VAGUE ${daily.target}`, `GOAL: WAVE ${daily.target}`), 4, 26, this.wave >= daily.target ? "gold" : "psy");
+      g.text(ctx, this.wave >= daily.target ? this.tr("★ DEFI REUSSI", "★ CHALLENGE MET") : this.tr(`OBJECTIF : VAGUE ${daily.target}`, `GOAL: WAVE ${daily.target}`), 4, 26, this.wave >= daily.target ? "gold" : "psy");
     if (this.players.length > 1) g.text(ctx, `J${this.cur.id + 1}`, 4, 26, "xp");
     // Kecleon's pact on: its curse, until the next boss falls
     const pact = this.pact && PACTS.find((x) => x.id === this.pact)!;
-    if (pact) g.text(ctx, `${this.tr("PACTE", "PACT")} ${this.tr(pact.name[0], pact.name[1]).toUpperCase()}`, 4, this.players.length > 1 ? 33 : 26, "hpLow");
+    if (pact) this.danger(ctx, `${this.tr("PACTE", "PACT")} ${this.tr(pact.name[0], pact.name[1]).toUpperCase()}`, 4, this.players.length > 1 ? 33 : 26, "left");
     const m = Math.floor(this.time / 60);
     g.text(ctx, `${m}:${String(Math.floor(this.time % 60)).padStart(2, "0")}`, SW - 4, 15, "uiDim", { align: "right" });
 
@@ -5491,21 +5540,32 @@ export class Game {
     if (this.bossAlive && !this.bossAlive.dead) {
       const b = this.bossAlive;
       ctx.fillStyle = c.uiDark;
-      ctx.fillRect(SW / 2 - 70, 24, 140, 6);
-      ctx.fillStyle = c.hpLow;
-      ctx.fillRect(SW / 2 - 69, 25, Math.round(138 * (b.hp / b.max)), 4);
-      // its shield over the bar, its affixes by its name
+      ctx.fillRect(SW / 2 - 70, 24, 140, 8);
+      // on the Game Boy palettes the middle shade: the name in the light one stays readable on it
+      ctx.fillStyle = g.palette.shades ? c.uiDim : c.hpLow;
+      ctx.fillRect(SW / 2 - 69, 25, Math.round(138 * (b.hp / b.max)), 6);
+      // its shield over the bar, its name inside it, its affixes as 7px icons beside it (nothing under it, over the field)
       if (b.shield && b.shield > 0) {
         ctx.fillStyle = c.ice;
-        ctx.fillRect(SW / 2 - 69, 24, Math.round(138 * (b.shield / b.shieldMax!)), 2);
+        ctx.fillRect(SW / 2 - 69, 25, Math.round(138 * (b.shield / b.shieldMax!)), 2);
       }
-      g.text(ctx, this.name(b.dex), SW / 2, 32, "ui", { align: "center" });
-      const tags = [...(b.affix ?? []).map((id) => AFFIXES.find((x) => x.id === id)!.name), ...(b.enraged ? [["ENRAGÉ", "ENRAGED"] as const] : [])];
-      if (tags.length) g.text(ctx, tags.map((n) => this.tr(n[0], n[1]).toUpperCase()).join(" + "), SW / 2, 39, b.enraged ? "hpLow" : "psy", { align: "center" });
+      g.text(ctx, this.name(b.dex).toUpperCase(), SW / 2, 26, "ui", { align: "center" });
+      const tags: [ColorKey, string][] = [
+        ...(b.affix ?? []).map((id) => ["psy", this.tr(...AFFIXES.find((x) => x.id === id)!.name).slice(0, 1)] as [ColorKey, string]),
+        ...(b.enraged && Math.floor(this.time * 4) % 2 === 0 ? [["hpLow", "!"] as [ColorKey, string]] : []),
+      ];
+      tags.forEach(([col, ch], i) => {
+        const x = SW / 2 + 73 + i * 9;
+        ctx.fillStyle = c.uiDark;
+        ctx.fillRect(x, 24, 8, 8);
+        ctx.fillStyle = c[col];
+        ctx.fillRect(x + 1, 25, 6, 6);
+        g.text(ctx, ch.toUpperCase(), x + 4, 26, "uiDark", { align: "center", outline: col });
+      });
     }
 
-    // the moves at the bottom: their cooldown fills them back up
-    this.moves.forEach((mv, i) => {
+    // the moves at the bottom: their cooldown fills them back up (none under the pause's veil)
+    if (this.phase !== "paused") this.moves.forEach((mv, i) => {
       const def = MOVES.find((d) => d.id === mv.id)!;
       const x = 4 + i * 22, y = SH - 22;
       const [c1, c2] = TYPE_FX[def.type];
@@ -5524,30 +5584,29 @@ export class Game {
         ctx.strokeStyle = c[c2];
         ctx.strokeRect(x + 0.5, y + 0.5, 18, 18);
       }
-      g.text(ctx, this.tr(def.name[0], def.name[1]).slice(0, 3), x + 10, y + 4, "ui", { align: "center" });
+      icon(ctx, g, `t-${def.type}`, TYPE_ICONS[def.type], x + 10, y + 8);
       for (let l = 0; l < mv.level; l++) {
         ctx.fillStyle = c[c2];
         ctx.fillRect(x + 3 + l * 3, y + 14, 2, 2);
       }
       if (this.manualMoves && !["psychic", "protect", "petal", "blizzard"].includes(mv.id)) g.text(ctx, String(i + 1), x + 1, y - 7, "uiDim");
     });
-    // held items, small, bottom right
-    this.items.forEach((it, i) => {
-      const def = ITEMS.find((d) => d.id === it.id)!;
-      const x = SW - 4 - (this.items.length - i) * 16, y = SH - 16;
+    // held items, small, bottom right: each its pictogram (« GR » said nothing), its level as gold dots under it
+    if (this.phase !== "paused") this.items.forEach((it, i) => {
+      const x = SW - 4 - (this.items.length - i) * 16, y = SH - 17;
+      const ic = ITEM_ICONS[it.id];
       ctx.fillStyle = c.uiDark;
-      ctx.fillRect(x, y, 14, 12);
+      ctx.fillRect(x, y, 14, 14);
       ctx.fillStyle = c.normal;
-      ctx.fillRect(x + 1, y + 1, 12, 10);
-      g.text(ctx, this.tr(def.name[0], def.name[1]).slice(0, 2), x + 7, y + 2, "uiDark", { align: "center", outline: "normal" });
+      ctx.fillRect(x + 1, y + 1, 12, 12);
+      icon(ctx, g, `i-${it.id}`, ic.rows, x + 7, y + 6, { a: ic.a });
       for (let l = 0; l < it.level; l++) {
         ctx.fillStyle = c.gold;
-        ctx.fillRect(x + 2 + l * 2, y + 9, 1, 1);
+        ctx.fillRect(x + 2 + l * 2, y + 12, 1, 1);
       }
     });
 
     this.drawRadar(ctx);
-    if (this.phase === "paused") this.drawLegend(ctx);
 
     // the wave's banner slides in and out
     if (this.bannerT > 0) {
@@ -5562,6 +5621,16 @@ export class Game {
       if (this.bannerSub) g.text(ctx, this.bannerSub, x - slide * 40, 119, "ui", { align: "center" });
     }
     if (this.intro) this.drawIntro(ctx);
+  }
+
+  /** danger: an inverted chip, blinking twice a second (a shape: on the Game Boy palettes red is just another shade) */
+  private danger(ctx: CanvasRenderingContext2D, str: string, x: number, y: number, align: "left" | "center") {
+    const g = this.gfx, w = textWidth(str);
+    const x0 = align === "center" ? x - w / 2 : x;
+    if (Math.floor(this.time * 4) % 2) return g.text(ctx, str, x, y, "hpLow", { align });
+    ctx.fillStyle = g.c.hpLow;
+    ctx.fillRect(Math.round(x0) - 2, y - 1, w + 4, 7);
+    g.text(ctx, str, x, y, "uiDark", { align, outline: "hpLow" });
   }
 
   /**
@@ -5630,31 +5699,6 @@ export class Game {
     }
     for (const p of this.players) if (p !== this.cur) dot(p.x, p.y, p.down ? c.hpLow : c.xp, 3);
     dot(this.x, this.y, c.white, 2);
-  }
-
-  /** the pause's legend: what lies on the ground */
-  private drawLegend(ctx: CanvasRenderingContext2D) {
-    const g = this.gfx;
-    const items: [Pickup["kind"], number, string][] = [
-      ["candy", 1, this.tr("BONBON XP", "XP CANDY")],
-      ["candy", 10, this.tr("GROS BONBON", "BIG CANDY")],
-      ["rare", 0, "SUPER BONBON"],
-      ["oran", 0, this.tr("BAIE ORAN", "ORAN BERRY")],
-      ["egg", 0, this.tr("OEUF CHANCE", "LUCKY EGG")],
-      ["magnet", 0, this.tr("AIMANT", "MAGNET")],
-    ];
-    items.splice(1, 0, ["coin", 0, this.tr("PEPITE (OR)", "NUGGET (GOLD)")]);
-    items.splice(5, 1);
-    const y = SH - 56;
-    ctx.fillStyle = g.c.uiDark;
-    ctx.globalAlpha = 0.8;
-    ctx.fillRect(0, y - 6, SW, 36);
-    ctx.globalAlpha = 1;
-    items.forEach(([kind, value, label], i) => {
-      const x = 14 + (i % 3) * 104, yy = y + 4 + Math.floor(i / 3) * 14;
-      this.drawPickup(ctx, { kind, x, y: yy, z: 0, vz: 0, value, pull: false, t: this.animT }, 0, 0);
-      g.text(ctx, label, x + 10, yy - 3, "ui");
-    });
   }
 
   private drawEvolution(ctx: CanvasRenderingContext2D, ox: number, oy: number) {
@@ -5926,6 +5970,28 @@ const PIX_OWN = new Map<PixArt, Record<string, ColorKey>>([
 ]);
 /** made once per palette, picture, turn and colours */
 const pixMade = new WeakMap<object, Map<string, HTMLCanvasElement>>();
+/** a pictogram (lib/game/icons) centred on x, y: k ink, w white, a its colour; made once per palette */
+function icon(ctx: CanvasRenderingContext2D, g: Gfx, id: string, rows: string[], x: number, y: number, keys: Record<string, ColorKey> = {}) {
+  let made = pixMade.get(g.c);
+  if (!made) pixMade.set(g.c, (made = new Map()));
+  let cv = made.get(id);
+  if (!cv) {
+    const map: Record<string, ColorKey> = { k: "ink", w: "white", ...keys };
+    cv = document.createElement("canvas");
+    cv.width = Math.max(...rows.map((r) => r.length));
+    cv.height = rows.length;
+    const c = cv.getContext("2d")!;
+    rows.forEach((r, i) =>
+      [...r].forEach((ch, j) => {
+        if (ch === ".") return;
+        c.fillStyle = g.c[map[ch] ?? "ink"];
+        c.fillRect(j, i, 1, 1);
+      }),
+    );
+    made.set(id, cv);
+  }
+  ctx.drawImage(cv, Math.round(x - cv.width / 2), Math.round(y - cv.height / 2));
+}
 
 /** a picture centred on x, y; dir turns it a quarter at a time (0 right, 1 down, 2 left, 3 up) */
 function pix(ctx: CanvasRenderingContext2D, g: Gfx, rows: PixArt, x: number, y: number, dir = 0, swap?: Record<string, ColorKey>) {
