@@ -21,6 +21,7 @@ import {
 } from "@/lib/amazonShop";
 import { formatDate } from "@/lib/blog";
 import { kindArt } from "@/lib/kindArt";
+import { daysLeft } from "@/lib/parisTime";
 import { daysUntil } from "@/lib/releases";
 import { setPagePath } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
@@ -116,7 +117,7 @@ export default function InvitationsAmazon() {
               <b>{longDay(first.date)}</b>
             </p>
           )}
-          {first.date && days > 0 && <Countdown day={first.date} days={days} lang="fr" />}
+          {first.date && days > 0 && <Countdown day={first.date} days={daysLeft(first.date)} lang="fr" />}
         </>
       }
       stage={<Stage pic={pic} kind={top.kind} fan={fan} alt={pic ? `${KIND_LABEL[top.kind]} ${first.name}` : `Boosters ${first.name}`} />}

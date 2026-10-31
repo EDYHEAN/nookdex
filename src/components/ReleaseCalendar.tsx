@@ -4,6 +4,7 @@ import { formatDate } from "@/lib/blog";
 import { amazonOn, amazonSearch, inShops } from "@/lib/amazon";
 import { KIND_LABEL, SHOP_PATH, boosterPics, byInterest, goLabel, productHref, productPic, shopOfSet, shortSetName } from "@/lib/amazonShop";
 import { kindArt } from "@/lib/kindArt";
+import { daysLeft } from "@/lib/parisTime";
 import { daysUntil, type Release, releases } from "@/lib/releases";
 import { SET_PAGES_ROOT, type PageLang } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
@@ -131,7 +132,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
             {series && ` · ${series}`}
             {heroSet.code && ` · ${heroSet.code}`} · <b>{longDay(heroSet.date)}</b>
           </p>
-          {coming && days > 0 && <Countdown day={heroSet.date} days={days} lang={lang} />}
+          {coming && days > 0 && <Countdown day={heroSet.date} days={daysLeft(heroSet.date)} lang={lang} />}
         </>
       }
       stage={<Stage pic={pic} kind={top?.kind ?? (fan.length ? null : "etb")} fan={fan} alt={t(`Boosters ${heroName}`, `${heroName} booster packs`)} />}

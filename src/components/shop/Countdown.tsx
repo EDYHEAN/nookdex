@@ -1,14 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parisMidnight } from "@/lib/parisTime";
 import s from "./Shop.module.css";
-
-/** midnight in Paris on that day (a French release: shops open that morning), as a timestamp */
-function parisMidnight(day: string) {
-  const utc = Date.parse(`${day}T00:00:00Z`);
-  const hour = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Paris", hour: "2-digit", hourCycle: "h23" }).format(new Date(utc)));
-  return utc - hour * 3_600_000;
-}
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
