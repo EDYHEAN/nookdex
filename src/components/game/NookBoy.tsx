@@ -176,6 +176,8 @@ export default function NookBoy({ origin, onClose }: Props) {
   const [coopFirst, setCoopFirst] = useState<number | null>(null);
   /** the start tier picked on the starter screen (1: from the start), kept from run to run */
   const [tier, setTier] = useState(1);
+  /** the starter screen's second step: where the run starts, once the Pokémon is picked (tiles: a wave, the Ligue) */
+  const [pickStart, setPickStart] = useState(false);
   const levels = usePension((s) => s.levels);
   const dailyPaid = usePension((s) => s.dailyPaid);
   /** this run's daily bonus went to the Pension */
@@ -347,9 +349,10 @@ export default function NookBoy({ origin, onClose }: Props) {
    * A run: classic and coop bring the purse in (Kecleon takes it) and the Pension's levels; the day's challenge starts
    * from nothing, the same for all.
    */
-  const startRun = (mode: Mode) => {
+  const startRun = (mode: Mode, at = tier) => {
     if (!g) return;
     gsfx.ok();
+    setPickStart(false);
     setSent("idle");
     setPension(false);
     setBonusTaken(false);
@@ -363,7 +366,7 @@ export default function NookBoy({ origin, onClose }: Props) {
     const st = usePension.getState();
     if (mode === "daily" && defiNow()) return g.start(0, { mode: "defi", perm: {}, defi: defiOf(today()) });
     if (mode === "daily") return g.start(0, { mode: "daily", perm: {}, daily: dailyOf(today()) });
-    const start = tiers.includes(tier) ? tier : 1;
+    const start = tiers.includes(at) ? at : 1;
     const charm = ownsObject(st.levels, "chroma");
     if (mode === "coop") g.start(coopFirst ?? 0, { mode: "coop", perm: st.levels, start, charm }, g.selected);
     else g.start(g.selected, { mode: "classic", perm: st.levels, start, charm });
@@ -436,12 +439,21 @@ export default function NookBoy({ origin, onClose }: Props) {
   /** the start tiers reached (1 = from the start), and the next one: shown locked, something to aim at */
   const tiers = [1, ...TIERS.filter((w) => bestWave(levels) >= w)];
   const nextTier = TIERS.find((w) => bestWave(levels) < w);
-  /** the strip's plain tiers (the Ligue's is a chip of its own at its end), the 5 shown around the one picked (3 by the chip) */
+  /** the plain tiers (the Ligue's start is a tile of its own in the starter screen's second step) */
   const plainTiers = tiers.filter((w) => w < LIGUE_START);
-  const tierShown = tiers.includes(LIGUE_START) ? 3 : 5;
-  const tierAt = tier === LIGUE_START ? plainTiers.length - 1 : plainTiers.indexOf(tier);
-  const tierFrom = Math.max(0, Math.min(tierAt - 1, plainTiers.length - tierShown));
-  /** the Ligue's start was picked once on this device: its ▲ hint is done */
+  /** the second step's wave tile: the plain tier picked (the Ligue's is a tile of its own) */
+  const plainTier = plainTiers.includes(tier) ? tier : 1;
+  const turnTier = (d: number) => {
+    if (plainTiers.length < 2) return gsfx.back();
+    gsfx.move();
+    const k = Math.max(0, plainTiers.indexOf(plainTier));
+    setTier(plainTiers[(k + d + plainTiers.length) % plainTiers.length]);
+  };
+  const startFrom = (w: number) => {
+    setTier(w);
+    startRun(selectMode, w);
+  };
+  /** the Ligue's start was picked once on this device: its « NEW » tag is done */
   const [ligueSeen] = useState(() => {
     try {
       return !!localStorage.getItem(LIGUE_HINT_KEY);
@@ -705,17 +717,31 @@ export default function NookBoy({ origin, onClose }: Props) {
       return;
     }
     if (p === "select") {
-      if ((b === "up" || b === "down") && tiers.length > 1) {
-        gsfx.move();
-        const k = Math.max(0, tiers.indexOf(tier));
-        setTier(tiers[(k + (b === "up" ? -1 : 1) + tiers.length) % tiers.length]);
-      } else if (b === "left" || b === "right") {
+      // the second step: ◀ ▶ between the wave and the Ligue, ▲ ▼ the wave, A starts, B back to the Pokémon
+      if (pickStart) {
+        if ((b === "left" || b === "right") && tiers.includes(LIGUE_START)) {
+          gsfx.move();
+          setCursor((c) => 1 - c);
+        } else if ((b === "up" || b === "down") && cursor === 0) turnTier(b === "up" ? 1 : -1);
+        else if (b === "a" || b === "start") startFrom(cursor === 1 && tiers.includes(LIGUE_START) ? LIGUE_START : plainTier);
+        else if (b === "b") {
+          gsfx.back();
+          setPickStart(false);
+        }
+        return;
+      }
+      if (b === "left" || b === "right") {
         gsfx.move();
         eng.select(eng.selected + (b === "left" ? -1 : 1));
       } else if ((b === "a" || b === "start") && eng.locked(eng.selected)) gsfx.back();
       else if ((b === "a" || b === "start") && selectMode === "coop" && coopFirst == null) {
         gsfx.ok();
         setCoopFirst(eng.selected);
+      } else if ((b === "a" || b === "start") && tiers.length > 1) {
+        // start tiers reached: where to start comes next (a mouse hovering the starters could never reach them on this screen)
+        gsfx.ok();
+        setCursor(tier === LIGUE_START ? 1 : 0);
+        setPickStart(true);
       } else if (b === "a" || b === "start") startRun(selectMode);
       else if (b === "b" && coopFirst != null) {
         gsfx.back();
@@ -1326,6 +1352,66 @@ export default function NookBoy({ origin, onClose }: Props) {
         </div>
       );
     }
+    if (phase === "select" && pickStart) {
+      const s = g.roster[g.selected];
+      const hasLigue = tiers.includes(LIGUE_START);
+      // a player on the way to wave 300: the Ligue's tile, locked, says what opens it
+      const soon = !hasLigue && bestWave(levels) >= 250;
+      return (
+        <div className={`${styles.page} ${styles.lgPage}`}>
+          <h2 className={styles.lgTitle}>{t("CHOISIS TON DEPART", "PICK YOUR START")}</h2>
+          <div className={styles.lgTiles}>
+            <button
+              className={`${styles.lgTile} ${cursor === 0 || !hasLigue ? styles.on : ""}`}
+              onPointerEnter={() => cursor !== 0 && (gsfx.move(), setCursor(0))}
+              onClick={() => startFrom(plainTier)}
+            >
+              <Mini dex={s.dex} label={nameOf(s.dex)} big />
+              <b className={styles.waveTune}>
+                {plainTiers.length > 1 && (
+                  <i onClick={(e) => (e.stopPropagation(), turnTier(-1))} aria-label={t("vague d'avant", "earlier wave")}>
+                    <Pix art="left" />
+                  </i>
+                )}
+                {t("VAGUE", "WAVE")} {plainTier}
+                {plainTiers.length > 1 && (
+                  <i onClick={(e) => (e.stopPropagation(), turnTier(1))} aria-label={t("vague d'après", "later wave")}>
+                    <Pix art="right" />
+                  </i>
+                )}
+              </b>
+              <span>
+                {plainTier > 1
+                  ? `${t("N.", "lv")}${tierLevel(plainTier)} · ${tierPicks(plainTier)} ${t("cartes", "cards")}`
+                  : t("Depuis le début.", "From the start.")}
+              </span>
+            </button>
+            {(hasLigue || soon) && (
+              <button
+                className={`${styles.lgTile} ${hasLigue && cursor === 1 ? styles.on : ""} ${hasLigue ? "" : styles.lgLocked}`}
+                disabled={!hasLigue}
+                onPointerEnter={() => hasLigue && cursor !== 1 && (gsfx.move(), setCursor(1))}
+                onClick={() => startFrom(LIGUE_START)}
+              >
+                <Pix art="bigSword" scale={4} />
+                <b>
+                  {t("LA LIGUE", "THE LEAGUE")}
+                  {hasLigue && !ligueSeen && <span className={styles.legend}>{t("NOUVEAU", "NEW")}</span>}
+                </b>
+                <span>
+                  {hasLigue ? `${t("Vague 300", "Wave 300")} · ${t("N.", "lv")}${tierLevel(LIGUE_START)}` : t("Atteins la vague 300.", "Reach wave 300.")}
+                </span>
+              </button>
+            )}
+          </div>
+          <p className={`${styles.keys} ${styles.lKeys}`}>
+            {hasLigue
+              ? t("◀ ▶ choisir · ▲ ▼ vague · A : go · B : retour", "◀ ▶ choose · ▲ ▼ wave · A: go · B: back")
+              : t("▲ ▼ vague · A : go · B : retour", "▲ ▼ wave · A: go · B: back")}
+          </p>
+        </div>
+      );
+    }
     if (phase === "select") {
       const s = g.roster[g.selected];
       return (
@@ -1348,10 +1434,7 @@ export default function NookBoy({ origin, onClose }: Props) {
                   gsfx.move();
                   g.select(i);
                 }}
-                // with start tiers to pick, a click only picks the Pokémon (it used to start the run at once, so a mouse never
-                // reached the tiers: Johan, 2026-10-31); « C'est parti » or a double click starts
-                onClick={() => (tiers.length > 1 && selectMode !== "coop" ? gsfx.ok() : press("a"))}
-                onDoubleClick={() => tiers.length > 1 && selectMode !== "coop" && press("a")}
+                onClick={() => press("a")}
                 aria-label={nameOf(st.dex)}
               />
             ))}
@@ -1378,55 +1461,20 @@ export default function NookBoy({ origin, onClose }: Props) {
               </p>
             )}
           </div>
-          {/* where the run starts: the tiers reached, the next one locked (shown once the player is getting there) */}
-          {(tiers.length > 1 || bestWave(levels) >= 15) && (
+          {/* on the way to the first start tier: what's next (the tiers themselves are the second step) */}
+          {tiers.length === 1 && nextTier && bestWave(levels) >= 15 && (
             <div className={styles.tiers}>
-              {/* the Ligue's start, new: a ▲ pulses by the label (▴ from V1 wraps round to it) until it's been picked once */}
-              {tiers.includes(LIGUE_START) && !ligueSeen && tier !== LIGUE_START && (
-                <span className={styles.tierHint}>
-                  <Pix art="up" />
-                </span>
-              )}
-              <span className={styles.tierLabel}>{t("DÉPART", "START")}</span>
-              {/* 12 tiers don't fit on the screen: the 5 around the one picked (▴ ▾ go through them all), then the Ligue's */}
-              {plainTiers.slice(tierFrom, tierFrom + tierShown).map((w) => (
-                <button key={w} className={w === tier ? styles.on : ""} onClick={() => w !== tier && (gsfx.move(), setTier(w))}>
-                  {t("V", "W")}
-                  {w}
-                </button>
-              ))}
-              {tiers.includes(LIGUE_START) ? (
-                <button className={`${styles.tierLigue} ${tier === LIGUE_START ? styles.on : ""}`} onClick={() => tier !== LIGUE_START && (gsfx.move(), setTier(LIGUE_START))}>
-                  <Pix art="sword" />
-                  {t("LIGUE", "LEAGUE")}
-                </button>
-              ) : nextTier === LIGUE_START && bestWave(levels) >= 250 ? (
-                // on the way there: what wave 300 opens
-                <span className={styles.tierSoon}>
-                  <Pix art="crown" />
-                  300 → {t("LIGUE", "LEAGUE")}
-                </span>
-              ) : (
-                nextTier && <span className={styles.tierLock}>🔒 {t("V", "W")}{nextTier}</span>
-              )}
-              {tier > 1 && (
-                <span className={styles.tierInfo}>
-                  {t("N.", "lv")}
-                  {tierLevel(tier)} · {tierPicks(tier)} {t("cartes", "cards")}
-                </span>
-              )}
+              <span className={styles.tierLock}>
+                🔒 {t("DÉPART", "START")} {t("V", "W")}
+                {nextTier}
+              </span>
             </div>
-          )}
-          {tiers.length > 1 && selectMode !== "coop" && (
-            <button className={styles.goBtn} onClick={() => press("a")} onPointerEnter={() => gsfx.move()}>
-              {t("C'EST PARTI", "LET'S GO")} <Pix art="right" />
-            </button>
           )}
           <p className={styles.keys}>
             {selectMode === "coop"
               ? t("J1 : ZQSD + souris · J2 : flèches · Entrée : valider", "P1: WASD + mouse · P2: arrows · Enter: confirm")
               : tiers.length > 1
-                ? t("◂ ▸ Pokémon · ▴ ▾ départ · Entrée : go !", "◂ ▸ Pokémon · ▴ ▾ start · Enter: go!")
+                ? t("◂ ▸ Pokémon · Entrée : choisir", "◂ ▸ Pokémon · Enter: pick")
                 : t("◂ ▸ choisir · Entrée : c'est parti !", "◂ ▸ choose · Enter: let's go!")}
           </p>
         </div>

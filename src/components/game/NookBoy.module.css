@@ -1181,72 +1181,8 @@
   text-shadow: 1px 1px var(--c0);
 }
 
-.tiers button {
-  padding: 3px 4px 2px;
-  border: 0;
-  border-radius: 2px;
-  background: var(--c2);
-  color: var(--c0);
-  font: inherit;
-  text-shadow: none;
-  box-shadow: 0 0 0 1px var(--c0);
-  cursor: pointer;
-}
-
-.tiers button.on {
-  background: #ffc93d;
-  box-shadow: 0 0 0 1px var(--c0), 0 2px 0 var(--c0);
-  translate: 0 -1px;
-}
-
-.tierLabel {
-  margin-right: 2px;
-}
-
 .tierLock {
   opacity: 0.6;
-}
-
-.tierInfo {
-  margin-left: 3px;
-  font: 11px/1 var(--font-vt), monospace;
-  white-space: nowrap;
-}
-
-/* the Ligue's start: a gold chip at the strip's end; on the way there, what wave 300 opens; its ▲ hint, pulsing */
-.tiers button.tierLigue {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: #ffc93d;
-  color: var(--c0);
-}
-
-.screen:not([data-palette="color"]) .tiers button.tierLigue {
-  background: var(--c3);
-}
-
-.tiers button.tierLigue.on {
-  box-shadow: 0 0 0 2px var(--c0), 0 2px 0 var(--c0);
-}
-
-.tierSoon {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  opacity: 0.8;
-}
-
-.tierHint {
-  display: inline-flex;
-  animation: tierPulse 0.8s steps(2) 6;
-}
-
-@keyframes tierPulse {
-  50% {
-    transform: translateY(-2px);
-    opacity: 0.4;
-  }
 }
 
 /* the 300th boss fell: « VAGUE 300 · LEGENDE », two tiles (end here, the Ligue) */
@@ -1359,32 +1295,26 @@
   bottom: 10px;
 }
 
-/* with start tiers: a click picks the Pokémon, this starts the run (a mouse could never reach the tiers before) */
-.goBtn {
-  position: absolute;
-  left: 50%;
-  bottom: 26px;
-  translate: -50% 0;
+/* the starter screen's second step: the wave tile's ◀ ▶ (the tile itself starts), the Ligue's tile locked on the way */
+.waveTune {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 8px 4px;
-  border: 0;
-  border-radius: 3px;
-  background: #ffc93d;
-  color: var(--c0);
-  font: 8px/1 var(--font-press), monospace;
-  box-shadow: 0 0 0 1px var(--c0), 0 2px 0 var(--c0);
+  gap: 5px;
+}
+
+.waveTune i {
+  display: inline-flex;
+  padding: 2px;
   cursor: pointer;
 }
 
-.goBtn:hover {
-  translate: -50% -1px;
+.waveTune i:hover {
+  transform: translateY(-1px);
 }
 
-.goBtn:active {
-  translate: -50% 1px;
-  box-shadow: 0 0 0 1px var(--c0);
+.ui .lgTile.lgLocked {
+  opacity: 0.55;
+  cursor: default;
 }
 
 /* level up: three cards */
