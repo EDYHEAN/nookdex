@@ -1,72 +1,110 @@
-/* The market page (MarketPage): the week's risers and fallers as cards on the notebook's paper */
+/* The market page (MarketPage): the week's risers and fallers as cards on the paper of the shop pages' shell */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-  gap: 14px 12px;
-  margin: 10px 0 22px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 22px 16px;
+  margin: 10px 0 26px;
   padding: 0;
   list-style: none;
 }
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .grid li {
   margin: 0;
 }
+
 .grid a,
 .grid li > img {
-  color: inherit;
-  text-decoration: none;
+  color: inherit !important;
+  text-decoration: none !important;
 }
+
 .grid a {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  transition: transform 0.15s ease;
+  line-height: 1.2;
 }
-.grid a:hover {
-  transform: translateY(-3px) rotate(-1deg);
-}
+
 .grid img {
   display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 120 / 167;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   border-radius: 4.5% / 3.3%;
-  box-shadow: 2px 4px 0 rgba(43, 34, 48, 0.2);
+  box-shadow: 3px 4px 0 rgba(43, 34, 48, 0.22);
   background: rgba(43, 34, 48, 0.06);
+  transition: transform 0.25s cubic-bezier(0.34, 1.6, 0.5, 1);
 }
+
+.grid a:hover img {
+  transform: translateY(-4px) rotate(-1.5deg);
+}
+
+/* the move: a stamp in VT323 */
 .grid b {
-  font-family: var(--font-press), monospace;
+  align-self: flex-start;
+  padding: 1px 8px;
+  border-radius: 8px;
+  font-family: var(--font-vt), monospace;
   font-weight: normal;
-  font-size: 0.75em;
+  font-size: 22px;
+  line-height: 1.1;
 }
+
 .grid span {
-  line-height: 1.1;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 .grid small {
-  font-size: 0.8em;
-  line-height: 1.1;
-  opacity: 0.7;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 .grid .price {
-  opacity: 1;
-  font-family: var(--font-press), monospace;
-  font-size: 0.62em;
+  color: var(--ink-gold);
+  font-family: var(--font-vt), monospace;
+  font-size: 20px;
 }
+
 .up {
+  background: #e2f4d6;
   color: #3d8b2f;
 }
+
 .down {
+  background: #fbe0dc;
   color: #b8433d;
 }
-.cta {
-  margin: 4px 0 20px !important;
-  padding: 12px 14px;
-  border-radius: 4px;
-  background: #e2f4d6;
-  box-shadow: 2px 3px 0 rgba(43, 34, 48, 0.18);
+
+/* the hero's riser: its move, big */
+.heroMove {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: -4px 0 4px;
+  color: rgba(239, 227, 200, 0.8);
+  font-size: 15px;
 }
-.cta a {
-  font-family: var(--font-press), monospace;
-  font-size: 0.75em;
-  white-space: nowrap;
+
+.heroMove b {
+  font-family: var(--font-vt), monospace;
+  font-weight: normal;
+  font-size: 44px;
+  line-height: 0.9;
+  color: #8fe0a4;
 }
