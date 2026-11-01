@@ -11,9 +11,9 @@
       "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Rayquaza.png",
       "products": [
         { "asin": "B0HGG3XXSX", "kind": "etb", "name": "Coffret Dresseur d'élite Méga-Rayquaza", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Règne Delta.png" },
-        { "kind": "display", "name": "Display 36 boosters", "q": "Pokémon Display Règne Delta" },
+        { "asin": "B0HGG5MTS5", "kind": "display", "name": "Display 36 boosters" },
         { "asin": "B0HGG4KWKD", "kind": "bundle", "name": "Bundle 6 boosters", "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Sarmuraï.png" },
-        { "kind": "tripack", "name": "Tripack Otaria", "q": "Pokémon Tripack Règne Delta", "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Golemastoc.png" }
+        { "asin": "B0HGG7GKDJ", "kind": "tripack", "name": "Tripack Otaria", "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Golemastoc.png" }
       ]
     },
     {
