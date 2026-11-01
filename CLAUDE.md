@@ -113,7 +113,7 @@ doesn't show.
   random id per device (localStorage `nookdex:device`, redrawn after 13 months), its first source (utm_source, else the
   referrer's site by one name: instagram, linkedin, google…, else "direct"; a player from before it: "existing"), its
   landing page, the days it came back and its steps (profile, binder, cards10, account, game). Short links for posts add the
-  source: `/reddit`, `/en/reddit`, `/facebook`, `/en/facebook` (next.config `redirects`; a new place: add one there). Supabase `funnel` behind
+  source: `/reddit`, `/en/reddit`, `/facebook`, `/en/facebook`, `/instagram`, `/en/instagram` (the story highlights) (next.config `redirects`; a new place: add one there). Supabase `funnel` behind
   `funnel_ping` (writes) and `funnel_stats(since)` (counts by source), docs/supabase.sql; production on nookdex.com only.
   Nothing personal, nothing tied to the account (/confidentialite says so). A visit counts at the device's first gesture
   (tap, click, key, wheel; 2026-10-26: robots in a plain Chrome were ~95 % of "direct"): "direct" drops from then on. Vercel Analytics' referrers (Johan's dashboard,

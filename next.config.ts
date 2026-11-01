@@ -31,6 +31,9 @@ const nextConfig: NextConfig = {
     { source: "/en/reddit", destination: "/en?utm_source=reddit-en", permanent: false },
     { source: "/facebook", destination: "/?utm_source=facebook", permanent: false },
     { source: "/en/facebook", destination: "/en?utm_source=facebook-en", permanent: false },
+    // The Instagram story highlights' link stickers (2026-11-01): their visits apart from the bio's and the posts'.
+    { source: "/instagram", destination: "/?utm_source=instagram-story", permanent: false },
+    { source: "/en/instagram", destination: "/en?utm_source=instagram-story-en", permanent: false },
   ],
   // The pages whose address says their language (src/proxy.ts: nothing in them follows the cookie) are kept a day on
   // Vercel's CDN: drawn on each visit otherwise (the root layout reads the cookie), the crawlers going through the ~41,000
