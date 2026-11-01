@@ -31,19 +31,19 @@ export const AMAZON_TAGS: Record<AmazonPlace, string> = {
   extension: "nookdex-extension-21",
   calendrier: "nookdex-calendrier-21",
   blog: "nookdex-blog-21",
-  carte: AMAZON_TAG,
-  accessoires: AMAZON_TAG,
+  carte: "nookdex-carte-21",
+  accessoires: "nookdex-accessoires-21",
 };
 /**
- * The same on amazon.com. Every place on the one US tag for now: Johan creates the per-place ids in Associates Central
- * (nookdex-cal-20, -set-20…), then they go here.
+ * The same on amazon.com: the per-place ids Johan created in Associates Central (2026-11-01); the invitations page is
+ * French only, accessories have no id of their own there.
  */
 export const AMAZON_US_TAGS: Record<AmazonPlace, string> = {
   invit: "nookdex-20",
-  extension: "nookdex-20",
-  calendrier: "nookdex-20",
-  blog: "nookdex-20",
-  carte: "nookdex-20",
+  extension: "nookdex-set-20",
+  calendrier: "nookdex-cal-20",
+  blog: "nookdex-blog-20",
+  carte: "nookdex-card-20",
   accessoires: "nookdex-20",
 };
 const tagOf = (place?: AmazonPlace) => (place ? AMAZON_TAGS[place] : AMAZON_TAG);
