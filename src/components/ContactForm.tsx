@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import styles from "./LegalPage.module.css";
-import { useT } from "@/lib/lang";
 
 // values as the contact route expects them (the e-mail to Johan is in French), labels in the visitor's language
 const TOPICS = [
@@ -12,9 +11,10 @@ const TOPICS = [
   ["Supprimer mon compte / mes données", "Delete my account / my data"],
 ] as const;
 
-export function ContactForm() {
+/** `en`: the page's language, as the server drew it (the app's own language could differ: the labels would flash) */
+export function ContactForm({ en = false }: { en?: boolean }) {
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
-  const t = useT();
+  const t = <T,>(fr: T, english: T): T => (en ? english : fr);
   /** Why the message could not be saved. */
   const [reason, setReason] = useState<string | null>(null);
 

@@ -205,8 +205,11 @@
 
 .form :is(input, select, textarea) {
   width: 100%;
-  padding: 4px 12px;
+  /* 48 px to tap, 16 px text (iPhone zooms in under that): the contact page is in the shop pages' shell now */
+  min-height: 48px;
+  padding: 8px 12px;
   font: inherit;
+  font-size: max(16px, 1em);
   color: var(--ink);
   background: #fffaf0;
   border: 3px solid var(--ink);
@@ -219,10 +222,12 @@
 
 .form button {
   align-self: flex-start;
+  min-height: 48px;
   padding: 10px 22px;
   border: 3px solid var(--ink);
-  border-radius: 6px;
-  background: #ffd35a;
+  border-radius: 12px;
+  /* the site's own action: green (yellow is the Amazon buttons') */
+  background: #8fdc7a;
   color: var(--ink);
   font-family: var(--font-press), monospace;
   font-size: 13px;

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { serverLang } from "@/lib/serverLang";
-import { LegalPage } from "@/components/LegalPage";
+import { ShellTextPage } from "@/components/ShellTextPage";
 import { LEGAL, SITE_NAME } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Fr() {
   return (
-    <LegalPage path="/conditions-de-vente" title="Conditions de vente" updated="16 octobre 2026">
+    <ShellTextPage path="/conditions-de-vente" title="Conditions de vente" updated="16 octobre 2026">
       <p>
         {SITE_NAME} reste gratuit. La boutique vend en option des objets de décoration pour ton bureau : tout ce qui touche à tes cartes et à
         Pokémon reste gratuit.
@@ -75,13 +75,13 @@ function Fr() {
         Voir aussi les <Link href="/mentions-legales">mentions légales</Link> et les <Link href="/conditions">conditions d&apos;utilisation</Link>.
         Ces conditions relèvent du droit français.
       </p>
-    </LegalPage>
+    </ShellTextPage>
   );
 }
 
 function En() {
   return (
-    <LegalPage path="/conditions-de-vente" title="Terms of sale" updated="16 October 2026" en>
+    <ShellTextPage path="/conditions-de-vente" title="Terms of sale" updated="16 October 2026" en>
       <p>
         {SITE_NAME} stays free. The shop sells optional decorations for your desk: everything about your cards and Pokémon stays free.
       </p>
@@ -138,7 +138,7 @@ function En() {
         the <Link href="/mentions-legales">legal notice</Link> and the <Link href="/conditions">terms of use</Link>. These terms are governed by
         French law.
       </p>
-    </LegalPage>
+    </ShellTextPage>
   );
 }
 

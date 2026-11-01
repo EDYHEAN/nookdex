@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { serverLang } from "@/lib/serverLang";
-import { LegalPage } from "@/components/LegalPage";
+import { ShellTextPage } from "@/components/ShellTextPage";
 import { LEGAL, SITE_DOMAIN, SITE_NAME } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Fr() {
   return (
-    <LegalPage path="/mentions-legales" title="Mentions légales" updated="16 octobre 2026">
+    <ShellTextPage path="/mentions-legales" title="Mentions légales" updated="16 octobre 2026">
       <h2>Éditeur</h2>
       <p>
         {SITE_DOMAIN} est édité par {LEGAL.name}, entrepreneur individuel (micro-entreprise).
@@ -46,13 +46,13 @@ function Fr() {
         {SITE_NAME} est un projet de fan, non officiel, sans lien avec Nintendo, Creatures, GAME FREAK ou The Pokémon Company. Pokémon et les noms et
         images des cartes appartiennent à leurs propriétaires.
       </p>
-    </LegalPage>
+    </ShellTextPage>
   );
 }
 
 function En() {
   return (
-    <LegalPage path="/mentions-legales" title="Legal notice" updated="16 October 2026" en>
+    <ShellTextPage path="/mentions-legales" title="Legal notice" updated="16 October 2026" en>
       <h2>Publisher</h2>
       <p>
         {SITE_DOMAIN} is published by {LEGAL.name}, sole trader (French micro-entreprise).
@@ -87,7 +87,7 @@ function En() {
         {SITE_NAME} is an unofficial fan project, not affiliated with Nintendo, Creatures, GAME FREAK or The Pokémon Company. Pokémon and the card
         names and pictures belong to their owners.
       </p>
-    </LegalPage>
+    </ShellTextPage>
   );
 }
 

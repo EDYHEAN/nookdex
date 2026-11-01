@@ -27,8 +27,11 @@ doesn't show.
   build-scene). The room's pictures load after the logo, and the room stays `visibility: hidden` under the loader:
   a picture hidden *behind* it still counts as the page's biggest paint (LCP). Measured 2026-10-02: desktop 61 → 97,
   mobile 44 → 76 (Lighthouse).
-- `src/app/(desk)/` shares one layout for `/` and the notebook pages (`/a-propos`, `/confidentialite`, `/conditions`,
-  `/contact`): the room stays mounted, those pages open as a notebook over it and are server-rendered (Google reads them).
+- `src/app/(desk)/` shares one layout for `/`, the notebook (`/a-propos`, opened over the room) and the shop pages' shell
+  (WidePage shop, drawn without the room, `lib/roomless`): the sets, cards, calendar, market, blog, invitations and, since
+  2026-11-01, the text pages (`/conditions`, `/mentions-legales`, `/confidentialite`, `/conditions-de-vente`, `/contact`:
+  `ShellTextPage`, a title band and a reading column). The room stays mounted once a visitor has been on the desk; all are
+  server-rendered (Google reads them).
 - Server code reads the sets' files through `lib/setFiles` (async): from disk in dev and at build, else fetched from
   the site's own static files. They're kept out of the functions (next.config `outputFileTracingExcludes`): 30 MB in
   each one: 430 MB of traced files in all, 88 MB without.
@@ -307,7 +310,8 @@ doesn't show.
   `amazon_clicks`, the weekly report). A tracking id per place (`AMAZON_TAGS`: invit, extension, calendrier, blog, carte, accessoires; Amazon's reports split the sales by them). In a French blog post,
   `::amazon[<group id>]` draws the cards (« Où acheter … ? » section, docs/blog.md).
 - « Sous la lampe » (Johan, 2026-10-31): `/invitations-amazon`, the calendar, the set pages with their index, the card
-  pages, the market (`/marche`, `/en/market`: the week's top riser under the lamp) and the blog (FR, EN) are shop pages, full width
+  pages, the market (`/marche`, `/en/market`: the week's top riser under the lamp), the blog and the text pages (FR, EN) are shop
+  pages, full width
   (`WidePage shop`: night bar, « Mon bureau », the tabs), a night hero (`components/shop`: `ShopHero`, `Stage`, `Countdown`,
   `ProductRail`, EN `KindTiles`, the phone's `StickyBuy`, styles in `Shop.module.css`), one yellow button per screen, the
   desk's own green. They're drawn **without the room** (`lib/roomless`: ClientApp mounts it once the visitor goes to the desk;
