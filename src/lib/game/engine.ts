@@ -5492,8 +5492,11 @@ export class Game {
     const low = hpK <= 0.2, blink = Math.floor(this.time * 4) % 2 === 0;
     ctx.fillStyle = c[hpK > 0.5 ? "hp" : hpK > 0.2 ? "hpMid" : "hpLow"];
     if (!low || blink) ctx.fillRect(29, 9, Math.round(60 * hpK), 4);
-    // « /max » only while it fits (5 digits ran into the wave's label)
-    const hpText = this.maxHp > 9999 ? String(Math.ceil(this.hp)) : `${Math.ceil(this.hp)}/${this.maxHp}`;
+    // « /max » only while it fits before the wave's label (5 digits ran into « VAGUE n », 4 into the wider « VAGUE 300 · FINALE »)
+    const finale = !this.setup.defi && !this.ligue && this.wave === MAX_WAVE ? this.tr(`VAGUE ${MAX_WAVE} · FINALE`, `WAVE ${MAX_WAVE} · FINAL`) : null;
+    const hpFull = `${Math.ceil(this.hp)}/${this.maxHp}`;
+    const hpFits = this.maxHp <= 9999 && (!finale || 94 + textWidth(hpFull) + 4 <= SW / 2 - textWidth(finale) / 2);
+    const hpText = hpFits ? hpFull : String(Math.ceil(this.hp));
     if (low) this.danger(ctx, hpText, 94, 8, "left");
     else g.text(ctx, hpText, 94, 8, "ui");
     // wave and its clock; the daily challenge's: what's left of the wave
@@ -5513,8 +5516,8 @@ export class Game {
       const council = "●".repeat(this.council) + "○".repeat(4 - this.council);
       // 2 px lower than the plain waves' line: it touched « LIGUE 312 » (Johan, 2026-10-31)
       g.text(ctx, `${name} ${"▮".repeat(rank)}${"▯".repeat(5 - rank)}  ${council}`, SW / 2, 17, "uiDim", { align: "center" });
-    } else if (this.wave === MAX_WAVE) {
-      g.text(ctx, this.tr(`VAGUE ${MAX_WAVE} · FINALE`, `WAVE ${MAX_WAVE} · FINAL`), SW / 2, 8, "gold", { align: "center" });
+    } else if (finale) {
+      g.text(ctx, finale, SW / 2, 8, "gold", { align: "center" });
     } else {
       g.text(ctx, this.tr(`VAGUE ${this.wave}`, `WAVE ${this.wave}`), SW / 2, 8, "gold", { align: "center" });
       // the foes left to knock out, and the most the wave still lasts (a boss's: its bar says it all)
