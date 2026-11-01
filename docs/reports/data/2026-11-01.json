@@ -1,0 +1,977 @@
+{
+  "date": "2026-11-01",
+  "funnel": {
+    "week": [
+      {
+        "source": "google",
+        "devices": 31,
+        "profile": 9,
+        "binder": 9,
+        "cards10": 5,
+        "account": 1,
+        "game": 2,
+        "share": 0,
+        "returned": 3
+      },
+      {
+        "source": "chatgpt.com",
+        "devices": 28,
+        "profile": 5,
+        "binder": 5,
+        "cards10": 2,
+        "account": 1,
+        "game": 0,
+        "share": 0,
+        "returned": 1
+      },
+      {
+        "source": "direct",
+        "devices": 21,
+        "profile": 3,
+        "binder": 3,
+        "cards10": 1,
+        "account": 1,
+        "game": 1,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "bing",
+        "devices": 16,
+        "profile": 6,
+        "binder": 6,
+        "cards10": 6,
+        "account": 2,
+        "game": 4,
+        "share": 1,
+        "returned": 4
+      },
+      {
+        "source": "duckduckgo",
+        "devices": 8,
+        "profile": 2,
+        "binder": 2,
+        "cards10": 0,
+        "account": 0,
+        "game": 2,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "ecosia.org",
+        "devices": 2,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "existing",
+        "devices": 2,
+        "profile": 2,
+        "binder": 2,
+        "cards10": 2,
+        "account": 1,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "ig",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "search.yahoo.com",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "linkedin",
+        "devices": 1,
+        "profile": 1,
+        "binder": 1,
+        "cards10": 0,
+        "account": 1,
+        "game": 1,
+        "share": 0,
+        "returned": 0
+      }
+    ],
+    "all": [
+      {
+        "source": "chatgpt.com",
+        "devices": 109,
+        "profile": 11,
+        "binder": 10,
+        "cards10": 3,
+        "account": 1,
+        "game": 1,
+        "share": 0,
+        "returned": 4
+      },
+      {
+        "source": "direct",
+        "devices": 107,
+        "profile": 17,
+        "binder": 15,
+        "cards10": 4,
+        "account": 4,
+        "game": 5,
+        "share": 0,
+        "returned": 6
+      },
+      {
+        "source": "google",
+        "devices": 47,
+        "profile": 15,
+        "binder": 14,
+        "cards10": 8,
+        "account": 4,
+        "game": 4,
+        "share": 0,
+        "returned": 6
+      },
+      {
+        "source": "bing",
+        "devices": 33,
+        "profile": 8,
+        "binder": 8,
+        "cards10": 7,
+        "account": 3,
+        "game": 5,
+        "share": 1,
+        "returned": 5
+      },
+      {
+        "source": "duckduckgo",
+        "devices": 29,
+        "profile": 2,
+        "binder": 2,
+        "cards10": 0,
+        "account": 0,
+        "game": 2,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "existing",
+        "devices": 25,
+        "profile": 25,
+        "binder": 24,
+        "cards10": 15,
+        "account": 18,
+        "game": 14,
+        "share": 2,
+        "returned": 10
+      },
+      {
+        "source": "facebook",
+        "devices": 8,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "ig",
+        "devices": 5,
+        "profile": 1,
+        "binder": 1,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "ecosia.org",
+        "devices": 4,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "search.yahoo.com",
+        "devices": 2,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "linkedin",
+        "devices": 1,
+        "profile": 1,
+        "binder": 1,
+        "cards10": 0,
+        "account": 1,
+        "game": 1,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "at.search.yahoo.com",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      }
+    ]
+  },
+  "accounts": {
+    "byDay": [
+      {
+        "day": "2026-09-30",
+        "accounts": 2,
+        "saves": 2,
+        "returned": 2
+      },
+      {
+        "day": "2026-10-01",
+        "accounts": 2,
+        "saves": 2,
+        "returned": 1
+      },
+      {
+        "day": "2026-10-05",
+        "accounts": 3,
+        "saves": 2,
+        "returned": 0
+      },
+      {
+        "day": "2026-10-06",
+        "accounts": 69,
+        "saves": 58,
+        "returned": 3
+      },
+      {
+        "day": "2026-10-07",
+        "accounts": 8,
+        "saves": 6,
+        "returned": 0
+      },
+      {
+        "day": "2026-10-08",
+        "accounts": 7,
+        "saves": 7,
+        "returned": 2
+      },
+      {
+        "day": "2026-10-09",
+        "accounts": 4,
+        "saves": 4,
+        "returned": 3
+      },
+      {
+        "day": "2026-10-10",
+        "accounts": 3,
+        "saves": 3,
+        "returned": 1
+      },
+      {
+        "day": "2026-10-12",
+        "accounts": 2,
+        "saves": 2,
+        "returned": 1
+      },
+      {
+        "day": "2026-10-13",
+        "accounts": 5,
+        "saves": 4,
+        "returned": 1
+      },
+      {
+        "day": "2026-10-14",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 0
+      },
+      {
+        "day": "2026-10-19",
+        "accounts": 2,
+        "saves": 2,
+        "returned": 2
+      },
+      {
+        "day": "2026-10-20",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 0
+      },
+      {
+        "day": "2026-10-23",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 0
+      },
+      {
+        "day": "2026-10-26",
+        "accounts": 2,
+        "saves": 1,
+        "returned": 0
+      },
+      {
+        "day": "2026-10-27",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 1
+      },
+      {
+        "day": "2026-10-30",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 0
+      },
+      {
+        "day": "2026-11-01",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 0
+      }
+    ],
+    "totals": [
+      {
+        "accounts": 115,
+        "saves": 99,
+        "active_7d": 11,
+        "active_30d": 98
+      }
+    ]
+  },
+  "amazon": {
+    "week": [
+      {
+        "place": "invitations-amazon",
+        "clicks": 40
+      },
+      {
+        "place": "calendrier-us",
+        "clicks": 3
+      },
+      {
+        "place": "extensions",
+        "clicks": 2
+      },
+      {
+        "place": "blog",
+        "clicks": 1
+      },
+      {
+        "place": "invit",
+        "clicks": 1
+      }
+    ],
+    "all": [
+      {
+        "place": "invitations-amazon",
+        "clicks": 48
+      },
+      {
+        "place": "calendrier-us",
+        "clicks": 3
+      },
+      {
+        "place": "extensions",
+        "clicks": 2
+      },
+      {
+        "place": "blog",
+        "clicks": 1
+      },
+      {
+        "place": "invit",
+        "clicks": 1
+      }
+    ]
+  },
+  "shares": [
+    {
+      "lists": 9,
+      "updated_7d": 4,
+      "with_account": 2,
+      "views": 147
+    }
+  ],
+  "search": {
+    "week": {
+      "start": "2026-10-23",
+      "end": "2026-10-29"
+    },
+    "before": {
+      "start": "2026-10-16",
+      "end": "2026-10-22"
+    },
+    "byDay": [
+      {
+        "key": "2026-10-16",
+        "clicks": 3,
+        "impressions": 23,
+        "position": 29.2
+      },
+      {
+        "key": "2026-10-17",
+        "clicks": 3,
+        "impressions": 18,
+        "position": 19.2
+      },
+      {
+        "key": "2026-10-18",
+        "clicks": 0,
+        "impressions": 34,
+        "position": 23
+      },
+      {
+        "key": "2026-10-19",
+        "clicks": 6,
+        "impressions": 57,
+        "position": 18.2
+      },
+      {
+        "key": "2026-10-20",
+        "clicks": 3,
+        "impressions": 56,
+        "position": 18.9
+      },
+      {
+        "key": "2026-10-21",
+        "clicks": 4,
+        "impressions": 106,
+        "position": 17.3
+      },
+      {
+        "key": "2026-10-22",
+        "clicks": 0,
+        "impressions": 152,
+        "position": 19
+      },
+      {
+        "key": "2026-10-23",
+        "clicks": 2,
+        "impressions": 155,
+        "position": 15
+      },
+      {
+        "key": "2026-10-24",
+        "clicks": 1,
+        "impressions": 183,
+        "position": 14.2
+      },
+      {
+        "key": "2026-10-25",
+        "clicks": 2,
+        "impressions": 280,
+        "position": 12.9
+      },
+      {
+        "key": "2026-10-26",
+        "clicks": 3,
+        "impressions": 368,
+        "position": 14.1
+      },
+      {
+        "key": "2026-10-27",
+        "clicks": 2,
+        "impressions": 416,
+        "position": 16.1
+      },
+      {
+        "key": "2026-10-28",
+        "clicks": 6,
+        "impressions": 448,
+        "position": 13.9
+      },
+      {
+        "key": "2026-10-29",
+        "clicks": 7,
+        "impressions": 412,
+        "position": 14.5
+      }
+    ],
+    "queries": [
+      {
+        "key": "nookdex",
+        "clicks": 8,
+        "impressions": 10,
+        "position": 1
+      },
+      {
+        "key": "71/109",
+        "clicks": 1,
+        "impressions": 2,
+        "position": 11
+      },
+      {
+        "key": "manaphy 25",
+        "clicks": 1,
+        "impressions": 5,
+        "position": 7
+      },
+      {
+        "key": "mep 089",
+        "clicks": 1,
+        "impressions": 3,
+        "position": 10
+      },
+      {
+        "key": "moumouflon v prix",
+        "clicks": 1,
+        "impressions": 3,
+        "position": 3
+      },
+      {
+        "key": "regne delta amazon",
+        "clicks": 1,
+        "impressions": 4,
+        "position": 6.3
+      },
+      {
+        "key": "017/078",
+        "clicks": 0,
+        "impressions": 3,
+        "position": 9
+      },
+      {
+        "key": "017/078 blastoise",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 7.5
+      },
+      {
+        "key": "021/172",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 10
+      },
+      {
+        "key": "025/217 entei",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 96
+      },
+      {
+        "key": "031/078",
+        "clicks": 0,
+        "impressions": 4,
+        "position": 6.8
+      },
+      {
+        "key": "034/159",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 5.5
+      },
+      {
+        "key": "048/182 misty's magikarp",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 11
+      },
+      {
+        "key": "050/191",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 9
+      },
+      {
+        "key": "056/131 sandy shocks ex",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 12
+      },
+      {
+        "key": "056/172",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 8
+      },
+      {
+        "key": "062/172",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 8
+      },
+      {
+        "key": "062/172 dusknoir",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 9
+      },
+      {
+        "key": "063/203 holo",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 11
+      },
+      {
+        "key": "068/086 goodra",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 3
+      },
+      {
+        "key": "087/128",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 5
+      },
+      {
+        "key": "089 mega zeraora",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 2
+      },
+      {
+        "key": "090 128",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 11
+      },
+      {
+        "key": "091 mega dragonite",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 2
+      },
+      {
+        "key": "100/112",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 9
+      }
+    ],
+    "queriesBefore": [
+      {
+        "key": "nookdex",
+        "clicks": 13,
+        "impressions": 17,
+        "position": 1.5
+      },
+      {
+        "key": "258/236",
+        "clicks": 1,
+        "impressions": 3,
+        "position": 2
+      },
+      {
+        "key": "145/195",
+        "clicks": 0,
+        "impressions": 5,
+        "position": 7.2
+      },
+      {
+        "key": "15/189",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 6
+      },
+      {
+        "key": "2016",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 4
+      },
+      {
+        "key": "256-182",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 6
+      },
+      {
+        "key": "45-98",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 9
+      },
+      {
+        "key": "64+168",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 9
+      },
+      {
+        "key": "74/185",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 8
+      },
+      {
+        "key": "8/122",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 7
+      },
+      {
+        "key": "alakazam v promo",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 8
+      },
+      {
+        "key": "arceus vstar prix",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 40
+      },
+      {
+        "key": "braviary 88/98",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 5
+      },
+      {
+        "key": "brocks grit 74/108",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 7
+      },
+      {
+        "key": "calendrier de l'avent pokemon 2027",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 14
+      },
+      {
+        "key": "card list pokemon evolutions",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 81.5
+      },
+      {
+        "key": "caterpie 68/130",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 9
+      },
+      {
+        "key": "combien valent ces cartes",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 3
+      },
+      {
+        "key": "combien vaut-elle ?",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 2
+      },
+      {
+        "key": "cote ?",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 2
+      },
+      {
+        "key": "dialga gx prix",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 1
+      },
+      {
+        "key": "dis moi le prix",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 3
+      },
+      {
+        "key": "dusknoir 062/172",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 8.5
+      },
+      {
+        "key": "dusknoir 062/172 holo",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 8
+      },
+      {
+        "key": "e essas??",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 4
+      }
+    ],
+    "pages": [
+      {
+        "key": "https://nookdex.com/invitations-amazon",
+        "clicks": 9,
+        "impressions": 84,
+        "position": 5.2
+      },
+      {
+        "key": "https://nookdex.com/",
+        "clicks": 6,
+        "impressions": 10,
+        "position": 1
+      },
+      {
+        "key": "https://nookdex.com/en",
+        "clicks": 2,
+        "impressions": 7,
+        "position": 9.3
+      },
+      {
+        "key": "https://nookdex.com/blog/30e-anniversaire-pokemon-tcg-guide-du-set",
+        "clicks": 1,
+        "impressions": 6,
+        "position": 7.8
+      },
+      {
+        "key": "https://nookdex.com/en/sets/mep-black-star-promos/mega-zeraora-ex-089",
+        "clicks": 1,
+        "impressions": 12,
+        "position": 6.7
+      },
+      {
+        "key": "https://nookdex.com/en/sets/ruby-sapphire/skitty-71",
+        "clicks": 1,
+        "impressions": 2,
+        "position": 11
+      },
+      {
+        "key": "https://nookdex.com/en/sets/shining-legends/manaphy-25",
+        "clicks": 1,
+        "impressions": 8,
+        "position": 7.5
+      },
+      {
+        "key": "https://nookdex.com/extensions/clash-des-rebelles/moumouflon-v-188",
+        "clicks": 1,
+        "impressions": 3,
+        "position": 3
+      },
+      {
+        "key": "https://nookdex.com/extensions/origines-antiques/registeel-51",
+        "clicks": 1,
+        "impressions": 3,
+        "position": 5.3
+      },
+      {
+        "key": "https://nookdex.com/a-propos",
+        "clicks": 0,
+        "impressions": 7,
+        "position": 1
+      },
+      {
+        "key": "https://nookdex.com/blog",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 10
+      },
+      {
+        "key": "https://nookdex.com/blog/30e-anniversaire-cartes-les-plus-cheres-octobre-2026",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 5
+      },
+      {
+        "key": "https://nookdex.com/blog/pokemon-tcg-rarities-guide-symbols-and-prices",
+        "clicks": 0,
+        "impressions": 7,
+        "position": 66.6
+      },
+      {
+        "key": "https://nookdex.com/blog/raretes-pokemon-tcg-guide-des-symboles",
+        "clicks": 0,
+        "impressions": 4,
+        "position": 86.3
+      },
+      {
+        "key": "https://nookdex.com/blog/regne-delta-guide-avant-sortie-me06",
+        "clicks": 0,
+        "impressions": 5,
+        "position": 6.6
+      },
+      {
+        "key": "https://nookdex.com/calendrier-des-sorties",
+        "clicks": 0,
+        "impressions": 19,
+        "position": 27.4
+      },
+      {
+        "key": "https://nookdex.com/conditions",
+        "clicks": 0,
+        "impressions": 6,
+        "position": 1
+      },
+      {
+        "key": "https://nookdex.com/conditions-de-vente",
+        "clicks": 0,
+        "impressions": 7,
+        "position": 1
+      },
+      {
+        "key": "https://nookdex.com/contact",
+        "clicks": 0,
+        "impressions": 6,
+        "position": 1
+      },
+      {
+        "key": "https://nookdex.com/en/release-calendar",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 10
+      },
+      {
+        "key": "https://nookdex.com/en/sets/151",
+        "clicks": 0,
+        "impressions": 3,
+        "position": 7.3
+      },
+      {
+        "key": "https://nookdex.com/en/sets/151/antique-dome-fossil-152",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 76
+      },
+      {
+        "key": "https://nookdex.com/en/sets/151/charizard-ex-183",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 83
+      },
+      {
+        "key": "https://nookdex.com/en/sets/151/gengar-094",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 18
+      },
+      {
+        "key": "https://nookdex.com/en/sets/30th-celebration",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 9
+      }
+    ]
+  }
+}
