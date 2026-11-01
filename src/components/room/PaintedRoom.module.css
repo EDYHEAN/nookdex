@@ -399,9 +399,11 @@
   pointer-events: none;
 }
 
-/* put back (or just added): drops into its place */
+/* put back (or just added): drops into its place. No transition then: leaving .out, Safari also ran .binder's own
+   transform transition against the animation's steps, and the binder looked like it fell twice (Johan, 2026-11-01). */
 .returning {
   animation: putBack 0.5s steps(6);
+  transition: none;
 }
 
 @keyframes putBack {
