@@ -185,6 +185,30 @@ In a `prices: true` post, never type a price or its day in the caption: write `{
 (one of each) and `{day:<set key>}` (`{price:me05-116}`, `{day:en:sv08}`), filled with the day's at each render like the
 slides (the price posts are drawn again once `prices.yml` has run, the day before and the day they come out).
 
+## Story highlights (« À la une »)
+
+Since 2026-11-01 the profile has six highlights: NookDex, Sorties, Nouveau, Fonctions, Prix, Jeu (made by hand in a local
+session, files in Johan's `Documents/NookDex/Instagram/a-la-une`). Four are evergreen. **Sorties** and **Nouveau** must
+stay fresh: a set "coming soon" that came out months ago makes the account look abandoned. What they hold now is in
+`highlights.json` on the `social` branch: read it every Sunday, and update it in the same commit as a replacement story.
+
+- **Sorties** = one story for the next set + « Tout le calendrier » (evergreen, never replaced). When the set of the
+  highlight comes out within the coming 7 days (or is out already), prepare the story of the next set that
+  `src/data/releases.json` dates officially (a French or international release, not a Japanese one): a `format: "story"`
+  post (`kind: "news"`, `platforms: ["instagram"]`), dated the release day of the outgoing set, one `cover` slide: kicker
+  `SORTIES`, the set's name as title (no accents), its date as banner, 3 cards of its star Pokémon (its own cards aren't
+  in `public/sets` before the release: earlier prints of that Pokémon). Leave the bottom fifth empty for the countdown
+  sticker. `note`: « À la une Sorties : ajoute-la avec un compte à rebours "<set>" au <date>, et retire la story <old set> ».
+  No set confirmed after it: no story; put « À la une Sorties : retire la story <old set> le <date> » in the `note` of
+  that week's first post, and set `sorties` to `[]`.
+- **Nouveau** = the last 3 versions of `src/data/changelog.ts`, one story each. When its top version is newer than the
+  newest in `highlights.json`: a `format: "story"` post (`kind: "feature"`), dated the next Instagram day, one `cover`
+  slide: kicker `NOUVEAU · <version>`, the version's title, an asset or cards that show it (the version's main item).
+  `note`: « À la une Nouveau : ajoute-la, retire la story <oldest version> ». Only a new version number, never a line
+  added to the current one.
+
+These stories come on top of the week's posts (they don't count in the Monday/Wednesday/Friday mix).
+
 ## After writing
 
 Commit on `social` (`Post <date>: <title>`), push. Check two minutes later that the Action « Rendu des posts » passed;
