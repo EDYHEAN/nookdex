@@ -21,11 +21,17 @@ const SHOP_TABS = [
  *
  * `shop` (the Amazon pages, Johan 2026-10-31, « Sous la lampe »): drawn without the room behind (lib/roomless), a night bar
  * with « Mon bureau » and the notebook's tabs, a full-width `hero` above the content, NookDex's own buttons green.
+ *
+ * `alt`: the same page in the other language, the bar's « FR | EN » switch (Johan, 2026-11-01: a line of text under the
+ * green button was one call too many). Letters, never flags: a language isn't a country, and the English page isn't a
+ * translation (English cards, TCGplayer dollars). It stays a real link with hreflang, on every such page, so search
+ * engines still walk from one twin to the other (on top of the hreflang in <head>); its label says what's there.
  */
 export function WidePage({
   en = false,
   crumbs,
   shop,
+  alt,
   hero,
   children,
 }: {
@@ -33,11 +39,32 @@ export function WidePage({
   crumbs: { href: string; label: string }[];
   /** the page's path: its tab is up */
   shop?: string;
+  /** the twin page, and what it holds in its own language ("the English card and its TCGplayer price"); none: no switch */
+  alt?: { href: string; label: string } | null;
   hero?: ReactNode;
   children: ReactNode;
 }) {
   const t = (fr: string, english: string) => (en ? english : fr);
   const home = t("/", "/en");
+  const here = en ? "en" : "fr";
+  const there = en ? "fr" : "en";
+  const code = (l: string) => l.toUpperCase();
+  // in the order FR, EN whichever page it is: the switch doesn't move under the thumb from one twin to the other
+  const langSwitch = alt && (
+    <nav className={styles.lang} aria-label={t("Langue de la page", "Page language")}>
+      {(["fr", "en"] as const).map((l) =>
+        l === here ? (
+          <span key={l} lang={l} className={styles.langOn} aria-current="true">
+            {code(l)}
+          </span>
+        ) : (
+          <Link key={l} prefetch={false} href={alt.href} hrefLang={there} lang={there} aria-label={`${code(there)} · ${alt.label}`} title={alt.label}>
+            {code(l)}
+          </Link>
+        ),
+      )}
+    </nav>
+  );
   return (
     <div className={shop ? `${styles.page} ${styles.shopPage} ${shopStyles.shop}` : styles.page}>
       <header className={styles.bar}>
@@ -53,6 +80,7 @@ export function WidePage({
             </span>
           ))}
         </nav>
+        {langSwitch}
         <Link prefetch={false} href={home} className={styles.open}>
           {shop ? t("Mon bureau", "My desk") : t("Ouvrir mon bureau", "Open my desk")} ▶
         </Link>

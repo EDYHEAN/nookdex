@@ -179,7 +179,13 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
   const others = past.filter((r) => !shelf.includes(r));
 
   return (
-    <WidePage en={!fr} shop={CALENDAR_PATH[lang]} crumbs={[{ href: CALENDAR_PATH[lang], label: t("Calendrier des sorties", "Release calendar") }]} hero={hero}>
+    <WidePage
+      en={!fr}
+      shop={CALENDAR_PATH[lang]}
+      alt={{ href: CALENDAR_PATH[fr ? "en" : "fr"], label: fr ? "the Pokémon TCG release calendar in English" : "le calendrier des sorties en français" }}
+      crumbs={[{ href: CALENDAR_PATH[lang], label: t("Calendrier des sorties", "Release calendar") }]}
+      hero={hero}
+    >
       {ld({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -213,10 +219,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
         {t(
           "Les prochaines extensions, coffrets et avant-premières du JCC Pokémon, en France et au Japon, mois par mois : seulement ce qui est annoncé officiellement, avec sa source.",
           "The next Pokémon TCG sets, products and prereleases, worldwide and in Japan, month by month: only what has been officially announced, with its source.",
-        )}{" "}
-        <Link prefetch={false} href={CALENDAR_PATH[fr ? "en" : "fr"]} hrefLang={fr ? "en" : "fr"}>
-          {fr ? "EN · In English" : "FR · En français"}
-        </Link>
+        )}
       </p>
 
       {!upcoming.length && (

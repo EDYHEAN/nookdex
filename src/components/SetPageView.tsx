@@ -211,7 +211,13 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
   );
 
   return (
-    <WidePage en={!fr} shop={root} crumbs={[{ href: root, label: t("Extensions", "Sets") }, { href: p.path, label: name }]} hero={hero}>
+    <WidePage
+      en={!fr}
+      shop={root}
+      alt={p.other && { href: p.other.path, label: fr ? `${p.other.name}: the English cards and their TCGplayer prices` : `${p.other.name} : les cartes françaises et leurs prix Cardmarket` }}
+      crumbs={[{ href: root, label: t("Extensions", "Sets") }, { href: p.path, label: name }]}
+      hero={hero}
+    >
       {ld({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -243,13 +249,6 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
           </>
         )}
       </p>
-      {p.other && (
-        <p className={c.other}>
-          <Link prefetch={false} href={p.other.path} hrefLang={p.other.lang}>
-            {fr ? `EN · ${p.other.name}: the English cards and their TCGplayer prices` : `FR · ${p.other.name} : les cartes françaises et leurs prix Cardmarket`}
-          </Link>
-        </p>
-      )}
 
       {/* « le rayon »: the set's sealed products while it's in the shops (Amazon affiliate, lib/amazon): amazon.fr's products
           of a French set with their pictures, else its four kinds drawn, each a search (amazon.com on an English page) */}
@@ -479,12 +478,13 @@ export async function SetIndexView({ lang }: { lang: PageLang }) {
     />
   );
   return (
-    <WidePage en={!fr} shop={root} crumbs={[{ href: root, label: t("Extensions", "Sets") }]} hero={hero}>
-      <p className={c.other}>
-        <Link prefetch={false} href={fr ? "/en/sets" : "/extensions"} hrefLang={fr ? "en" : "fr"}>
-          {fr ? "EN · The English sets and their TCGplayer prices" : "FR · Les extensions en français et leurs prix Cardmarket"}
-        </Link>
-      </p>
+    <WidePage
+      en={!fr}
+      shop={root}
+      alt={{ href: fr ? "/en/sets" : "/extensions", label: fr ? "the English sets and their TCGplayer prices" : "les extensions en français et leurs prix Cardmarket" }}
+      crumbs={[{ href: root, label: t("Extensions", "Sets") }]}
+      hero={hero}
+    >
       {[...series.values()].map((x) => (
         <section key={x.name} className={c.sec}>
           <h2>{x.name}</h2>
