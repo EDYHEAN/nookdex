@@ -290,8 +290,8 @@ doesn't show.
   (`AMAZON_NOTICE`, `AMAZON_NOTICE_EN`) are on /conditions (its "Amazon" section) and /a-propos. The account closes without 3 sales in its first 180 days (3 shipped in October 2026: kept). Never for single cards (Cardmarket).
 - English pages (Johan, 2026-10-31: the /en pages get English traffic, the US most of it): Amazon Associates US, tag
   `nookdex-20` (`AMAZON_US_TAG`, `amazonOn(lang)`): « See pre-orders on Amazon » on the English calendar, a line on the English
-  set pages of sets out within two years (amazon.com searches, no product cards: those are amazon.fr's), per-place US ids ready in
-  `AMAZON_US_TAGS` (all `nookdex-20` until Johan creates them); an amazon.com link in an English post gets the tag. Same 3 sales
+  set pages of sets out within two years (amazon.com searches, no product cards: those are amazon.fr's), per-place US ids in
+  `AMAZON_US_TAGS` (nookdex-cal-20, -set-20, -card-20, -blog-20, created 2026-11-01); an amazon.com link in an English post gets the tag. Same 3 sales
   in 180 days (from 2026-10-31). OneLink (UK, Canada… sent to their own Amazon) is set in that account, not in the code.
 - The products (Johan, 2026-10-19: put them forward, a call to action wherever they show): `src/data/amazon-products.json`
   (a group per set, `setId` = its FR id; a product = `asin` -> amazon.fr/dp, else a search), `lib/amazonShop`, cards drawn by
@@ -302,7 +302,7 @@ doesn't show.
   missing ones; `lib/shop` is the skins shop, not this). The blog routine keeps the products up to date (docs/blog.md).
   Clicks counted by place (`watchAmazonClicks`, amazon.fr and amazon.com, "-us" for the latter; each link's
   `data-amazon-place`: invit, calendrier, extension, carte, blog, accessoires, `<place>-bar` for a sticky bar; Supabase
-  `amazon_clicks`, the weekly report). A tracking id per place (`AMAZON_TAGS`: invit, extension, calendrier, blog; Amazon's reports split the sales by them). In a French blog post,
+  `amazon_clicks`, the weekly report). A tracking id per place (`AMAZON_TAGS`: invit, extension, calendrier, blog, carte, accessoires; Amazon's reports split the sales by them). In a French blog post,
   `::amazon[<group id>]` draws the cards (« Où acheter … ? » section, docs/blog.md).
 - « Sous la lampe » (Johan, 2026-10-31): `/invitations-amazon`, the calendar, the set pages with their index and the card
   pages (FR, EN) are shop pages, full width
