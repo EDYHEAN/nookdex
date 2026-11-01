@@ -1,6 +1,6 @@
 {
   "_": "Sealed Pokémon TCG products on amazon.fr (affiliate, lib/amazon, lib/amazonShop): the /invitations-amazon page, the set pages and the release calendar show them. A group per set (setId: its FR catalog id) or per line of products. A product: its ASIN (amazon.fr/dp/<asin>), else a search (q) until Amazon lists it; pic: a Poképédia page or file (\"Fichier:…\") whose official picture scripts/fetch-amazon-pics.mjs downloads into public/amazon/ (src/data/amazon-pics.json), else the group's. Kept up to date by the blog routine (docs/blog.md).",
-  "updated": "2026-10-19",
+  "updated": "2026-11-01",
   "groups": [
     {
       "id": "me06",
@@ -10,9 +10,9 @@
       "date": "2026-11-06",
       "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Rayquaza.png",
       "products": [
-        { "kind": "etb", "name": "Coffret Dresseur d'élite Méga-Rayquaza", "q": "Pokémon Coffret Dresseur d'élite Règne Delta", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Règne Delta.png" },
+        { "asin": "B0HGG3XXSX", "kind": "etb", "name": "Coffret Dresseur d'élite Méga-Rayquaza", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Règne Delta.png" },
         { "kind": "display", "name": "Display 36 boosters", "q": "Pokémon Display Règne Delta" },
-        { "kind": "bundle", "name": "Bundle 6 boosters", "q": "Pokémon Bundle Règne Delta", "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Sarmuraï.png" },
+        { "asin": "B0HGG4KWKD", "kind": "bundle", "name": "Bundle 6 boosters", "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Sarmuraï.png" },
         { "kind": "tripack", "name": "Tripack Otaria", "q": "Pokémon Tripack Règne Delta", "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Golemastoc.png" }
       ]
     },
