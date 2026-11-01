@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LegalPage } from "@/components/LegalPage";
+import { postStage } from "@/components/BlogHero";
+import { WidePage } from "@/components/WidePage";
+import { ShopHero } from "@/components/shop/ShopHero";
+import s from "@/components/shop/Shop.module.css";
 import { allPosts, faqOf, formatDate, postBySlug, relatedPosts, renderPost, translationOf } from "@/lib/blog";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import blog from "@/components/Blog.module.css";
-import legal from "@/components/LegalPage.module.css";
 
 // Every post is known at build time (the routine's commit redeploys the site): an unknown slug is a 404.
 export const dynamicParams = false;
@@ -43,7 +45,11 @@ export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): P
 
 const ld = (data: object) => <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 
-/** One post, in the notebook over the desk. Its language is its own, whatever the visitor's. */
+/**
+ * One post, in the shop pages' shell (WidePage shop, drawn without the room, Johan 2026-11-01): its title and the first
+ * card it shows under the lamp, then the text on paper, a readable column. Its language is its own, whatever the visitor's;
+ * the bar's « FR | EN » switch leads to its twin (same `key`).
+ */
 export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
   const post = postBySlug((await params).slug);
   if (!post) notFound();
@@ -54,7 +60,36 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
   const faq = faqOf(post);
   const more = relatedPosts(post);
   return (
-    <LegalPage path="/blog" title={post.title} en={en}>
+    <WidePage
+      en={en}
+      shop="/blog"
+      alt={other ? { href: `/blog/${other.slug}`, label: other.title } : null}
+      crumbs={[
+        { href: "/blog", label: "Blog" },
+        { href: `/blog/${post.slug}`, label: post.title },
+      ]}
+      hero={
+        <ShopHero
+          head={
+            <>
+              <p className={s.eyebrow}>
+                {/* one text: the eyebrow is a flex row */}
+                {`${formatDate(post.date, post.lang)} · ${t(`${post.minutes} min de lecture`, `${post.minutes} min read`)}`}
+              </p>
+              <h1 className={blog.postTitle}>{post.title}</h1>
+              {post.tags.length > 0 && (
+                <ul className={blog.heroTags} aria-label={t("Thèmes", "Topics")}>
+                  {post.tags.map((tag) => (
+                    <li key={tag}>{tag}</li>
+                  ))}
+                </ul>
+              )}
+            </>
+          }
+          stage={await postStage(post)}
+        />
+      }
+    >
       {/* Structured data: search engines and AI answers read the article, where it sits, and its questions */}
       {ld({
         "@context": "https://schema.org",
@@ -88,31 +123,15 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
           mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
         })}
 
-      <div className={blog.meta} lang={post.lang}>
-        <time dateTime={post.date}>{formatDate(post.date, post.lang)}</time>
-        <span>· {t(`${post.minutes} min de lecture`, `${post.minutes} min read`)}</span>
-        {other && (
-          <Link prefetch={false} href={`/blog/${other.slug}`} hrefLang={other.lang} className={blog.langSwitch}>
-            {/* no flag emoji: Windows shows them as two letters */}
-            {en ? "FR · Lire en français" : "EN · Read in English"}
-          </Link>
-        )}
-      </div>
-      {post.tags.length > 0 && (
-        <ul className={blog.tags} aria-label={t("Thèmes", "Topics")}>
-          {post.tags.map((tag) => (
-            <li key={tag}>{tag}</li>
-          ))}
-        </ul>
-      )}
+      <div className={`${blog.body} ${blog.column}`} lang={post.lang} dangerouslySetInnerHTML={{ __html: await renderPost(post) }} />
 
-      <div className={blog.body} lang={post.lang} dangerouslySetInnerHTML={{ __html: await renderPost(post) }} />
-
-      <p className={blog.cta}>
-        <Link prefetch={false} href="/" className={legal.cta}>
+      {/* the desk, after the post: green */}
+      <div className={`${s.app} ${blog.column}`}>
+        <p>{t("Coche tes cartes et suis leur cote chaque jour, sur ton bureau.", "Tick your cards and follow their value every day, on your desk.")}</p>
+        <Link prefetch={false} href={en ? "/en" : "/"} className={`${s.btn} ${s.green}`}>
           {t(`Range tes cartes sur le bureau ${SITE_NAME} ▶`, `Track your cards on the ${SITE_NAME} desk ▶`)}
         </Link>
-      </p>
+      </div>
 
       {more.length > 0 && (
         <nav className={blog.more} aria-label={t("À lire aussi", "Read next")}>
@@ -133,6 +152,6 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
       <p>
         <Link prefetch={false} href="/blog">{t("← tous les articles", "← all posts")}</Link>
       </p>
-    </LegalPage>
+    </WidePage>
   );
 }

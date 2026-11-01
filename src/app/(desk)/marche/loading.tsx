@@ -1,6 +1,6 @@
-import { NotebookSkeleton } from "@/components/NotebookSkeleton";
+import { ShopSkeleton } from "@/components/NotebookSkeleton";
 
-// The notebook at once on a tab's click, its page's words when they come (the pages are drawn on each visit).
+// A shop page is wide, the room not behind it (lib/roomless): its own waiting page.
 export default function Loading() {
-  return <NotebookSkeleton />;
+  return <ShopSkeleton />;
 }

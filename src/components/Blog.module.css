@@ -1,4 +1,4 @@
-/* The blog in the notebook (LegalPage): the posts are sticky notes pinned on the ruled paper. */
+/* The blog in the shop pages' shell (WidePage shop): the posts are sticky notes pinned on the paper. */
 
 .list {
   display: grid;
@@ -73,47 +73,57 @@
   font-size: 0.85em;
 }
 
-/* ---------- a post's header ---------- */
+/* ---------- a post's hero (the night) ---------- */
 
-.meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 10px;
-  color: var(--ink-soft);
+.postTitle {
+  margin: 8px 0 10px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: clamp(18px, 4.6vw, 30px);
+  line-height: 1.4;
+  color: #fff6e2;
+  text-shadow: 3px 3px 0 var(--ink);
 }
 
-.langSwitch {
-  margin-left: auto;
-  padding: 0 10px;
-  border: 2px solid var(--ink);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.5);
-  color: var(--ink) !important;
-  text-decoration: none;
-  line-height: 26px;
-}
-
-.langSwitch:hover {
-  background: #ffd35a;
-}
-
-.tags {
+.heroTags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 6px 0 20px !important;
-  padding: 0 !important;
+  margin: 0 0 18px;
+  padding: 0;
   list-style: none;
 }
 
-.tags li {
-  padding: 0 8px;
-  border-radius: 4px;
-  background: rgba(232, 161, 58, 0.18);
-  color: var(--ink);
-  font-size: 0.85em;
-  line-height: 26px;
+.heroTags li {
+  padding: 2px 10px;
+  border: 1.5px solid rgba(239, 227, 200, 0.35);
+  border-radius: 999px;
+  background: rgba(239, 227, 200, 0.06);
+  color: var(--moon);
+  font-size: 13.5px;
+}
+
+/* the index's hero: the latest post's title */
+.heroTitle {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 650;
+  line-height: 1.3;
+  color: #fff6e2;
+}
+
+/* the text: a reading column, centred under the hero */
+.column {
+  max-width: 760px;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.column ~ nav,
+.column ~ p {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ---------- the post's Markdown ---------- */
@@ -218,49 +228,86 @@
   background: rgba(255, 211, 90, 0.18);
 }
 
-/* ---------- a set's sealed products on amazon.fr (::amazon[…]): ShopShelf's cards, drawn in HTML ---------- */
+/* ---------- a set's sealed products on amazon.fr (::amazon[…], lib/blog): the shop pages' product cards, in HTML ---------- */
 
 .body :global(.blog-shop) {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: 64%;
   gap: 14px;
-  margin: 20px 0 8px;
+  margin: 20px -16px 8px;
+  padding: 6px 16px 18px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 16px;
+  scrollbar-width: none;
+}
+
+@media (min-width: 760px) {
+  .body :global(.blog-shop) {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    grid-auto-columns: auto;
+    margin: 20px 0 8px;
+    padding: 6px 0 18px;
+    overflow: visible;
+  }
 }
 
 .body :global(.blog-shop-card) {
+  position: relative;
   display: flex;
   flex-direction: column;
-  padding: 10px 10px 12px;
+  overflow: hidden;
+  scroll-snap-align: start;
   border: 3px solid var(--ink);
-  border-radius: 10px;
+  border-radius: 16px;
   background: #fffaf0;
-  box-shadow: 4px 4px 0 var(--ink);
-  color: var(--ink);
+  box-shadow: 4px 5px 0 var(--ink);
+  color: var(--ink) !important;
   line-height: 1.25;
-  text-decoration: none;
+  text-decoration: none !important;
   transition:
-    transform 0.12s,
-    box-shadow 0.12s;
+    transform 0.18s cubic-bezier(0.34, 1.6, 0.5, 1),
+    box-shadow 0.18s;
 }
 
 .body :global(.blog-shop-card):hover {
-  transform: translate(-2px, -2px) rotate(-0.6deg);
-  box-shadow: 6px 6px 0 var(--ink);
+  transform: translate(-2px, -3px) rotate(-0.4deg);
+  box-shadow: 6px 8px 0 var(--ink);
 }
 
 .body :global(.blog-shop-pic) {
+  position: relative;
   display: grid;
   place-items: center;
-  height: 140px;
-  margin-bottom: 8px;
+  height: 150px;
+  border-bottom: 3px solid var(--ink);
+  background:
+    radial-gradient(70% 70% at 50% 60%, rgba(255, 190, 110, 0.5), transparent 70%),
+    linear-gradient(180deg, #2c2140, #1a1327);
 }
 
-.body :global(.blog-shop-pic) img {
-  max-width: 100%;
-  max-height: 140px;
+.body :global(.blog-shop-pic)::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 14px;
+  background: linear-gradient(180deg, #e0a868 0 3px, #c98a4a 3px 9px, #9a6430 9px);
+  border-top: 2px solid var(--ink);
+}
+
+.body :global(.blog-shop-pic) img,
+.body :global(.blog-shop-pic) svg {
+  position: relative;
+  z-index: 1;
+  max-width: 82%;
+  max-height: 112px;
   width: auto;
   height: auto;
-  filter: drop-shadow(0 4px 4px rgba(43, 34, 48, 0.25));
+  margin-bottom: 12px;
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.5));
+  transition: transform 0.3s cubic-bezier(0.34, 1.6, 0.5, 1);
 }
 
 /* a product with no picture yet: its kind, drawn (lib/kindArt) */
@@ -269,44 +316,50 @@
   height: 96px;
 }
 
+.body :global(.blog-shop-card):hover :global(.blog-shop-pic) img,
+.body :global(.blog-shop-card):hover :global(.blog-shop-pic) svg {
+  transform: translateY(-6px) scale(1.04);
+}
+
 .body :global(.blog-shop-kind) {
   align-self: flex-start;
-  margin-bottom: 4px;
-  padding: 1px 6px;
-  border-radius: 4px;
+  margin: 12px 14px 4px;
+  padding: 3px 8px 2px;
+  border-radius: 6px;
   background: var(--paper-2);
   color: var(--ink-soft);
-  font-size: 0.8em;
+  font-family: var(--font-vt), monospace;
+  font-size: 17px;
+  line-height: 1;
 }
 
 .body :global(.blog-shop-card) b {
   flex: 1;
-  margin-bottom: 10px;
-  font-weight: normal;
+  margin: 0 14px 10px;
+  font-size: 16px;
+  font-weight: 650;
 }
 
 .body :global(.blog-shop-go) {
-  padding: 7px 6px 6px;
-  border: 2px solid var(--ink);
-  border-radius: 6px;
+  margin: 0 14px 14px;
+  padding: 12px 8px 11px;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
   background: #ffd35a;
   font-family: var(--font-press), monospace;
   font-size: 9px;
   line-height: 1.4;
   text-align: center;
-  box-shadow: 2px 2px 0 var(--ink);
+  box-shadow: 2px 3px 0 var(--ink);
+}
+
+.body :global(.blog-shop-card):hover :global(.blog-shop-go) {
+  background: #ffc12e;
 }
 
 .body :global(.blog-shop-note) {
   color: var(--ink-soft);
-  font-size: 0.8em;
-}
-
-@media (max-width: 520px) {
-  .body :global(.blog-shop) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
+  font-size: 13px;
 }
 
 /* ---------- a card the post talks about (::card[…]): its scan beside its sheet ---------- */
@@ -488,10 +541,6 @@
 }
 
 /* ---------- after the post ---------- */
-
-.cta {
-  margin-top: 32px !important;
-}
 
 .more {
   margin-top: 36px;

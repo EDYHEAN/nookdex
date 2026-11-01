@@ -232,8 +232,10 @@ doesn't show.
 
 ## Blog (SEO/GEO)
 
-- `/blog` (index, the visitor's language) and `/blog/<slug>` (one post, its own language), notebook pages like
-  `/a-propos`, opened from the cork board above the desk (`BOARD` hotspot in PaintedRoom) and the notebook's "Blog" tab.
+- `/blog` (index, the visitor's language) and `/blog/<slug>` (one post, its own language), in the shop pages' shell since
+  2026-11-01 (WidePage shop, roomless: the latest post / the post's first card under the lamp, a reading column; a post's
+  « FR | EN » switch leads to its `key` twin), opened from the cork board above the desk (`BOARD` hotspot in PaintedRoom),
+  the shell's « Blog » tab and the notebook's.
 - Posts are Markdown files: `content/blog/<fr|en>/<slug>.md`, frontmatter `title, description, date, key, tags`; the
   two languages of a post share `key` (hreflang). `::card[<id>]` on its own line draws a card sheet from `public/sets`
   with today's price and a link to its market; 2-4 such lines in a row make a gallery. A quote block is the "En bref"
@@ -304,8 +306,8 @@ doesn't show.
   `data-amazon-place`: invit, calendrier, extension, carte, blog, accessoires, `<place>-bar` for a sticky bar; Supabase
   `amazon_clicks`, the weekly report). A tracking id per place (`AMAZON_TAGS`: invit, extension, calendrier, blog, carte, accessoires; Amazon's reports split the sales by them). In a French blog post,
   `::amazon[<group id>]` draws the cards (« Où acheter … ? » section, docs/blog.md).
-- « Sous la lampe » (Johan, 2026-10-31): `/invitations-amazon`, the calendar, the set pages with their index and the card
-  pages (FR, EN) are shop pages, full width
+- « Sous la lampe » (Johan, 2026-10-31): `/invitations-amazon`, the calendar, the set pages with their index, the card
+  pages, the market (`/marche`, `/en/market`: the week's top riser under the lamp) and the blog (FR, EN) are shop pages, full width
   (`WidePage shop`: night bar, « Mon bureau », the tabs), a night hero (`components/shop`: `ShopHero`, `Stage`, `Countdown`,
   `ProductRail`, EN `KindTiles`, the phone's `StickyBuy`, styles in `Shop.module.css`), one yellow button per screen, the
   desk's own green. They're drawn **without the room** (`lib/roomless`: ClientApp mounts it once the visitor goes to the desk;

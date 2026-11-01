@@ -5,11 +5,16 @@ import { cardPagePath } from "@/lib/cardPages";
 import { publicJson } from "@/lib/setFiles";
 import { SET_PAGES_ROOT, type PageLang } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import { LegalPage } from "./LegalPage";
-import cal from "./ReleaseCalendar.module.css";
+import { CardStage } from "./shop/ShopBits";
+import { ShopHero } from "./shop/ShopHero";
+import s from "./shop/Shop.module.css";
+import { WidePage } from "./WidePage";
 import styles from "./MarketPage.module.css";
 
-/** The market page: French cards on Cardmarket (/marche), English ones on TCGplayer (/en/market), hreflang twins. */
+/**
+ * The market page: French cards on Cardmarket (/marche), English ones on TCGplayer (/en/market), hreflang twins. In the
+ * shop pages' shell (WidePage shop, drawn without the room): the week's top riser under the lamp.
+ */
 export const MARKET_PATH: Record<PageLang, string> = { fr: "/marche", en: "/en/market" };
 
 interface Move {
@@ -129,8 +134,57 @@ export async function MarketPage({ lang }: { lang: PageLang }) {
     </ol>
   );
 
+  // the hero (« Sous la lampe », the shell of the shop pages: Johan 2026-11-01, the tab jumped back to the notebook): the
+  // week's top riser standing under the lamp, the desk's green button (no Amazon here)
+  const hero = (
+    <ShopHero
+      head={
+        <>
+          <p className={s.eyebrow}>{data ? t(`Cotes ${source} du ${formatDate(data.updated, "fr")}`, `${source} prices, ${formatDate(data.updated, "en")}`) : source}</p>
+          <h1 className={`${s.big} ${s.setName}`}>{t("Le marché de la semaine", "This week's market")}</h1>
+          <p className={s.lede}>
+            {t("Les cartes Pokémon qui montent et qui chutent le plus en 7 jours.", "The Pokémon cards rising and falling the most in 7 days.")}
+          </p>
+        </>
+      }
+      stage={top ? <CardStage src={top.img} alt={`${top.name} ${top.num} · ${top.setName}`} /> : undefined}
+      buy={
+        <>
+          {top && (
+            <>
+              <p className={s.what}>
+                <b>{top.name}</b> · {top.setName} · {top.num}
+              </p>
+              <p className={styles.heroMove}>
+                <b>↗ {pct(top.m7 ?? 0)}</b> <span>{t("en 7 jours", "in 7 days")} · {money(top.price)}</span>
+              </p>
+            </>
+          )}
+          <div className={s.btns}>
+            <Link prefetch={false} href={fr ? "/" : "/en"} className={`${s.btn} ${s.lg} ${s.green}`}>
+              {t("Suis la cote de tes cartes ▶", "Follow your cards' value ▶")}
+            </Link>
+          </div>
+          <ul className={s.reassure}>
+            <li>{t("Gratuit, sans compte pour commencer", "Free, no account to start")}</li>
+            <li>{t("Les prix de chaque jour", "Every day's prices")}</li>
+          </ul>
+        </>
+      }
+    />
+  );
+
   return (
-    <LegalPage path={MARKET_PATH[lang]} title={t("Le marché de la semaine", "This week's market")} en={!fr}>
+    <WidePage
+      en={!fr}
+      shop={MARKET_PATH[lang]}
+      alt={{
+        href: MARKET_PATH[fr ? "en" : "fr"],
+        label: fr ? "the English cards rising and falling on TCGplayer" : "les cartes françaises qui montent et chutent sur Cardmarket",
+      }}
+      crumbs={[{ href: MARKET_PATH[lang], label: t("Marché", "Market") }]}
+      hero={hero}
+    >
       {ld({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -152,7 +206,7 @@ export async function MarketPage({ lang }: { lang: PageLang }) {
       ) : (
         <>
           {top && bottom && (
-            <p className={cal.answer}>
+            <p className={s.answer}>
               <b>{t("En bref", "In short")}</b>
               {t("Cette semaine, ", "This week, ")}
               <strong>{top.name}</strong> ({top.setName}) {t("monte de", "rose")} {pct(top.m7 ?? 0)}
@@ -165,16 +219,21 @@ export async function MarketPage({ lang }: { lang: PageLang }) {
             {t(
               "Les cartes Pokémon dont la cote a le plus bougé en 7 jours, d'après la tendance Cardmarket relevée chaque jour. Les cartes à moins de 1 € n'y sont pas : quelques centimes de plus ne font pas une hausse.",
               "The Pokémon cards whose price moved the most in 7 days, from the TCGplayer market price recorded every day (English cards). Cards under $1 are left out: a few cents more isn't a rise.",
-            )}{" "}
-            <Link prefetch={false} href={MARKET_PATH[fr ? "en" : "fr"]} hrefLang={fr ? "en" : "fr"}>
-              {t("English cards (TCGplayer) →", "Cartes françaises (Cardmarket) →")}
-            </Link>
+            )}
           </p>
 
           <h2>{t("Ça monte ↗", "Rising ↗")}</h2>
           {up.length ? list(up) : <p>{t("Rien de notable cette semaine.", "Nothing notable this week.")}</p>}
           <h2>{t("Ça chute ↘", "Falling ↘")}</h2>
           {down.length ? list(down) : <p>{t("Rien de notable cette semaine.", "Nothing notable this week.")}</p>}
+
+          {/* the desk, after the lists: green */}
+          <div className={s.app}>
+            <p>{t("Suis la cote de tes propres cartes, chaque jour, sur ton bureau.", "Follow your own cards' prices, every day, on your desk.")}</p>
+            <Link prefetch={false} href={fr ? "/" : "/en"} className={`${s.btn} ${s.green}`}>
+              {t("Ouvrir mon bureau ▶", "Open my desk ▶")}
+            </Link>
+          </div>
 
           {(oldUp.length > 0 || oldDown.length > 0) && (
             <>
@@ -190,20 +249,17 @@ export async function MarketPage({ lang }: { lang: PageLang }) {
             </>
           )}
 
-          <p className={styles.cta}>
-            {t("Suis la cote de tes propres cartes, chaque jour, sur ton bureau.", "Follow your own cards' prices, every day, on your desk.")}{" "}
-            <Link prefetch={false} href={fr ? "/" : "/en"}>{t("Ouvrir mon bureau ▶", "Open my desk ▶")}</Link>
-          </p>
+          <section className={s.faq}>
+            <h2>{t("Questions fréquentes", "FAQ")}</h2>
+            {faq.map((f) => (
+              <div key={f.q}>
+                <h3>{f.q}</h3>
+                <p>{f.a}</p>
+              </div>
+            ))}
+          </section>
 
-          <h2>{t("Questions fréquentes", "FAQ")}</h2>
-          {faq.map((f) => (
-            <div key={f.q}>
-              <h3 className={cal.q}>{f.q}</h3>
-              <p>{f.a}</p>
-            </div>
-          ))}
-
-          <p className={cal.updated}>
+          <p className={s.small}>
             {t(
               `Prix ${source}, mis à jour le ${formatDate(data.updated, "fr")}. Les prix Cardmarket mélangent toutes les langues d'impression de la carte.`,
               `${source} prices, updated ${formatDate(data.updated, "en")}.`,
@@ -212,6 +268,6 @@ export async function MarketPage({ lang }: { lang: PageLang }) {
           </p>
         </>
       )}
-    </LegalPage>
+    </WidePage>
   );
 }
