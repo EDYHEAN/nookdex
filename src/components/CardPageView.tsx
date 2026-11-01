@@ -110,6 +110,7 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
     <WidePage
       en={!fr}
       shop={root}
+      alt={p.other && { href: p.other.path, label: fr ? "the English card and its TCGplayer price" : "la carte française et son prix Cardmarket" }}
       crumbs={[
         { href: root, label: t("Extensions", "Sets") },
         { href: p.setPath, label: p.set.name },
@@ -187,13 +188,6 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
             </Link>
             <span>{t("Gratuit, sans compte pour commencer.", "Free, no account needed to start.")}</span>
           </div>
-          {p.other && (
-            <p className={styles.source}>
-              <Link prefetch={false} href={p.other.path} hrefLang={p.other.lang}>
-                {fr ? `EN · ${card.name}: the English card and its TCGplayer price` : `FR · ${card.name} : la carte française et son prix Cardmarket`}
-              </Link>
-            </p>
-          )}
           {/* never the single card (that's Cardmarket's): its set's boxes while they're in the shops, sleeves for a dear one */}
           <SealedBlock lang={lang} setId={p.set.id} setName={p.set.name} releaseDate={p.set.releaseDate} />
           <ProtectIt lang={lang} price={p.prices[0]?.trend} />

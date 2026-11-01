@@ -147,11 +147,6 @@
   color: rgba(239, 227, 200, 0.55);
 }
 
-.sealed .aff::before {
-  background: rgba(239, 227, 200, 0.55);
-  color: var(--night);
-}
-
 @media (min-width: 900px) {
   .sealed {
     padding: 20px 22px 16px;

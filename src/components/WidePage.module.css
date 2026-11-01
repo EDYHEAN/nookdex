@@ -217,6 +217,59 @@
   background: rgba(239, 227, 200, 0.1);
 }
 
+/* « FR | EN »: the twin page in the other language, by « Mon bureau » (same line, same height, a thumb's width each) */
+.lang {
+  flex: none;
+  display: flex;
+  margin-left: auto;
+}
+
+.lang > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 2px 9px 0;
+  border: 2px solid rgba(239, 227, 200, 0.45);
+  color: var(--paper);
+  font-family: var(--font-press), monospace;
+  font-size: 10px;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.lang > :first-child {
+  border-radius: 10px 0 0 10px;
+}
+
+.lang > :last-child {
+  border-left: 0;
+  border-radius: 0 10px 10px 0;
+}
+
+/* the page's own language: lit, not a link */
+.lang .langOn {
+  border-color: var(--paper);
+  background: var(--paper);
+  color: #150f1f;
+}
+
+.lang a:hover {
+  background: rgba(239, 227, 200, 0.1);
+}
+
+.lang a:focus-visible {
+  outline: 2px solid #ffd35a;
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .bar:has(.lang) {
+    gap: 10px;
+  }
+}
+
 /* the desk's own action: green, never the Amazon yellow */
 .shopPage .about .open {
   background: #8fdc7a;
