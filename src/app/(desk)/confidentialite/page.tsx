@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { serverLang } from "@/lib/serverLang";
-import { LegalPage } from "@/components/LegalPage";
+import { ShellTextPage } from "@/components/ShellTextPage";
 import { LEGAL, SITE_DOMAIN, SITE_NAME } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Fr() {
   return (
-    <LegalPage path="/confidentialite" title="Règles de confidentialité" updated="17 octobre 2026">
+    <ShellTextPage path="/confidentialite" title="Règles de confidentialité" updated="17 octobre 2026">
       <p>
         {SITE_NAME} ({SITE_DOMAIN}) est un site gratuit pour ranger et suivre sa collection de cartes Pokémon dans des classeurs virtuels. Cette page
         explique quelles données le site collecte, pourquoi, avec qui elles sont partagées, combien de temps elles sont gardées et comment les
@@ -150,13 +150,13 @@ function Fr() {
 
       <h2>10. Changements</h2>
       <p>Si cette page change, la date en haut est mise à jour. Pour un changement important, on te prévient sur le site.</p>
-    </LegalPage>
+    </ShellTextPage>
   );
 }
 
 function En() {
   return (
-    <LegalPage path="/confidentialite" title="Privacy policy" updated="17 October 2026" en>
+    <ShellTextPage path="/confidentialite" title="Privacy policy" updated="17 October 2026" en>
       <p>
         {SITE_NAME} ({SITE_DOMAIN}) is a free site to file and track your Pokémon card collection in virtual binders. This page explains which
         data the site collects, why, who it is shared with, how long it is kept and how to delete it. We collect as little as possible, and nothing
@@ -285,7 +285,7 @@ function En() {
 
       <h2>10. Changes</h2>
       <p>If this page changes, the date at the top is updated. For an important change, we let you know on the site.</p>
-    </LegalPage>
+    </ShellTextPage>
   );
 }
 

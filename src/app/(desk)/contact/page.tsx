@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { serverLang } from "@/lib/serverLang";
-import { LegalPage } from "@/components/LegalPage";
+import { ShellTextPage } from "@/components/ShellTextPage";
 import { ContactForm } from "@/components/ContactForm";
 import { SITE_NAME } from "@/lib/site";
 
@@ -11,19 +11,19 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Fr() {
   return (
-    <LegalPage path="/contact" title="Contact">
+    <ShellTextPage path="/contact" title="Contact">
       <p>Une question, un bug, une idée, ou la suppression de ton compte ? Laisse un message, on te répond par e-mail.</p>
       <ContactForm />
-    </LegalPage>
+    </ShellTextPage>
   );
 }
 
 function En() {
   return (
-    <LegalPage path="/contact" title="Contact" en>
+    <ShellTextPage path="/contact" title="Contact" en>
       <p>A question, a bug, an idea, or deleting your account? Leave a message, we&apos;ll answer by e-mail.</p>
-      <ContactForm />
-    </LegalPage>
+      <ContactForm en />
+    </ShellTextPage>
   );
 }
 

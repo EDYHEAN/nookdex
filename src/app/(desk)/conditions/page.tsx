@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { serverLang } from "@/lib/serverLang";
-import { LegalPage } from "@/components/LegalPage";
+import { ShellTextPage } from "@/components/ShellTextPage";
 import Link from "next/link";
 import { AMAZON_NOTICE, AMAZON_NOTICE_EN, amazonOn } from "@/lib/amazon";
 import { SITE_NAME } from "@/lib/site";
@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Fr() {
   return (
-    <LegalPage path="/conditions" title="Conditions d'utilisation" updated="31 octobre 2026">
+    <ShellTextPage path="/conditions" title="Conditions d'utilisation" updated="31 octobre 2026">
       <p>{SITE_NAME} est gratuit. En l&apos;utilisant, tu acceptes ces quelques règles.</p>
 
       <h2>Le service</h2>
@@ -57,13 +57,13 @@ function Fr() {
       <p>
         Une question ? Écris-nous via le <Link href="/contact">formulaire de contact</Link>.
       </p>
-    </LegalPage>
+    </ShellTextPage>
   );
 }
 
 function En() {
   return (
-    <LegalPage path="/conditions" title="Terms of use" updated="31 October 2026" en>
+    <ShellTextPage path="/conditions" title="Terms of use" updated="31 October 2026" en>
       <p>{SITE_NAME} is free. By using it, you accept these few rules.</p>
 
       <h2>The service</h2>
@@ -108,7 +108,7 @@ function En() {
       <p>
         A question? Write to us through the <Link href="/contact">contact form</Link>.
       </p>
-    </LegalPage>
+    </ShellTextPage>
   );
 }
 

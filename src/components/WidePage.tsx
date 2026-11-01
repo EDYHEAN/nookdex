@@ -12,6 +12,14 @@ const SHOP_TABS = [
   { href: ["/marche", "/en/market"], label: ["Marché", "Market"] },
   { href: ["/blog", "/blog"], label: ["Blog", "Blog"] },
 ] as const;
+/** the footer says them in full (the tabs are short) */
+const FOOT_LABEL: Record<string, string> = {
+  "/extensions": "Toutes les extensions",
+  "/en/sets": "All sets",
+  "/calendrier-des-sorties": "Calendrier des sorties",
+  "/en/release-calendar": "Release calendar",
+  "/invitations-amazon": "Invitations Amazon",
+};
 
 /**
  * A full-width page over the room (the card pages, Johan 2026-10-18: a way in from search engines must be wide, clear
@@ -119,14 +127,27 @@ export function WidePage({
         </div>
       </aside>
 
+      {/* the same two rows on every page (Johan, 2026-11-01): the shell's pages, then the site's own (the Amazon programs'
+          sentences are in the terms of use) */}
       <footer className={styles.foot} data-sticky-stop>
-        <Link prefetch={false} href={t("/extensions", "/en/sets")}>{t("Toutes les extensions", "All sets")}</Link>
-        <Link prefetch={false} href={t("/calendrier-des-sorties", "/en/release-calendar")}>{t("Calendrier des sorties", "Release calendar")}</Link>
-        <Link prefetch={false} href="/blog">Blog</Link>
-        <Link prefetch={false} href="/a-propos">{t("À propos", "About")}</Link>
-        <Link prefetch={false} href="/mentions-legales">{t("Mentions légales", "Legal notice")}</Link>
-        {/* the Amazon programs' sentences are there (Johan, 2026-10-31) */}
-        {shop && <Link prefetch={false} href="/conditions#amazon">{t("Conditions d'utilisation", "Terms of use")}</Link>}
+        <nav aria-label={t("Les pages", "Pages")}>
+          {SHOP_TABS.map((tab) => {
+            const href = t(tab.href[0], tab.href[1]);
+            return href ? (
+              <Link key={href} prefetch={false} href={href}>
+                {FOOT_LABEL[href] ?? t(tab.label[0], tab.label[1])}
+              </Link>
+            ) : null;
+          })}
+        </nav>
+        <nav aria-label={t("Le site", "The site")}>
+          <Link prefetch={false} href="/a-propos">{t("À propos", "About")}</Link>
+          <Link prefetch={false} href="/contact">Contact</Link>
+          <Link prefetch={false} href="/conditions">{t("Conditions d'utilisation", "Terms of use")}</Link>
+          <Link prefetch={false} href="/confidentialite">{t("Confidentialité", "Privacy")}</Link>
+          <Link prefetch={false} href="/conditions-de-vente">{t("Conditions de vente", "Terms of sale")}</Link>
+          <Link prefetch={false} href="/mentions-legales">{t("Mentions légales", "Legal notice")}</Link>
+        </nav>
       </footer>
     </div>
   );

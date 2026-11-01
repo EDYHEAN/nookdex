@@ -145,16 +145,26 @@
   margin: 0 0 16px;
 }
 
+/* two rows: the shell's pages, then the site's own; a link is a tap target (44 px) */
 .foot {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 22px;
+  flex-direction: column;
+  gap: 6px;
   padding: 28px 16px 40px;
   font-size: 15px;
 }
 
+.foot nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 20px;
+}
+
 .foot a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--ink-soft);
 }
 
