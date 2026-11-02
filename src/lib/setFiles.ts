@@ -12,17 +12,24 @@ import type { SetData } from "./types";
  */
 
 const files = new Map<string, Promise<SetData | null>>();
+/**
+ * The addresses the site answered 404 for (an extra set has no price history, a set no French file): known missing until the
+ * next deploy. Retried on every page, they made ~20,000 requests a day, each one a function drawing the not-found page
+ * (2026-11-02: 144,000 of the week's requests, the first item of the Vercel bill).
+ */
+const missing = new Set<string>();
 
 export function setFile(lang: CardLang, id: string): Promise<SetData | null> {
   // literal path parts: the tracer then only sees public/sets (excluded in next.config), not the whole project
   const file = path.join(process.cwd(), "public", "sets", ...(lang === "fr" ? [] : [lang]), `${id}.json`);
   // read once per server instance in production: the daily prices come with a new deploy
   if (!files.has(file) || process.env.NODE_ENV !== "production") {
-    const read = load(file, ["sets", ...(lang === "fr" ? [] : [lang]), `${id}.json`].join("/"));
+    const url = ["sets", ...(lang === "fr" ? [] : [lang]), `${id}.json`].join("/");
+    const read = load(file, url);
     files.set(file, read);
-    // a fetch that failed is tried again on the next request instead of hiding the set until the next deploy
+    // a fetch that failed is tried again on the next request instead of hiding the set until the next deploy (not a 404)
     void read.then((d) => {
-      if (!d && files.get(file) === read) files.delete(file);
+      if (!d && files.get(file) === read && !missing.has(url)) files.delete(file);
     });
   }
   return files.get(file)!;
@@ -37,10 +44,11 @@ const others = new Map<string, Promise<unknown>>();
 export function publicJson<T>(...parts: string[]): Promise<T | null> {
   const file = path.join(process.cwd(), "public", ...parts);
   if (!others.has(file) || process.env.NODE_ENV !== "production") {
-    const read = load(file, parts.join("/"));
+    const url = parts.join("/");
+    const read = load(file, url);
     others.set(file, read);
     void read.then((d) => {
-      if (!d && others.get(file) === read) others.delete(file);
+      if (!d && others.get(file) === read && !missing.has(url)) others.delete(file);
     });
   }
   return others.get(file) as Promise<T | null>;
@@ -52,6 +60,7 @@ async function load<T = SetData>(file: string, url: string): Promise<T | null> {
     // kept a day like the pages that read it (no-store would make the card pages, drawn on their first visit, dynamic:
     // DYNAMIC_SERVER_USAGE); the files change once a day, with the prices commit that redeploys anyway
     const r = await fetch(`${SITE_URL}/${url}`, { next: { revalidate: 86400 }, signal: AbortSignal.timeout(8000) });
+    if (r.status === 404) missing.add(url);
     return r.ok ? ((await r.json()) as T) : null;
   } catch {
     return null;
