@@ -272,6 +272,9 @@ doesn't show.
   `<lang>.xml` the rest (`CARD_SITEMAPS`, all in robots.txt; submit the new ones in Search Console to read each slice's
   indexing). `/extensions` and `/en/sets` end with 50 plain links to card pages (`topCards`, from the search index): the 25
   dearest (2 per set at most) and the 25 dearest of the two latest series, so Google finds them one click from the index.
+- IndexNow (2026-11-02, once on Vercel Pro): the Action « IndexNow » (daily 14:30 UTC, `scripts/indexnow.mjs`) sends Bing the
+  URLs whose sitemap lastmod is today or yesterday (a few hundred). Its key is `public/<key>.txt` (public by design): renaming
+  or removing it makes every ping a 403. Bing Webmaster's stats: an API key on Johan's PC, not in the repo.
 - `/` is the French home for search engines (they send no language), `/en` the English one (hreflang between them). The
   home text (`HomeText`) carries `WebApplication` JSON-LD; its title is written visibly on the loader's paper (hidden
   once the room is in: `html[data-room]`, set by App). Landing on `/en…` starts the room in English (`resolveLang`).

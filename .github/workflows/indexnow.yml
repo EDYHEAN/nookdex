@@ -1,0 +1,32 @@
+# Chaque après-midi : prévient Bing (IndexNow) des pages qui ont changé hier et aujourd'hui (le lastmod des sitemaps :
+# prix qui ont vraiment bougé, nouveaux articles), quelques centaines d'adresses. Google ne lit pas IndexNow.
+# Lancement à la main : onglet « Actions » > « IndexNow » > « Run workflow » (le nombre de jours pour rattraper).
+name: IndexNow
+
+on:
+  schedule:
+    # 14 h 30 UTC : après les prix de 11 h et le déploiement qui les met en ligne (les sitemaps sont ceux du site en ligne)
+    - cron: "30 14 * * *"
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Jours à envoyer (2 = hier et aujourd'hui)"
+        default: "2"
+
+permissions:
+  contents: read
+
+jobs:
+  indexnow:
+    name: Prévenir Bing
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Envoyer les pages modifiées
+        run: node scripts/indexnow.mjs --days=${{ inputs.days || '2' }}
