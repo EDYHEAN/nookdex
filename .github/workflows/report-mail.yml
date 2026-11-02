@@ -2,6 +2,8 @@
 # contact@nookdex.com via Brevo (expéditeur contact@nookdex.com). Secret : BREVO_API_KEY (la même clé que le site).
 # Les ventes de la boutique et les dons y sont ajoutés à l'envoi, lus sur Stripe (jamais écrits dans le dépôt, public) :
 # secrets STRIPE_SHOP_KEY et STRIPE_TIPS_KEY, des clés restreintes en lecture seule (« Balance » et « Checkout Sessions »).
+# Secret REPORT_TO (facultatif) : d'autres adresses, séparées par des virgules, en plus de contact@ (qui passe par
+# ImprovMX : le 2 novembre 2026, ImprovMX a refusé le mail, l'IP de Brevo étant sur la liste noire de SpamCop).
 # Lancement à la main (renvoyer le dernier) : onglet « Actions » > « Mail du rapport » > « Run workflow ».
 name: Mail du rapport
 
@@ -28,4 +30,5 @@ jobs:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           STRIPE_SHOP_KEY: ${{ secrets.STRIPE_SHOP_KEY }}
           STRIPE_TIPS_KEY: ${{ secrets.STRIPE_TIPS_KEY }}
+          REPORT_TO: ${{ secrets.REPORT_TO }}
         run: node scripts/report-mail.mjs
