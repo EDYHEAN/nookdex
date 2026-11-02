@@ -8,7 +8,9 @@ import fs from "node:fs";
 import { moneyBlock, withMoney } from "./report-money.mjs";
 import { amazonBlock } from "./report-amazon.mjs";
 
-const TO = process.env.REPORT_TO || "contact@nookdex.com";
+// REPORT_TO (a secret: addresses, comma separated) adds a straight address: on 2026-11-02 the mail to contact@ bounced at
+// ImprovMX, Brevo's shared IP being on SpamCop's list that morning (« 551 5.7.1 Your IP is black listed »)
+const TO = ["contact@nookdex.com", ...(process.env.REPORT_TO ?? "").split(",").map((s) => s.trim()).filter(Boolean)];
 const file =
   process.argv[2] ||
   "docs/reports/" +
@@ -29,7 +31,7 @@ const subject = html.match(/<title>([^<]*)<\/title>/)?.[1]?.trim() || `NookDex �
 const r = await fetch("https://api.brevo.com/v3/smtp/email", {
   method: "POST",
   headers: { "api-key": process.env.BREVO_API_KEY ?? "", "Content-Type": "application/json", accept: "application/json" },
-  body: JSON.stringify({ sender: { name: "NookDex", email: "contact@nookdex.com" }, to: [{ email: TO }], subject, htmlContent: html }),
+  body: JSON.stringify({ sender: { name: "NookDex", email: "contact@nookdex.com" }, to: [...new Set(TO)].map((email) => ({ email })), subject, htmlContent: html }),
 });
 if (!r.ok) throw new Error(`Brevo ${r.status}: ${await r.text()}`);
-console.log(`sent ${file} to ${TO}: ${subject}`);
+console.log(`sent ${file} to ${TO.length} address(es): ${subject}`);
