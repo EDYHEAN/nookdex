@@ -1078,3 +1078,43 @@ begin
   );
 end $$;
 notify pgrst, 'reload schema';
+
+-- Where each source's new devices land (2026-11-02, report of the same day: « what do ChatGPT's visitors see first? »).
+-- The landing page as a kind (a card's page, a set's, the blog…: never a list of addresses), the commonest address of
+-- each kind as an example, and how far those devices went. Counts only, like funnel_stats.
+create or replace function public.funnel_landings(p_since date default null)
+returns table (source text, kind text, example text, devices bigint, profile bigint, cards10 bigint, account bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with f as (
+    select coalesce(source, '?') as source, coalesce(landing, '') as l, steps
+    from public.funnel
+    where (p_since is null or first_at >= p_since) and source is distinct from 'existing'
+  )
+  select f.source,
+    case
+      when f.l in ('/', '/en', '') then 'accueil'
+      when f.l ~ '^/(extensions|en/sets)/[^/]+/[^/]+' then 'carte'
+      when f.l ~ '^/(extensions|en/sets)/[^/]+$' then 'extension'
+      when f.l ~ '^/(extensions|en/sets)/?$' then 'extensions'
+      when f.l ~ '^/blog' then 'blog'
+      when f.l ~ '^/(calendrier-des-sorties|en/release-calendar)' then 'calendrier'
+      when f.l ~ '^/invitations-amazon' then 'invitations'
+      when f.l ~ '^/(marche|en/market)' then 'marche'
+      when f.l ~ '^/c/' then 'liste partagee'
+      when f.l ~ '^/a-propos' then 'a-propos'
+      else 'autre'
+    end as kind,
+    mode() within group (order by f.l),
+    count(*), count(*) filter (where f.steps ? 'profile'), count(*) filter (where f.steps ? 'cards10'),
+    count(*) filter (where f.steps ? 'account')
+  from f
+  group by 1, 2
+  order by 4 desc
+$$;
+revoke all on function public.funnel_landings(date) from public;
+grant execute on function public.funnel_landings(date) to anon, authenticated;
+notify pgrst, 'reload schema';

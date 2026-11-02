@@ -8,3 +8,11 @@ Le mail (« Mail du rapport », scripts/report-mail.mjs) ajoute à l'envoi un bl
 (scripts/report-money.mjs : ventes des skins, dons Buy Me a Coffee, la semaine et depuis le début). Ces montants ne sont
 jamais écrits ici : le dépôt est public. Secrets GitHub : STRIPE_SHOP_KEY (compte de la boutique) et STRIPE_TIPS_KEY
 (compte Stripe de Buy Me a Coffee), des clés restreintes en lecture seule sur « Balance » et « Checkout Sessions ».
+
+`landings` (depuis le 2 novembre 2026, fonction funnel_landings) : pour chaque source, le type de page où ses nouveaux
+appareils arrivent (accueil, carte, extension, blog, calendrier, invitations, marché…), l'adresse la plus fréquente en
+exemple, et combien vont jusqu'au profil, aux 10 cartes, au compte. Dans le rapport : pour les sources qui comptent
+(ChatGPT, Google, Bing), dire où les gens arrivent et quelle page d'arrivée retient mal, pour que l'action vise la bonne page.
+
+Le mail ajoute aussi, à l'envoi, un bloc « Amazon : ce qui manque aux sorties proches » (scripts/report-amazon.mjs) : les
+produits des sorties proches qui mènent encore à une recherche Amazon ou attendent leur photo.
