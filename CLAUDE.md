@@ -10,7 +10,9 @@ doesn't show.
 
 - Answer Johan in French, short and concrete. Code, comments and commit messages in English.
 - Changes go on a branch, then a PR merged (squash) into `main`. Vercel deploys `main` only (nookdex.com): no
-  previews (`vercel.json`), the Hobby plan keeps every deploy of the last 30 days within 10 GB of storage.
+  previews (`vercel.json`). The team is on the Pro plan since 2026-11-02 (Hobby is for non-commercial use only, and its quotas were
+  passed): $20 of usage included a month, the spend cap in Vercel → Spend Management; Pro also gives a day of runtime logs and the
+  Observability metrics (readable from the Vercel MCP), Hobby none.
 - Before a PR: `npx tsc --noEmit`, `npx eslint src`, and for anything visual, look at it (Playwright + Chromium, desktop
   1400×900 and phone 390×800). Dev shortcuts: `?skip`, `?open=<setId>`, `?os`, `?demo`, `?game` (they also skip the sign-in).
 - Match the style around: no reformatting (Prettier with default options reflows whole files: don't run it), comments
@@ -485,7 +487,8 @@ doesn't show.
 
 ## Vercel quotas and bots
 
-- The Hobby plan's limits (Active CPU 4 h, 1 M function invocations, 1 M CDN requests a month) were passed in October 2026
+- The Hobby plan's limits (Active CPU 4 h, 1 M function invocations, 1 M CDN requests, 10 GB Fast Origin Transfer a month) were
+  passed in October 2026 (1.33 M CDN requests and 9.8 GB FOT on 2026-11-02, hence Pro)
   by crawlers on the ~45,000 card pages, not by players (~40). #201 (2026-10-26): the pages whose address says their
   language are cached a day on Vercel's CDN (next.config `headers`), SEO pages don't prefetch, robots.txt turns away SEO
   tools and scrapers (search engines and AI answer engines stay).
