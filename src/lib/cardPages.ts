@@ -74,7 +74,7 @@ export async function cardPage(lang: PageLang, setSlug: string, slug: string): P
       ].filter((x) => x.trend != null || x.low != null);
   const move = p.avg7 && p.avg30 && Math.abs(p.avg7 / p.avg30 - 1) >= 0.05 ? (p.avg7 / p.avg30 - 1) * 100 : null;
 
-  const hist = await publicJson<History>("history", lang, `${entry.set.id}.json`);
+  const hist = await historyOf(lang, entry.set);
   const vals = hist?.cards[card.id] ?? [];
   const history = (hist?.days ?? []).map((day, k) => ({ day, v: vals[k] as number })).filter((x) => x.v != null);
 
@@ -91,9 +91,9 @@ export async function cardPage(lang: PageLang, setSlug: string, slug: string): P
     .sort((a, b) => (b.trend ?? -1) - (a.trend ?? -1))
     .slice(0, 8);
 
-  // the other language: the same TCGdex id in the other catalog
+  // the other language: the same TCGdex id in the other catalog (not fetched when that catalog hasn't the set: a 404 each time)
   const otherLang: PageLang = fr ? "en" : "fr";
-  const twin = await setFile(otherLang, entry.set.id);
+  const twin = setEntryOf(otherLang, entry.set.id) ? await setFile(otherLang, entry.set.id) : null;
   const twinCard = twin?.cards.find((c) => c.id === card.id);
   const otherPath = twinCard ? cardPagePath(otherLang, entry.set.id, twinCard) : null;
 
