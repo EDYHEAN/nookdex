@@ -1,6 +1,6 @@
 {
   "_": "Upcoming Pokémon TCG releases for the calendar page (lib/releases.ts). Only what an official source confirmed, with that source. Released sets come from the catalogs by themselves: an entry can go once its set is in the catalog. Kept up to date by the blog routine (docs/blog.md).",
-  "updated": "2026-10-16",
+  "updated": "2026-11-03",
   "items": [
     {
       "date": "2026-10-16",
@@ -34,6 +34,16 @@
       "source": "https://www.pokemon.com/us/news/the-pokemon-tcg-mega-evolution-delta-reign-expansion-arrives-november-6-2026",
       "setId": "me06",
       "post": { "fr": "regne-delta-guide-avant-sortie-me06", "en": "delta-reign-set-guide-before-release-me06" }
+    },
+    {
+      "date": "2026-12-04",
+      "region": "intl",
+      "kind": "product",
+      "fr": "Collection Premium Unova Heavy Hitters (version américaine)",
+      "en": "Unova Heavy Hitters Premium Collection",
+      "noteFr": "Annoncée aux États-Unis à 59,99 $ : 4 promos (Zekrom-ex, Reshiram-ex, Victini, Zoroark), une promo oversize, 6 boosters Black Bolt et 6 boosters White Flare. Pas de date française confirmée.",
+      "noteEn": "$59.99: four foil promos (Zekrom ex, Reshiram ex, Victini, Zoroark), an oversize promo, six Black Bolt and six White Flare packs, and a Pokémon TCG Live code.",
+      "source": "https://icv2.com/print/article/63405"
     }
   ]
 }
