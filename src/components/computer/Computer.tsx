@@ -8,7 +8,7 @@ import { resolveConflict, signIn, signInWithGoogle, signOut, useCloud } from "@/
 import { setMailOptin, useMailOptin } from "@/lib/mailOptin";
 import { variantLabel, copiesTotals, formatMoney, formatPrice, playerCurrency, priceOf, setStats, unitPrice } from "@/lib/price";
 import { OS_NAME, SITE_NAME } from "@/lib/site";
-import { sfx } from "@/lib/sound";
+import { radioBed, setRadioBed, sfx } from "@/lib/sound";
 import { isBackup, makeBackup, useStore } from "@/lib/store";
 import { unlock } from "@/lib/trophyStore";
 import type { CardData, Copy, SetData } from "@/lib/types";
@@ -684,6 +684,7 @@ function Save({ say, focusImport }: { say: (m: string) => void; focusImport?: bo
       <Account say={say} />
       <LangSwitch />
       <CurrencySwitch say={say} />
+      <RadioBedSwitch />
       {tr(
         <p>
           {profile && (
@@ -812,6 +813,33 @@ function CurrencySwitch({ say }: { say: (m: string) => void }) {
           }}
         >
           {c === "EUR" ? "€ euro" : "$ dollar"}
+        </button>
+      ))}
+    </p>
+  );
+}
+
+/** The radio with its rain and vinyl crackle, or the music alone (lib/sound, kept on the device): heard at once if it plays */
+function RadioBedSwitch() {
+  const tr = useT();
+  const [bed, setBed] = useState(radioBed);
+  return (
+    <p className={styles.langRow} role="radiogroup" aria-label="Radio">
+      <span>Radio</span>
+      {[true, false].map((on) => (
+        <button
+          key={String(on)}
+          role="radio"
+          aria-checked={bed === on}
+          className={`${styles.btn} ${bed === on ? styles.langOn : ""}`}
+          onClick={() => {
+            if (bed === on) return;
+            sfx.click();
+            setRadioBed(on);
+            setBed(on);
+          }}
+        >
+          {on ? tr("♪ + pluie & craquements", "♪ + rain & crackle") : tr("♪ musique seule", "♪ music only")}
         </button>
       ))}
     </p>

@@ -29,6 +29,7 @@ export const CHANGELOG: Release[] = [
       { fr: "Les pages d'extension en grand aussi, leurs cartes les plus chères en vitrine.", en: "The set pages full size too, their most valuable cards on show." },
       { fr: "Les pages des cartes s'ouvrent bien plus vite.", en: "Card pages open much faster." },
       { fr: "Le marché et le blog en grand, comme les extensions.", en: "The market and the blog full size, like the sets." },
+      { fr: "La radio sans la pluie ni les craquements, si tu préfères : NookDex OS → Sauvegarde.", en: "The radio without the rain and crackle, if you like: NookDex OS → Save." },
     ],
   },
   {

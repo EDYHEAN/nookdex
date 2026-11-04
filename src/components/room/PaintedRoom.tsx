@@ -9,7 +9,7 @@ import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, OS_NAME } from "@/lib/site";
-import { setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
+import { radioBed, setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { useLook, type LavaTheme } from "@/lib/shop";
 import { useWantAsk } from "@/lib/calm";
 import { openPinned, useCourrier } from "@/lib/courrier";
@@ -888,7 +888,7 @@ function PaintedRoomView({
                 unlock("radio");
               }
               setAmbient(!ambient);
-              showTip(SCENE.radio.x + SCENE.radio.w / 2, SCENE.radio.y, !ambient ? "Radio lofi ♪" : "Radio", !ambient ? (daytime ? tr("soleil & beats", "sun & beats") : tr("pluie & beats", "rain & beats")) : tr("silence…", "silence…"));
+              showTip(SCENE.radio.x + SCENE.radio.w / 2, SCENE.radio.y, !ambient ? "Radio lofi ♪" : "Radio", !ambient ? (!radioBed() ? tr("rien que la musique", "just the music") : daytime ? tr("soleil & beats", "sun & beats") : tr("pluie & beats", "rain & beats")) : tr("silence…", "silence…"));
             }}
           />
           <button

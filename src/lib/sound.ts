@@ -394,9 +394,35 @@ function scheduleSpooky() {
   }
 }
 
+/**
+ * The radio's bed, the rain and the vinyl crackle under the music: a player can keep the music alone (Marius by mail,
+ * 2026-11-04). NookDex OS → Save, kept on the device.
+ */
+const BED_KEY = "nookdex:radio-bed";
+let bed: boolean | null = null;
+let bedGain: GainNode | null = null;
+export function radioBed(): boolean {
+  if (bed === null) {
+    try {
+      bed = localStorage.getItem(BED_KEY) !== "off";
+    } catch {
+      bed = true;
+    }
+  }
+  return bed;
+}
+export function setRadioBed(on: boolean) {
+  bed = on;
+  try {
+    if (on) localStorage.removeItem(BED_KEY);
+    else localStorage.setItem(BED_KEY, "off");
+  } catch {}
+  if (ctx && bedGain) bedGain.gain.setTargetAtTime(on ? 1 : 0, ctx.currentTime, 0.3);
+}
+
 function crackle() {
-  if (!ambientGain) return;
-  noise({ dur: 0.006, vol: 0.05 + Math.random() * 0.06, type: "highpass", freq: 2500, dest: ambientGain });
+  if (!ambientGain || !bedGain) return;
+  if (bed) noise({ dur: 0.006, vol: 0.05 + Math.random() * 0.06, type: "highpass", freq: 2500, dest: bedGain });
   crackleTimer = window.setTimeout(crackle, 60 + Math.random() * 380);
 }
 
@@ -410,6 +436,9 @@ export function startAmbient() {
   ambientGain.gain.setValueAtTime(0, c.currentTime);
   ambientGain.gain.linearRampToValueAtTime(0.8, c.currentTime + 1.5);
   ambientGain.connect(lp).connect(master);
+  bedGain = c.createGain();
+  bedGain.gain.value = radioBed() ? 1 : 0;
+  bedGain.connect(ambientGain);
 
   // rain bed
   rainSrc = c.createBufferSource();
@@ -420,7 +449,7 @@ export function startAmbient() {
   rf.frequency.value = 1100;
   const rg = c.createGain();
   rg.gain.value = 0.05;
-  rainSrc.connect(rf).connect(rg).connect(ambientGain);
+  rainSrc.connect(rf).connect(rg).connect(bedGain);
   rainSrc.start();
 
   nextBeat = c.currentTime + 0.1;
@@ -437,7 +466,7 @@ export function stopAmbient() {
   if (schedTimer) clearInterval(schedTimer);
   if (crackleTimer) clearTimeout(crackleTimer);
   schedTimer = crackleTimer = null;
-  ambientGain = null;
+  ambientGain = bedGain = null;
   rainSrc = null;
   window.setTimeout(() => {
     src?.stop();

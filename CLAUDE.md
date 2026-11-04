@@ -10,7 +10,8 @@ doesn't show.
 
 - Answer Johan in French, short and concrete. Code, comments and commit messages in English.
 - Changes go on a branch, then a PR merged (squash) into `main`. Vercel deploys `main` only (nookdex.com): no
-  previews (`vercel.json`). The team is on the Pro plan since 2026-11-02 (Hobby is for non-commercial use only, and its quotas were
+  previews (`vercel.json`). Merge in big batches, not after each small fix (Johan, 2026-11-04): every commit on `main`
+  is a production build (Build CPU is the biggest usage line, three projects share the $20) and empties the CDN cache. The team is on the Pro plan since 2026-11-02 (Hobby is for non-commercial use only, and its quotas were
   passed): $20 of usage included a month, the spend cap in Vercel → Spend Management; Pro also gives a day of runtime logs and the
   Observability metrics (readable from the Vercel MCP), Hobby none.
 - Before a PR: `npx tsc --noEmit`, `npx eslint src`, and for anything visual, look at it (Playwright + Chromium, desktop
