@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useLang, useT } from "@/lib/lang";
-import { BASE, BUNDLE, BUNDLES, COLLECTIONS, ITEM, ITEMS, buySkin, formatEuros, setShopView, shopView, itemsOf, onSale, useSkins, wear, worthOf, type Bundle, type Item, type Rarity, type Slot } from "@/lib/shop";
+import { BASE, BUNDLE, BUNDLES, COLLECTIONS, ITEM, ITEMS, buySkin, formatEuros, selling, setShopView, shopView, itemsOf, onSale, useSkins, wear, worthOf, type Bundle, type Item, type Rarity, type Slot } from "@/lib/shop";
 import { sfx } from "@/lib/sound";
 import styles from "./Shop.module.css";
 
@@ -57,8 +57,10 @@ function Countdown({ until, big }: { until: string; big?: boolean }) {
  */
 export function Shop({ onClose }: { onClose: () => void }) {
   const t = useT();
+  // nothing for sale (between two collections): the locker alone, no shop window nor tabs
+  const forSale = selling();
   // where it was left (lib/shop shopView): after a try-on, the shop opens there again
-  const [tab, setTab] = useState(() => shopView.tab);
+  const [tab, setTab] = useState(() => (forSale ? shopView.tab : "locker"));
   const [open, setOpen] = useState(() => shopView.open);
   useEffect(() => {
     shopView.tab = tab;
@@ -92,15 +94,15 @@ export function Shop({ onClose }: { onClose: () => void }) {
       <motion.section
         className={styles.shop}
         role="dialog"
-        aria-label={t("La boutique", "The shop")}
+        aria-label={forSale ? t("La boutique", "The shop") : t("Mon casier", "My locker")}
         initial={{ y: 50, scale: 0.96, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         exit={{ y: 40, opacity: 0, transition: { duration: 0.2 } }}
         transition={{ type: "spring", stiffness: 260, damping: 24 }}
       >
         <header className={styles.head}>
-          <h2>{t("Boutique", "Shop")}</h2>
-          <nav className={styles.tabs}>
+          <h2>{forSale ? t("Boutique", "Shop") : t("Mon casier", "My locker")}</h2>
+          {forSale && <nav className={styles.tabs}>
             {(["shop", "locker"] as const).map((k) => (
               <button
                 key={k}
@@ -114,7 +116,7 @@ export function Shop({ onClose }: { onClose: () => void }) {
                 {k === "shop" ? t("Vitrine", "Featured") : t("Mon casier", "My locker")}
               </button>
             ))}
-          </nav>
+          </nav>}
           {until && tab === "shop" && <Countdown until={until} />}
           <button className={styles.close} onClick={onClose} onPointerEnter={sfx.hover} aria-label={t("Fermer la boutique", "Close the shop")}>
             ✕
@@ -337,8 +339,8 @@ function Locker({ onShop }: { onShop: (id: string) => void }) {
   const wornIn = (s: Slot) => equipped.map((id) => ITEM.get(id)).find((it) => it?.slot === s && owned.includes(it.id));
   const base = BASE.find((b) => b.slot === slot)!;
   const worn = wornIn(slot);
-  // owned first, then the rest, each in the catalogue's order
-  const options = ITEMS.filter((it) => it.slot === slot).sort((x, y) => Number(owned.includes(y.id)) - Number(owned.includes(x.id)));
+  // owned first, then the rest on sale (an item off sale and not owned can't be had: not shown), each in the catalogue's order
+  const options = ITEMS.filter((it) => it.slot === slot && (owned.includes(it.id) || onSale(it))).sort((x, y) => Number(owned.includes(y.id)) - Number(owned.includes(x.id)));
   const setName = (it: Item) => COLLECTIONS.find((c) => c.id === it.set)?.name;
 
   return (

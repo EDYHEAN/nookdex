@@ -89,13 +89,18 @@ export const paidFor = back?.get("shop") === "paid" && itemsOf(back.get("bought"
 const SEEN_KEY = "nookdex:shop-seen";
 /** What's on sale, as one string: a new pack brings the shop button's "new" sticker back */
 const saleKey = () => [...BUNDLES, ...ITEMS].filter(onSale).map((x) => x.id).join(",");
+/**
+ * Something is for sale. Between two collections (the Halloween pack left on 2026-11-03) there's no shop window: only
+ * the locker, for the players who own something (Johan, 2026-11-05).
+ */
+export const selling = () => [...BUNDLES, ...ITEMS].some(onSale);
 
 /** The shop button's "new" sticker: until the shop is opened once with what's on sale now (per device). */
 export function useShopNews(): [boolean, () => void] {
   // the room is client-only: storage can be read at once
   const [news, setNews] = useState(() => {
     try {
-      return localStorage.getItem(SEEN_KEY) !== saleKey();
+      return selling() && localStorage.getItem(SEEN_KEY) !== saleKey();
     } catch {
       return false;
     }

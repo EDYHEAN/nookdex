@@ -79,6 +79,11 @@ Warwick en sorcier : le chapeau de la planche D1, posé sur sa tête par le code
 
 ## Où on en est (2026-10-16) : **la boutique est ouverte**
 
+**Depuis le 2026-11-04 (pack Halloween fini) : plus rien en vente.** Entre deux collections (`selling()` faux dans
+`lib/shop`), pas de vitrine : le bouton du coin devient « Mon casier », seulement pour qui possède un skin, et le casier ne
+montre que les objets possédés. Le checkout refuse un objet plus en vente (410). Une nouvelle collection avec un `until`
+à venir rouvre la vitrine toute seule.
+
 **Lancée le 2026-10-16** (PR #131) : `NEXT_PUBLIC_SHOP=on` dans Vercel, carnet de route 0.13, vente sans Managed
 Payments (abandonné le 2026-10-20, voir plus bas), médiateur SMP (demande #309572, convention et facture de 30 € TTC à
 recevoir). Premier vrai achat passé de bout en bout. Les comptes de Johan possèdent tout. L'historique ci-dessous

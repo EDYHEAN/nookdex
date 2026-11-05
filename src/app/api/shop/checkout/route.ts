@@ -1,4 +1,4 @@
-import { BUNDLE, ITEM } from "@/lib/skins";
+import { BUNDLE, ITEM, onSale } from "@/lib/skins";
 import { shopOpenFor, stripe, userOf } from "@/lib/shopServer";
 
 /**
@@ -15,6 +15,8 @@ export async function POST(req: Request) {
   // an item or a bundle
   const skin = body?.skin ? (ITEM.get(body.skin) ?? BUNDLE.get(body.skin)) : undefined;
   if (!skin) return Response.json({ error: "unknown skin" }, { status: 400 });
+  // its collection has left the shop (an item carries its bundle's last day)
+  if (!onSale(skin)) return Response.json({ error: "off sale" }, { status: 410 });
   const en = body?.lang === "en";
   // Johan sells: the buyer asked for the item at once and waived withdrawal by clicking Buy
   if (body?.waiver !== true) return Response.json({ error: "waiver" }, { status: 400 });
