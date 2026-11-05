@@ -32,7 +32,7 @@ import { MailAsk } from "./room/MailAsk";
 import { Courrier } from "./room/Courrier";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
-import { ITEM, backFromShop, itemsOf, paidFor, preloadShop, refreshOwned, setShopView, useShopNews, useShopOpen, useSkins } from "@/lib/shop";
+import { ITEM, backFromShop, itemsOf, paidFor, preloadShop, refreshOwned, selling, setShopView, useShopNews, useShopOpen, useSkins } from "@/lib/shop";
 import type { ListView } from "./share/TradePanel";
 import { TrophyToasts } from "./room/TrophyToast";
 import type { BinderChoice } from "./shelf/BinderPicker";
@@ -168,6 +168,10 @@ export function App() {
     return () => clearTimeout(id);
   }, [entered, shopOpen]);
   const [shopNews, shopSeen] = useShopNews();
+  // nothing for sale: the button is the locker's, for those who own a skin (lib/shop selling)
+  const ownsSkin = useSkins((s) => s.owned.length > 0);
+  const shopWindow = selling();
+  const shopBtn = shopOpen && (shopWindow || ownsSkin);
   /** back from Stripe's payment page: the thank-you, while the purchase arrives and once it's in */
   const [thanks, setThanks] = useState<{ id: string; state: "waiting" | "done" | "late" } | null>(() => (paidFor ? { id: paidFor, state: "waiting" } : null));
   // back from Stripe's payment page (app/api/shop/checkout): the purchase comes with the webhook, a moment later.
@@ -654,7 +658,7 @@ export function App() {
 
       {/* while a binder, the OS or a menu covers the room, only the sound button stays (their own buttons go there) */}
       <div className={styles.corner}>
-        {shopOpen && !busy && (
+        {shopBtn && !busy && (
           <button
             className={`${styles.iconBtn} ${styles.shopBtn}`}
             onClick={() => {
@@ -662,8 +666,8 @@ export function App() {
               shopSeen();
               setShop(true);
             }}
-            aria-label={shopNews ? tr("La boutique : nouveau", "The shop: new") : tr("La boutique", "The shop")}
-            title={tr("La boutique", "The shop")}
+            aria-label={!shopWindow ? tr("Mon casier", "My locker") : shopNews ? tr("La boutique : nouveau", "The shop: new") : tr("La boutique", "The shop")}
+            title={shopWindow ? tr("La boutique", "The shop") : tr("Mon casier", "My locker")}
           >
             <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
               <path d="M5 8h14l-1.2 12H6.2z" fill="currentColor" />
