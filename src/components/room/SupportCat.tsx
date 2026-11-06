@@ -7,7 +7,7 @@ import { useT } from "@/lib/lang";
 import { sceneImg } from "@/lib/scene";
 import { SUPPORT_URL } from "@/lib/site";
 import { sfx } from "@/lib/sound";
-import { claimAsk, useAskUp } from "@/lib/calm";
+import { claimAsk, useAskFree, useAskUp, useWantAsk } from "@/lib/calm";
 import { unlock } from "@/lib/trophyStore";
 import { useStore } from "@/lib/store";
 import styles from "./SupportCat.module.css";
@@ -82,24 +82,27 @@ export function SupportCat({ compact, calm }: { compact: boolean; calm: boolean 
 
   const eligible = calm && owned >= MIN_CARDS && (pathname === "/" || pathname === "/en") && !asked;
 
+  // the last of the order: it holds nobody back, it only says it's there (lib/calm)
+  useWantAsk("cat", eligible);
+  const free = useAskFree("cat");
   useEffect(() => {
     if (!since.current) since.current = Date.now();
-    if (!eligible || Date.now() < nextShow()) return;
+    if (!eligible || !free || Date.now() < nextShow()) return;
     const wait = Math.max(CALM_MS, VISIT_MS - (Date.now() - since.current));
     const id = setTimeout(() => {
-      setAsked(true);
-      // another ask had this visit's turn (lib/calm): the cat waits for another visit
+      // something else took the room meanwhile (lib/calm): the cat waits for it to be put away
       if (!claimAsk("cat")) return;
+      setAsked(true);
       snooze(LATER_DAYS);
       setShown(true);
       sfx.purr();
     }, wait);
     return () => clearTimeout(id);
-  }, [eligible]);
+  }, [eligible, free]);
 
   // the player opened a binder or the OS meanwhile: the cat steps aside, and waits for the room to be calm again
   const visible = shown && (calm || thanks);
-  useAskUp("cat", visible);
+  useAskUp("cat", shown);
 
   const later = () => {
     sfx.click();

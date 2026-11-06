@@ -11,7 +11,7 @@ import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, OS_NAME } from "@/lib/site";
 import { radioBed, setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { useLook, type LavaTheme } from "@/lib/shop";
-import { useWantAsk } from "@/lib/calm";
+import { useAskUp, useWantAsk } from "@/lib/calm";
 import { openPinned, useCourrier } from "@/lib/courrier";
 import { useTradeShelf } from "@/lib/share";
 import { useStore } from "@/lib/store";
@@ -299,8 +299,10 @@ function PaintedRoomView({
    */
   const [noteSeen, setNoteSeen] = useState(readNote);
   const [noteUp, setNoteUp] = useState(false);
-  // its note would show this visit: the asks after it (the strip, the road log, the cat) hold back (lib/calm)
-  useWantAsk("trade-note", !noteSeen && !noteUp && trade.ready);
+  // its note would show now: the ones after it (the road log, the strips, the cat) hold back; on screen, they wait (lib/calm)
+  useWantAsk("trade-note", !noteSeen && !noteUp && noteCalm && trade.ready && page === 0);
+  // held while it shows (on the shelf's first page): a player who never turns back to it doesn't keep the room from the others
+  useAskUp("trade-note", noteUp && page === 0);
   useEffect(() => {
     if (noteSeen || noteUp || !noteCalm || !trade.ready || page !== 0) return;
     const t = setTimeout(() => {

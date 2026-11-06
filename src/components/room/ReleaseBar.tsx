@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useCalm } from "@/lib/calm";
+import { claimAsk, useAskFree, useAskUp, useWantAsk } from "@/lib/calm";
 import { useT } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
@@ -26,24 +26,25 @@ const closed = () => {
 
 /**
  * « Bon opening » for a release weekend: a strip in the calm room, at the top on a computer, at the bottom on a phone, that
- * opens the set's binder (or the new-binder sheet with it on top, like ?classeur=). It gives, it doesn't ask: not one of
- * lib/calm's asks, so it never takes the account's turn; it steps aside while one of them is on screen (the Pokécardex
- * strip sits in its place, the account card and the cat are pop-ins), and comes back once it's closed. It used to wait for
- * the visit's ask to be none at all: the letter of a return (room/Courrier) took it on most visits, the strip never showed.
+ * opens the set's binder (or the new-binder sheet with it on top, like ?classeur=). One of lib/calm's gifts: it waits for
+ * whatever is on screen to be put away, and never takes an ask's turn.
  */
 export function ReleaseBar({ compact, calm, onOpen }: { compact: boolean; calm: boolean; onOpen: (set: string) => void }) {
   const t = useT();
   const pathname = usePathname();
   const profile = useStore((s) => !!s.profile);
-  const asked = useCalm((c) => c.up.length > 0);
   const [shown, setShown] = useState(false);
-  const eligible = calm && profile && !asked && (pathname === "/" || pathname === "/en");
+  const [over] = useState(() => Date.now() >= UNTIL);
+  const eligible = calm && profile && !over && (pathname === "/" || pathname === "/en");
+  useWantAsk("release", eligible && !shown && !closed());
+  const free = useAskFree("release");
+  useAskUp("release", shown && eligible);
 
   useEffect(() => {
-    if (!eligible || closed() || Date.now() >= UNTIL) return;
-    const id = setTimeout(() => setShown(true), CALM_MS);
+    if (!eligible || !free || shown || closed()) return;
+    const id = setTimeout(() => claimAsk("release") && setShown(true), CALM_MS);
     return () => clearTimeout(id);
-  }, [eligible]);
+  }, [eligible, free, shown]);
 
   const done = () => {
     try {
