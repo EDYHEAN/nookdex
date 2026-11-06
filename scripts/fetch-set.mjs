@@ -124,21 +124,31 @@ const RATE = EN ? await eurUsd() : null;
  * Japanese cards have Japanese names only: the French and English names of their Pokémon (PokéAPI, by National Dex
  * number) let a French or English player find them ("pikachu", "dracaufeu"). The Japanese names find the Pokémon of a
  * card TCGdex gives no dex number for (one in seven, ex: S12 Lugia V).
+ * PokéAPI's old GraphQL (beta.pokeapi.co) went down for good on 2026-11-05 and stopped the whole daily run, French and
+ * English prices with it: the names are kept in src/data/pokemon-names.json, read whenever PokéAPI doesn't answer.
  */
+const NAMES_FILE = "src/data/pokemon-names.json";
 async function pokemonNames() {
-  const query = `{ pokemon_v2_pokemonspeciesname(where: {pokemon_v2_language: {name: {_in: ["fr", "en", "ja-Hrkt"]}}}) { name pokemon_species_id pokemon_v2_language { name } } }`;
-  const res = await fetch("https://beta.pokeapi.co/graphql/v1beta", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query }),
-  });
-  const names = new Map();
-  for (const r of (await res.json()).data.pokemon_v2_pokemonspeciesname) {
-    const n = names.get(r.pokemon_species_id) ?? {};
-    n[r.pokemon_v2_language.name] = r.name;
-    names.set(r.pokemon_species_id, n);
+  try {
+    const query = `{ pokemonspeciesname(where: {language: {name: {_in: ["fr", "en", "ja-hrkt"]}}}) { name pokemon_species_id language { name } } }`;
+    const res = await fetch("https://graphql.pokeapi.co/v1beta2", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+    });
+    const names = new Map();
+    for (const r of (await res.json()).data.pokemonspeciesname) {
+      const n = names.get(r.pokemon_species_id) ?? {};
+      n[r.language.name === "ja-hrkt" ? "ja-Hrkt" : r.language.name] = r.name;
+      names.set(r.pokemon_species_id, n);
+    }
+    if (names.size < 1000) throw new Error(`${names.size} species only`);
+    await writeFile(NAMES_FILE, JSON.stringify([...names].sort((a, b) => a[0] - b[0])) + "\n");
+    return names;
+  } catch (e) {
+    console.warn(`PokéAPI unreachable (${e.message}): the names kept in ${NAMES_FILE}`);
+    return new Map(JSON.parse(await readFile(NAMES_FILE, "utf8")));
   }
-  return names;
 }
 const NAMES = JA ? await pokemonNames() : null;
 /** Japanese species names, longest first: "ミュウツー" (Mewtwo) must win over "ミュウ" (Mew) */
@@ -592,6 +602,61 @@ async function promosFromTcgcsv(mainId, cards) {
   return out;
 }
 
+/*
+ * A set out before TCGdex lists it (Delta Reign, out 2026-11-06: TCGdex's pull request held 33 of its 141 cards that
+ * day). TCGplayer's group lists it from the presale: each number TCGdex lacks comes from there (name, rarity, prints, the
+ * English price), with its picture once TCGplayer has one (imageCount; a card back until then). In French a Pokémon's
+ * name is made from PokéAPI's, a trainer keeps its English name until TCGdex has it; the euro price is Cardmarket's, from
+ * the set's expansion (CM_EXPANSIONS: one product a card, in number order). TCGdex's card wins the day it lists it (same
+ * id), and its catalog entry the day its series lists the set. Not for Japanese sets (their own ids and cards).
+ */
+const EARLY = {
+  me06: { serie: "me", group: 24831, total: 141, official: 103, releaseDate: "2026-11-06", fr: { name: "Règne Delta", code: "ME06" }, en: { name: "Delta Reign", code: "DLR" } },
+};
+const RARITY_OF = {
+  fr: { Common: "Commune", Uncommon: "Peu Commune", "Double Rare": "Double rare", "Illustration Rare": "Illustration rare", "Special Illustration Rare": "Illustration spéciale rare", "Mega Hyper Rare": "Méga Hyper Rare" },
+  en: { "Double Rare": "Double rare", "Illustration Rare": "Illustration rare", "Special Illustration Rare": "Special illustration rare" },
+};
+const CATEGORY_OF = { fr: { pokemon: "Pokémon", trainer: "Dresseur", energy: "Énergie" }, en: { pokemon: "Pokemon", trainer: "Trainer", energy: "Energy" } };
+// names PokéAPI's species don't make
+const NAME_FR = { "Heat Rotom ex": "Motisma Chaleur-ex", "Nidoran F": "Nidoran♀" };
+/** the set's file before TCGdex has it: no card of its own, earlyFromTcgcsv brings them */
+const earlySet = (id) => ({
+  set: { id, name: EARLY[id][LANG].name, logo: null, symbol: null, cardCount: { official: EARLY[id].official }, releaseDate: EARLY[id].releaseDate },
+  cards: [],
+});
+async function earlyFromTcgcsv(mainId, cards) {
+  const { group } = EARLY[mainId];
+  const listed = new Set(cards.map((c) => numKey(c.num)));
+  const prices = (await tcgcsv(`/${group}/prices`))?.results ?? [];
+  const out = [];
+  for (const p of (await tcgcsv(`/${group}/products`))?.results ?? []) {
+    const ext = (k) => p.extendedData?.find((e) => e.name === k)?.value;
+    const number = ext("Number");
+    if (!number || listed.has(numKey(number))) continue;
+    const rows = prices.filter((r) => r.productId === p.productId);
+    // "Masquerain - 003/103", "Legendary Summit - 096/103 (Left)"
+    const enName = p.name.replace(/\s+-\s+\d+\/\d+/, "");
+    const kind = ext("HP") ? "pokemon" : /\bEnergy$/.test(enName) ? "energy" : "trainer";
+    const name = FR ? (NAME_FR[enName] ?? (kind === "pokemon" ? await frenchName(enName).catch(() => null) : null) ?? enName) : enName;
+    const prints = [["Normal", "normal"], ["Reverse Holofoil", "reverse"], ["Holofoil", "holo"]].filter(([s]) => rows.some((r) => r.subTypeName === s));
+    const num = String(parseInt(number, 10)).padStart(3, "0");
+    out.push({
+      id: `${mainId}-${num}`,
+      num,
+      name,
+      rarity: RARITY_OF[LANG]?.[ext("Rarity")] ?? ext("Rarity") ?? null,
+      category: CATEGORY_OF[LANG][kind],
+      img: p.imageCount ? `${SITE}/scans/tp/${p.productId}` : "",
+      variants: prints.length ? prints.map(([, v]) => v) : ["normal"],
+      price: EN ? (tcgcsvPrice(rows, cardmarketPrice({})) ?? cardmarketPrice({})) : cardmarketPrice({}),
+    });
+  }
+  const pictured = out.filter((c) => c.img).length;
+  console.log(`  ${mainId}: ${out.length} cards TCGdex doesn't list, from TCGplayer (group ${group}, ${pictured} with a picture)`);
+  return out;
+}
+
 /** Some logos are on the asset server but not listed by the API (ex: 30th): look for them, French first. */
 async function logoOf(set, serie) {
   if (set.logo) return set.logo;
@@ -692,6 +757,11 @@ async function keepVanished(mainId, cards, mainNums) {
       cards.push({ ...card, price, img: `${SITE}/scans/${old.id}` });
       continue;
     }
+    // so is a card from TCGplayer while TCGdex doesn't have its set (EARLY), on a day TCGCSV didn't answer
+    if (EARLY[mainId] && !JA) {
+      cards.push(old);
+      continue;
+    }
     cards.push({ ...old, price, img: borrowed ? "" : (old.img ?? ""), unavailable: true });
     n++;
   }
@@ -699,7 +769,8 @@ async function keepVanished(mainId, cards, mainNums) {
 }
 
 async function fetchSet(mainId, subIds) {
-  const main = await fetchCards(mainId, null);
+  const early = EARLY[mainId] && !JA;
+  const main = early ? ((await get(`${API}/${LANG}/sets/${mainId}`)) ? await fetchCards(mainId, null) : earlySet(mainId)) : await fetchCards(mainId, null);
   const base = main.cards.find((c) => c.img)?.img.replace(/\/[^/]+$/, "") ?? null;
   const nums = new Set(main.cards.map((c) => c.num));
   const subs = [];
@@ -726,6 +797,15 @@ async function fetchSet(mainId, subIds) {
     console.warn(`${mainId}: TCGCSV scans skipped (${e.message})`);
   }
   out.cards = out.cards.filter((c) => c.img).map(({ enName: _, ...c }) => c);
+  try {
+    if (early) {
+      out.cards.push(...(await earlyFromTcgcsv(mainId, out.cards)));
+      out.cards.sort((a, b) => a.num.localeCompare(b.num, "en", { numeric: true }));
+    }
+  } catch (e) {
+    // TCGCSV down: yesterday's cards stay (keepVanished)
+    console.warn(`${mainId}: TCGCSV cards skipped (${e.message})`);
+  }
   const gone = await keepVanished(mainId, out.cards, nums);
   let filled = 0;
   try {
@@ -775,6 +855,12 @@ for (const serie of SERIES) {
         .filter(([, parent]) => parent === set.id)
         .map(([id]) => id),
     });
+  }
+  // a set out before TCGdex lists it (EARLY), in its series until TCGdex's entry takes over; its logo, if any, put in by hand
+  for (const [id, e] of Object.entries(EARLY)) {
+    if (JA || e.serie !== serie || catalog.some((c) => c.id === id)) continue;
+    const logo = existsSync(`${LOGOS}/${id}.png`) ? `/${LOGOS.replace(/^public\//, "")}/${id}` : null;
+    catalog.push({ id, serie, serieName: s.name, name: e[LANG].name, code: e[LANG].code, logo, releaseDate: e.releaseDate, total: e.total, subs: [] });
   }
 }
 catalog.sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""));
@@ -877,7 +963,7 @@ const byNumber = (a, b) => a.num.localeCompare(b.num, "en", { numeric: true });
  * order them by (like the 30th's three RGB Mews, B, G, R, which TCGdex does link) get none rather than another's price.
  * Checked 2026-10-14: the 30th's 188 other cards, French and English, each on its own product.
  */
-const CM_EXPANSIONS = { "30th": 6601 };
+const CM_EXPANSIONS = { "30th": 6601, me06: 6704 };
 // "Palkia LV.X [Restructure | …]" -> ["palkia", "lv", "x"]
 const cmWords = (s) => String(s ?? "").replace(/\s*[[(].*$/, "").normalize("NFD").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
 const startsWith = (a, b) => b.length <= a.length && b.every((w, i) => a[i] === w);
@@ -889,6 +975,19 @@ function productsFromExpansions(sets, products) {
     if (!exp) continue;
     const taken = new Set(s.data.cards.map((x) => x.price?.cmId).filter(Boolean));
     const free = products.filter((p) => p.idExpansion === exp && !taken.has(p.idProduct)).sort((a, b) => a.idProduct - b.idProduct);
+    // a set out before TCGdex (EARLY): its English names aren't Cardmarket's ("Legendary Pyroduct" is their "Legendary
+    // Lava Tube"), but they listed one product a card in number order (Delta Reign, 2026-11-06: 001 to 141), so by number
+    const inOrder = products.filter((p) => p.idExpansion === exp).sort((a, b) => a.idProduct - b.idProduct);
+    if (EARLY[s.data.id] && inOrder.length === EARLY[s.data.id].total) {
+      for (const x of s.data.cards) {
+        const p = inOrder[parseInt(x.num, 10) - 1];
+        if (x.unavailable || x.price?.cmId || !/^\d+$/.test(x.num) || !p || !free.includes(p)) continue;
+        x.price = withProduct(x.price ?? {}, p.idProduct);
+        free.splice(free.indexOf(p), 1);
+        s.changed = true;
+        n++;
+      }
+    }
     // "30th-063" is the set's own, "30th-c-001" a sub-set's
     const depth = s.data.id.split("-").length + 1;
     const sub = (x) => (x.id.split("-").length > depth ? 1 : 0);

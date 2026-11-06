@@ -140,7 +140,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd, onOpenBi
       >
         {/* grey in a binder: a missing card; found in NookDex OS, a card to discover */}
         <div ref={cardRef} className={`${styles.card} ${owned || browsing ? "" : styles.cardMissing}`}>
-          {card.img && !card.unavailable ? <img src={`${card.img}/high.webp`} alt={card.name} draggable={false} /> : <CardBack />}
+          {card.img && !card.unavailable ? <img src={`${card.img}/high.webp`} alt={card.name} draggable={false} /> : <CardBack fresh={!card.unavailable} />}
           {owned && hasFoil && <span className={styles.foil} />}
           <span className={styles.glare} />
         </div>

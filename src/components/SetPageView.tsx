@@ -370,8 +370,8 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
                   {card.img ? (
                     <img src={`${card.img}/low.webp`} alt={`${label} · ${name}`} width={245} height={342} loading="lazy" decoding="async" />
                   ) : (
-                    // taken out by TCGdex for now (see CardBack in the binders)
-                    <span className={c.back}>{t("Bientôt de retour", "Back soon")}</span>
+                    // taken out by TCGdex for now, or a set just out whose pictures aren't anywhere yet (see CardBack in the binders)
+                    <span className={c.back}>{card.unavailable ? t("Bientôt de retour", "Back soon") : t("Image à venir", "Picture soon")}</span>
                   )}
                   <small>{numOf(card)}</small>
                   <b>{card.name}</b>

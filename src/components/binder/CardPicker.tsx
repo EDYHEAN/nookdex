@@ -179,7 +179,7 @@ export function CardPicker({ pocket, wish, onPick, onClose }: Props) {
                     <img src={`${img.startsWith("http") ? "" : assets}${img}/low.webp`} alt={name} loading="lazy" draggable={false} />
                   ) : (
                     <span className={styles.back}>
-                      <CardBack />
+                      <CardBack fresh />
                     </span>
                   )}
                   <span className={styles.label}>

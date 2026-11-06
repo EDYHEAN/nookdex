@@ -120,7 +120,7 @@ export const CardSlot = memo(function CardSlot({ card, copies, focused, onAdd, o
               draggable={false}
             />
           ) : (
-            <CardBack />
+            <CardBack fresh={!card.unavailable} />
           )}
           {owned && <span className={styles.glare} />}
           {owned && variants.has("reverse") && <span className={styles.foil} />}

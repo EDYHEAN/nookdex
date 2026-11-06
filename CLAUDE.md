@@ -63,6 +63,12 @@ doesn't show.
   `/scans/tp/<product>` (not downloaded). A new such set: find its group on tcgcsv.com/tcgplayer/3/groups and add it.
   MEP numbers TCGdex lists late (French) or dropped (English 089-110) come from that group too (`promosFromTcgcsv`,
   French names from PokéAPI, Pokémon only; Méga-Dracolosse-ex MEP 091, a player's mail 2026-10-21).
+- A set out before TCGdex has it (`EARLY` in fetch-set; Delta Reign me06, 2026-11-06: TCGdex's PR held 33 of 141 cards):
+  its catalog entry is made by hand (name, code, date, TCGCSV group), each number TCGdex lacks comes from TCGplayer's group
+  (`earlyFromTcgcsv`: rarity, prints, $ price; French names from PokéAPI for Pokémon, trainers in English), the euro
+  price from Cardmarket's expansion in number order (`CM_EXPANSIONS`), the picture once TCGplayer has one (a card back
+  « Image à venir » before). The FR logo is Poképédia's, put in `public/logos/` by hand. TCGdex's cards and entry win the
+  day it lists them (same ids): then drop the set from `EARLY`. A new set: same again on its release day.
 
 ## Languages: the site, the cards, the money (three separate things)
 
@@ -516,3 +522,5 @@ doesn't show.
   watches TCGdex for new price fields (French Cardmarket prices would show up there); anything new opens or comments
   the issue labelled `veille`.
 - The container Claude runs in on the web can't reach TCGdex: run the scripts through these Actions.
+- PokéAPI's names (Japanese cards' `aka`, French names of TCGCSV promos) come from `graphql.pokeapi.co/v1beta2` (the old
+  beta.pokeapi.co died 2026-11-05 and stopped the whole daily run), cached in `src/data/pokemon-names.json`, read when it fails.
