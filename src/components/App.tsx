@@ -782,8 +782,9 @@ export function App() {
       {/* a tip for the project, asked by the cat once the player has a few cards (never over a binder, the OS or the tour) */}
       {/* the account, offered once the player without one has a few cards */}
       {entered && <ImportBar compact={compact} calm={calm && !news && valued} onImport={openImport} />}
-      {/* the release weekend's « bon opening » (gives, doesn't ask: steps aside for the asks) */}
-      {entered && <ReleaseBar compact={compact} calm={calm && !news} onOpen={(set) => openSetBinder(keyOf(currentLang(), set))} />}
+      {/* the release weekend's « bon opening » (gives, doesn't ask: steps aside for the asks). Not `!news`: a road log that
+          lost the visit's turn to another ask stays "news" all visit long, and the strip never showed (Johan, 2026-11-06) */}
+      {entered && <ReleaseBar compact={compact} calm={calm} onOpen={(set) => openSetBinder(keyOf(currentLang(), set))} />}
       {entered && <SavePrompt compact={compact} calm={calm && !news} />}
       {/* the Monday mail offered once to the accounts that haven't said yes (lib/mailOptin) */}
       {entered && <MailAsk compact={compact} calm={calm && !news} />}
