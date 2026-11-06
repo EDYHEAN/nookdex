@@ -801,7 +801,7 @@ export function App() {
       )}
       {entered && <SupportCat compact={compact} calm={calm} />}
       {/* a computer: the cat and its tip tag in the corner of the calm room (a phone has the pop-in only) */}
-      {entered && !compact && <TipCorner show={calm && valued} />}
+      {entered && !compact && <TipCorner show={calm} />}
       {/* the version, in the room's corner: it opens the road log */}
       {entered && !busy && !tour && (
         <button
