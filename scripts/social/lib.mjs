@@ -29,8 +29,16 @@ export const setOf = (key) => {
   const lang = /^(en|ja):/.exec(key)?.[1] ?? "fr";
   return readSet(lang, key.replace(/^(en|ja):/, ""));
 };
-/** "sv08-238", "en:sv08-238", "ja:SV8-033" -> the card, its set file, its language */
+/**
+ * "sv08-238", "en:sv08-238", "ja:SV8-033" -> the card, its set file, its language. "me06-138@ja:M6-110": that card
+ * (name, price) shown with another's picture, for a set out before any scan of it (Delta Reign's release day: TCGplayer
+ * had none, its Japanese twin Storm Emeralda had them all).
+ */
 export function card(key) {
+  if (key.includes("@")) {
+    const [main, pic] = key.split("@");
+    return { ...card(main), hi: card(pic).hi };
+  }
   const m = /^(en|ja):/.exec(key);
   const lang = m ? m[1] : "fr";
   const id = m ? key.slice(3) : key;
