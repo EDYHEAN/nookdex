@@ -37,6 +37,9 @@ Skip a day that already has a post. The Instagram mix over the week, in this ord
 1. **news** (only when there is real news): a set revealed or dated, a product announced, a big tournament result. Check
    `src/data/releases.json` and the sources below. Confirmed by an official source or two reliable ones, else not a post.
    A set coming out within 21 days always earns one (the cards it shows, the date, "prépare ta wishlist").
+   **Cards first** (Johan, 2026-11-06: a release-day post of paper slides with a list of facts was "pas zinzin"): a news
+   carousel shows the set's cards (cover with 3 of them, a `grid` of its special illustrations, its dearest as `price`
+   slides), at most one `paper` slide, no app screenshot.
 2. **fact**: a number from our own data. **Price curves** (`curve` slides, Johan 2026-10-17, after PriceCharting's « one
    month later »): a new set **1 week and 1 month after its release** (« Règne Delta, 1 semaine après » : its 4-5 cards
    that moved the most), or « qui monte, qui chute » (the week's biggest moves). Only cards worth 15 € or more, with a
@@ -113,6 +116,10 @@ Rumors and leaks: no.
 - Card ids are the site's keys: `sv08-238` (French), `en:sv08-238` (English), `ja:SV8-033` (Japanese). Check every id
   exists in `public/sets/…` (sub-sets like `swsh12tg-TG05` live in their main set's file). Use French cards, names as in
   the French files (Chochodile, not Fuecoco).
+- A set out before any scan of it (no `img` in its file: on release day TCGplayer often has none) borrows another card's
+  picture: `"me06-138@ja:M6-110"` is Delta Reign's card (name, French price) drawn with its Japanese twin's scan (the
+  Japanese set came out months before, same artworks: match by Pokémon and rarity in `public/sets/ja/`). Say it in the
+  caption (« visuels de la version japonaise »).
 - Texts may hold `<br>`, `<b>`, `<em>`. Press Start 2P (titles, kickers, banners) has **no accented capitals**: write
   kickers and banners in capitals without accents (`TROPHEES`, `CHERES`), titles in mixed case (accents fine).
 
