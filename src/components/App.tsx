@@ -27,6 +27,7 @@ import { Grain } from "./fx/Grain";
 import { PaintedRoom } from "./room/PaintedRoom";
 import { markSeen, seenVersion } from "./room/RoadLog";
 import { ImportBar } from "./room/ImportBar";
+import { ReleaseBar } from "./room/ReleaseBar";
 import { SavePrompt } from "./room/SavePrompt";
 import { MailAsk } from "./room/MailAsk";
 import { Courrier } from "./room/Courrier";
@@ -371,6 +372,21 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [askedCard, entered, cloud.ready, welcome]);
 
+  /** A set's binder open, or the new-binder sheet with that set on top (?classeur=, the release weekend's strip). */
+  const openSetBinder = (setId: string) => {
+    loadSet(setId).then(
+      () => {
+        const { binders } = useStore.getState();
+        const b = shelfBinders(binders).find((x) => x.setId === setId);
+        if (b) return setOpen({ binderId: b.id });
+        if (binders.length >= MAX_BINDERS) return;
+        setAddStart(setId);
+        setAdding(true);
+      },
+      () => {},
+    );
+  };
+
   /** the set of ?classeur, once dealt with (a newcomer's welcome deals with it by its first binder) */
   const handledBinder = useRef(false);
   const [addStart, setAddStart] = useState<string>();
@@ -378,18 +394,9 @@ export function App() {
     if (!binderSet || !entered || !cloud.ready || welcome || handledBinder.current) return;
     handledBinder.current = true;
     window.history.replaceState(null, "", window.location.pathname);
-    loadSet(binderSet).then(
-      () => {
-        const { binders } = useStore.getState();
-        const b = shelfBinders(binders).find((x) => x.setId === binderSet);
-        if (b) return setOpen({ binderId: b.id });
-        if (binders.length >= MAX_BINDERS) return;
-        setAddStart(binderSet);
-        setAdding(true);
-      },
-      () => {},
-    );
+    openSetBinder(binderSet);
   }, [binderSet, entered, cloud.ready, welcome]);
+
 
   /** A new binder: download its cards, then put it on the shelf. */
   const addBinder = async (choice: BinderChoice) => {
@@ -775,6 +782,8 @@ export function App() {
       {/* a tip for the project, asked by the cat once the player has a few cards (never over a binder, the OS or the tour) */}
       {/* the account, offered once the player without one has a few cards */}
       {entered && <ImportBar compact={compact} calm={calm && !news && valued} onImport={openImport} />}
+      {/* the release weekend's « bon opening » (gives, doesn't ask: steps aside for the asks) */}
+      {entered && <ReleaseBar compact={compact} calm={calm && !news} onOpen={(set) => openSetBinder(keyOf(currentLang(), set))} />}
       {entered && <SavePrompt compact={compact} calm={calm && !news} />}
       {/* the Monday mail offered once to the accounts that haven't said yes (lib/mailOptin) */}
       {entered && <MailAsk compact={compact} calm={calm && !news} />}
