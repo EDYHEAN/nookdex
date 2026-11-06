@@ -10,8 +10,9 @@ import { sfx } from "@/lib/sound";
 import { unlock } from "@/lib/trophyStore";
 import styles from "./TipCorner.module.css";
 
-/** the calm room this long before the tip tag comes (the other asks go first) */
-const TIP_AFTER = 30_000;
+/** the calm room this long before the tip tag slides in (it used to wait 30 s, after the other asks: Johan, 2026-11-06,
+ * « il devrait être sur le bureau tout le temps, il gêne pas ») */
+const TIP_AFTER = 1_500;
 
 /**
  * A computer's bottom-right corner: Warwick's portrait (the Instagram one) in a round frame, with a paper tag for a tip. Always there in the calm
@@ -21,9 +22,9 @@ export function TipCorner({ show }: { show: boolean }) {
   const t = useT();
   const pathname = usePathname();
   const [thanks, setThanks] = useState(false);
-  // Not one of the visit's asks (lib/calm): a quiet corner, not a pop-in. Under the one-ask rule the other asks (road log,
-  // letter, Monday mail) took every visit and it never showed (Johan, 2026-10-26). It steps aside while a pop-in is up.
-  const popIn = useCalm((c) => c.up.length > 0);
+  // Not one of lib/calm's asks: a quiet corner, there all the time in the calm room. It steps aside only for the cat's own
+  // pop-in (the same tip, twice at once otherwise); the letter, the strips and the account card are elsewhere on screen.
+  const popIn = useCalm((c) => c.up.includes("cat"));
   const [up, setUp] = useState(false);
   const ready = show && (pathname === "/" || pathname === "/en");
   useEffect(() => {
