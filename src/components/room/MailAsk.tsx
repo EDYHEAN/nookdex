@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { claimAsk, useAskFree, useValued, useWantAsk } from "@/lib/calm";
+import { claimAsk, useAskFree, useAskUp, useValued, useWantAsk } from "@/lib/calm";
 import { useCloud } from "@/lib/cloud";
 import { useT } from "@/lib/lang";
 import { setMailOptin, useMailOptin } from "@/lib/mailOptin";
@@ -39,14 +39,15 @@ export function MailAsk({ compact, calm }: { compact: boolean; calm: boolean }) 
   const valued = useValued();
   const home = pathname === "/" || pathname === "/en";
   const wants = !!email && on === false && valued && home && !answered();
-  useWantAsk("mail", wants);
   const eligible = calm && wants;
+  useWantAsk("mail", eligible && !shown);
 
   useEffect(() => {
-    if (!eligible) return;
+    if (!eligible || !free || shown) return;
     const id = setTimeout(() => claimAsk("mail") && setShown(true), CALM_MS);
     return () => clearTimeout(id);
-  }, [eligible]);
+  }, [eligible, free, shown]);
+  useAskUp("mail", shown);
 
   const done = () => {
     try {

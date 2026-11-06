@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useT } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
-import { claimAsk, useAskUp, useWantAsk } from "@/lib/calm";
+import { claimAsk, useAskFree, useAskUp, useWantAsk } from "@/lib/calm";
 import { wishMailOptin } from "@/lib/mailOptin";
 import { useStore } from "@/lib/store";
 import { useTrophyQueue } from "@/lib/trophyStore";
@@ -75,27 +75,28 @@ export function SavePrompt({ compact, calm }: { compact: boolean; calm: boolean 
   const [note, setNote] = useState<string | null>(null);
   const [mailWish, setMailWish] = useState(false);
 
-  // it would ask this visit (not snoozed, no account, enough cards): the asks after it (the cat…) hold back meanwhile,
-  // while it waits for the calm room and the trophy toasts (lib/calm)
+  // it would ask now (not snoozed, no account, enough cards, the calm room, no trophy toast): the ones after it hold back (lib/calm)
   const wants = ready && !email && status !== "loading" && !asked && owned >= MIN_CARDS && (pathname === "/" || pathname === "/en") && !isSnoozed(owned);
-  useWantAsk("save", wants);
   const eligible = calm && !toast && wants;
+  useWantAsk("save", eligible);
+  const free = useAskFree("save");
 
   useEffect(() => {
-    if (!eligible) return;
+    if (!eligible || !free) return;
     const id = setTimeout(() => {
-      setAsked(true);
-      // another ask had this visit's turn (lib/calm): the account waits for another visit
+      // something else took the room meanwhile (lib/calm): the account waits for it to be put away
       if (!claimAsk("save")) return;
+      setAsked(true);
       setShown(true);
       sfx.pop();
     }, CALM_MS);
     return () => clearTimeout(id);
-  }, [eligible, owned]);
+  }, [eligible, free, owned]);
 
   // signed in meanwhile (the e-mail link opened in another tab): nothing left to ask
   const visible = shown && !email && (calm || !!sent);
-  useAskUp("save", visible);
+  // the room stays its own while a binder hides it, until it's put away
+  useAskUp("save", shown && !email);
 
   const later = () => {
     sfx.click();

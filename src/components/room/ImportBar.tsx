@@ -38,17 +38,17 @@ export function ImportBar({ compact, calm, onImport }: { compact: boolean; calm:
   // (App: only from the 3rd day of visits, before 10 cards it's the only way it can show: lib/calm)
   const free = useAskFree("import");
   const valued = useValued();
-  useWantAsk("import", fr && valued && profile && owned < MAX_CARDS && pathname === "/" && !closed());
   const eligible = fr && calm && profile && owned < MAX_CARDS && pathname === "/";
+  useWantAsk("import", eligible && valued && !shown && !closed());
 
   useEffect(() => {
-    if (!eligible || closed()) return;
+    if (!eligible || !free || shown || closed()) return;
     const id = setTimeout(() => claimAsk("import") && setShown(true), CALM_MS);
     return () => clearTimeout(id);
-  }, [eligible]);
+  }, [eligible, free, shown]);
 
-  // on screen: the release weekend's strip (room/ReleaseBar), in the same place, steps aside
-  useAskUp("import", shown && eligible && free);
+  // on screen until put away (lib/calm): the others wait meanwhile
+  useAskUp("import", shown && eligible);
 
   const done = () => {
     try {

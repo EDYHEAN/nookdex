@@ -85,10 +85,10 @@ function wantedKeys() {
  * its loaded set. Those used to hold the whole snapshot back, so a collection with one of them never got a letter.
  */
 function cardOrWait(key: string): CardData | "wait" | "skip" {
-  const { cards, sets } = useSets.getState();
+  const { cards, sets, failed } = useSets.getState();
   if (cards[key]) return cards[key];
   const set = setIdOfCard(key);
-  return !set || sets[set] ? "skip" : "wait";
+  return !set || sets[set] || failed?.[set] ? "skip" : "wait";
 }
 
 /** Today's snapshot, or null while a card's data isn't loaded yet (its set file coming) */

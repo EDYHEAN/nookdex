@@ -51,6 +51,8 @@ interface Sets {
   /** Every card of a language in a few fields, for the searches (loaded on demand) */
   index: Partial<Record<CardLang, IndexCard[]>>;
   assets: string;
+  /** Set files that didn't come (an error, a file gone): the letter (lib/courrier) doesn't wait for them forever */
+  failed?: Record<string, true>;
 }
 
 /** Card data, downloaded from /sets as binders need it. Not persisted: the files are cached by the browser. */
@@ -77,6 +79,10 @@ export function loadSet(key: string): Promise<SetData> {
           return { sets: { ...s.sets, [key]: set }, cards };
         });
         return set;
+      })
+      .catch((e) => {
+        useSets.setState((s) => ({ failed: { ...s.failed, [key]: true } }));
+        throw e;
       })
       .finally(() => pending.delete(key));
     pending.set(key, p);

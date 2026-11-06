@@ -14,7 +14,7 @@ import { OS_NAME } from "@/lib/site";
 import { useStore } from "@/lib/store";
 import { useTrophyWatch } from "@/lib/useTrophyWatch";
 import { funnelStep } from "@/lib/funnel";
-import { claimAsk, useAskFree, useValued, useWantAsk } from "@/lib/calm";
+import { claimAsk, useAskFree, useAskUp, useValued, useWantAsk } from "@/lib/calm";
 import { startShareSync } from "@/lib/share";
 import { startMailOptin } from "@/lib/mailOptin";
 import { useTrophyQueue } from "@/lib/trophyStore";
@@ -200,7 +200,6 @@ export function App() {
   const onTradeAsked = useCallback(() => claimAsk("trade-note"), []);
   // one ask a visit (lib/calm), and none before the site has given something (10 cards or a 3rd day)
   const tradeNoteFree = useAskFree("trade-note");
-  useWantAsk("roadlog", news);
   const valued = useValued();
   // a trophy toast first: the trade binder's note comes after it
   const trophyUp = useTrophyQueue((q) => q.showing || q.batches.length > 0);
@@ -440,10 +439,13 @@ export function App() {
   // a page over the room (notebook, card page) isn't calm either: the road log waits for it to close
   const calm = entered && !busy && !tour && !showWelcome && !overPage;
   useTrophyWatch(entered);
+  // the road log is one of the calm room's gifts (lib/calm): once whatever is on screen is put away
+  useWantAsk("roadlog", news && calm);
+  const roadlogFree = useAskFree("roadlog");
+  useAskUp("roadlog", roadLog);
   useEffect(() => {
-    if (!news || !calm) return;
+    if (!news || !calm || !roadlogFree) return;
     const id = setTimeout(() => {
-      // another ask had this visit's turn: the road log waits for the next visit
       if (!claimAsk("roadlog")) return;
       markSeen(APP_VERSION);
       setNews(false);
@@ -451,7 +453,7 @@ export function App() {
       sfx.pop();
     }, 1200);
     return () => clearTimeout(id);
-  }, [news, calm]);
+  }, [news, calm, roadlogFree]);
 
   return (
     <>
@@ -472,7 +474,7 @@ export function App() {
         onOpenBox={setBox}
         onOpenGame={setGame}
         onOpenTrade={openTradeBinder}
-        noteCalm={calm && !news && tradeNoteFree && !trophyUp}
+        noteCalm={calm && tradeNoteFree && !trophyUp}
         onTradeAsked={onTradeAsked}
         veiled={!entered && !revealed}
         behind={compact && !!openBinder && covered}
@@ -781,26 +783,25 @@ export function App() {
       />
       {/* a tip for the project, asked by the cat once the player has a few cards (never over a binder, the OS or the tour) */}
       {/* the account, offered once the player without one has a few cards */}
-      {entered && <ImportBar compact={compact} calm={calm && !news && valued} onImport={openImport} />}
-      {/* the release weekend's « bon opening » (gives, doesn't ask: steps aside for the asks). Not `!news`: a road log that
-          lost the visit's turn to another ask stays "news" all visit long, and the strip never showed (Johan, 2026-11-06) */}
+      {entered && <ImportBar compact={compact} calm={calm && valued} onImport={openImport} />}
+      {/* the release weekend's « bon opening » (one of lib/calm's gifts) */}
       {entered && <ReleaseBar compact={compact} calm={calm} onOpen={(set) => openSetBinder(keyOf(currentLang(), set))} />}
-      {entered && <SavePrompt compact={compact} calm={calm && !news} />}
+      {entered && <SavePrompt compact={compact} calm={calm} />}
       {/* the Monday mail offered once to the accounts that haven't said yes (lib/mailOptin) */}
-      {entered && <MailAsk compact={compact} calm={calm && !news} />}
+      {entered && <MailAsk compact={compact} calm={calm} />}
       {/* the letter since the last visit (lib/courrier), its tiles a way to the card, the wanted ones, the calendar */}
       {entered && (
         <Courrier
-          calm={calm && !news}
+          calm={calm}
           compact={compact}
           onCard={(key) => void goToCard(key)}
           onWants={() => setTradeOpen({ view: "want" })}
           onRelease={() => router.push(lang === "en" ? "/en/release-calendar" : "/calendrier-des-sorties")}
         />
       )}
-      {entered && <SupportCat compact={compact} calm={calm && !news} />}
+      {entered && <SupportCat compact={compact} calm={calm} />}
       {/* a computer: the cat and its tip tag in the corner of the calm room (a phone has the pop-in only) */}
-      {entered && !compact && <TipCorner show={calm && !news && valued} />}
+      {entered && !compact && <TipCorner show={calm && valued} />}
       {/* the version, in the room's corner: it opens the road log */}
       {entered && !busy && !tour && (
         <button

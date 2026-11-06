@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { claimAsk, useWantAsk } from "@/lib/calm";
+import { claimAsk, useAskFree, useAskUp, useWantAsk } from "@/lib/calm";
 import { useSets } from "@/lib/catalog";
 import {
   type Letter,
@@ -32,8 +32,8 @@ const CALM_MS = 1600;
 /**
  * « Le courrier » (lib/courrier): an envelope slides onto the desk when the player is back and something moved since their
  * last visit; opened, a letter of up to 4 big numbers, each one a way in (the card's binder, the trade binder, the
- * calendar). Read, it's pinned on the cork board (room/PaintedRoom shows the last 4, a click reads one again). One ask of
- * the calm room (lib/calm), just after the account.
+ * calendar). Read, it's pinned on the cork board (room/PaintedRoom shows the last 4, a click reads one again). One of the
+ * calm room's gifts (lib/calm), just after the account.
  */
 export function Courrier({
   calm,
@@ -91,9 +91,12 @@ export function Courrier({
     return () => clearTimeout(t);
   }, [profile, cards, collection, pending, envelope, done, force, lang]);
 
-  useWantAsk("courrier", !!pending && !envelope);
+  // one of the calm room's gifts (lib/calm): it comes once whatever is on screen is put away, and holds the room till read
+  useWantAsk("courrier", !!pending && !envelope && calm);
+  const free = useAskFree("courrier");
+  useAskUp("courrier", !!envelope || open);
   useEffect(() => {
-    if (!pending || envelope || !calm) return;
+    if (!pending || envelope || !calm || !free) return;
     const t = setTimeout(() => {
       if (!claimAsk("courrier")) return;
       markShown();
@@ -101,7 +104,7 @@ export function Courrier({
       sfx.riffle();
     }, CALM_MS);
     return () => clearTimeout(t);
-  }, [pending, envelope, calm]);
+  }, [pending, envelope, calm, free]);
 
   const openIt = () => {
     if (!envelope) return;
