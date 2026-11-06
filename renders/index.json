@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-05T20:15:07.608Z",
+ "updated": "2026-11-06T13:38:27.359Z",
  "posts": [
   {
    "id": "2026-10-08-bienvenue",
@@ -754,15 +754,18 @@
    "kind": "news",
    "format": "post",
    "title": "Règne Delta est sorti !",
-   "note": "Jour de sortie. Faits : pokemon.com. Si le classeur ME06 n'est pas encore dispo dans l'app le jour J, changer la slide 3. Ajoute un sticker « C'est le jour » en story.",
-   "caption": "Règne Delta est sorti ! 🐉 Méga-Évolution : Règne Delta (ME06), en boutique aujourd'hui, partout le même jour.\n\n✦ plus de 135 cartes, dont plus de 35 illustrations spéciales\n✦ Méga-Rayquaza-ex, Méga-Golemastoc-ex, Méga-Sepiatroce-ex et Méga-Sarmuraï-ex\n✦ des cartes promo Kyogre, Groudon et Giratina chez les revendeurs participants\n\nTu ouvres tes boosters quand ? Et ta meilleure carte ? 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #regnedelta #megarayquaza #pokemonfr",
+   "note": "Jour de sortie. Les scans FR n’existent pas encore : les cartes montrent leur version japonaise (Storm Emeralda, mêmes illustrations), la légende le dit. Prix du jour 1 (Cardmarket), redessinés avec ceux du jour. Sticker « C’est le jour » en story.",
+   "caption": "Règne Delta est sorti ! 🐉 Et le premier jour, une carte écrase déjà tout : Méga-Rayquaza-ex illustration spéciale, signée Kazuki Minami, à 424,17 €.\n\n✦ 6 illustrations spéciales, 14 illustrations rares\n✦ la Méga-Rayquaza-ex dorée à 260,00 €\n✦ Raikou-ex illustration spéciale à 95,00 €\n\nPrix tendance Cardmarket du 6 novembre : ça va bouger vite. Visuels de la version japonaise (mêmes illustrations), les scans FR arrivent.\n\nTu ouvres tes boosters quand ? Et ta meilleure carte ? 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #regnedelta #megarayquaza #pokemonfr",
    "captionTiktok": null,
-   "prices": false,
+   "prices": true,
    "slides": [
     "2026-11-06-regne-delta-sorti/slide-01.jpg",
     "2026-11-06-regne-delta-sorti/slide-02.jpg",
     "2026-11-06-regne-delta-sorti/slide-03.jpg",
-    "2026-11-06-regne-delta-sorti/slide-04.jpg"
+    "2026-11-06-regne-delta-sorti/slide-04.jpg",
+    "2026-11-06-regne-delta-sorti/slide-05.jpg",
+    "2026-11-06-regne-delta-sorti/slide-06.jpg",
+    "2026-11-06-regne-delta-sorti/slide-07.jpg"
    ],
    "photos": [],
    "tiktokAs": "video",

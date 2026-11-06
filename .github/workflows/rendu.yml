@@ -34,7 +34,7 @@ jobs:
         working-directory: app
         run: |
           npm ci --no-audit --no-fund
-          npm i --no-save --no-audit --no-fund playwright
+          npm i --no-save --no-audit --no-fund playwright@1.64.1
           npx playwright install --with-deps chromium
           sudo apt-get install -y -qq ffmpeg > /dev/null
       - name: Dessiner les posts

@@ -7,37 +7,66 @@
   "kind": "news",
   "format": "post",
   "title": "Règne Delta est sorti !",
-  "note": "Jour de sortie. Faits : pokemon.com. Si le classeur ME06 n'est pas encore dispo dans l'app le jour J, changer la slide 3. Ajoute un sticker « C'est le jour » en story.",
-  "prices": false,
-  "caption": "Règne Delta est sorti ! 🐉 Méga-Évolution : Règne Delta (ME06), en boutique aujourd'hui, partout le même jour.\n\n✦ plus de 135 cartes, dont plus de 35 illustrations spéciales\n✦ Méga-Rayquaza-ex, Méga-Golemastoc-ex, Méga-Sepiatroce-ex et Méga-Sarmuraï-ex\n✦ des cartes promo Kyogre, Groudon et Giratina chez les revendeurs participants\n\nTu ouvres tes boosters quand ? Et ta meilleure carte ? 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #regnedelta #megarayquaza #pokemonfr",
+  "note": "Jour de sortie. Les scans FR n’existent pas encore : les cartes montrent leur version japonaise (Storm Emeralda, mêmes illustrations), la légende le dit. Prix du jour 1 (Cardmarket), redessinés avec ceux du jour. Sticker « C’est le jour » en story.",
+  "prices": true,
+  "caption": "Règne Delta est sorti ! 🐉 Et le premier jour, une carte écrase déjà tout : Méga-Rayquaza-ex illustration spéciale, signée Kazuki Minami, à {price:me06-138}.\n\n✦ 6 illustrations spéciales, 14 illustrations rares\n✦ la Méga-Rayquaza-ex dorée à {price:me06-141}\n✦ Raikou-ex illustration spéciale à {price:me06-136}\n\nPrix tendance Cardmarket du {day:me06} : ça va bouger vite. Visuels de la version japonaise (mêmes illustrations), les scans FR arrivent.\n\nTu ouvres tes boosters quand ? Et ta meilleure carte ? 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #regnedelta #megarayquaza #pokemonfr",
   "slides": [
     {
       "type": "cover",
       "kicker": "C'EST LE JOUR",
       "title": "Règne<br>Delta",
       "size": 120,
-      "asset": "regne-delta-boosters.jpg",
+      "cards": [
+        "me06-137@ja:M6-109",
+        "me06-138@ja:M6-110",
+        "me06-136@ja:M6-108"
+      ],
       "banner": "EN BOUTIQUE AUJOURD'HUI"
     },
     {
-      "type": "paper",
-      "kicker": "CE QU'IL Y A DEDANS",
-      "title": "Règne Delta",
-      "em": "ME06",
-      "list": [
-        "Plus de 135 cartes, dont plus de 35 illustrations spéciales",
-        "Plus de 20 cartes Dresseur",
-        "4 Méga-ex : Rayquaza, Golemastoc, Sepiatroce et Sarmuraï",
-        "Des promos Kyogre, Groudon et Giratina chez certains revendeurs"
+      "type": "grid",
+      "label": "LES 6 ILLUSTRATIONS SPECIALES",
+      "cards": [
+        "me06-135@ja:M6-107",
+        "me06-136@ja:M6-108",
+        "me06-137@ja:M6-109",
+        "me06-138@ja:M6-110",
+        "me06-139@ja:M6-111",
+        "me06-140@ja:M6-112"
       ]
     },
     {
-      "type": "paper",
-      "kicker": "SUR NOOKDEX",
-      "title": "Ton classeur",
-      "em": "Règne Delta",
-      "lead": "Coche tes cartes une à une, ou « J'ai tout » d'un clic. Celles qui te manquent ? En wishlist ★",
-      "asset": "wishbinder.jpg"
+      "type": "price",
+      "kicker": "LES PLUS CHERES · JOUR 1",
+      "card": "me06-138@ja:M6-110",
+      "rank": 1
+    },
+    {
+      "type": "price",
+      "kicker": "LES PLUS CHERES · JOUR 1",
+      "card": "me06-141@ja:M6-113",
+      "rank": 2
+    },
+    {
+      "type": "price",
+      "kicker": "LES PLUS CHERES · JOUR 1",
+      "card": "me06-136@ja:M6-108",
+      "rank": 3
+    },
+    {
+      "type": "grid",
+      "label": "LES ILLUSTRATIONS RARES",
+      "cards": [
+        "me06-111@ja:M6-084",
+        "me06-117@ja:M6-088",
+        "me06-106@ja:M6-078",
+        "me06-116@ja:M6-087",
+        "me06-115@ja:M6-086",
+        "me06-110@ja:M6-083",
+        "me06-107@ja:M6-079",
+        "me06-109@ja:M6-082",
+        "me06-113@ja:M6-085"
+      ]
     },
     {
       "type": "end",
