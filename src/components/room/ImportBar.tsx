@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLang } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
-import { claimAsk, useAskFree, useValued, useWantAsk } from "@/lib/calm";
+import { claimAsk, useAskFree, useAskUp, useValued, useWantAsk } from "@/lib/calm";
 import { useStore } from "@/lib/store";
 import styles from "./ImportBar.module.css";
 
@@ -46,6 +46,9 @@ export function ImportBar({ compact, calm, onImport }: { compact: boolean; calm:
     const id = setTimeout(() => claimAsk("import") && setShown(true), CALM_MS);
     return () => clearTimeout(id);
   }, [eligible]);
+
+  // on screen: the release weekend's strip (room/ReleaseBar), in the same place, steps aside
+  useAskUp("import", shown && eligible && free);
 
   const done = () => {
     try {

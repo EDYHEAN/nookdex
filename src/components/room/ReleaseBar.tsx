@@ -27,13 +27,15 @@ const closed = () => {
 /**
  * « Bon opening » for a release weekend: a strip in the calm room, at the top on a computer, at the bottom on a phone, that
  * opens the set's binder (or the new-binder sheet with it on top, like ?classeur=). It gives, it doesn't ask: not one of
- * lib/calm's asks, so it never takes the account's turn; it steps aside as soon as one of them has the visit.
+ * lib/calm's asks, so it never takes the account's turn; it steps aside while one of them is on screen (the Pokécardex
+ * strip sits in its place, the account card and the cat are pop-ins), and comes back once it's closed. It used to wait for
+ * the visit's ask to be none at all: the letter of a return (room/Courrier) took it on most visits, the strip never showed.
  */
 export function ReleaseBar({ compact, calm, onOpen }: { compact: boolean; calm: boolean; onOpen: (set: string) => void }) {
   const t = useT();
   const pathname = usePathname();
   const profile = useStore((s) => !!s.profile);
-  const asked = useCalm((c) => c.holder !== null);
+  const asked = useCalm((c) => c.up.length > 0);
   const [shown, setShown] = useState(false);
   const eligible = calm && profile && !asked && (pathname === "/" || pathname === "/en");
 
