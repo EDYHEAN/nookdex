@@ -82,7 +82,7 @@ export async function cardPage(lang: PageLang, setSlug: string, slug: string): P
   // the same Pokémon elsewhere: by name in the search index, the most expensive first
   const index = await publicJson<{ assets: string; cards: IndexCard[] }>("sets", ...(fr ? [] : ["en"]), "index.json");
   const same = (index?.cards ?? [])
-    .filter(([id, name]) => name === card.name && id !== card.id)
+    .filter(([id, name, , , img]) => name === card.name && id !== card.id && !!img)
     .map(([, name, num, set, img, trend]) => {
       const path = cardPagePath(lang, set, { name, num });
       return path ? { name, set: setBySlugName(lang, set), num, img: img.startsWith("http") ? img : `${index!.assets}${img}`, trend: trend ?? null, path } : null;

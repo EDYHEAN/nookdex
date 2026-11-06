@@ -139,7 +139,7 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
           {card.img ? (
             <img src={`${card.img}/high.webp`} alt={`${card.name} ${p.printed} · ${p.set.name}`} width={600} height={825} />
           ) : (
-            <span className={styles.back}>{t("Bientôt de retour", "Back soon")}</span>
+            <span className={styles.back}>{card.unavailable ? t("Bientôt de retour", "Back soon") : t("Image à venir", "Picture soon")}</span>
           )}
         </div>
         <div className={styles.info}>

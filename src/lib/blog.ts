@@ -122,7 +122,8 @@ export async function findCard(key: string): Promise<{ card: CardData; set: SetD
   if (!owner) return null;
   const set = await setFile(lang, owner.id);
   const card = set?.cards.find((c) => bareId(c.id) === id);
-  return set && card && !card.unavailable ? { card, set, setName: owner.name } : null;
+  // a card of a set just out has no picture yet (fetch-set EARLY): no sheet rather than a broken one
+  return set && card && card.img && !card.unavailable ? { card, set, setName: owner.name } : null;
 }
 
 export const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
