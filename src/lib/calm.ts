@@ -9,8 +9,11 @@ import { useStore } from "./store";
  * existe quand même »). Gifts give: the letter (room/Courrier), the trade binder's note, the road log, a release weekend's
  * strip (room/ReleaseBar). Asks ask: the account card (room/SavePrompt), the Pokécardex strip (room/ImportBar), the Monday
  * mail (room/MailAsk), the cat (room/SupportCat). Not the tip corner (room/TipCorner), a quiet corner that steps aside.
- * - One on screen at a time: one claimed (`claimAsk`) holds the room until it's put away (`useAskUp` back to false), then
- *   the next ready one comes, after its own calm delay.
+ * - One on screen at a time in each place: one claimed (`claimAsk`) holds its place until it's put away (`useAskUp` back
+ *   to false), then the next ready one comes, after its own calm delay. The places (`ZONE`): the strips (top on a computer,
+ *   bottom on a phone), the desk and shelf (the letter's envelope, the trade note), the middle (the account card, the cat,
+ *   the road log), which takes the whole room. A strip and an envelope side by side don't get in each other's way: an
+ *   unread letter left on the desk used to keep the release strip away all visit (Johan, 2026-11-06).
  * - By priority, not by who comes first: one ready right now (`useWantAsk`: every condition of its own met, the calm room
  *   included) holds back the ones after it. Only "right now": one waiting for a moment that may never come (a note for page
  *   0 of the shelf, a road log behind a letter) used to hold the others back for the whole visit, and on a returning
@@ -23,6 +26,19 @@ import { useStore } from "./store";
 export type Ask = "save" | "courrier" | "trade-note" | "roadlog" | "release" | "import" | "mail" | "cat";
 
 const GIFTS = new Set<Ask>(["courrier", "trade-note", "roadlog", "release"]);
+
+/** where each one shows: two in different places may be on screen together, the middle takes the whole room */
+const ZONE: Record<Ask, "strip" | "desk" | "middle"> = {
+  release: "strip",
+  import: "strip",
+  mail: "strip",
+  courrier: "desk",
+  "trade-note": "desk",
+  save: "middle",
+  cat: "middle",
+  roadlog: "middle",
+};
+const clash = (a: Ask, b: Ask) => ZONE[a] === ZONE[b] || ZONE[a] === "middle" || ZONE[b] === "middle";
 
 /** the order: the first ready one has the room */
 // the account first (once 10 cards are in), the gifts, then the asks; the Monday mail's offer (room/MailAsk) after the road
@@ -77,9 +93,9 @@ export function useAskUp(ask: Ask, up: boolean) {
 const spent = (ask: Ask, asked: Ask | null) => !GIFTS.has(ask) && !!asked && asked !== ask;
 
 function freeIn(ask: Ask, c: Pick<Calm, "asked" | "wanting" | "up">): boolean {
-  if (c.up.some((u) => u !== ask)) return false;
+  if (c.up.some((u) => u !== ask && clash(u, ask))) return false;
   if (spent(ask, c.asked)) return false;
-  return !c.wanting.some((w) => w !== ask && PRIORITY[w] < PRIORITY[ask] && !spent(w, c.asked));
+  return !c.wanting.some((w) => w !== ask && clash(w, ask) && PRIORITY[w] < PRIORITY[ask] && !spent(w, c.asked));
 }
 
 /**
