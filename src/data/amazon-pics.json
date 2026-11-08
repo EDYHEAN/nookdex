@@ -54,6 +54,31 @@
     "w": 480,
     "h": 400
   },
+  "Fichier:Boîte 30e Anniversaire Amphinobi-ex.png": {
+    "src": "/amazon/boite-30e-anniversaire-amphinobi-ex.webp",
+    "w": 366,
+    "h": 480
+  },
+  "Fichier:Boîte 30e Anniversaire Nymphali-ex.png": {
+    "src": "/amazon/boite-30e-anniversaire-nymphali-ex.webp",
+    "w": 366,
+    "h": 480
+  },
+  "Fichier:Boîte Méga Puissances Méga-Darkrai-ex.png": {
+    "src": "/amazon/boite-mega-puissances-mega-darkrai-ex.webp",
+    "w": 366,
+    "h": 480
+  },
+  "Fichier:Boîte Méga Puissances Méga-Dracolosse-ex.png": {
+    "src": "/amazon/boite-mega-puissances-mega-dracolosse-ex.webp",
+    "w": 366,
+    "h": 480
+  },
+  "Fichier:Boîte Méga Puissances Méga-Zeraora-ex.png": {
+    "src": "/amazon/boite-mega-puissances-mega-zeraora-ex.webp",
+    "w": 366,
+    "h": 480
+  },
   "Fichier:Booster 30e Anniversaire.png": {
     "src": "/amazon/booster-30e-anniversaire.webp",
     "w": 261,
@@ -124,10 +149,80 @@
     "w": 480,
     "h": 458
   },
+  "Fichier:Coffret Dresseur d'élite Méga-Évolution Méga-Gardevoir.png": {
+    "src": "/amazon/coffret-dresseur-d-elite-mega-evolution-mega-gardevoir.webp",
+    "w": 480,
+    "h": 458
+  },
   "Fichier:Coffret Dresseur d'élite Méga-Évolution Nuit Noire.png": {
     "src": "/amazon/coffret-dresseur-d-elite-mega-evolution-nuit-noire.webp",
     "w": 480,
     "h": 458
+  },
+  "Fichier:Collection Autocollant Réajustable 30e Anniversaire Lucario.png": {
+    "src": "/amazon/collection-autocollant-reajustable-30e-anniversaire-lucario.webp",
+    "w": 480,
+    "h": 441
+  },
+  "Fichier:Collection Autocollant Réajustable 30e Anniversaire Noadkoko d'Alola.png": {
+    "src": "/amazon/collection-autocollant-reajustable-30e-anniversaire-noadkoko-d-alola.webp",
+    "w": 480,
+    "h": 441
+  },
+  "Fichier:Collection classeur 30e Anniversaire.png": {
+    "src": "/amazon/collection-classeur-30e-anniversaire.webp",
+    "w": 349,
+    "h": 480
+  },
+  "Fichier:Mini-boîte 30e Anniversaire Amphinobi.png": {
+    "src": "/amazon/mini-boite-30e-anniversaire-amphinobi.webp",
+    "w": 308,
+    "h": 480
+  },
+  "Fichier:Mini-boîte 30e Anniversaire Électhor.png": {
+    "src": "/amazon/mini-boite-30e-anniversaire-electhor.webp",
+    "w": 308,
+    "h": 480
+  },
+  "Fichier:Mini-boîte 30e Anniversaire Lokhlass.png": {
+    "src": "/amazon/mini-boite-30e-anniversaire-lokhlass.webp",
+    "w": 308,
+    "h": 480
+  },
+  "Fichier:Mini-boîte 30e Anniversaire Mentali.png": {
+    "src": "/amazon/mini-boite-30e-anniversaire-mentali.webp",
+    "w": 308,
+    "h": 480
+  },
+  "Fichier:Mini-boîte 30e Anniversaire Mew.png": {
+    "src": "/amazon/mini-boite-30e-anniversaire-mew.webp",
+    "w": 308,
+    "h": 480
+  },
+  "Fichier:Mini-boîte 30e Anniversaire Mewtwo.png": {
+    "src": "/amazon/mini-boite-30e-anniversaire-mewtwo.webp",
+    "w": 308,
+    "h": 480
+  },
+  "Fichier:Mini-boîte 30e Anniversaire Noctali.png": {
+    "src": "/amazon/mini-boite-30e-anniversaire-noctali.webp",
+    "w": 308,
+    "h": 480
+  },
+  "Fichier:Mini-boîte 30e Anniversaire Prismillon.png": {
+    "src": "/amazon/mini-boite-30e-anniversaire-prismillon.webp",
+    "w": 308,
+    "h": 480
+  },
+  "Fichier:Mini-boîte 30e Anniversaire Salarsen.png": {
+    "src": "/amazon/mini-boite-30e-anniversaire-salarsen.webp",
+    "w": 308,
+    "h": 480
+  },
+  "Fichier:Mini-boîte 30e Anniversaire Sulfura.png": {
+    "src": "/amazon/mini-boite-30e-anniversaire-sulfura.webp",
+    "w": 308,
+    "h": 480
   },
   "Tripack ME03 Germignon": {
     "src": "/amazon/tripack-me03-germignon.webp",

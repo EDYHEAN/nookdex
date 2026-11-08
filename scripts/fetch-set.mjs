@@ -833,6 +833,9 @@ const force = args.includes("--force");
 const all = args.includes("--all");
 const only = args.filter((a) => !a.startsWith("--"));
 
+/** a logo already in public/logos, none on TCGdex's side */
+const handLogo = (id) => (existsSync(`${LOGOS}/${id}.png`) ? `/${LOGOS.replace(/^public\//, "")}/${id}` : null);
+
 // Catalog: main sets of each series, newest first, sub-sets attached to their parent.
 const catalog = [];
 for (const serie of SERIES) {
@@ -848,7 +851,8 @@ for (const serie of SERIES) {
       serieName: s.name,
       name: set.name,
       code: codeOf(set, serie),
-      logo: await logoOf(set, serie),
+      // TCGdex can list a set before it has its logo (Delta Reign): the one put in by hand stays
+      logo: (await logoOf(set, serie)) ?? handLogo(set.id),
       releaseDate: set.releaseDate ?? null,
       total: set.cardCount?.total ?? 0,
       subs: Object.entries(PARENT)
@@ -859,8 +863,7 @@ for (const serie of SERIES) {
   // a set out before TCGdex lists it (EARLY), in its series until TCGdex's entry takes over; its logo, if any, put in by hand
   for (const [id, e] of Object.entries(EARLY)) {
     if (JA || e.serie !== serie || catalog.some((c) => c.id === id)) continue;
-    const logo = existsSync(`${LOGOS}/${id}.png`) ? `/${LOGOS.replace(/^public\//, "")}/${id}` : null;
-    catalog.push({ id, serie, serieName: s.name, name: e[LANG].name, code: e[LANG].code, logo, releaseDate: e.releaseDate, total: e.total, subs: [] });
+    catalog.push({ id, serie, serieName: s.name, name: e[LANG].name, code: e[LANG].code, logo: handLogo(id), releaseDate: e.releaseDate, total: e.total, subs: [] });
   }
 }
 catalog.sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""));
@@ -868,7 +871,8 @@ catalog.sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""))
 // Binder logos are served by the site itself: the shelf and the "new binder" menu show them all at once.
 await mkdir(LOGOS, { recursive: true });
 await pool(catalog, 6, async (c) => {
-  if (!c.logo?.startsWith("http")) return;
+  // one put in by hand goes through too: its smaller sizes are made below
+  if (!c.logo) return;
   const file = `${LOGOS}/${c.id}.png`;
   if (!existsSync(file)) {
     try {
