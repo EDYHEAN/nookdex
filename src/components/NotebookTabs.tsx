@@ -12,8 +12,8 @@ const TABS = [
   { href: ["/extensions", "/en/sets"], label: ["Extensions", "Sets"] },
   { href: ["/calendrier-des-sorties", "/en/release-calendar"], label: ["Sorties", "Releases"] },
   { href: ["/marche", "/en/market"], label: ["Marché", "Market"] },
-  // the sealed products on amazon.fr (affiliate): French only
-  { href: ["/invitations-amazon", ""], label: ["Invitations", ""] },
+  // the sealed products on Amazon (affiliate)
+  { href: ["/invitations-amazon", "/en/amazon-invites"], label: ["Invitations", "Invites"] },
   { href: ["/blog", "/blog"], label: ["Blog", "Blog"] },
   { href: ["/confidentialite", "/confidentialite"], label: ["Vie privée", "Privacy"] },
   { href: ["/conditions", "/conditions"], label: ["CGU", "Terms"] },

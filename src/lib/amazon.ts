@@ -35,8 +35,8 @@ export const AMAZON_TAGS: Record<AmazonPlace, string> = {
   accessoires: "nookdex-accessoires-21",
 };
 /**
- * The same on amazon.com: the per-place ids Johan created in Associates Central (2026-11-01); the invitations page is
- * French only, accessories have no id of their own there.
+ * The same on amazon.com: the per-place ids Johan created in Associates Central (2026-11-01); the invites page
+ * (/en/amazon-invites) and the accessories have no id of their own there.
  */
 export const AMAZON_US_TAGS: Record<AmazonPlace, string> = {
   invit: "nookdex-20",
@@ -59,8 +59,9 @@ export const amazonSearch = (q: string, place?: AmazonPlace, lang: "fr" | "en" =
   return `https://www.amazon.fr/s?k=${encodeURIComponent(words)}&tag=${tagOf(place)}`;
 };
 
-/** a product's page on amazon.fr */
-export const amazonProduct = (asin: string, place?: AmazonPlace) => `https://www.amazon.fr/dp/${asin}?tag=${tagOf(place)}`;
+/** a product's page on amazon.fr (English pages: amazon.com) */
+export const amazonProduct = (asin: string, place?: AmazonPlace, lang: "fr" | "en" = "fr") =>
+  lang === "en" ? `https://www.amazon.com/dp/${asin}?tag=${usTagOf(place)}` : `https://www.amazon.fr/dp/${asin}?tag=${tagOf(place)}`;
 
 /** a set still in the shops: out within the last two years */
 export const inShops = (releaseDate?: string | null) => !!releaseDate && Date.now() - Date.parse(releaseDate) < 730 * 86_400_000;
