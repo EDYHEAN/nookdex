@@ -5,7 +5,7 @@
   "serieName": "Méga-Évolution",
   "name": "Règne Delta",
   "code": "ME06",
-  "logo": "/logos/me06",
+  "logo": null,
   "releaseDate": "2026-11-06",
   "total": 141,
   "subs": []
@@ -90,17 +90,6 @@
   "subs": []
  },
  {
-  "id": "sv10.5w",
-  "serie": "sv",
-  "serieName": "Écarlate et Violet",
-  "name": "Flamme Blanche",
-  "code": "WHT",
-  "logo": "/logos/sv10.5w",
-  "releaseDate": "2025-07-17",
-  "total": 173,
-  "subs": []
- },
- {
   "id": "sv10.5b",
   "serie": "sv",
   "serieName": "Écarlate et Violet",
@@ -109,6 +98,17 @@
   "logo": "/logos/sv10.5b",
   "releaseDate": "2025-07-17",
   "total": 172,
+  "subs": []
+ },
+ {
+  "id": "sv10.5w",
+  "serie": "sv",
+  "serieName": "Écarlate et Violet",
+  "name": "Flamme Blanche",
+  "code": "WHT",
+  "logo": "/logos/sv10.5w",
+  "releaseDate": "2025-07-17",
+  "total": 173,
   "subs": []
  },
  {
@@ -685,18 +685,6 @@
   "extra": true
  },
  {
-  "id": "sm115",
-  "serie": "sm",
-  "serieName": "Soleil et Lune",
-  "name": "Destinées Occultes",
-  "code": "HIF",
-  "logo": "https://assets.tcgdex.net/fr/sm/sm115/logo",
-  "releaseDate": "2019-08-23",
-  "total": 69,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "sma",
   "serie": "sm",
   "serieName": "Soleil et Lune",
@@ -705,6 +693,18 @@
   "logo": null,
   "releaseDate": "2019-08-23",
   "total": 94,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sm115",
+  "serie": "sm",
+  "serieName": "Soleil et Lune",
+  "name": "Destinées Occultes",
+  "code": "HIF",
+  "logo": "https://assets.tcgdex.net/fr/sm/sm115/logo",
+  "releaseDate": "2019-08-23",
+  "total": 69,
   "subs": [],
   "extra": true
  },
@@ -889,18 +889,6 @@
   "extra": true
  },
  {
-  "id": "tk-sm-l",
-  "serie": "tk",
-  "serieName": "Kits du dresseur",
-  "name": "SM Kit du dresseur (Lougarox)",
-  "code": "TK10L",
-  "logo": null,
-  "releaseDate": "2017-04-21",
-  "total": 18,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "tk-sm-r",
   "serie": "tk",
   "serieName": "Kits du dresseur",
@@ -909,6 +897,18 @@
   "logo": null,
   "releaseDate": "2017-04-21",
   "total": 19,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-sm-l",
+  "serie": "tk",
+  "serieName": "Kits du dresseur",
+  "name": "SM Kit du dresseur (Lougarox)",
+  "code": "TK10L",
+  "logo": null,
+  "releaseDate": "2017-04-21",
+  "total": 18,
   "subs": [],
   "extra": true
  },
@@ -985,11 +985,11 @@
   "extra": true
  },
  {
-  "id": "tk-xy-su",
+  "id": "tk-xy-p",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "XY Kit du dresseur (Suicune)",
-  "code": "TK9S",
+  "name": "XY Kit du dresseur (Pikachu Libre)",
+  "code": "TK9P",
   "logo": null,
   "releaseDate": "2016-04-27",
   "total": 30,
@@ -997,11 +997,11 @@
   "extra": true
  },
  {
-  "id": "tk-xy-p",
+  "id": "tk-xy-su",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "XY Kit du dresseur (Pikachu Libre)",
-  "code": "TK9P",
+  "name": "XY Kit du dresseur (Suicune)",
+  "code": "TK9S",
   "logo": null,
   "releaseDate": "2016-04-27",
   "total": 30,
@@ -1201,18 +1201,6 @@
   "extra": true
  },
  {
-  "id": "tk-xy-sy",
-  "serie": "tk",
-  "serieName": "Kits du dresseur",
-  "name": "XY Kit du dresseur (Nymphali)",
-  "code": "TK6S",
-  "logo": null,
-  "releaseDate": "2014-03-12",
-  "total": 30,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "tk-xy-n",
   "serie": "tk",
   "serieName": "Kits du dresseur",
@@ -1221,6 +1209,18 @@
   "logo": null,
   "releaseDate": "2014-03-12",
   "total": 29,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-xy-sy",
+  "serie": "tk",
+  "serieName": "Kits du dresseur",
+  "name": "XY Kit du dresseur (Nymphali)",
+  "code": "TK6S",
+  "logo": null,
+  "releaseDate": "2014-03-12",
+  "total": 30,
   "subs": [],
   "extra": true
  },
@@ -1381,11 +1381,11 @@
   "extra": true
  },
  {
-  "id": "tk-bw-z",
+  "id": "tk-bw-e",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "BW Kit du dresseur (Zoroark)",
-  "code": "TK5Z",
+  "name": "BW Kit du dresseur (Minitaupe)",
+  "code": "TK5E",
   "logo": null,
   "releaseDate": "2011-09-01",
   "total": 30,
@@ -1393,11 +1393,11 @@
   "extra": true
  },
  {
-  "id": "tk-bw-e",
+  "id": "tk-bw-z",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "BW Kit du dresseur (Minitaupe)",
-  "code": "TK5E",
+  "name": "BW Kit du dresseur (Zoroark)",
+  "code": "TK5Z",
   "logo": null,
   "releaseDate": "2011-09-01",
   "total": 30,
@@ -1705,18 +1705,6 @@
   "extra": true
  },
  {
-  "id": "dp1",
-  "serie": "dp",
-  "serieName": "Diamant & Perle",
-  "name": "Diamant & Perle",
-  "code": "DP",
-  "logo": "https://assets.tcgdex.net/fr/dp/dp1/logo",
-  "releaseDate": "2007-05-01",
-  "total": 130,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "dpp",
   "serie": "dp",
   "serieName": "Diamant & Perle",
@@ -1725,6 +1713,18 @@
   "logo": null,
   "releaseDate": "2007-05-01",
   "total": 42,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "dp1",
+  "serie": "dp",
+  "serieName": "Diamant & Perle",
+  "name": "Diamant & Perle",
+  "code": "DP",
+  "logo": "https://assets.tcgdex.net/fr/dp/dp1/logo",
+  "releaseDate": "2007-05-01",
+  "total": 130,
   "subs": [],
   "extra": true
  },
@@ -1801,11 +1801,11 @@
   "extra": true
  },
  {
-  "id": "tk-ex-p",
+  "id": "tk-ex-m",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "EX Kit dresseur (Positi)",
-  "code": "TK2P",
+  "name": "EX Kit dresseur (Négapi)",
+  "code": "TK2M",
   "logo": null,
   "releaseDate": "2006-03-01",
   "total": 12,
@@ -1813,11 +1813,11 @@
   "extra": true
  },
  {
-  "id": "tk-ex-m",
+  "id": "tk-ex-p",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "EX Kit dresseur (Négapi)",
-  "code": "TK2M",
+  "name": "EX Kit dresseur (Positi)",
+  "code": "TK2P",
   "logo": null,
   "releaseDate": "2006-03-01",
   "total": 12,
@@ -1921,11 +1921,11 @@
   "extra": true
  },
  {
-  "id": "tk-ex-latio",
+  "id": "tk-ex-latia",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "EX Kit dresseur (Latios)",
-  "code": "TK1O",
+  "name": "EX Kit dresseur (Latias)",
+  "code": "TK1A",
   "logo": null,
   "releaseDate": "2004-07-01",
   "total": 10,
@@ -1933,11 +1933,11 @@
   "extra": true
  },
  {
-  "id": "tk-ex-latia",
+  "id": "tk-ex-latio",
   "serie": "tk",
   "serieName": "Kits du dresseur",
-  "name": "EX Kit dresseur (Latias)",
-  "code": "TK1A",
+  "name": "EX Kit dresseur (Latios)",
+  "code": "TK1O",
   "logo": null,
   "releaseDate": "2004-07-01",
   "total": 10,

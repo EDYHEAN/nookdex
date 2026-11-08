@@ -1,5 +1,16 @@
 [
  {
+  "id": "M6a",
+  "serie": "M",
+  "serieName": "ポケモンカードゲーム MEGA",
+  "name": "30th CELEBRATION",
+  "code": "M6a",
+  "logo": null,
+  "releaseDate": "2026-09-16",
+  "total": 176,
+  "subs": []
+ },
+ {
   "id": "M6",
   "serie": "M",
   "serieName": "ポケモンカードゲーム MEGA",
@@ -66,22 +77,22 @@
   "subs": []
  },
  {
-  "id": "M1S",
+  "id": "M1L",
   "serie": "M",
   "serieName": "ポケモンカードゲーム MEGA",
-  "name": "メガシンフォニア",
-  "code": "M1S",
+  "name": "メガブレイブ",
+  "code": "M1L",
   "logo": null,
   "releaseDate": "2025-08-01",
   "total": 92,
   "subs": []
  },
  {
-  "id": "M1L",
+  "id": "M1S",
   "serie": "M",
   "serieName": "ポケモンカードゲーム MEGA",
-  "name": "メガブレイブ",
-  "code": "M1L",
+  "name": "メガシンフォニア",
+  "code": "M1S",
   "logo": null,
   "releaseDate": "2025-08-01",
   "total": 92,
@@ -245,22 +256,11 @@
   "id": "SV4a",
   "serie": "SV",
   "serieName": "ポケモンカードゲーム スカーレット&バイオレット",
-  "name": "レイジングサーフ",
+  "name": "シャイニートレジャーex",
   "code": "SV4a",
   "logo": null,
   "releaseDate": "2023-12-01",
   "total": 320,
-  "subs": []
- },
- {
-  "id": "SV4K",
-  "serie": "SV",
-  "serieName": "ポケモンカードゲーム スカーレット&バイオレット",
-  "name": "古代の咆哮",
-  "code": "SV4K",
-  "logo": null,
-  "releaseDate": "2023-10-27",
-  "total": 95,
   "subs": []
  },
  {
@@ -275,6 +275,17 @@
   "subs": []
  },
  {
+  "id": "SV4K",
+  "serie": "SV",
+  "serieName": "ポケモンカードゲーム スカーレット&バイオレット",
+  "name": "古代の咆哮",
+  "code": "SV4K",
+  "logo": null,
+  "releaseDate": "2023-10-27",
+  "total": 95,
+  "subs": []
+ },
+ {
   "id": "SV3a",
   "serie": "SV",
   "serieName": "ポケモンカードゲーム スカーレット&バイオレット",
@@ -283,6 +294,17 @@
   "logo": null,
   "releaseDate": "2023-09-22",
   "total": 92,
+  "subs": []
+ },
+ {
+  "id": "WCS23",
+  "serie": "SV",
+  "serieName": "ポケモンカードゲーム スカーレット&バイオレット",
+  "name": "ポケモンワールドチャンピオンシップス2023横浜 記念デッキ「ピカチュウ」",
+  "code": "WCS23",
+  "logo": null,
+  "releaseDate": "2023-07-28",
+  "total": 1,
   "subs": []
  },
  {
@@ -506,6 +528,17 @@
   "subs": []
  },
  {
+  "id": "S5R",
+  "serie": "S",
+  "serieName": "剣と盾",
+  "name": "連撃マスター",
+  "code": "S5R",
+  "logo": null,
+  "releaseDate": "2021-01-22",
+  "total": 91,
+  "subs": []
+ },
+ {
   "id": "S5I",
   "serie": "S",
   "serieName": "剣と盾",
@@ -529,11 +562,11 @@
   "extra": true
  },
  {
-  "id": "SVLS",
+  "id": "SVLN",
   "serie": "SV",
   "serieName": "ポケモンカードゲーム スカーレット&バイオレット",
-  "name": "スターターセット テラスタイプ：ステラ ソウブレイズex",
-  "code": "SVLS",
+  "name": "スターターセット テラスタイプ：ステラ ニンフィアex",
+  "code": "SVLN",
   "logo": null,
   "releaseDate": "2024-08-30",
   "total": 22,
@@ -541,11 +574,11 @@
   "extra": true
  },
  {
-  "id": "SVLN",
+  "id": "SVLS",
   "serie": "SV",
   "serieName": "ポケモンカードゲーム スカーレット&バイオレット",
-  "name": "スターターセット テラスタイプ：ステラ ニンフィアex",
-  "code": "SVLN",
+  "name": "スターターセット テラスタイプ：ステラ ソウブレイズex",
+  "code": "SVLS",
   "logo": null,
   "releaseDate": "2024-08-30",
   "total": 22,
@@ -745,18 +778,6 @@
   "extra": true
  },
  {
-  "id": "SM7a",
-  "serie": "SM",
-  "serieName": "サン＆ムーン",
-  "name": "迅雷スパーク",
-  "code": "SM7a",
-  "logo": null,
-  "releaseDate": "2018-08-03",
-  "total": 73,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "SM7b",
   "serie": "SM",
   "serieName": "サン＆ムーン",
@@ -765,6 +786,18 @@
   "logo": null,
   "releaseDate": "2018-08-03",
   "total": 63,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "SM7a",
+  "serie": "SM",
+  "serieName": "サン＆ムーン",
+  "name": "迅雷スパーク",
+  "code": "SM7a",
+  "logo": null,
+  "releaseDate": "2018-08-03",
+  "total": 73,
   "subs": [],
   "extra": true
  },
@@ -817,18 +850,6 @@
   "extra": true
  },
  {
-  "id": "SM5M",
-  "serie": "SM",
-  "serieName": "サン＆ムーン",
-  "name": "ウルトラムーン",
-  "code": "SM5M",
-  "logo": null,
-  "releaseDate": "2017-12-08",
-  "total": 78,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "SM5S",
   "serie": "SM",
   "serieName": "サン＆ムーン",
@@ -841,14 +862,14 @@
   "extra": true
  },
  {
-  "id": "SM4A",
+  "id": "SM5M",
   "serie": "SM",
   "serieName": "サン＆ムーン",
-  "name": "超次元の暴獣",
-  "code": "SM4A",
+  "name": "ウルトラムーン",
+  "code": "SM5M",
   "logo": null,
-  "releaseDate": "2017-09-15",
-  "total": 61,
+  "releaseDate": "2017-12-08",
+  "total": 78,
   "subs": [],
   "extra": true
  },
@@ -865,14 +886,14 @@
   "extra": true
  },
  {
-  "id": "SM3N",
+  "id": "SM4A",
   "serie": "SM",
   "serieName": "サン＆ムーン",
-  "name": "光を喰らう闇",
-  "code": "SM3N",
+  "name": "超次元の暴獣",
+  "code": "SM4A",
   "logo": null,
-  "releaseDate": "2017-06-16",
-  "total": 64,
+  "releaseDate": "2017-09-15",
+  "total": 61,
   "subs": [],
   "extra": true
  },
@@ -882,6 +903,18 @@
   "serieName": "サン＆ムーン",
   "name": "闘う虹を見たか",
   "code": "SM3H",
+  "logo": null,
+  "releaseDate": "2017-06-16",
+  "total": 64,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "SM3N",
+  "serie": "SM",
+  "serieName": "サン＆ムーン",
+  "name": "光を喰らう闇",
+  "code": "SM3N",
   "logo": null,
   "releaseDate": "2017-06-16",
   "total": 64,
@@ -913,11 +946,11 @@
   "extra": true
  },
  {
-  "id": "SM1M",
+  "id": "SM1S",
   "serie": "SM",
   "serieName": "サン＆ムーン",
-  "name": "コレクションムーン",
-  "code": "SM1M",
+  "name": "コレクションサン",
+  "code": "SM1S",
   "logo": null,
   "releaseDate": "2016-12-09",
   "total": 73,
@@ -925,11 +958,11 @@
   "extra": true
  },
  {
-  "id": "SM1S",
+  "id": "SM1M",
   "serie": "SM",
   "serieName": "サン＆ムーン",
-  "name": "コレクションサン",
-  "code": "SM1S",
+  "name": "コレクションムーン",
+  "code": "SM1M",
   "logo": null,
   "releaseDate": "2016-12-09",
   "total": 73,

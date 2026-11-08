@@ -90,17 +90,6 @@
   "subs": []
  },
  {
-  "id": "sv10.5w",
-  "serie": "sv",
-  "serieName": "Scarlet & Violet",
-  "name": "White Flare",
-  "code": "WHT",
-  "logo": "/logos/en/sv10.5w",
-  "releaseDate": "2025-07-17",
-  "total": 173,
-  "subs": []
- },
- {
   "id": "sv10.5b",
   "serie": "sv",
   "serieName": "Scarlet & Violet",
@@ -109,6 +98,17 @@
   "logo": "/logos/en/sv10.5b",
   "releaseDate": "2025-07-17",
   "total": 172,
+  "subs": []
+ },
+ {
+  "id": "sv10.5w",
+  "serie": "sv",
+  "serieName": "Scarlet & Violet",
+  "name": "White Flare",
+  "code": "WHT",
+  "logo": "/logos/en/sv10.5w",
+  "releaseDate": "2025-07-17",
+  "total": 173,
   "subs": []
  },
  {
@@ -750,18 +750,6 @@
   "extra": true
  },
  {
-  "id": "sm115",
-  "serie": "sm",
-  "serieName": "Sun & Moon",
-  "name": "Hidden Fates",
-  "code": "HIF",
-  "logo": "https://assets.tcgdex.net/en/sm/sm115/logo",
-  "releaseDate": "2019-08-23",
-  "total": 69,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "sma",
   "serie": "sm",
   "serieName": "Sun & Moon",
@@ -770,6 +758,18 @@
   "logo": null,
   "releaseDate": "2019-08-23",
   "total": 94,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "sm115",
+  "serie": "sm",
+  "serieName": "Sun & Moon",
+  "name": "Hidden Fates",
+  "code": "HIF",
+  "logo": "https://assets.tcgdex.net/en/sm/sm115/logo",
+  "releaseDate": "2019-08-23",
+  "total": 69,
   "subs": [],
   "extra": true
  },
@@ -942,18 +942,6 @@
   "extra": true
  },
  {
-  "id": "tk-sm-l",
-  "serie": "tk",
-  "serieName": "Trainer kits",
-  "name": "SM trainer Kit (Lycanroc)",
-  "code": "TK10L",
-  "logo": null,
-  "releaseDate": "2017-04-21",
-  "total": 18,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "tk-sm-r",
   "serie": "tk",
   "serieName": "Trainer kits",
@@ -962,6 +950,18 @@
   "logo": null,
   "releaseDate": "2017-04-21",
   "total": 29,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-sm-l",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "SM trainer Kit (Lycanroc)",
+  "code": "TK10L",
+  "logo": null,
+  "releaseDate": "2017-04-21",
+  "total": 18,
   "subs": [],
   "extra": true
  },
@@ -1038,11 +1038,11 @@
   "extra": true
  },
  {
-  "id": "tk-xy-su",
+  "id": "tk-xy-p",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "XY trainer Kit (Suicune)",
-  "code": "TK9S",
+  "name": "XY trainer Kit (Pikachu Libre)",
+  "code": "TK9P",
   "logo": null,
   "releaseDate": "2016-04-27",
   "total": 30,
@@ -1050,11 +1050,11 @@
   "extra": true
  },
  {
-  "id": "tk-xy-p",
+  "id": "tk-xy-su",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "XY trainer Kit (Pikachu Libre)",
-  "code": "TK9P",
+  "name": "XY trainer Kit (Suicune)",
+  "code": "TK9S",
   "logo": null,
   "releaseDate": "2016-04-27",
   "total": 30,
@@ -1254,18 +1254,6 @@
   "extra": true
  },
  {
-  "id": "tk-xy-sy",
-  "serie": "tk",
-  "serieName": "Trainer kits",
-  "name": "XY trainer Kit (Sylveon)",
-  "code": "TK6S",
-  "logo": null,
-  "releaseDate": "2014-03-12",
-  "total": 30,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "tk-xy-n",
   "serie": "tk",
   "serieName": "Trainer kits",
@@ -1274,6 +1262,18 @@
   "logo": null,
   "releaseDate": "2014-03-12",
   "total": 29,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "tk-xy-sy",
+  "serie": "tk",
+  "serieName": "Trainer kits",
+  "name": "XY trainer Kit (Sylveon)",
+  "code": "TK6S",
+  "logo": null,
+  "releaseDate": "2014-03-12",
+  "total": 30,
   "subs": [],
   "extra": true
  },
@@ -1446,11 +1446,11 @@
   "extra": true
  },
  {
-  "id": "tk-bw-z",
+  "id": "tk-bw-e",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "BW trainer Kit (Zoroark)",
-  "code": "TK5Z",
+  "name": "BW trainer Kit (Excadrill)",
+  "code": "TK5E",
   "logo": null,
   "releaseDate": "2011-09-01",
   "total": 30,
@@ -1458,11 +1458,11 @@
   "extra": true
  },
  {
-  "id": "tk-bw-e",
+  "id": "tk-bw-z",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "BW trainer Kit (Excadrill)",
-  "code": "TK5E",
+  "name": "BW trainer Kit (Zoroark)",
+  "code": "TK5Z",
   "logo": null,
   "releaseDate": "2011-09-01",
   "total": 30,
@@ -1818,18 +1818,6 @@
   "extra": true
  },
  {
-  "id": "dp1",
-  "serie": "dp",
-  "serieName": "Diamond & Pearl",
-  "name": "Diamond & Pearl",
-  "code": "DP",
-  "logo": "https://assets.tcgdex.net/en/dp/dp1/logo",
-  "releaseDate": "2007-05-01",
-  "total": 130,
-  "subs": [],
-  "extra": true
- },
- {
   "id": "dpp",
   "serie": "dp",
   "serieName": "Diamond & Pearl",
@@ -1838,6 +1826,18 @@
   "logo": "https://assets.tcgdex.net/en/dp/dpp/logo",
   "releaseDate": "2007-05-01",
   "total": 56,
+  "subs": [],
+  "extra": true
+ },
+ {
+  "id": "dp1",
+  "serie": "dp",
+  "serieName": "Diamond & Pearl",
+  "name": "Diamond & Pearl",
+  "code": "DP",
+  "logo": "https://assets.tcgdex.net/en/dp/dp1/logo",
+  "releaseDate": "2007-05-01",
+  "total": 130,
   "subs": [],
   "extra": true
  },
@@ -1926,11 +1926,11 @@
   "extra": true
  },
  {
-  "id": "tk-ex-p",
+  "id": "tk-ex-m",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "EX trainer Kit 2 (Plusle)",
-  "code": "TK2P",
+  "name": "EX trainer Kit 2 (Minun)",
+  "code": "TK2M",
   "logo": null,
   "releaseDate": "2006-03-01",
   "total": 12,
@@ -1938,11 +1938,11 @@
   "extra": true
  },
  {
-  "id": "tk-ex-m",
+  "id": "tk-ex-p",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "EX trainer Kit 2 (Minun)",
-  "code": "TK2M",
+  "name": "EX trainer Kit 2 (Plusle)",
+  "code": "TK2P",
   "logo": null,
   "releaseDate": "2006-03-01",
   "total": 12,
@@ -2058,11 +2058,11 @@
   "extra": true
  },
  {
-  "id": "tk-ex-latio",
+  "id": "tk-ex-latia",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "EX trainer Kit (Latios)",
-  "code": "TK1O",
+  "name": "EX trainer Kit (Latias)",
+  "code": "TK1A",
   "logo": null,
   "releaseDate": "2004-07-01",
   "total": 10,
@@ -2070,11 +2070,11 @@
   "extra": true
  },
  {
-  "id": "tk-ex-latia",
+  "id": "tk-ex-latio",
   "serie": "tk",
   "serieName": "Trainer kits",
-  "name": "EX trainer Kit (Latias)",
-  "code": "TK1A",
+  "name": "EX trainer Kit (Latios)",
+  "code": "TK1O",
   "logo": null,
   "releaseDate": "2004-07-01",
   "total": 10,
