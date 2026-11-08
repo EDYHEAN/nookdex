@@ -42,7 +42,7 @@ export async function HomeText({ en }: { en: boolean }) {
               your wanted list.
             </p>
             <nav>
-              <Link prefetch={false} href="/a-propos">About</Link> · <Link prefetch={false} href="/en/sets">Sets: card lists and prices</Link> · <Link prefetch={false} href="/en/release-calendar">Release calendar</Link> · <Link prefetch={false} href="/blog">Blog</Link> ·{" "}
+              <Link prefetch={false} href="/a-propos">About</Link> · <Link prefetch={false} href="/en/sets">Sets: card lists and prices</Link> · <Link prefetch={false} href="/en/release-calendar">Release calendar</Link> · <Link prefetch={false} href="/en/amazon-invites">Pokémon on Amazon</Link> · <Link prefetch={false} href="/blog">Blog</Link> ·{" "}
               <Link prefetch={false} href="/confidentialite">Privacy policy</Link> · <Link prefetch={false} href="/conditions">Terms of use</Link> · <Link prefetch={false} href="/contact">Contact</Link> ·{" "}
               <Link prefetch={false} href="/mentions-legales">Legal notice</Link> ·{" "}
               <Link prefetch={false} href="/" hrefLang="fr">

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { affiliateLabel, amazonSearch, type AmazonPlace } from "@/lib/amazon";
-import { KIND_LABEL, byInterest, goLabel, productHref, productPic, type ProductPic, type ShopGroup, type ShopKind } from "@/lib/amazonShop";
+import { byInterest, goLabel, kindLabel, productHref, productPic, type ProductPic, type ShopGroup, type ShopKind } from "@/lib/amazonShop";
 import { kindArt } from "@/lib/kindArt";
 import s from "./Shop.module.css";
 
@@ -53,19 +53,31 @@ export function ProductArt({ pic, kind, alt, eager }: { pic: ProductPic | null; 
   );
 }
 
-/** a sealed product of a set on amazon.fr: the whole card is the link */
-export function ProductCard({ group, product: p, place, soon }: { group: ShopGroup; product: ShopGroup["products"][number]; place: AmazonPlace; soon: boolean }) {
+/** a sealed product of a set on Amazon: the whole card is the link */
+export function ProductCard({
+  group,
+  product: p,
+  place,
+  soon,
+  lang = "fr",
+}: {
+  group: ShopGroup;
+  product: ShopGroup["products"][number];
+  place: AmazonPlace;
+  soon: boolean;
+  lang?: Lang;
+}) {
   return (
-    <a className={s.pcard} href={productHref(p, place)} target="_blank" rel="sponsored noopener" data-amazon-place={place}>
-      {soon && <span className={s.ribbon}>Précommande</span>}
+    <a className={s.pcard} href={productHref(p, place, lang)} target="_blank" rel="sponsored noopener" data-amazon-place={place}>
+      {soon && <span className={s.ribbon}>{lang === "fr" ? "Précommande" : "Pre-order"}</span>}
       <span className={s.pic}>
-        <ProductArt pic={productPic(p, group)} kind={p.kind} alt={`${KIND_LABEL[p.kind]} ${group.name}`} />
+        <ProductArt pic={productPic(p, group)} kind={p.kind} alt={`${kindLabel(p.kind, lang)} ${group.name}`} />
       </span>
       <span className={s.body}>
-        <span className={s.kind}>{KIND_LABEL[p.kind]}</span>
+        <span className={s.kind}>{kindLabel(p.kind, lang)}</span>
         <span className={s.name}>{p.name}</span>
         <span className={`${s.btn} ${s.sm} ${s.block}`}>
-          {goLabel(p, soon)} <span className={s.arr}>↗</span>
+          {goLabel(p, soon, lang)} <span className={s.arr}>↗</span>
         </span>
       </span>
     </a>
@@ -73,7 +85,7 @@ export function ProductCard({ group, product: p, place, soon }: { group: ShopGro
 }
 
 /** a set's products, the most looked-for first: sideways on a phone, a grid on a computer; « Liens affiliés » under them */
-export function ProductRail({ group, place, max }: { group: ShopGroup; place: AmazonPlace; max?: number }) {
+export function ProductRail({ group, place, max, lang = "fr" }: { group: ShopGroup; place: AmazonPlace; max?: number; lang?: Lang }) {
   const all = byInterest(group.products);
   const shown = max ? all.slice(0, max) : all;
   const soon = !!group.date && group.date > new Date().toISOString().slice(0, 10);
@@ -82,11 +94,11 @@ export function ProductRail({ group, place, max }: { group: ShopGroup; place: Am
       <ul className={s.rail}>
         {shown.map((p) => (
           <li key={p.asin ?? p.name}>
-            <ProductCard group={group} product={p} place={place} soon={soon} />
+            <ProductCard group={group} product={p} place={place} soon={soon} lang={lang} />
           </li>
         ))}
       </ul>
-      <Affiliate lang="fr" many={shown.length > 1} />
+      <Affiliate lang={lang} many={shown.length > 1} />
     </>
   );
 }

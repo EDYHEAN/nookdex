@@ -10,6 +10,7 @@ import s from "@/components/shop/Shop.module.css";
 import {
   KIND_LABEL,
   SHOP_PATH,
+  SHOP_PATH_EN,
   boosterPics,
   byInterest,
   goLabel,
@@ -51,7 +52,7 @@ const DESCRIPTION = newest
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
-  alternates: { canonical: SHOP_PATH },
+  alternates: { canonical: SHOP_PATH, languages: { fr: SHOP_PATH, en: SHOP_PATH_EN } },
   // a page's openGraph replaces the root one: without its image the shares had none
   openGraph: { type: "website", url: SHOP_PATH, siteName: SITE_NAME, title: TITLE, description: DESCRIPTION, locale: "fr_FR", images: ["/opengraph-image.jpg"] },
 };
@@ -150,7 +151,7 @@ export default function InvitationsAmazon() {
   );
 
   return (
-    <WidePage shop={SHOP_PATH} crumbs={[{ href: SHOP_PATH, label: "Invitations Amazon" }]} hero={hero}>
+    <WidePage shop={SHOP_PATH} alt={{ href: SHOP_PATH_EN, label: "the Pokémon products on amazon.com, in English" }} crumbs={[{ href: SHOP_PATH, label: "Invitations Amazon" }]} hero={hero}>
       {ld({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",

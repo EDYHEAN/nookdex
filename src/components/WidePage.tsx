@@ -8,7 +8,7 @@ import styles from "./WidePage.module.css";
 const SHOP_TABS = [
   { href: ["/extensions", "/en/sets"], label: ["Extensions", "Sets"] },
   { href: ["/calendrier-des-sorties", "/en/release-calendar"], label: ["Sorties", "Releases"] },
-  { href: ["/invitations-amazon", ""], label: ["Invitations", ""] },
+  { href: ["/invitations-amazon", "/en/amazon-invites"], label: ["Invitations", "Invites"] },
   { href: ["/marche", "/en/market"], label: ["Marché", "Market"] },
   { href: ["/blog", "/blog"], label: ["Blog", "Blog"] },
 ] as const;
@@ -19,6 +19,7 @@ const FOOT_LABEL: Record<string, string> = {
   "/calendrier-des-sorties": "Calendrier des sorties",
   "/en/release-calendar": "Release calendar",
   "/invitations-amazon": "Invitations Amazon",
+  "/en/amazon-invites": "Amazon invites",
 };
 
 /**

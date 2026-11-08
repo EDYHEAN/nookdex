@@ -1,0 +1,173 @@
+{
+  "_": "Sealed Pokémon TCG products on amazon.com (Associates US, lib/amazon, lib/amazonShop): /en/amazon-invites, the English set pages, card pages and calendar. A group per set (setId: its id in the English catalog). A product: its ASIN (amazon.com/dp/<asin>, official listings only, never a reseller's), else a search (q); pic: tp:<TCGplayer product id>, its English packaging, which scripts/fetch-amazon-pics.mjs downloads into public/amazon/.",
+  "updated": "2026-11-08",
+  "groups": [
+    {
+      "id": "me06",
+      "setId": "me06",
+      "name": "Delta Reign",
+      "code": "DLR",
+      "date": "2026-11-06",
+      "pic": "tp:712099",
+      "products": [
+        { "asin": "B0HG3MQDWP", "kind": "etb", "name": "Elite Trainer Box", "pic": "tp:712102" },
+        { "asin": "B0HGTBCCXX", "kind": "display", "name": "Booster Box (36 packs)", "pic": "tp:712094" },
+        { "asin": "B0HG3RVZLW", "kind": "bundle", "name": "Booster Bundle (6 packs)", "pic": "tp:712097" },
+        { "asin": "B0HG3JBNBN", "kind": "tripack", "name": "3-Pack Blister", "pic": "tp:712093" }
+      ]
+    },
+    {
+      "id": "30th",
+      "setId": "30th",
+      "name": "30th Celebration",
+      "code": "30C",
+      "date": "2026-09-16",
+      "pic": "tp:696613",
+      "products": [
+        { "asin": "B0H78BB9TY", "kind": "etb", "name": "Elite Trainer Box", "pic": "tp:704143" },
+        { "kind": "bundle", "name": "Booster Bundle (6 packs)", "q": "Pokemon TCG 30th Celebration Booster Bundle", "pic": "tp:704171" },
+        { "asin": "B0H77W4411", "kind": "collection", "name": "Poster Collection", "pic": "tp:704153" },
+        { "kind": "collection", "name": "Binder Collection", "q": "Pokemon TCG 30th Celebration Binder Collection", "pic": "tp:704169" },
+        { "kind": "box", "name": "Greninja ex Box", "q": "Pokemon TCG 30th Celebration Greninja ex Box", "pic": "tp:704168" },
+        { "kind": "box", "name": "Sylveon ex Box", "q": "Pokemon TCG 30th Celebration Sylveon ex Box", "pic": "tp:704155" },
+        { "kind": "collection", "name": "Ultra-Premium Collection", "q": "Pokemon TCG 30th Celebration Ultra-Premium Collection", "pic": "tp:704190" },
+        { "kind": "blister", "name": "2-Pack Blister", "q": "Pokemon TCG 30th Celebration 2-Pack Blister", "pic": "tp:704148" },
+        { "kind": "tin", "name": "Mini Tin", "q": "Pokemon TCG 30th Celebration Mini Tin", "pic": "tp:704177" }
+      ]
+    },
+    {
+      "id": "me05",
+      "setId": "me05",
+      "name": "Pitch Black",
+      "code": "PBL",
+      "date": "2026-07-17",
+      "pic": "tp:692944",
+      "products": [
+        { "asin": "B0GYVHLP4L", "kind": "etb", "name": "Elite Trainer Box", "pic": "tp:692947" },
+        { "asin": "B0GZ9S9KDR", "kind": "display", "name": "Booster Box (36 packs)", "pic": "tp:692939" },
+        { "kind": "bundle", "name": "Booster Bundle (6 packs)", "q": "Pokemon TCG Pitch Black Booster Bundle", "pic": "tp:692942" },
+        { "kind": "tripack", "name": "3-Pack Blister", "q": "Pokemon TCG Pitch Black 3 Pack Blister", "pic": "tp:692938" }
+      ]
+    },
+    {
+      "id": "me04",
+      "setId": "me04",
+      "name": "Chaos Rising",
+      "code": "CRI",
+      "date": "2026-05-22",
+      "pic": "tp:684446",
+      "products": [
+        { "asin": "B0GR6N18F6", "kind": "etb", "name": "Elite Trainer Box", "pic": "tp:684450" },
+        { "asin": "B0GSJMQ3QQ", "kind": "display", "name": "Booster Box (36 packs)", "pic": "tp:684444" },
+        { "kind": "bundle", "name": "Booster Bundle (6 packs)", "q": "Pokemon TCG Chaos Rising Booster Bundle", "pic": "tp:684456" },
+        { "asin": "B0GR6M4JV3", "kind": "tripack", "name": "3-Pack Blister", "pic": "tp:684458" }
+      ]
+    },
+    {
+      "id": "me03",
+      "setId": "me03",
+      "name": "Perfect Order",
+      "code": "POR",
+      "date": "2026-03-27",
+      "pic": "tp:672398",
+      "products": [
+        { "asin": "B0GFZV1ZVV", "kind": "etb", "name": "Elite Trainer Box", "pic": "tp:672401" },
+        { "asin": "B0GG16Q4X1", "kind": "display", "name": "Booster Box (36 packs)", "pic": "tp:672394" },
+        { "kind": "bundle", "name": "Booster Bundle (6 packs)", "q": "Pokemon TCG Perfect Order Booster Bundle", "pic": "tp:672396" },
+        { "asin": "B0GGCCLCJM", "kind": "tripack", "name": "3-Pack Blister", "pic": "tp:672393" }
+      ]
+    },
+    {
+      "id": "me02.5",
+      "setId": "me02.5",
+      "name": "Ascended Heroes",
+      "code": "ASC",
+      "date": "2026-01-30",
+      "pic": "tp:672434",
+      "products": [
+        { "asin": "B0G3CY83L5", "kind": "etb", "name": "Elite Trainer Box", "pic": "tp:668496" },
+        { "kind": "bundle", "name": "Booster Bundle (6 packs)", "q": "Pokemon TCG Ascended Heroes Booster Bundle", "pic": "tp:668541" },
+        { "asin": "B0H6DTXPK1", "kind": "pokebox", "name": "Tin (4 packs)", "pic": "tp:702498" },
+        { "asin": "B0G3CT3VFH", "kind": "tin", "name": "Mini Tin Pikachu & Tepig", "pic": "tp:668531" },
+        { "asin": "B0G3CRP2NZ", "kind": "tin", "name": "Mini Tin Riolu & Darumaka", "pic": "tp:668532" },
+        { "asin": "B0G3CZG85G", "kind": "tin", "name": "Mini Tin Zorua & Cramorant", "pic": "tp:668533" }
+      ]
+    },
+    {
+      "id": "me02",
+      "setId": "me02",
+      "name": "Phantasmal Flames",
+      "code": "PFL",
+      "date": "2025-11-14",
+      "pic": "tp:654144",
+      "products": [
+        { "asin": "B0FPM3LQJ4", "kind": "etb", "name": "Elite Trainer Box", "pic": "tp:654136" },
+        { "asin": "B0FPLKXJZD", "kind": "display", "name": "Booster Box (36 packs)", "pic": "tp:654137" },
+        { "kind": "bundle", "name": "Booster Bundle (6 packs)", "q": "Pokemon TCG Phantasmal Flames Booster Bundle", "pic": "tp:654160" }
+      ]
+    },
+    {
+      "id": "me01",
+      "setId": "me01",
+      "name": "Mega Evolution",
+      "code": "MEG",
+      "date": "2025-09-26",
+      "pic": "tp:644352",
+      "products": [
+        { "asin": "B0FH5MH29W", "kind": "etb", "name": "Elite Trainer Box Mega Gardevoir", "pic": "tp:644279" },
+        { "asin": "B0FH5P7BWK", "kind": "etb", "name": "Elite Trainer Box Mega Lucario", "pic": "tp:648394" },
+        { "asin": "B0FQFSYJWH", "kind": "display", "name": "Booster Box (36 packs)", "pic": "tp:644298" },
+        { "asin": "B0FH5N9RH4", "kind": "bundle", "name": "Booster Bundle (6 packs)", "pic": "tp:644362" }
+      ]
+    },
+    {
+      "id": "sv10.5b",
+      "setId": "sv10.5b",
+      "name": "Black Bolt",
+      "code": "BLK",
+      "date": "2025-07-17",
+      "pic": "tp:630434",
+      "products": [
+        { "asin": "B0F6PTRKTH", "kind": "etb", "name": "Elite Trainer Box", "pic": "tp:630686" },
+        { "kind": "bundle", "name": "Booster Bundle (6 packs)", "q": "Pokemon TCG Black Bolt Booster Bundle", "pic": "tp:630431" }
+      ]
+    },
+    {
+      "id": "sv10.5w",
+      "setId": "sv10.5w",
+      "name": "White Flare",
+      "code": "WHT",
+      "date": "2025-07-17",
+      "pic": "tp:630699",
+      "products": [
+        { "asin": "B0F6Q92F5H", "kind": "etb", "name": "Elite Trainer Box", "pic": "tp:630689" },
+        { "asin": "B0F6PJ15QH", "kind": "bundle", "name": "Booster Bundle (6 packs)", "pic": "tp:630696" }
+      ]
+    },
+    {
+      "id": "sv10",
+      "setId": "sv10",
+      "name": "Destined Rivals",
+      "code": "DRI",
+      "date": "2025-05-30",
+      "pic": "tp:624683",
+      "products": [
+        { "asin": "B0F2BDXW4J", "kind": "etb", "name": "Elite Trainer Box", "pic": "tp:624676" },
+        { "asin": "B0F2GZJ3TZ", "kind": "display", "name": "Booster Box (36 packs)", "pic": "tp:624679" },
+        { "kind": "bundle", "name": "Booster Bundle (6 packs)", "q": "Pokemon TCG Destined Rivals Booster Bundle", "pic": "tp:625670" }
+      ]
+    },
+    {
+      "id": "sv08.5",
+      "setId": "sv08.5",
+      "name": "Prismatic Evolutions",
+      "code": "PRE",
+      "date": "2025-01-17",
+      "pic": "tp:593294",
+      "products": [
+        { "asin": "B0DLPL7LC5", "kind": "etb", "name": "Elite Trainer Box", "pic": "tp:593355" },
+        { "kind": "bundle", "name": "Booster Bundle (6 packs)", "q": "Pokemon TCG Prismatic Evolutions Booster Bundle", "pic": "tp:600518" }
+      ]
+    }
+  ]
+}

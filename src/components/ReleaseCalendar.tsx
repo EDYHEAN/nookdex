@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { formatDate } from "@/lib/blog";
 import { amazonOn, amazonSearch, inShops } from "@/lib/amazon";
-import { KIND_LABEL, SHOP_PATH, boosterPics, byInterest, goLabel, productHref, productPic, shopOfSet, shortSetName } from "@/lib/amazonShop";
+import { boosterPics, byInterest, goLabel, kindLabel, productHref, productPic, shopFor, shopPath, shortSetName } from "@/lib/amazonShop";
 import { kindArt } from "@/lib/kindArt";
 import { daysLeft } from "@/lib/parisTime";
 import { daysUntil, type Release, releases } from "@/lib/releases";
@@ -47,8 +47,8 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
   const { upcoming, past, updated } = releases(lang);
   const kind = (r: Release) =>
     r.kind === "set" ? t("Extension", "Set") : r.kind === "product" ? t("Coffret", "Product") : t("Événement", "Event");
-  /** a coming set's products on Amazon (French page only: the affiliate tag pays on amazon.fr) */
-  const shopOf = (r: Release) => (fr && r.region === "intl" && r.setId ? shopOfSet(r.setId) : undefined);
+  /** a coming set's products on Amazon (amazon.fr on the French page, amazon.com on the English one) */
+  const shopOf = (r: Release) => (r.region === "intl" && r.setId ? shopFor(r.setId, lang) : undefined);
   const region = (r: Release) => (r.region === "jp" ? t("Japon", "Japan") : t("France et monde", "Worldwide"));
   const day = (d: string) => new Date(`${d}T12:00:00Z`);
   const nextSet = upcoming.find((r) => r.kind === "set" && r.region === "intl");
@@ -103,8 +103,8 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
   // the hero: the next set (the latest once it's out), its products, the countdown (« Sous la lampe », Johan 2026-10-31)
   const heroSet = nextSet ?? lastSet;
   const coming = !!nextSet && heroSet === nextSet;
-  const group = heroSet?.setId ? shopOfSet(heroSet.setId) : undefined;
-  const top = fr && group ? byInterest(group.products)[0] : undefined;
+  const group = heroSet?.setId ? shopFor(heroSet.setId, lang) : undefined;
+  const top = group ? byInterest(group.products)[0] : undefined;
   const heroName = heroSet ? shortSetName(heroSet.name) : "";
   const series = heroSet && /\s?:\s/.test(heroSet.name) ? heroSet.name.split(/\s?:\s/)[0] : null;
   const longDay = (d: string) =>
@@ -112,9 +112,9 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
   const heroHref = !heroSet || !amazonOn(lang)
     ? null
     : top && group
-      ? productHref(top, "calendrier")
+      ? productHref(top, "calendrier", lang)
       : amazonSearch(fr ? `Pokémon ${heroSet.name}` : `Pokemon TCG ${heroName}`, "calendrier", lang);
-  const heroLabel = top ? goLabel(top, coming) : coming ? t("Voir les précommandes", "See pre-orders on Amazon") : t("Voir sur Amazon", "See it on Amazon");
+  const heroLabel = top ? goLabel(top, coming, lang) : coming ? t("Voir les précommandes", "See pre-orders on Amazon") : t("Voir sur Amazon", "See it on Amazon");
   const pic = top && group ? productPic(top, group) : null;
   // the set's French boosters on the French page only: the English one draws the box (Johan, 2026-10-31: no French
   // packaging on the English pages)
@@ -148,7 +148,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
             <p className={s.what}>
               <b>{top.name}</b>
               {/* its kind, unless its name says it */}
-              {!top.name.startsWith(KIND_LABEL[top.kind]) && ` · ${KIND_LABEL[top.kind]}`}
+              {!top.name.startsWith(kindLabel(top.kind, lang)) && ` · ${kindLabel(top.kind, lang)}`}
             </p>
           )}
           <div className={s.btns}>
@@ -263,12 +263,12 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
                         </a>
                       )}
                       {g && (
-                        <Link prefetch={false} href={`${SHOP_PATH}#${g.id}`}>
-                          Toutes les invitations {shortSetName(g.name)} →
+                        <Link prefetch={false} href={`${shopPath(lang)}#${g.id}`}>
+                          {t(`Toutes les invitations ${shortSetName(g.name)} →`, `Every Amazon invite for ${shortSetName(g.name)} →`)}
                         </Link>
                       )}
                     </p>
-                    {onAmazon && g && <ProductRail group={g} place="calendrier" max={4} />}
+                    {onAmazon && g && <ProductRail group={g} place="calendrier" max={4} lang={lang} />}
                     {onAmazon && !g && !fr && r.kind === "set" && <KindTiles name={shortSetName(r.name)} place="calendrier" soon />}
                     {onAmazon && !g && (fr || r.kind !== "set") && (
                       <div className={s.btns}>
@@ -363,7 +363,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           thumb={thumb ? <img src={thumb.src} width={thumb.w} height={thumb.h} alt="" loading="lazy" /> : <span dangerouslySetInnerHTML={{ __html: kindArt("etb") }} />}
           title={coming ? t(`${heroName} · J-${days}`, `${heroName} · in ${days} days`) : heroName}
           sub={coming ? t(`Sort le ${formatDate(heroSet.date, "fr")}`, `Out ${formatDate(heroSet.date, "en")}`) : t("Sur Amazon", "On Amazon")}
-          label={coming ? t("Précommandes", "Pre-orders") : top?.asin ? "L'invitation" : t("Sur Amazon", "On Amazon")}
+          label={coming ? t("Précommandes", "Pre-orders") : fr && top?.asin ? "L'invitation" : t("Sur Amazon", "On Amazon")}
         />
       )}
     </WidePage>

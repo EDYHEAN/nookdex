@@ -321,6 +321,11 @@ doesn't show.
   `data-amazon-place`: invit, calendrier, extension, carte, blog, accessoires, `<place>-bar` for a sticky bar; Supabase
   `amazon_clicks`, the weekly report). A tracking id per place (`AMAZON_TAGS`: invit, extension, calendrier, blog, carte, accessoires; Amazon's reports split the sales by them). In a French blog post,
   `::amazon[<group id>]` draws the cards (« Où acheter … ? » section, docs/blog.md).
+- amazon.com's products (Johan, 2026-11-08): `src/data/amazon-products-us.json` (same shape, English sets, `shopFor(setId, lang)`), shown on `/en/amazon-invites`
+  (the twin of `/invitations-amazon`), the English set and card pages and the calendar. An ASIN is an official listing only (title « Pokémon TCG: … », The Pokémon
+  Company as maker, never a reseller's « WAVE 2 … »), found by a web search limited to amazon.com: Amazon refuses scripts and its terms forbid scraping, so no
+  crawler or headless browser there. No ASIN known: `q`, a search. Pictures: `tp:<TCGplayer product id>` (TCGCSV's sealed products), the English packaging, cut out
+  of their white by fetch-amazon-pics. The buttons promise no invitation (not every amazon.com listing has one).
 - « Sous la lampe » (Johan, 2026-10-31): `/invitations-amazon`, the calendar, the set pages with their index, the card
   pages, the market (`/marche`, `/en/market`: the week's top riser under the lamp), the blog and the text pages (FR, EN) are shop
   pages, full width

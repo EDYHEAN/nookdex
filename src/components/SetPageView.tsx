@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatDate, num } from "@/lib/blog";
 import { amazonOn, amazonSearch, inShops } from "@/lib/amazon";
-import { KIND_LABEL, SHOP_PATH, boosterPics, byInterest, goLabel, productHref, productPic, shopOfSet } from "@/lib/amazonShop";
+import { boosterPics, byInterest, goLabel, kindLabel, productHref, productPic, shopFor, shopPath } from "@/lib/amazonShop";
 import { kindArt } from "@/lib/kindArt";
 import { currencyOf, keyOf } from "@/lib/cardLang";
 import { type PageLang, SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
@@ -85,17 +85,17 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
   const logo = logoOf(p.set.logo, true);
   /** "186/195": the number as printed on the card */
   const numOf = (c: CardData) => num(c, p.data);
-  // the shop: amazon.fr's products of a French set, else searches; nothing once the set is out of the shops
+  // the shop: the set's products on amazon.fr or amazon.com, else searches; nothing once the set is out of the shops
   const inShop = amazonOn(lang) && inShops(p.set.releaseDate);
-  const shop = fr && inShop ? shopOfSet(p.set.id) : undefined;
+  const shop = inShop ? shopFor(p.set.id, lang) : undefined;
   const soon = !!shop?.date && shop.date > new Date().toISOString().slice(0, 10);
   const product = shop ? byInterest(shop.products)[0] : undefined;
   const pic = product && shop ? productPic(product, shop) : null;
   const fan = shop ? boosterPics(shop) : [];
-  const buyHref = product ? productHref(product, "extension") : amazonSearch(fr ? `Pokémon ${name} booster` : `Pokemon TCG ${name}`, "extension", lang);
+  const buyHref = product ? productHref(product, "extension", lang) : amazonSearch(fr ? `Pokémon ${name} booster` : `Pokemon TCG ${name}`, "extension", lang);
   // the boosters, quietly: the bundle (six of them) if it's listed, else a search
   const bundle = shop?.products.find((x) => x.kind === "bundle");
-  const boostersHref = bundle ? productHref(bundle, "extension") : amazonSearch(fr ? `Pokémon ${name} booster` : `Pokemon TCG ${name} booster`, "extension", lang);
+  const boostersHref = bundle ? productHref(bundle, "extension", lang) : amazonSearch(fr ? `Pokémon ${name} booster` : `Pokemon TCG ${name} booster`, "extension", lang);
   // the desk with this set's binder (App: ?classeur= offers it, or opens it)
   const deskHref = `${fr ? "/" : "/en"}?classeur=${encodeURIComponent(keyOf(lang, p.set.id))}`;
   const jackpot = p.top.filter((c) => c.img).slice(0, 8);
@@ -160,7 +160,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
       }
       stage={
         shop && product ? (
-          <Stage pic={pic} kind={product.kind} fan={fan} alt={pic ? `${KIND_LABEL[product.kind]} ${name}` : `Boosters ${name}`} />
+          <Stage pic={pic} kind={product.kind} fan={fan} alt={pic ? `${kindLabel(product.kind, lang)} ${name}` : `Boosters ${name}`} />
         ) : best ? (
           <CardStage src={best.img!} alt={`${best.name} ${numOf(best)} · ${name}`} />
         ) : undefined
@@ -170,15 +170,15 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
           <>
             <p className={s.what}>
               <b>{product ? product.name : t(`Boosters et coffrets ${name}`, `${name} packs and boxes`)}</b>
-              {product && !product.name.startsWith(KIND_LABEL[product.kind]) && ` · ${KIND_LABEL[product.kind]}`}
+              {product && !product.name.startsWith(kindLabel(product.kind, lang)) && ` · ${kindLabel(product.kind, lang)}`}
             </p>
             <div className={s.btns}>
               <AmazonButton id="hero-cta" href={buyHref} place="extension" size="lg" nudge>
-                {product ? goLabel(product, soon) : t("Voir sur Amazon", "See it on Amazon")}
+                {product ? goLabel(product, soon, lang) : t("Voir sur Amazon", "See it on Amazon")}
               </AmazonButton>
             </div>
             <ul className={s.reassure}>
-              {product?.asin && !soon ? (
+              {fr && product?.asin && !soon ? (
                 <>
                   <li>Gratuit</li>
                   <li>Au prix public</li>
@@ -257,14 +257,19 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
           <h2>{fr ? <>Le rayon <em>{name}</em></> : <>The <em>{name}</em> shelf</>}</h2>
           <p className={c.sub}>
             {shop
-              ? `${shop.products.length} produit${shop.products.length > 1 ? "s" : ""} scellé${shop.products.length > 1 ? "s" : ""}, sur invitation Amazon.`
+              ? t(
+                  `${shop.products.length} produit${shop.products.length > 1 ? "s" : ""} scellé${shop.products.length > 1 ? "s" : ""}, sur invitation Amazon.`,
+                  `${shop.products.length} sealed product${shop.products.length > 1 ? "s" : ""}, on Amazon.`,
+                )
               : t("Ses boîtes et ses boosters, sur Amazon.", "Its boxes and booster packs, on Amazon.")}
           </p>
-          {shop ? <ProductRail group={shop} place="extension" max={4} /> : <KindTiles name={name} place="extension" soon={false} lang={lang} />}
+          {shop ? <ProductRail group={shop} place="extension" max={4} lang={lang} /> : <KindTiles name={name} place="extension" soon={false} lang={lang} />}
           {shop && (
             <p className={c.other}>
-              <Link prefetch={false} href={`${SHOP_PATH}#${shop.id}`}>
-                {shop.products.length > 4 ? `Les ${shop.products.length} produits ${name} sur Amazon →` : `Toutes les invitations Amazon ${name} →`}
+              <Link prefetch={false} href={`${shopPath(lang)}#${shop.id}`}>
+                {shop.products.length > 4
+                  ? t(`Les ${shop.products.length} produits ${name} sur Amazon →`, `All ${shop.products.length} ${name} products on Amazon →`)
+                  : t(`Toutes les invitations Amazon ${name} →`, `Every Amazon invite for ${name} →`)}
               </Link>
             </p>
           )}
@@ -435,7 +440,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
           thumb={thumb ? <img src={thumb.src} width={thumb.w} height={thumb.h} alt="" loading="lazy" /> : <span dangerouslySetInnerHTML={{ __html: kindArt("etb") }} />}
           title={name}
           sub={product ? product.name : t("Boosters et coffrets", "Packs and boxes")}
-          label={product?.asin && !soon ? "L'invitation" : t("Sur Amazon", "On Amazon")}
+          label={fr && product?.asin && !soon ? "L'invitation" : t("Sur Amazon", "On Amazon")}
         />
       )}
     </WidePage>

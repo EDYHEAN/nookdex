@@ -1,5 +1,5 @@
 import { affiliateLabel, amazonOn, amazonSearch, inShops } from "@/lib/amazon";
-import { KIND_LABEL, byInterest, goLabel, productHref, productPic, shopOfSet, type ProductPic, type ShopKind } from "@/lib/amazonShop";
+import { byInterest, goLabel, kindLabel, productHref, productPic, shopFor, type ProductPic, type ShopKind } from "@/lib/amazonShop";
 import { ProductArt } from "./ShopBits";
 import s from "./Shop.module.css";
 import cs from "./CardShop.module.css";
@@ -20,7 +20,7 @@ interface Item {
   go: string;
 }
 
-/** the set's searches by kind, drawn (an English page, or a French set with no products listed) */
+/** the set's searches by kind, drawn (a set with no products listed) */
 const SEARCHES: { kind: ShopKind; fr: string; en: string }[] = [
   { kind: "bundle", fr: "Bundle", en: "Booster Bundle" },
   { kind: "etb", fr: "Coffret Dresseur d'élite", en: "Elite Trainer Box" },
@@ -29,26 +29,26 @@ const SEARCHES: { kind: ShopKind; fr: string; en: string }[] = [
 
 /**
  * « Elle se cache dans les boosters <set> »: one product up front (the bundle, six boosters, when listed), two small ones;
- * amazon.fr's products of a French set, else searches by kind (amazon.com on an English page). No odds, no « instead of
+ * the set's products on amazon.fr or amazon.com, else searches by kind. No odds, no « instead of
  * N € » (teens read it, Johan 2026-10-31).
  */
 export function SealedBlock({ lang, setId, setName, releaseDate }: { lang: Lang; setId: string; setName: string; releaseDate: string | null }) {
   if (!amazonOn(lang) || !inShops(releaseDate)) return null;
   const fr = lang === "fr";
   const t = (f: string, e: string) => (fr ? f : e);
-  const g = fr ? shopOfSet(setId) : undefined;
+  const g = shopFor(setId, lang);
   let items: Item[];
   if (g) {
     const soon = !!g.date && g.date > new Date().toISOString().slice(0, 10);
     const all = byInterest(g.products);
     const first = all.find((x) => x.kind === "bundle") ?? all[0];
     items = [first, ...all.filter((x) => x !== first)].slice(0, 3).map((x) => ({
-      href: productHref(x, "carte"),
+      href: productHref(x, "carte", lang),
       name: x.name,
       kind: x.kind,
-      label: KIND_LABEL[x.kind],
+      label: kindLabel(x.kind, lang),
       pic: productPic(x, g),
-      go: goLabel(x, soon),
+      go: goLabel(x, soon, lang),
     }));
   } else {
     items = SEARCHES.map((k) => ({
