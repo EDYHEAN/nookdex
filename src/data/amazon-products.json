@@ -29,22 +29,22 @@
         { "asin": "B0H8T2SB33", "kind": "box", "name": "Coffret Amphinobi-ex", "pic": "Coffret 30e Anniversaire Amphinobi-ex" },
         { "asin": "B0H8SZN9HV", "kind": "box", "name": "Coffret Nymphali-ex", "pic": "Coffret 30e Anniversaire Nymphali-ex" },
         { "asin": "B0H8T2L8BL", "kind": "collection", "name": "Collection Poster 30 ans", "pic": "Collection poster 30e Anniversaire" },
-        { "asin": "B0H8SRZH3N", "kind": "collection", "name": "Collection Classeur 30 ans" },
+        { "asin": "B0H8SRZH3N", "kind": "collection", "name": "Collection Classeur 30 ans", "pic": "Fichier:Collection classeur 30e Anniversaire.png" },
         { "asin": "B0H8T8M5WW", "kind": "blister", "name": "Blister 2 boosters Évoli" },
-        { "asin": "B0H8T3VGFN", "kind": "pokebox", "name": "Pokébox Amphinobi" },
-        { "asin": "B0H8SYBZKN", "kind": "pokebox", "name": "Pokébox Nymphali" },
-        { "asin": "B0H8SVLTJ9", "kind": "collection", "name": "Collection Autocollant Lucario" },
-        { "asin": "B0H8T4N6PP", "kind": "collection", "name": "Collection Autocollant Noadkoko" },
-        { "asin": "B0H8T2YD2S", "kind": "tin", "name": "Mini Tin Pikachu (Jour)" },
-        { "asin": "B0H8T6L1SF", "kind": "tin", "name": "Mini Tin Mentali (Jour)" },
-        { "asin": "B0H8TF4B9B", "kind": "tin", "name": "Mini Tin Mew (Jour)" },
-        { "asin": "B0H8SYFCS2", "kind": "tin", "name": "Mini Tin Lokhlass (Jour)" },
-        { "asin": "B0H8T8W4T2", "kind": "tin", "name": "Mini Tin Sulfura (Jour)" },
-        { "asin": "B0H8T5GX22", "kind": "tin", "name": "Mini Tin Pikachu (Nuit)" },
-        { "asin": "B0H8T86JNR", "kind": "tin", "name": "Mini Tin Noctali (Nuit)" },
-        { "asin": "B0H8SX7LQH", "kind": "tin", "name": "Mini Tin Mewtwo (Nuit)" },
-        { "asin": "B0H8T1XPT2", "kind": "tin", "name": "Mini Tin Électhor (Nuit)" },
-        { "asin": "B0H8T3Y1FJ", "kind": "tin", "name": "Mini Tin Amphinobi (Nuit)" }
+        { "asin": "B0H8T3VGFN", "kind": "pokebox", "name": "Pokébox Amphinobi", "pic": "Fichier:Boîte 30e Anniversaire Amphinobi-ex.png" },
+        { "asin": "B0H8SYBZKN", "kind": "pokebox", "name": "Pokébox Nymphali", "pic": "Fichier:Boîte 30e Anniversaire Nymphali-ex.png" },
+        { "asin": "B0H8SVLTJ9", "kind": "collection", "name": "Collection Autocollant Lucario", "pic": "Fichier:Collection Autocollant Réajustable 30e Anniversaire Lucario.png" },
+        { "asin": "B0H8T4N6PP", "kind": "collection", "name": "Collection Autocollant Noadkoko", "pic": "Fichier:Collection Autocollant Réajustable 30e Anniversaire Noadkoko d'Alola.png" },
+        { "asin": "B0H8T2YD2S", "kind": "tin", "name": "Mini Tin Pikachu (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Prismillon.png" },
+        { "asin": "B0H8T6L1SF", "kind": "tin", "name": "Mini Tin Mentali (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Mentali.png" },
+        { "asin": "B0H8TF4B9B", "kind": "tin", "name": "Mini Tin Mew (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Mew.png" },
+        { "asin": "B0H8SYFCS2", "kind": "tin", "name": "Mini Tin Lokhlass (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Lokhlass.png" },
+        { "asin": "B0H8T8W4T2", "kind": "tin", "name": "Mini Tin Sulfura (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Sulfura.png" },
+        { "asin": "B0H8T5GX22", "kind": "tin", "name": "Mini Tin Pikachu (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Salarsen.png" },
+        { "asin": "B0H8T86JNR", "kind": "tin", "name": "Mini Tin Noctali (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Noctali.png" },
+        { "asin": "B0H8SX7LQH", "kind": "tin", "name": "Mini Tin Mewtwo (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Mewtwo.png" },
+        { "asin": "B0H8T1XPT2", "kind": "tin", "name": "Mini Tin Électhor (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Électhor.png" },
+        { "asin": "B0H8T3Y1FJ", "kind": "tin", "name": "Mini Tin Amphinobi (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Amphinobi.png" }
       ]
     },
     {
@@ -53,9 +53,9 @@
       "name": "Pokébox Méga Forces",
       "pic": "Fichier:Booster Méga-Évolution Nuit Noire Méga-Darkrai.png",
       "products": [
-        { "asin": "B0H5KMLT3F", "kind": "pokebox", "name": "Pokébox Méga-Dracolosse-ex" },
-        { "asin": "B0H5K8QGTL", "kind": "pokebox", "name": "Pokébox Méga-Darkrai-ex" },
-        { "asin": "B0H5KKZDQC", "kind": "pokebox", "name": "Pokébox Méga-Zeraora-ex" }
+        { "asin": "B0H5KMLT3F", "kind": "pokebox", "name": "Pokébox Méga-Dracolosse-ex", "pic": "Fichier:Boîte Méga Puissances Méga-Dracolosse-ex.png" },
+        { "asin": "B0H5K8QGTL", "kind": "pokebox", "name": "Pokébox Méga-Darkrai-ex", "pic": "Fichier:Boîte Méga Puissances Méga-Darkrai-ex.png" },
+        { "asin": "B0H5KKZDQC", "kind": "pokebox", "name": "Pokébox Méga-Zeraora-ex", "pic": "Fichier:Boîte Méga Puissances Méga-Zeraora-ex.png" }
       ]
     },
     {
@@ -146,7 +146,7 @@
       "date": "2025-09-26",
       "pic": "Coffret Dresseur d'élite Méga-Évolution",
       "products": [
-        { "asin": "B0FL7RXXKN", "kind": "etb", "name": "Coffret Dresseur d'élite Méga-Gardevoir" }
+        { "asin": "B0FL7RXXKN", "kind": "etb", "name": "Coffret Dresseur d'élite Méga-Gardevoir", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Méga-Gardevoir.png" }
       ]
     }
   ]
