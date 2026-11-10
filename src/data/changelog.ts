@@ -31,6 +31,8 @@ export const CHANGELOG: Release[] = [
       { fr: "Le marché et le blog en grand, comme les extensions.", en: "The market and the blog full size, like the sets." },
       { fr: "La radio sans la pluie ni les craquements, si tu préfères : NookDex OS → Sauvegarde.", en: "The radio without the rain and crackle, if you like: NookDex OS → Save." },
       { fr: "Règne Delta dès le jour de sa sortie, ses images arrivent dans quelques jours.", en: "Delta Reign from its release day, its pictures follow within days." },
+      { fr: "Ta liste d'échange en images, pour les groupes Facebook qui refusent les liens : 📸 dans le classeur d'échange.", en: "Your trade list as pictures, for the Facebook groups that refuse links: 📸 in the trade binder." },
+      { fr: "Tes lettres relues depuis l'enveloppe en haut à droite, plus sur le tableau.", en: "Read your letters again from the envelope at the top right, no longer on the board." },
     ],
   },
   {

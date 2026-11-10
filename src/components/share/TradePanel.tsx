@@ -12,6 +12,7 @@ import { type ShareSettings, useStore } from "@/lib/store";
 import { unlock } from "@/lib/trophyStore";
 import type { CardData } from "@/lib/types";
 import { SheetHost } from "./BottomSheet";
+import { ExportImages } from "./ExportImages";
 import { GiveView } from "./GiveView";
 import { WantView } from "./WantView";
 import styles from "./TradePanel.module.css";
@@ -50,6 +51,8 @@ export function TradePanel({ onClose, focusSet, start }: { onClose?: () => void;
   const [making, setMaking] = useState(false);
   const [gear, setGear] = useState(false);
   const [sure, setSure] = useState(false);
+  /** « Ma liste en images » open, on this side */
+  const [pics, setPics] = useState<"want" | "give" | null>(null);
   const settings: Draft = share ?? draft;
   const slug = share?.slug ?? null;
 
@@ -402,9 +405,28 @@ export function TradePanel({ onClose, focusSet, start }: { onClose?: () => void;
             </>
           )}
         </span>
+        {/* the list as pictures, for the Facebook groups that refuse links */}
+        <motion.button
+          className={`${styles.btn} ${styles.btnBig} ${styles.btnWhite} ${styles.btnPics}`}
+          onClick={() => {
+            sfx.pop();
+            setPics(shown === "give" || (!wanted.keys.length && giving.count) ? "give" : "want");
+          }}
+          onPointerEnter={sfx.hover}
+          whileTap={{ scale: 0.92 }}
+          disabled={!wanted.keys.length && !giving.count}
+          aria-label={tr("Ma liste en images", "My list as pictures")}
+          title={tr("Ma liste en images", "My list as pictures")}
+        >
+          <i aria-hidden>📸</i>
+          {wide && tr(" Images", " Pictures")}
+        </motion.button>
         {mainButton(true)}
       </div>
       <div ref={setHost} className={styles.sheetLayer} />
+      <AnimatePresence>
+        {pics && <ExportImages key="pics" start={pics} want={wanted.keys} give={giving.on} onClose={() => setPics(null)} />}
+      </AnimatePresence>
     </div>
     </SheetHost.Provider>
   );

@@ -1,0 +1,151 @@
+/* « Ma liste en images » (share/ExportImages), a bottom sheet of the trade binder */
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+/* « Je cherche » · « J'échange » */
+.tabs {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+.tab {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background: var(--paper-3, #eadcbf);
+  color: var(--ink);
+  font-family: var(--font-vt), monospace;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
+}
+
+.tab b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 12px;
+}
+
+.tab:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.tabOn {
+  opacity: 1;
+  box-shadow: 3px 3px 0 var(--ink);
+  transform: translateY(-2px);
+}
+
+.tabOn.tabWant {
+  background: #cfe6ff;
+}
+
+.tabOn.tabGive {
+  background: #ffe9a8;
+}
+
+.row {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* 20 · 30 · 42 cards a picture */
+.chips {
+  display: flex;
+  gap: 6px;
+}
+
+.chip {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 7px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--font-vt), monospace;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.chip b {
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 11px;
+}
+
+.chipOn {
+  background: var(--ink);
+  color: var(--gold);
+}
+
+/* the pictures, drawn one after the other: a tap downloads one */
+.shots {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  align-content: start;
+  gap: 12px;
+  margin: 0;
+  padding: 2px 2px 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+.shots button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+  overflow: hidden;
+}
+
+.shots img {
+  display: block;
+  width: 100%;
+}
+
+.wait {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1080 / 1450;
+  border: 3px dashed #bfae8f;
+  border-radius: 6px;
+  font-size: 28px;
+}
+
+.empty {
+  margin: 30px 0;
+  color: #7a6e5d;
+  text-align: center;
+}
+
+/* the panel's dark bar, edge to edge under the sheet */
+.bar {
+  margin: 0 -12px;
+}

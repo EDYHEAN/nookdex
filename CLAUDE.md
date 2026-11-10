@@ -356,6 +356,11 @@ doesn't show.
   the address and checked against the set's file; noindex), then the phone's share sheet (picture + a link to the set's
   page), or download / copy the link. The picture is fetched before the tap: Safari refuses a share after a wait. Its
   background is `src/assets/share-desk.jpg`, a portrait cut of `img/scene.jpg`.
+- The trade list as pictures (2026-11-10: Facebook groups refuse posts with links): 📸 in the trade binder's bar
+  (`share/ExportImages`) draws « Je cherche » or « J'échange » on canvases in the browser (`lib/listImages`, 20/30/42 cards a
+  picture, prices on or off, Warwick + nookdex.com small in a corner), then the phone's share sheet or downloads. The scans
+  go through our own address (`/cardimg/…`, next.config `rewrites`): TCGdex's CDN sometimes sends its CORS header twice,
+  TCGplayer's none, and a canvas refuses both.
 
 ## Tips (support)
 
