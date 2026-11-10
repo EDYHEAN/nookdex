@@ -4,6 +4,7 @@ import { WidePage } from "@/components/WidePage";
 import { Countdown } from "@/components/shop/Countdown";
 import { OpenHash } from "@/components/shop/OpenHash";
 import { Affiliate, AmazonButton, ProductRail, Stage } from "@/components/shop/ShopBits";
+import { ReleaseAlert } from "@/components/shop/ReleaseAlert";
 import { ShopHero } from "@/components/shop/ShopHero";
 import { StickyBuy } from "@/components/shop/StickyBuy";
 import s from "@/components/shop/Shop.module.css";
@@ -23,7 +24,7 @@ import {
 import { formatDate } from "@/lib/blog";
 import { kindArt } from "@/lib/kindArt";
 import { daysLeft } from "@/lib/parisTime";
-import { daysUntil } from "@/lib/releases";
+import { daysUntil, nextSetName } from "@/lib/releases";
 import { setPagePath } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -98,16 +99,17 @@ export default function InvitationsAmazon() {
   const page = first?.setId ? setPagePath("fr", first.setId) : null;
   const days = first?.date ? daysUntil(first.date) : 0;
   // the h1 says the title, its set's name big
-  const big = newest ? (soon ? newest.short : `${newest.short}${second ? ` et ${second.short}` : ""}`) : null;
+  // the newest set alone in big (« Règne Delta et 30e Anniversaire » wrapped on 3 lines): the second one on the line under it
+  const big = newest ? newest.short : null;
   const [pre, post] = big && TITLE.includes(big) ? TITLE.split(big) : [TITLE, ""];
 
   const hero = first && top && (
     <ShopHero
       head={
         <>
-          <p className={s.eyebrow}>Invitations Amazon</p>
+          <p className={s.eyebrow}>Amazon.fr · sur invitation</p>
           <h1 className={s.title}>
-            {pre && <span className={s.rest}>{pre.trim()}</span>}
+            {pre && <span className={s.rest}>{pre.trim().replace(/ :$/, "\u00a0:")}</span>}
             {big && <span className={s.big}>{big}</span>}
             {post && <span className={s.rest}>{post.trim()}</span>}
           </h1>
@@ -145,6 +147,10 @@ export default function InvitationsAmazon() {
             <li>Au prix public</li>
           </ul>
           <Affiliate lang="fr" />
+          {/* the alert on the first screen, as a quiet link: one yellow button per screen */}
+          <a href="#alerte" className={s.alertJump}>
+            ✉ Préviens-moi à la prochaine sortie ↓
+          </a>
         </>
       }
     />
@@ -210,6 +216,8 @@ export default function InvitationsAmazon() {
             </p>
           )}
           <ProductRail group={first} place="invit" />
+          {/* right after the products: nothing to ask for now? we'll tell you */}
+          <ReleaseAlert lang="fr" next={nextSetName("fr")} />
           {/* a chip per set: straight to the others' products */}
           <ul className={s.chips}>
             {rest.map((o) => (
@@ -220,6 +228,9 @@ export default function InvitationsAmazon() {
           </ul>
         </section>
       )}
+      {!first && <ReleaseAlert lang="fr" next={nextSetName("fr")} />}
+
+      {rest.length > 0 && <h2>Les autres extensions sur Amazon</h2>}
 
       {rest.map((g) => {
         const gp = g.setId ? setPagePath("fr", g.setId) : null;

@@ -92,7 +92,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12px 20px;
-  margin: 8px 0 6px;
+  margin: 8px 0 10px;
   padding: 16px;
   border: 3px solid var(--ink);
   border-radius: 16px;
@@ -357,4 +357,17 @@
 /* the index's title: a long one, a size down */
 .bigSm {
   font-size: clamp(20px, 5.4vw, 34px) !important;
+}
+
+/* the rarities' last header wraps, not the rarity names (a phone) */
+.table thead th:last-child {
+  white-space: normal;
+  min-width: 6.5em;
+}
+
+@media (max-width: 599px) {
+  .table th,
+  .table td {
+    padding: 9px 10px;
+  }
 }

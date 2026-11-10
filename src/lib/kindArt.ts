@@ -34,3 +34,37 @@ const ART: Record<ShopKind, string> = {
 
 /** the drawn tile of a kind, as SVG markup */
 export const kindArt = (kind: ShopKind) => `<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">${ART[kind]}</svg>`;
+
+/** the boxes a set's logo can dress (the rest are made of boosters: their own drawing) */
+const BOXES: ShopKind[] = ["etb", "display", "box", "collection", "pokebox"];
+const INK = 'stroke="#2b2230" stroke-width="3" stroke-linejoin="round"';
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+
+/**
+ * A box still without its official picture (Johan, 2026-11-10: « toujours pas de visuels »; Poképédia uploads an Elite
+ * Trainer Box weeks after the release, displays never): the box drawn in the NookDex ink, the set's real logo on its face.
+ * A display is wide and low, its lid open; the rest stand like an Elite Trainer Box. No logo known: the plain drawing.
+ */
+export function boxArt(kind: ShopKind, logo?: string | null) {
+  if (!logo || !BOXES.includes(kind)) return kindArt(kind);
+  const id = `bx${Math.abs([...logo + kind].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)).toString(36)}`;
+  const face = `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a64bf"/><stop offset="1" stop-color="#3a2c66"/></linearGradient>`;
+  const img = (x: number, y: number, w: number, h: number) =>
+    `<image href="${esc(logo)}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet"/>`;
+  const body =
+    kind === "display"
+      ? // wide and low, the lid open behind, a row of boosters peeking out
+        `<path d="M14 46 30 30h80L94 46z" fill="#2b2230"/>` +
+        `<path d="M30 30 22 8h80l8 22z" fill="#9a86da" ${INK}/>` +
+        `<g ${INK} stroke-width="2"><path d="M34 46V34h10v12M48 46V32h10v14M62 46V34h10v12M76 46V32h10v14" fill="#ffd35a"/></g>` +
+        `<path d="M14 46h80v54H14z" fill="url(#${id})" ${INK}/><path d="M94 46l16-16v54l-16 16z" fill="#4a3a7c" ${INK}/>` +
+        `<path d="M14 54h80" stroke="#ffd35a" stroke-width="4"/>` +
+        img(17, 59, 74, 38)
+      : // standing, a ball on its side, a yellow band on its face
+        `<path d="M14 26 34 10h76L90 26z" fill="#9a86da" ${INK}/>` +
+        `<path d="M14 26h76v84H14z" fill="url(#${id})" ${INK}/><path d="M90 26l20-16v84l-20 16z" fill="#4a3a7c" ${INK}/>` +
+        `<circle cx="100" cy="56" r="7" fill="#fff" stroke="#2b2230" stroke-width="2"/><path d="M93 56a7 7 0 0 1 14 0z" fill="#b8433d" stroke="#2b2230" stroke-width="2"/>` +
+        `<path d="M14 36h76" stroke="#ffd35a" stroke-width="5"/>` +
+        img(17, 44, 70, 60);
+  return `<svg class="box-art" viewBox="0 0 124 120" aria-hidden="true" focusable="false"><defs>${face}</defs>${body}</svg>`;
+}

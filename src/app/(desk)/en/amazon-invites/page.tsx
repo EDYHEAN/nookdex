@@ -3,12 +3,14 @@ import Link from "next/link";
 import { WidePage } from "@/components/WidePage";
 import { OpenHash } from "@/components/shop/OpenHash";
 import { Affiliate, AmazonButton, ProductRail, Stage } from "@/components/shop/ShopBits";
+import { ReleaseAlert } from "@/components/shop/ReleaseAlert";
 import { ShopHero } from "@/components/shop/ShopHero";
 import { StickyBuy } from "@/components/shop/StickyBuy";
 import s from "@/components/shop/Shop.module.css";
-import { SHOP_PATH, SHOP_PATH_EN, byInterest, goLabel, kindLabel, productHref, productPic, shopGroupsUs, shopUpdatedUs } from "@/lib/amazonShop";
+import { SHOP_PATH, SHOP_PATH_EN, byInterest, goLabel, kindLabel, productArt, productHref, productPic, shopGroupsUs, shopUpdatedUs } from "@/lib/amazonShop";
 import { formatDate } from "@/lib/blog";
 import { kindArt } from "@/lib/kindArt";
+import { nextSetName } from "@/lib/releases";
 import { setPagePath } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -83,7 +85,7 @@ export default function AmazonInvites() {
           )}
         </>
       }
-      stage={<Stage pic={pic} kind={top.kind} fan={[]} alt={`${kindLabel(top.kind, "en")} ${first.name}`} />}
+      stage={<Stage pic={pic} kind={top.kind} fan={[]} art={productArt(top, first, "en")} alt={`${kindLabel(top.kind, "en")} ${first.name}`} />}
       buy={
         <>
           <p className={s.what}>
@@ -104,6 +106,9 @@ export default function AmazonInvites() {
             <li>Check “Ships from and sold by Amazon”</li>
           </ul>
           <Affiliate lang="en" />
+          <a href="#alerte" className={s.alertJump}>
+            ✉ Tell me when the next set is out ↓
+          </a>
         </>
       }
     />
@@ -173,6 +178,7 @@ export default function AmazonInvites() {
           </p>
         )}
         <ProductRail group={first} place="invit" lang="en" />
+        <ReleaseAlert lang="en" next={nextSetName("en")} />
         <ul className={s.chips}>
           {rest.map((o) => (
             <li key={o.id}>
@@ -181,6 +187,8 @@ export default function AmazonInvites() {
           ))}
         </ul>
       </section>
+
+      {rest.length > 0 && <h2>Other sets on Amazon</h2>}
 
       {rest.map((g) => {
         const gp = g.setId ? setPagePath("en", g.setId) : null;

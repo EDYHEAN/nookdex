@@ -69,6 +69,43 @@ async function search() {
   };
 }
 
+/**
+ * The Amazon clicks by place (lib/amazon AmazonPlace; "-us": amazon.com, "-bar": the phone's sticky bar), the old names of
+ * October folded into today's (the counts were cut in two, Johan 2026-11-10), with the week before to compare: the week's
+ * rows as before (`week`, `all`), and `places` = { place, store, week, before, all } most clicked first.
+ */
+const PLACE_ALIAS = { "invitations-amazon": "invit", extensions: "extension" };
+async function amazon() {
+  const [week, fortnight, all] = await Promise.all([
+    rpc("amazon_stats", { p_since: day(ago(7)) }),
+    rpc("amazon_stats", { p_since: day(ago(14)) }),
+    rpc("amazon_stats", {}),
+  ]);
+  const places = new Map();
+  const add = (rows, field) => {
+    for (const r of rows ?? []) {
+      const us = /-us$/.test(r.place);
+      const bare = r.place.replace(/-us$/, "").replace(/-bar$/, "");
+      const place = PLACE_ALIAS[bare] ?? bare;
+      const key = `${place}${us ? "-us" : ""}`;
+      const row = places.get(key) ?? { place, store: us ? "amazon.com" : "amazon.fr", week: 0, before: 0, all: 0 };
+      row[field] += Number(r.clicks);
+      places.set(key, row);
+    }
+  };
+  add(week, "week");
+  add(fortnight, "before");
+  add(all, "all");
+  const rows = [...places.values()].map((r) => ({ ...r, before: r.before - r.week })).sort((a, b) => b.week - a.week || b.all - a.all);
+  const total = (store, field) => rows.filter((r) => r.store === store).reduce((n, r) => n + r[field], 0);
+  return {
+    week,
+    all,
+    places: rows,
+    totals: Object.fromEntries(["amazon.fr", "amazon.com"].map((s) => [s, { week: total(s, "week"), before: total(s, "before"), all: total(s, "all") }])),
+  };
+}
+
 const report = {
   date: today,
   funnel: { week: await rpc("funnel_stats", { p_since: day(ago(7)) }), all: await rpc("funnel_stats", {}) },
@@ -76,7 +113,7 @@ const report = {
   landings: await rpc("funnel_landings", { p_since: day(ago(7)) }),
   accounts: { byDay: await rpc("growth_stats", { p_days: 60 }), totals: await rpc("activity_stats") },
   // clicks on the Amazon affiliate links, by page (lib/funnel watchAmazonClicks); the sales are in Amazon's dashboard
-  amazon: { week: await rpc("amazon_stats", { p_since: day(ago(7)) }), all: await rpc("amazon_stats", {}) },
+  amazon: await amazon(),
   // the players' public lists (lib/share): how many, updated this week, page visits
   shares: await rpc("share_stats").catch((e) => ({ error: String(e) })),
   search: await search().catch((e) => ({ error: String(e) })),

@@ -1,0 +1,46 @@
+# L'alerte sorties (lib/releaseAlert) : chaque matin, les e-mails du jour aux inscrits (listes Brevo « NookDex · Alerte
+# sorties FR » et « NookDex · Release alert EN », faites à la première inscription). « Précommandes ouvertes » dès qu'un set
+# à venir a un produit Amazon avec son ASIN, « C'est sorti » le jour J ; chacun une seule fois (une campagne Brevo par set,
+# type et langue). Secret : BREVO_API_KEY.
+# À la main : « Run workflow », un set (ex. me07) et un type (out ou preorder) ; « test » = une adresse, rien aux inscrits.
+name: Alerte sorties
+
+on:
+  schedule:
+    - cron: "30 6 * * *"
+  workflow_dispatch:
+    inputs:
+      set:
+        description: "Set (ex. me07) ; vide = ceux du jour"
+        required: false
+      kind:
+        description: "out ou preorder"
+        required: false
+        default: out
+      test:
+        description: "Une adresse de test (rien n'est envoyé aux inscrits)"
+        required: false
+
+jobs:
+  alert:
+    name: Envoyer l'alerte
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Envoyer
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          SET: ${{ inputs.set }}
+          KIND: ${{ inputs.kind }}
+          TEST: ${{ inputs.test }}
+        run: |
+          args=()
+          if [ -n "$SET" ]; then args+=(--set "$SET" --kind "${KIND:-out}"); fi
+          if [ -n "$TEST" ]; then args+=(--test "$TEST"); fi
+          node scripts/release-alert.mjs "${args[@]}"

@@ -3,7 +3,7 @@ import { PATH_HEADER } from "@/lib/roomless";
 import { PATH_LANG_HEADER } from "@/lib/site";
 
 /**
- * Pages whose address says their language (/en…: English, /extensions…, /calendrier-des-sorties, /invitations-amazon and /marche: French): the server renders them in it,
+ * Pages whose address says their language (/en…: English, /extensions…, /calendrier-des-sorties, /invitations-amazon, /accessoires-pokemon and /marche: French): the server renders them in it,
  * <html lang> included, whatever the cookie or the browser says (lib/serverLang reads this header first). Their path too:
  * the desk layout leaves the room's logo out of the pages drawn without the room (lib/roomless). The blog and the text
  * pages (terms, legal notice, privacy, terms of sale, contact) only get their path: they speak the visitor's language (a
@@ -20,5 +20,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/en", "/en/:path*", "/extensions", "/extensions/:path*", "/calendrier-des-sorties", "/invitations-amazon", "/marche", "/blog", "/blog/:slug", "/conditions", "/mentions-legales", "/confidentialite", "/conditions-de-vente", "/contact"],
+  matcher: ["/en", "/en/:path*", "/extensions", "/extensions/:path*", "/calendrier-des-sorties", "/invitations-amazon", "/accessoires-pokemon", "/marche", "/blog", "/blog/:slug", "/conditions", "/mentions-legales", "/confidentialite", "/conditions-de-vente", "/contact"],
 };

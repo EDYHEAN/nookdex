@@ -12,6 +12,8 @@ const SHOP_TABS = [
   { href: ["/marche", "/en/market"], label: ["Marché", "Market"] },
   { href: ["/blog", "/blog"], label: ["Blog", "Blog"] },
 ] as const;
+/** in the footer's first row only (five tabs fill a phone's width): the collector's gear */
+const FOOT_MORE = [{ href: ["/accessoires-pokemon", "/en/card-accessories"], label: ["Classeurs et sleeves", "Binders & sleeves"] }] as const;
 /** the footer says them in full (the tabs are short) */
 const FOOT_LABEL: Record<string, string> = {
   "/extensions": "Toutes les extensions",
@@ -132,7 +134,7 @@ export function WidePage({
           sentences are in the terms of use) */}
       <footer className={styles.foot} data-sticky-stop>
         <nav aria-label={t("Les pages", "Pages")}>
-          {SHOP_TABS.map((tab) => {
+          {[...SHOP_TABS, ...FOOT_MORE].map((tab) => {
             const href = t(tab.href[0], tab.href[1]);
             return href ? (
               <Link key={href} prefetch={false} href={href}>

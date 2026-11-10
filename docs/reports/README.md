@@ -16,3 +16,9 @@ exemple, et combien vont jusqu'au profil, aux 10 cartes, au compte. Dans le rapp
 
 Le mail ajoute aussi, à l'envoi, un bloc « Amazon : ce qui manque aux sorties proches » (scripts/report-amazon.mjs) : les
 produits des sorties proches qui mènent encore à une recherche Amazon ou attendent leur photo.
+
+`amazon.places` (depuis le 10 novembre 2026) : les clics Amazon par emplacement (invit, calendrier, extension, carte, blog,
+accessoires), amazon.fr et amazon.com à part, la semaine, la semaine d'avant et depuis le début ; les anciens noms d'octobre
+(« invitations-amazon », « extensions ») y sont regroupés. `amazon.totals` : les mêmes par boutique. Dans le rapport, une
+ligne par boutique (clics de la semaine, écart avec la précédente, l'emplacement qui en fait le plus). Les ventes et les
+gains ne sont que dans les tableaux de bord Amazon : si Johan en colle les chiffres, les mettre en face des clics.

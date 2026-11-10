@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatDate, num } from "@/lib/blog";
 import { amazonOn, amazonSearch, inShops } from "@/lib/amazon";
-import { boosterPics, byInterest, goLabel, kindLabel, productHref, productPic, shopFor, shopPath } from "@/lib/amazonShop";
+import { boosterPics, byInterest, goLabel, kindLabel, productArt, productHref, productPic, shopFor, shopPath } from "@/lib/amazonShop";
 import { kindArt } from "@/lib/kindArt";
 import { currencyOf, keyOf } from "@/lib/cardLang";
 import { type PageLang, SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
@@ -160,7 +160,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
       }
       stage={
         shop && product ? (
-          <Stage pic={pic} kind={product.kind} fan={fan} alt={pic ? `${kindLabel(product.kind, lang)} ${name}` : `Boosters ${name}`} />
+          <Stage pic={pic} kind={product.kind} fan={fan} art={productArt(product, shop, lang)} alt={pic ? `${kindLabel(product.kind, lang)} ${name}` : `Boosters ${name}`} />
         ) : best ? (
           <CardStage src={best.img!} alt={`${best.name} ${numOf(best)} · ${name}`} />
         ) : undefined

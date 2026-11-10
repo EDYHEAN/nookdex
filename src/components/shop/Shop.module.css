@@ -54,7 +54,7 @@
   display: grid;
   grid-template-areas: "head" "stage" "buy";
   gap: 8px 48px;
-  padding-top: 22px;
+  padding-top: 24px;
 }
 
 .head {
@@ -76,9 +76,9 @@
 
 .eyebrow {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  margin: 0;
+  margin: 0 0 12px;
   font-family: var(--pixel);
   font-weight: normal;
   font-size: 10px;
@@ -94,16 +94,18 @@
   width: 8px;
   height: 8px;
   border-radius: 2px;
+  margin-top: 4px;
   background: var(--cta);
   box-shadow: 0 0 10px var(--cta);
 }
 
 .big {
   display: block;
-  margin: 8px 0 6px;
+  margin: 8px 0 8px;
   font-family: var(--pixel);
   font-weight: normal;
   font-size: clamp(24px, 7vw, 44px);
+  text-wrap: balance;
   line-height: 1.3;
   color: #fff6e2;
   text-shadow: 3px 3px 0 var(--ink);
@@ -122,16 +124,18 @@
   font-size: clamp(11px, 3.2vw, 15px);
   line-height: 1.6;
   color: var(--moon);
+  text-wrap: balance;
 }
 
 .when {
-  margin: 0 0 8px;
+  margin: 12px 0 0;
   font-size: 15.5px;
   color: rgba(239, 227, 200, 0.85);
 }
 
 .when b {
   color: #fff6e2;
+  white-space: nowrap;
 }
 
 .lede {
@@ -165,13 +169,13 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  height: 184px;
+  height: 168px;
 }
 
 .fan img {
   position: relative;
   width: auto;
-  height: 152px;
+  height: 136px;
   margin: 0 -24px;
   filter: drop-shadow(0 12px 12px rgba(0, 0, 0, 0.55));
   transition: transform 0.3s var(--spring);
@@ -183,7 +187,7 @@
 
 .fan img:nth-child(2) {
   z-index: 2;
-  height: 174px;
+  height: 160px;
   animation: float 5s ease-in-out infinite;
 }
 
@@ -192,7 +196,7 @@
 }
 
 .fan img:only-child {
-  height: 174px;
+  height: 160px;
   margin: 0;
 }
 
@@ -210,20 +214,20 @@
   z-index: 2;
   display: grid;
   place-items: end center;
-  height: 200px;
+  height: 184px;
   animation: float 5s ease-in-out infinite;
 }
 
 .solo img {
   width: auto;
   max-width: 100%;
-  max-height: 196px;
+  max-height: 180px;
   filter: drop-shadow(0 14px 14px rgba(0, 0, 0, 0.55));
 }
 
 .solo svg {
-  width: 170px;
-  height: 170px;
+  width: 156px;
+  height: 156px;
   filter: drop-shadow(0 14px 14px rgba(0, 0, 0, 0.55));
 }
 
@@ -245,13 +249,13 @@
 /* the buy panel beside / under the product */
 .buy {
   display: grid;
-  gap: 10px;
-  padding: 16px 0 22px;
+  gap: 12px;
+  padding: 16px 0 24px;
 }
 
 .btns {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .what {
@@ -268,8 +272,8 @@
 .reassure {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 14px;
-  margin: 0;
+  gap: 6px 16px;
+  margin: 4px 0 0;
   padding: 0;
   list-style: none;
   font-size: 14px;
@@ -298,7 +302,7 @@
     grid-template-columns: 1.1fr 1fr;
     grid-template-areas: "head stage" "buy stage";
     align-items: end;
-    padding-top: 44px;
+    padding-top: 48px;
   }
 
   .floor {
@@ -344,16 +348,36 @@
   }
 
   .buyW {
-    padding-bottom: 36px;
+    padding-bottom: 24px;
   }
 
   .buy {
     max-width: 620px;
+    padding-top: 24px;
   }
 
   .btns {
     grid-template-columns: max-content max-content;
     justify-content: start;
+    align-items: center;
+  }
+
+  /* a set page's hero holds its figures: its product stands taller beside them */
+  .heroWrap:has(.stats) .solo,
+  .heroWrap:has(.stats) .fan {
+    height: 440px;
+  }
+
+  .heroWrap:has(.stats) .solo img {
+    max-height: 420px;
+  }
+
+  .heroWrap:has(.stats) .fan img {
+    height: 330px;
+  }
+
+  .heroWrap:has(.stats) .fan img:nth-child(2) {
+    height: 380px;
   }
 }
 
@@ -528,8 +552,12 @@
 .hero .alt {
   --bg: transparent;
   color: var(--moon) !important;
-  border-color: var(--moon);
   box-shadow: none;
+  /* quieter than the yellow one beside it */
+  border-width: 2px;
+  border-color: rgba(239, 227, 200, 0.55);
+  font-size: 11px;
+  min-height: 48px;
 }
 
 .hero .alt:hover {
@@ -573,7 +601,7 @@
 /* « Lien affilié »: a small grey line by each group of Amazon buttons, the words alone (Johan, 2026-11-01: the « i » before
    them was one more thing to read) */
 .aff {
-  margin: 0;
+  margin: 0 0 24px;
   font-size: 12.5px;
   line-height: 1.4;
   color: var(--ink-soft);
@@ -581,16 +609,17 @@
 
 .hero .aff {
   color: rgba(239, 227, 200, 0.55);
+  margin-top: -4px;
 }
 
 /* ---------- product cards: a rail on a phone, a grid on a computer ---------- */
 .rail {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 70%;
+  grid-auto-columns: 74%;
   gap: 14px;
   margin: 0 -16px !important;
-  padding: 6px 16px 18px !important;
+  padding: 6px 16px 12px !important;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-padding-inline: 16px;
@@ -612,7 +641,7 @@
     grid-template-columns: repeat(4, 1fr);
     grid-auto-columns: auto;
     margin: 0 !important;
-    padding: 6px 0 18px !important;
+    padding: 6px 0 12px !important;
     overflow: visible;
   }
 }
@@ -674,6 +703,13 @@
 .pic svg {
   width: 112px;
   height: 112px;
+}
+
+/* a box drawn with its set's logo (lib/kindArt boxArt): as big as a product shot */
+.pic :global(.box-art) {
+  width: 150px;
+  height: 145px;
+  max-height: 145px;
 }
 
 .pcard:hover .pic img,
@@ -837,7 +873,7 @@
 /* ---------- sections, the answer, chips ---------- */
 .answer {
   position: relative;
-  margin: 28px 0 8px;
+  margin: 24px 0 0;
   padding: 14px 16px 12px;
   border: 2px solid var(--ink);
   border-radius: 14px;
@@ -868,6 +904,7 @@
   gap: 12px;
   margin: 40px 0 16px !important;
   font-size: 13px !important;
+  color: var(--ink-red) !important;
 }
 
 .month::after {
@@ -883,7 +920,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 14px 0 28px !important;
+  margin: 24px 0 0 !important;
   padding: 0;
   list-style: none;
 }
@@ -917,7 +954,7 @@
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr);
   gap: 14px;
-  margin-bottom: 22px;
+  margin-bottom: 32px;
 }
 
 .date {
@@ -1019,7 +1056,7 @@
 }
 
 .ev .rail {
-  grid-auto-columns: 62%;
+  grid-auto-columns: 74%;
 }
 
 .ev .pic {
@@ -1055,7 +1092,7 @@
 
 @media (min-width: 760px) {
   .shelf {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
   }
 }
 
@@ -1102,9 +1139,10 @@
 }
 
 .others li {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: baseline;
+  gap: 2px 16px;
   padding: 8px 0;
   border-bottom: 1px dashed rgba(43, 34, 48, 0.2);
   font-size: 15.5px;
@@ -1121,9 +1159,9 @@
 
 /* ---------- the invitations page: the other sets, folded ---------- */
 .group {
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   border: 2px solid var(--ink);
-  border-radius: 16px;
+  border-radius: 14px;
   background: rgba(255, 250, 240, 0.6);
 }
 
@@ -1131,8 +1169,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 56px;
-  padding: 10px 16px;
+  min-height: 52px;
+  padding: 8px 16px;
   cursor: pointer;
   list-style: none;
 }
@@ -1158,7 +1196,14 @@
 .group > summary h2 {
   margin: 0 !important;
   color: var(--ink) !important;
-  font-size: 13px !important;
+  font-size: 12px !important;
+  line-height: 1.5;
+}
+
+@media (max-width: 599px) {
+  .group > summary h2 {
+    font-size: 11px !important;
+  }
 }
 
 .group > summary small {
@@ -1177,17 +1222,19 @@
 
 /* FAQ */
 .faq h3 {
-  margin: 22px 0 6px;
+  margin: 24px 0 8px;
+  max-width: 72ch;
   font-size: 17px;
   line-height: 1.35;
 }
 
 .faq p {
+  max-width: 72ch;
   margin: 0;
 }
 
 .small {
-  margin-top: 28px;
+  margin-top: 32px;
   color: var(--ink-soft);
   font-size: 14px;
 }
@@ -1198,7 +1245,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12px 20px;
-  margin: 32px 0 0;
+  margin: 24px 0 0;
   padding: 16px 18px;
   border: 2px dashed var(--ink);
   border-radius: 16px;
@@ -1349,7 +1396,7 @@
   max-height: 72px;
   object-fit: contain;
   object-position: left center;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5));
 }
 
@@ -1364,12 +1411,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 2px 0 10px;
+  margin: 12px 0 0;
 }
 
 /* a set's name under its logo: a size down, the logo already says it */
 .setName {
-  font-size: clamp(22px, 6vw, 36px);
+  font-size: clamp(20px, 5.5vw, 30px);
 }
 
 .pill {
@@ -1397,7 +1444,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 0 0 10px;
+  margin: 12px 0 0;
 }
 
 .stats > div {
@@ -1407,6 +1454,7 @@
   border: 1.5px solid rgba(239, 227, 200, 0.25);
   border-radius: 12px;
   background: rgba(239, 227, 200, 0.05);
+  flex: 1 1 auto;
 }
 
 .stats dd {
@@ -1424,7 +1472,7 @@
 
 @media (min-width: 900px) {
   .stats dd {
-    font-size: 32px;
+    font-size: 26px;
   }
 }
 
@@ -1435,7 +1483,12 @@
   }
 
   .solo:has(img) {
-    height: 180px;
+    height: 172px;
+  }
+
+  /* a drawn product (the gear's binder) is shorter than a box: no empty band above it */
+  .solo:not(:has(img)) {
+    height: 160px;
   }
 }
 
@@ -1443,5 +1496,440 @@
 @media (max-width: 759px) {
   .stats > .fromTablet {
     display: none;
+  }
+}
+
+/* ---------- the collector's gear (AccessoriesPage) ---------- */
+/* the name doesn't stretch here: the tips take the room, the button stays at the bottom */
+.gearName {
+  flex: none;
+}
+
+.gearWhat {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.tips {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 6px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.tips > span::before {
+  content: "✓ ";
+  color: #3f8f3a;
+  font-weight: 700;
+}
+
+
+.tableW {
+  overflow-x: auto;
+  margin: 0 0 12px;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.table th,
+.table td {
+  padding: 9px 14px;
+  border-top: 1px solid var(--paper-3);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table thead th {
+  border-top: 0;
+  background: var(--paper-2);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.table td {
+  font-variant-numeric: tabular-nums;
+}
+
+.table td:nth-child(n + 3),
+.table thead th:nth-child(n + 3) {
+  width: 7.5em;
+  text-align: right;
+}
+
+.table tbody th {
+  font-weight: 600;
+  white-space: normal;
+}
+
+/* a phone: the set, its cards, pages and sheets; the date from a tablet up */
+@media (max-width: 599px) {
+  .table .wideOnly {
+    display: none;
+  }
+}
+
+/* ---------- the release alert (ReleaseAlert): a night note under the lamp, the page's own green ask ----------
+   Night like the hero and the product shots, so it reads as a moment of its own on the paper, not one more card; the
+   button stays green (NookDex's action, never Amazon's yellow). Phone: the letter beside the title, the form full width. */
+.alert {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-areas: "icon head" "form form" "perks perks";
+  gap: 14px 14px;
+  align-items: start;
+  margin: 36px 0;
+  padding: 20px 16px 16px;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  color: var(--moon);
+  background:
+    radial-gradient(70% 120% at 0% 0%, rgba(var(--lamp), 0.34), rgba(var(--lamp), 0.06) 55%, transparent 75%),
+    linear-gradient(180deg, var(--night-2), var(--night));
+  box-shadow: 5px 6px 0 var(--ink);
+  /* the hero's « ↓ » link and ?alerte=ok land here, clear of the sticky top bar */
+  scroll-margin-top: 90px;
+}
+
+/* the drawn letter, its Poké Ball seal and a « 1 » like a new mail */
+.alertIcon {
+  grid-area: icon;
+  width: 52px;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(2px 3px 0 var(--ink));
+  animation: alertBob 3.2s ease-in-out infinite;
+}
+
+.alertHead {
+  grid-area: head;
+  min-width: 0;
+}
+
+.alert .alertEye {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-family: var(--pixel);
+  font-size: 9px;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8fe0a4;
+}
+
+.alertEye::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: #8fdc7a;
+  box-shadow: 0 0 10px #8fdc7a;
+}
+
+/* beats `.main h2` (red, 36 px margin) */
+.alert .alertTitle {
+  margin: 0 0 8px;
+  font-family: var(--pixel);
+  font-weight: normal;
+  font-size: clamp(13px, 3.6vw, 18px);
+  line-height: 1.5;
+  color: #fff6e2;
+  text-shadow: 2px 2px 0 var(--ink);
+  text-wrap: balance;
+}
+
+.alertHead p {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 15.5px;
+  line-height: 1.45;
+  color: rgba(239, 227, 200, 0.85);
+}
+
+/* sent / ok: the hint under the line (the sender to look for, the way back) */
+.alert .alertSmall {
+  margin-top: 8px;
+  font-size: 13.5px;
+  color: rgba(239, 227, 200, 0.7);
+}
+
+.alertHead p b {
+  color: #fff6e2;
+  font-weight: 650;
+}
+
+.alertForm {
+  grid-area: form;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+}
+
+.alertForm input[type="email"] {
+  flex: 1 1 220px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 12px 16px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  /* 16 px at least: no zoom on a phone */
+  font-size: 17px;
+  box-shadow: inset 0 3px 0 rgba(43, 34, 48, 0.08);
+}
+
+.alertForm input[type="email"]::placeholder {
+  color: #a0929a;
+}
+
+.alertForm input[type="email"]:focus {
+  outline: 3px solid #8fdc7a;
+  outline-offset: 2px;
+}
+
+/* wrapped under the field (a phone), the button takes the whole width */
+.alertForm .btn {
+  flex: 1 0 auto;
+  min-height: 56px;
+  font-size: clamp(11px, 3vw, 13px);
+}
+
+.alertPerks {
+  grid-area: perks;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13.5px;
+  color: rgba(239, 227, 200, 0.75);
+}
+
+.alertPerks li::before {
+  content: "✓ ";
+  color: #8fe0a4;
+}
+
+.alertPerks li.alertNoTick::before {
+  content: none;
+}
+
+.alert .alertPerks a {
+  color: rgba(239, 227, 200, 0.75);
+}
+
+.alertErr {
+  grid-area: perks;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #ffd9d2;
+  color: #8a2a25;
+  font-weight: 600;
+}
+
+/* « Changer d'adresse », a link-looking button */
+.alertRetry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fff6e2;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* sent: the letter takes off; ok: the green « ✓ » stamps in and the lamp turns green */
+.alert[data-state="sent"] .alertIcon {
+  animation: alertFly 0.7s var(--spring) both;
+}
+
+.alert[data-state="ok"] {
+  background:
+    radial-gradient(70% 120% at 0% 0%, rgba(143, 220, 122, 0.32), rgba(143, 220, 122, 0.05) 55%, transparent 75%),
+    linear-gradient(180deg, var(--night-2), var(--night));
+}
+
+.alert[data-state="ok"] .alertTitle {
+  color: #a8f095;
+}
+
+.alert[data-state="ok"] .alertIcon,
+.alert[data-state="ok"] .alertTitle {
+  animation: alertPop 0.5s var(--spring) both;
+}
+
+.hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+@keyframes alertBob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(2deg);
+  }
+}
+
+@keyframes alertFly {
+  0% {
+    transform: none;
+  }
+  45% {
+    transform: translate(10px, -14px) rotate(-14deg) scale(1.08);
+  }
+  100% {
+    transform: translate(2px, -2px) rotate(-6deg);
+  }
+}
+
+@keyframes alertPop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* a computer: one band, the letter, the words, the form beside them */
+@media (min-width: 900px) {
+  .alert {
+    grid-template-columns: 76px minmax(0, 1fr) minmax(380px, 480px);
+    grid-template-areas: "icon head form" "icon head perks";
+    gap: 12px 22px;
+    align-items: center;
+    padding: 24px 26px;
+  }
+
+  .alertIcon {
+    width: 76px;
+    align-self: center;
+  }
+
+  .alertForm {
+    align-self: end;
+  }
+
+  .alertPerks,
+  .alertErr {
+    align-self: start;
+  }
+
+  /* no form any more: the words take the band */
+  .alert[data-state="sent"],
+  .alert[data-state="ok"] {
+    grid-template-columns: 76px minmax(0, 1fr);
+    grid-template-areas: "icon head";
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alertIcon,
+  .alert[data-state] .alertIcon,
+  .alert[data-state] .alertTitle {
+    animation: none !important;
+  }
+}
+
+/* the hero's way down to the alert: a quiet line in the night, not a second button */
+.alertJump {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--moon) !important;
+  font-size: 15px;
+  text-decoration: underline dashed rgba(239, 227, 200, 0.5) !important;
+  text-underline-offset: 4px;
+}
+
+.alertJump:hover {
+  color: #fff6e2 !important;
+  text-decoration-color: #8fdc7a !important;
+}
+
+/* ---------- UX pass 2026-11-10: content sections ---------- */
+.hero .aff,
+.ev .aff {
+  margin: 0;
+}
+
+.ev .aff {
+  font-size: 12.5px;
+}
+
+.ev .btns {
+  align-items: center;
+  column-gap: 14px;
+}
+
+.shelf .btn {
+  margin-top: auto;
+}
+
+.others li > small {
+  font-size: 13px;
+}
+
+@media (min-width: 600px) {
+  .others li {
+    grid-template-columns: 10em minmax(0, 1fr) auto;
+  }
+}
+
+/* the gear's five cards: three then two on a tablet, one row of five on a computer */
+@media (min-width: 760px) {
+  .gearRail {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .gearRail {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* a phone: the sets' chips one row to swipe, not 300 px of buttons */
+@media (max-width: 599px) {
+  .chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 24px -16px 0 !important;
+    padding: 2px 16px 6px !important;
+  }
+
+  .chips li {
+    flex: none;
   }
 }

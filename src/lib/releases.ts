@@ -2,6 +2,7 @@ import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
 import rawJa from "@/data/catalog-ja.json";
 import data from "@/data/releases.json";
+import { shortSetName } from "./amazonShop";
 import { postBySlug } from "./blog";
 import { type PageLang, setPagePath } from "./setPath";
 import type { CatalogSet } from "./types";
@@ -86,3 +87,9 @@ export function releases(lang: PageLang, today = new Date().toISOString().slice(
 /** Days from today to a date (0 = today) */
 export const daysUntil = (date: string, today = new Date().toISOString().slice(0, 10)) =>
   Math.round((Date.parse(`${date}T12:00:00Z`) - Date.parse(`${today}T12:00:00Z`)) / 86_400_000);
+
+/** the next set out worldwide, as people say it ("Règne Delta"), for the release alert's line; none announced: null */
+export function nextSetName(lang: PageLang) {
+  const next = releases(lang).upcoming.find((r) => r.kind === "set" && r.region === "intl");
+  return next ? shortSetName(next.name) : null;
+}
