@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
-import { loadSets, setIdOfCard, useSets } from "@/lib/catalog";
+import { catalogSet, loadSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { useLang, useT } from "@/lib/lang";
 import { DENSITIES, type Density, type ListItem, densityFor, drawPage, sortItems } from "@/lib/listImages";
 import { sfx } from "@/lib/sound";
@@ -33,12 +33,30 @@ export function ExportImages({ start, want, give, onClose }: { start: Side; want
   const [side, setSide] = useState<Side>(start);
   const [prices, setPrices] = useState(pricesOn);
 
-  const items = useMemo(
+  const all = useMemo(
     (): ListItem[] =>
       sortItems(side === "want" ? want.map((key) => ({ key, card: cards[key] })) : give.map((d) => ({ key: d.key, card: cards[d.key], variant: d.variant, n: d.ticked }))),
     [side, want, give, cards],
   );
+  /** the side's sets, the newest first, with how many of its cards are on the list */
+  const groups = useMemo(() => {
+    const out = new Map<string, number>();
+    for (const i of all) {
+      const id = setIdOfCard(i.key) ?? "?";
+      out.set(id, (out.get(id) ?? 0) + 1);
+    }
+    return [...out].map(([id, n]) => ({ id, n, set: catalogSet(id) }));
+  }, [all]);
+  /** the sets picked (none: all of them): « juste Règne Delta » (Johan, 2026-11-10) */
+  const [only, setOnly] = useState<string[]>([]);
+  const items = useMemo(() => (only.length ? all.filter((i) => only.includes(setIdOfCard(i.key) ?? "?")) : all), [all, only]);
+  const oneSet = only.length === 1 ? catalogSet(only[0]) : undefined;
   const [density, setDensity] = useState<Density>(() => densityFor(start === "want" ? want.length : give.length));
+  const pick = (ids: string[]) => {
+    sfx.click();
+    setOnly(ids);
+    setDensity(densityFor(ids.length ? all.filter((i) => ids.includes(setIdOfCard(i.key) ?? "?")).length : all.length));
+  };
   const pages = Math.ceil(items.length / density);
 
   // the ★ cards of sets no binder holds may not be loaded yet
@@ -48,7 +66,7 @@ export function ExportImages({ start, want, give, onClose }: { start: Side; want
   }, [items]);
 
   /** the pictures drawn, for the choice `sig` (those of a former choice aren't shown) */
-  const sig = `${side}|${density}|${prices}|${items.map((i) => (i.card ? i.key : "")).join()}`;
+  const sig = `${side}|${density}|${prices}|${only.join()}|${items.map((i) => (i.card ? i.key : "")).join()}`;
   const [run, setRun] = useState<{ sig: string; shots: Shot[]; done: number }>({ sig: "", shots: [], done: 0 });
   const shots = useMemo(() => (run.sig === sig ? run.shots : []), [run, sig]);
   const done = run.sig === sig ? run.done : 0;
@@ -64,12 +82,13 @@ export function ExportImages({ start, want, give, onClose }: { start: Side; want
         const blob = await drawPage(items.slice(p * density, (p + 1) * density), density, prices, {
           title: side === "want" ? tr("JE CHERCHE", "WANTED") : tr("J'ÉCHANGE", "FOR TRADE"),
           color: side === "want" ? "#7cc4ff" : "#ffd35a",
-          sub: [name, `${items.length} ${tr(items.length > 1 ? "cartes" : "carte", items.length > 1 ? "cards" : "card")}`].filter(Boolean).join(" · "),
+          sub: [name, oneSet?.name ?? (only.length > 1 ? tr(`${only.length} extensions`, `${only.length} sets`) : ""), `${items.length} ${tr(items.length > 1 ? "cartes" : "carte", items.length > 1 ? "cards" : "card")}`].filter(Boolean).join(" · "),
           page: pages > 1 ? `${p + 1}/${pages}` : "",
+          logo: oneSet?.logo ? `${oneSet.logo}.png` : undefined,
           note: tr(`Prix du ${date} · Cardmarket / TCGplayer`, `Prices of ${date} · Cardmarket / TCGplayer`),
         }).catch(() => null);
         if (!live) return;
-        if (blob) made.push({ blob, url: URL.createObjectURL(blob), name: `nookdex-${side === "want" ? tr("je-cherche", "wanted") : tr("j-echange", "for-trade")}-${p + 1}.jpg` });
+        if (blob) made.push({ blob, url: URL.createObjectURL(blob), name: `nookdex-${side === "want" ? tr("je-cherche", "wanted") : tr("j-echange", "for-trade")}${oneSet ? `-${oneSet.code.toLowerCase()}` : ""}-${p + 1}.jpg` });
         setRun({ sig, shots: [...made], done: p + 1 });
       }
     }, 250);
@@ -141,6 +160,7 @@ export function ExportImages({ start, want, give, onClose }: { start: Side; want
               onClick={() => {
                 sfx.riffle();
                 setSide(k);
+                setOnly([]);
                 setDensity(densityFor(n));
               }}
             >
@@ -149,6 +169,30 @@ export function ExportImages({ start, want, give, onClose }: { start: Side; want
             </button>
           ))}
         </div>
+
+        {groups.length > 1 && (
+          <div className={styles.sets} role="group" aria-label={tr("Extensions", "Sets")}>
+            <button className={`${styles.set} ${styles.setAll} ${!only.length ? styles.setOn : ""}`} aria-pressed={!only.length} onClick={() => pick([])}>
+              {tr("Toutes", "All")}
+              <small>{all.length}</small>
+            </button>
+            {groups.map((g) => {
+              const on = only.includes(g.id);
+              return (
+                <button
+                  key={g.id}
+                  className={`${styles.set} ${on ? styles.setOn : ""}`}
+                  aria-pressed={on}
+                  title={g.set?.name ?? g.id}
+                  onClick={() => pick(on ? only.filter((x) => x !== g.id) : [...only, g.id])}
+                >
+                  {g.set?.logo ? <img src={`${g.set.logo}.png`} alt={g.set.name} /> : <b>{g.set?.code || g.set?.name || g.id}</b>}
+                  <small>{g.n}</small>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div className={styles.row}>
           <span className={styles.chips} role="radiogroup" aria-label={tr("Cartes par image", "Cards per picture")}>
