@@ -137,6 +137,8 @@ export interface PageText {
   page: string;
   /** the price source, bottom left (shown with the prices) */
   note: string;
+  /** one set picked: its logo on the right of the header */
+  logo?: string;
 }
 
 /** One picture of the list: its header, the cards in a grid, Warwick and nookdex.com in the corner */
@@ -169,11 +171,25 @@ export async function drawPage(items: ListItem[], density: Density, prices: bool
   ctx.fillText(text.title, PAD, 70);
   ctx.fillStyle = "#efe3c8";
   ctx.font = `34px ${vt}`;
-  ctx.fillText(fit(ctx, text.sub, W - PAD * 2 - 120), PAD, 118);
-  ctx.textAlign = "right";
-  ctx.font = `26px ${press}`;
-  ctx.fillStyle = "#8a7fae";
-  ctx.fillText(text.page, W - PAD, 70);
+  ctx.fillText(fit(ctx, text.sub, W - PAD * 2 - (text.logo ? 300 : 120)), PAD, 118);
+  // one set: its logo on the right, the page under it
+  const logo = text.logo ? await imgOnce(text.logo) : null;
+  const right = W - PAD;
+  if (logo) {
+    const k = Math.min(260 / logo.width, 84 / logo.height);
+    const lw = logo.width * k;
+    const lh = logo.height * k;
+    ctx.drawImage(logo, right - lw, (HEAD - lh) / 2 - (text.page ? 10 : 0), lw, lh);
+    ctx.textAlign = "right";
+    ctx.font = `16px ${press}`;
+    ctx.fillStyle = "#8a7fae";
+    if (text.page) ctx.fillText(text.page, right - lw / 2 + ctx.measureText(text.page).width / 2, HEAD - 14);
+  } else {
+    ctx.textAlign = "right";
+    ctx.font = `26px ${press}`;
+    ctx.fillStyle = "#8a7fae";
+    ctx.fillText(text.page, right, 70);
+  }
 
   const imgs = await Promise.all(items.map((it) => (it.card?.img && !it.card.unavailable ? imgOnce(scanSrc(it.card.img)) : Promise.resolve(null))));
   items.forEach((it, i) => {
