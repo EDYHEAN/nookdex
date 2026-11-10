@@ -106,6 +106,9 @@ export default function AmazonInvites() {
             <li>Check “Ships from and sold by Amazon”</li>
           </ul>
           <Affiliate lang="en" />
+          <a href="#alerte" className={s.alertJump}>
+            ✉ Tell me when the next set is out ↓
+          </a>
         </>
       }
     />
@@ -175,6 +178,7 @@ export default function AmazonInvites() {
           </p>
         )}
         <ProductRail group={first} place="invit" lang="en" />
+        <ReleaseAlert lang="en" next={nextSetName("en")} />
         <ul className={s.chips}>
           {rest.map((o) => (
             <li key={o.id}>
@@ -183,7 +187,8 @@ export default function AmazonInvites() {
           ))}
         </ul>
       </section>
-      <ReleaseAlert lang="en" next={nextSetName("en")} />
+
+      {rest.length > 0 && <h2>Other sets on Amazon</h2>}
 
       {rest.map((g) => {
         const gp = g.setId ? setPagePath("en", g.setId) : null;

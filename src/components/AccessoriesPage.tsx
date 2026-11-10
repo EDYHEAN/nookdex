@@ -155,6 +155,8 @@ const FAQ: { q: [string, string]; a: (n: { name: string; cards: number; sheets: 
   },
 ];
 
+const nb = (s: string) => s.replace(/ ([?!:;»])/g, "\u202f$1").replace(/« /g, "«\u202f");
+
 const ld = (data: object) => <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 const Art = ({ kind }: { kind: GearKind }) => <span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: gearArt(kind) }} />;
 
@@ -169,7 +171,7 @@ export function AccessoriesPage({ lang }: { lang: PageLang }) {
     .sort((a, b) => b.releaseDate!.localeCompare(a.releaseDate!))
     .map((x) => ({ id: x.id, name: x.name, date: x.releaseDate!, cards: x.total, pages: Math.ceil(x.total / 9), sheets: Math.ceil(x.total / 18) }));
   const newest = sets[0] ? { name: sets[0].name, cards: sets[0].cards, sheets: sets[0].sheets } : null;
-  const faq = FAQ.map((f) => ({ q: f.q[i], a: f.a(newest)[i] }));
+  const faq = FAQ.map((f) => ({ q: nb(f.q[i]), a: nb(f.a(newest)[i]) }));
   const binder = GEAR[0];
   const heroHref = amazonSearch(binder.q[i], "accessoires", lang);
 
@@ -179,7 +181,7 @@ export function AccessoriesPage({ lang }: { lang: PageLang }) {
         <>
           <p className={s.eyebrow}>{t("Le matériel du collectionneur", "The collector's gear")}</p>
           <h1 className={s.title}>
-            <span className={s.rest}>{t("Classeur, sleeves, toploader :", "Binder, sleeves, toploaders:")}</span>
+            <span className={s.rest}>{t("Classeur, sleeves, toploader\u00a0:", "Binder, sleeves, toploaders:")}</span>
             <span className={s.big}>{t("ranger ses cartes", "keep your cards")}</span>
             <span className={s.rest}>{t("pour qu'elles gardent leur cote", "so they keep their value")}</span>
           </h1>
@@ -256,7 +258,7 @@ export function AccessoriesPage({ lang }: { lang: PageLang }) {
       </div>
 
       <h2>{t("Ce qu'il faut pour ranger ses cartes Pokémon", "What you need to keep Pokémon cards")}</h2>
-      <ul className={s.rail}>
+      <ul className={`${s.rail} ${s.gearRail}`}>
         {GEAR.map((g) => (
           <li key={g.kind} id={g.kind}>
             <a className={s.pcard} href={amazonSearch(g.q[i], "accessoires", lang)} target="_blank" rel="sponsored noopener" data-amazon-place="accessoires">
@@ -265,10 +267,10 @@ export function AccessoriesPage({ lang }: { lang: PageLang }) {
               </span>
               <span className={s.body}>
                 <span className={`${s.name} ${s.gearName}`}>{g.name[i]}</span>
-                <span className={s.gearWhat}>{g.what[i]}</span>
+                <span className={s.gearWhat}>{nb(g.what[i])}</span>
                 <span className={s.tips}>
                   {g.tips.map((tip) => (
-                    <span key={tip[0]}>{tip[i]}</span>
+                    <span key={tip[0]}>{nb(tip[i])}</span>
                   ))}
                 </span>
                 <span className={`${s.btn} ${s.sm} ${s.block}`}>

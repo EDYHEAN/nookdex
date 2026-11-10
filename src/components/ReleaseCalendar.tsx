@@ -136,7 +136,8 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           <h1 className={s.eyebrow}>{t("Calendrier des sorties du JCC Pokémon", "Pokémon TCG release calendar")}</h1>
           {/* a set out already (the hero shows the latest once the next is out): its logo, in the page's language */}
           {heroSet.logo && <img className={s.setLogo} src={heroSet.logo} alt="" />}
-          <p className={s.big}>{heroName}</p>
+          {/* under its logo, the name a size down: the logo already says it big */}
+          <p className={heroSet.logo ? `${s.big} ${s.setName}` : s.big}>{heroName}</p>
           <p className={s.when}>
             {coming ? t("Prochaine sortie", "Next release") : t("Dernière sortie", "Latest release")}
             {series && ` · ${series}`}
@@ -170,11 +171,15 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
             )}
           </div>
           <ul className={s.reassure}>
-            <li>{t("Date officielle, avec sa source", "Official date, with its source")}</li>
             {group && fr && <li>Sur invitation, au prix public</li>}
             <li>{t("Vérifie « Expédié et vendu par Amazon »", "Check “Ships from and sold by Amazon”")}</li>
           </ul>
           {heroHref && <Affiliate lang={lang} />}
+          {amazonOn(lang) && (
+            <a href="#alerte" className={s.alertJump}>
+              {t("✉ Préviens-moi à la prochaine sortie ↓", "✉ Tell me when the next set is out ↓")}
+            </a>
+          )}
         </>
       }
     />
@@ -220,6 +225,14 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
         </div>
       )}
 
+      {/* what the page is, before the shop's rail (it read like a stray line between the products and the alert) */}
+      <p>
+        {t(
+          "Les prochaines extensions, coffrets et avant-premières du JCC Pokémon, en France et au Japon, mois par mois : seulement ce qui est annoncé officiellement, avec sa source.",
+          "The next Pokémon TCG sets, products and prereleases, worldwide and in Japan, month by month: only what has been officially announced, with its source.",
+        )}
+      </p>
+
       {/* the set just out, all its products (Johan, 2026-11-10: the English calendar is the page that sells, its hero showed
           the Elite Trainer Box alone); a month after its release the coming sets take over */}
       {!coming && heroSet && group && amazonOn(lang) && -daysUntil(heroSet.date) <= 30 && (
@@ -245,15 +258,9 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           <small>{t(`Mis à jour le ${formatDate(updated, "fr")}.`, `Updated ${formatDate(updated, "en")}.`)}</small>
         </p>
       )}
-      <p>
-        {t(
-          "Les prochaines extensions, coffrets et avant-premières du JCC Pokémon, en France et au Japon, mois par mois : seulement ce qui est annoncé officiellement, avec sa source.",
-          "The next Pokémon TCG sets, products and prereleases, worldwide and in Japan, month by month: only what has been officially announced, with its source.",
-        )}
-      </p>
 
       {/* the alert before the list: a visitor who came for a date leaves with it (Johan, 2026-11-10) */}
-      {amazonOn(lang) && <ReleaseAlert lang={lang} next={nextSet ? shortSetName(nextSet.name) : null} />}
+      {amazonOn(lang) && <ReleaseAlert lang={lang} next={nextSet ? shortSetName(nextSet.name) : null} when={nextSet ? formatDate(nextSet.date, lang) : null} />}
 
       {!upcoming.length && (
         <>

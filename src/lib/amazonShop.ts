@@ -90,11 +90,22 @@ export type ProductPic = { src: string; w: number; h: number };
 /** the kinds made of boosters: the set's booster stands for them while their own picture is missing */
 const OF_BOOSTERS: ShopKind[] = ["bundle", "tripack", "blister"];
 /**
- * its official picture; none yet: the set's booster for a bundle, a tripack or a blister, else nothing (a drawn tile,
- * lib/kindArt: Règne Delta's Elite Trainer Box and display showed a booster, Johan 2026-10-31)
+ * A French box without its picture: the same box of the English set (TCGplayer's, src/data/amazon-products-us.json).
+ * Poképédia uploads an Elite Trainer Box weeks late and displays never (Johan, 2026-11-10: « au pire les EN plutôt qu'un
+ * placeholder »; same box, the English logo on it). Only on the French pages: the English ones never show the French box.
+ */
+function twinPic(p: ShopProduct, g: ShopGroup) {
+  if (!g.setId || !shopGroups.includes(g)) return null;
+  const twin = shopGroupsUs.find((x) => x.setId === g.setId)?.products.find((x) => x.kind === p.kind && x.pic && PICS[x.pic]);
+  return twin ? PICS[twin.pic!] : null;
+}
+/**
+ * its official picture; none yet: the English set's same box (twinPic), the set's booster for a bundle, a tripack or a
+ * blister, else nothing (its box drawn with the set's logo, lib/kindArt: Règne Delta's Elite Trainer Box and display
+ * showed a booster, Johan 2026-10-31)
  */
 export const productPic = (p: ShopProduct, g: ShopGroup): ProductPic | null =>
-  (p.pic && PICS[p.pic]) || (OF_BOOSTERS.includes(p.kind) && g.pic && PICS[g.pic]) || null;
+  (p.pic && PICS[p.pic]) || twinPic(p, g) || (OF_BOOSTERS.includes(p.kind) && g.pic && PICS[g.pic]) || null;
 /** a group's set logo in that language (the site's 320 px one), for a box drawn while its picture is missing (lib/kindArt boxArt) */
 export function groupLogo(g: ShopGroup, lang: Lang = "fr") {
   if (!g.setId) return null;
@@ -114,7 +125,8 @@ export const shortSetName = (name: string) =>
   name
     .replace(/\s*\([^)]*\)\s*$/, "")
     .replace(/^.*?\s:\s|^[^:]*:\s/, "")
-    .replace(/^(Méga-Évolution|Mega Evolution)\s+/, "");
+    // "Mega Evolution—Ascended Heroes" too (no colon, a dash)
+    .replace(/^(Méga-Évolution|Mega Evolution)(\s*[—–-]\s*|\s+)/, "");
 
 /** the products to show first: the boxes people look for (ETB, display, bundle), then the rest */
 const ORDER: ShopKind[] = ["etb", "display", "bundle", "box", "collection", "pokebox", "tripack", "tin", "blister"];

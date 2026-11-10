@@ -327,8 +327,9 @@ doesn't show.
   crawler or headless browser there. No ASIN known: `q`, a search. Pictures: `tp:<TCGplayer product id>` (TCGCSV's sealed products), the English packaging, cut out
   of their white by fetch-amazon-pics. The buttons promise no invitation (not every amazon.com listing has one).
 - A box still without its official picture (Poképédia uploads an Elite Trainer Box weeks late, displays never; pokemon.com
-  turns scripts away: never get round its bot wall) is drawn with the set's real logo on its face (`boxArt` in lib/kindArt,
-  `productArt` in lib/amazonShop), everywhere a product shows (cards, heroes, card pages, blog). Johan 2026-11-10.
+  turns scripts away: never get round its bot wall) shows the English set's same box (`twinPic` in lib/amazonShop, TCGplayer's
+  picture, the English logo on it: Johan 2026-11-10, « les EN plutôt qu'un placeholder »; the alert mails too); no English
+  picture either: drawn with the set's real logo on its face (`boxArt` in lib/kindArt, `productArt`).
 - The collector's gear (2026-11-10): `/accessoires-pokemon` and `/en/card-accessories` (`AccessoriesPage`, a shop page in the
   footer's first row, not a tab): binders, sleeves, toploaders, magnetic holders, boxes as Amazon searches (place
   `accessoires`), drawn by `lib/gearArt`, and each set's binder pages from the catalogs (the page's own content). The card
