@@ -32,7 +32,7 @@ const CALM_MS = 1600;
 /**
  * « Le courrier » (lib/courrier): an envelope slides onto the desk when the player is back and something moved since their
  * last visit; opened, a letter of up to 4 big numbers, each one a way in (the card's binder, the trade binder, the
- * calendar). Read, it's pinned on the cork board (room/PaintedRoom shows the last 4, a click reads one again). One of the
+ * calendar). Read, it's kept with the mail (room/MailButton, by the shop's bag: the last 4, a click reads one again). One of the
  * calm room's gifts (lib/calm), just after the account.
  */
 export function Courrier({
@@ -228,7 +228,7 @@ function LetterView({ letter, onClose, onTile }: { letter: Letter; onClose: () =
           ))}
         </div>
         <button className={styles.close} onClick={() => (sfx.click(), onClose())}>
-          {tr("Épingler au tableau ✓", "Pin it on the board ✓")}
+          {tr("Ranger au courrier ✓", "Keep it with the mail ✓")}
         </button>
       </motion.div>
     </motion.div>

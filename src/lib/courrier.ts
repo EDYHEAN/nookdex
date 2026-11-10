@@ -26,7 +26,7 @@ export const MIN_GAP = 20 * 3_600_000;
 const STALE = 14 * 86_400_000;
 /** a card's price back then below this (its currency): its % moves mean nothing */
 const MIN_THEN = 0.5;
-/** the letters pinned on the cork board */
+/** the letters kept (room/MailButton, by the shop's bag) */
 const PINS = 4;
 
 export interface Snap {
@@ -200,13 +200,13 @@ export function devSnap(): Snap | null {
 /** A snapshot with nothing to say for a long while: taken again (the cards added since go in it) */
 export const isStale = (s: Snap) => Date.now() - s.at > STALE;
 
-/** The letters read, pinned on the cork board (the last 4), and the one open */
+/** The letters read, kept with the mail (the last 4), and the one open */
 export const useCourrier = create<{ pins: Letter[]; reading: Letter | null }>(() => ({
   pins: typeof window === "undefined" ? [] : (read<Letter[]>(PINS_KEY) ?? []),
   reading: null,
 }));
 
-/** A letter read: pinned on the board (the newest first), out of the envelope */
+/** A letter read: kept with the mail (the newest first), out of the envelope */
 export function pinLetter(l: Letter) {
   const pins = [l, ...useCourrier.getState().pins.filter((p) => p.day !== l.day)].slice(0, PINS);
   write(PINS_KEY, pins);

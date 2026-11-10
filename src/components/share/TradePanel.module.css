@@ -1186,3 +1186,12 @@
 .starSearch {
   margin-bottom: 6px;
 }
+
+/* 📸: the list as pictures (share/ExportImages) */
+.btnPics i {
+  font-family: system-ui, sans-serif;
+  font-size: 20px;
+  font-style: normal;
+  line-height: 0;
+  vertical-align: middle;
+}

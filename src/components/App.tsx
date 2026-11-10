@@ -31,6 +31,7 @@ import { ReleaseBar } from "./room/ReleaseBar";
 import { SavePrompt } from "./room/SavePrompt";
 import { MailAsk } from "./room/MailAsk";
 import { Courrier } from "./room/Courrier";
+import { MailButton } from "./room/MailButton";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
 import { ITEM, backFromShop, itemsOf, paidFor, preloadShop, refreshOwned, selling, setShopView, useShopNews, useShopOpen, useSkins } from "@/lib/shop";
@@ -689,6 +690,8 @@ export function App() {
             )}
           </button>
         )}
+        {/* the letters read (room/Courrier), by the shop's bag */}
+        {entered && !busy && <MailButton className={styles.iconBtn} />}
         {compact && !busy && (
           <>
             <button

@@ -35,6 +35,13 @@ const nextConfig: NextConfig = {
     { source: "/instagram", destination: "/?utm_source=instagram-story", permanent: false },
     { source: "/en/instagram", destination: "/en?utm_source=instagram-story-en", permanent: false },
   ],
+  // The trade list drawn as pictures (lib/listImages) puts the scans on a canvas: TCGdex's CDN sometimes sends its CORS
+  // header twice (the browser then refuses the picture) and TCGplayer's sends none. Through our own address they're the
+  // page's own pictures. Only fetched by that script, a few dozen at a time.
+  rewrites: async () => [
+    { source: "/cardimg/tcgdex/:path*", destination: "https://assets.tcgdex.net/:path*" },
+    { source: "/cardimg/tp/:id(\\d+)", destination: "https://product-images.tcgplayer.com/fit-in/245x342/:id.jpg" },
+  ],
   // The pages whose address says their language (src/proxy.ts: nothing in them follows the cookie) are kept a day on
   // Vercel's CDN: drawn on each visit otherwise (the root layout reads the cookie), the crawlers going through the ~41,000
   // card pages ran a function each time and went past the Hobby plan's CPU and invocations (2026-10-26). Their prices

@@ -13,7 +13,7 @@ import styles from "./TradePanel.module.css";
  */
 export const SheetHost = createContext<HTMLElement | null>(null);
 
-export function BottomSheet({ logo, title, sub, onClose, children }: { logo?: string | null; title: string; sub: ReactNode; onClose: () => void; children: ReactNode }) {
+export function BottomSheet({ logo, icon = "★", title, sub, onClose, children }: { logo?: string | null; icon?: string; title: string; sub: ReactNode; onClose: () => void; children: ReactNode }) {
   const tr = useT();
   const host = useContext(SheetHost);
 
@@ -44,7 +44,7 @@ export function BottomSheet({ logo, title, sub, onClose, children }: { logo?: st
       >
         <span className={styles.grab} aria-hidden />
         <div className={styles.sheetHead}>
-          {logo ? <img src={`${logo}.png`} alt="" /> : <span className={styles.sheetStar}>★</span>}
+          {logo ? <img src={`${logo}.png`} alt="" /> : <span className={styles.sheetStar}>{icon}</span>}
           <div>
             <b>{title}</b>
             {sub}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { formatDate } from "@/lib/blog";
 import { amazonOn, amazonSearch, inShops } from "@/lib/amazon";
 import { boosterPics, byInterest, goLabel, kindLabel, productHref, productPic, shopFor, shopPath, shortSetName } from "@/lib/amazonShop";
+import { keyOf } from "@/lib/cardLang";
 import { kindArt } from "@/lib/kindArt";
 import { daysLeft } from "@/lib/parisTime";
 import { daysUntil, type Release, releases } from "@/lib/releases";
@@ -122,6 +123,10 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
   const thumb = pic ?? fan[0] ?? null;
   const days = heroSet ? daysUntil(heroSet.date) : 0;
   const heroPost = heroSet?.post;
+  // the desk, for those who came to read a date (weekly report, 2026-11-09: 78 arrivals here, 3 profiles). The latest set
+  // out, never a coming one: ?classeur= ignores a set not in the catalog yet
+  const deskSet = past.find((r) => r.out && r.kind === "set" && r.region === "intl" && r.setId);
+  const deskName = deskSet ? shortSetName(deskSet.name) : "";
 
   const hero = heroSet && (
     <ShopHero
@@ -203,6 +208,16 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
         })}
       {/* no hero (nothing coming, nothing out this year): the page's title on the paper */}
       {!hero && <h1>{t("Calendrier des sorties du JCC Pokémon", "Pokémon TCG release calendar")}</h1>}
+
+      {/* green, under the hero: never in an Amazon hero */}
+      {deskSet && (
+        <div className={s.app}>
+          <p>{t(`Tes boosters ouverts ? Coche tes cartes de ${deskName} et suis leur cote chaque jour.`, `Opened your packs? Tick your ${deskName} cards and follow their value every day.`)}</p>
+          <Link prefetch={false} href={`${fr ? "/" : "/en"}?classeur=${encodeURIComponent(keyOf(lang, deskSet.setId!))}`} className={`${s.btn} ${s.green}`}>
+            {t("Ouvrir mon classeur ▶", "Open my binder ▶")}
+          </Link>
+        </div>
+      )}
 
       {/* the answer first: what "prochaine sortie pokemon" looks for, in one sentence */}
       {nextSet && (

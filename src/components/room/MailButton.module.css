@@ -1,0 +1,74 @@
+/* the letters read (room/MailButton), in the top corner by the shop's bag */
+.box {
+  position: relative;
+}
+
+.btn {
+  position: relative;
+  color: #f2e4c4;
+}
+
+/* how many letters are kept, a red wax dot on the corner */
+.count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 3px;
+  background: #d84a3c;
+  color: #fff8e8;
+  font-family: var(--font-press), monospace;
+  font-size: 9px;
+  line-height: 1;
+  box-shadow: 0 0 0 2px #150f1f;
+}
+
+/* the letters' days, unfolded under the button */
+.list {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: -4px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #fff8e8;
+  transform-origin: top right;
+  box-shadow:
+    0 0 0 3px #2e2430,
+    4px 5px 0 3px rgba(40, 20, 30, 0.35);
+}
+
+.list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  background: none;
+  color: #2e2430;
+  font-family: var(--font-vt), monospace;
+  font-size: 21px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.list button:hover {
+  background: #f1e2c0;
+}
+
+.list small {
+  margin-left: auto;
+  padding-left: 8px;
+  color: #9a8a76;
+  font-size: 16px;
+}
+
+.env {
+  color: #c23b32;
+  font-size: 18px;
+}
