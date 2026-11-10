@@ -11,6 +11,7 @@ import { SET_PAGES_ROOT, type PageLang } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { Countdown } from "./shop/Countdown";
 import { Affiliate, AmazonButton, KindTiles, ProductRail, Stage } from "./shop/ShopBits";
+import { ReleaseAlert } from "./shop/ReleaseAlert";
 import { ShopHero } from "./shop/ShopHero";
 import { StickyBuy } from "./shop/StickyBuy";
 import s from "./shop/Shop.module.css";
@@ -219,6 +220,20 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
         </div>
       )}
 
+      {/* the set just out, all its products (Johan, 2026-11-10: the English calendar is the page that sells, its hero showed
+          the Elite Trainer Box alone); a month after its release the coming sets take over */}
+      {!coming && heroSet && group && amazonOn(lang) && -daysUntil(heroSet.date) <= 30 && (
+        <section>
+          <h2 className={s.month}>{t(`${heroName} sur Amazon`, `${heroName} on Amazon`)}</h2>
+          <ProductRail group={group} place="calendrier" max={4} lang={lang} />
+          <p className={s.links}>
+            <Link prefetch={false} href={`${shopPath(lang)}#${group.id}`}>
+              {t(`Toutes les invitations ${heroName} →`, `Every Amazon invite for ${heroName} →`)}
+            </Link>
+          </p>
+        </section>
+      )}
+
       {/* the answer first: what "prochaine sortie pokemon" looks for, in one sentence */}
       {nextSet && (
         <p className={s.answer}>
@@ -236,6 +251,9 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           "The next Pokémon TCG sets, products and prereleases, worldwide and in Japan, month by month: only what has been officially announced, with its source.",
         )}
       </p>
+
+      {/* the alert before the list: a visitor who came for a date leaves with it (Johan, 2026-11-10) */}
+      {amazonOn(lang) && <ReleaseAlert lang={lang} next={nextSet ? shortSetName(nextSet.name) : null} />}
 
       {!upcoming.length && (
         <>

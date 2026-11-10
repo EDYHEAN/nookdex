@@ -326,6 +326,21 @@ doesn't show.
   Company as maker, never a reseller's « WAVE 2 … »), found by a web search limited to amazon.com: Amazon refuses scripts and its terms forbid scraping, so no
   crawler or headless browser there. No ASIN known: `q`, a search. Pictures: `tp:<TCGplayer product id>` (TCGCSV's sealed products), the English packaging, cut out
   of their white by fetch-amazon-pics. The buttons promise no invitation (not every amazon.com listing has one).
+- A box still without its official picture (Poképédia uploads an Elite Trainer Box weeks late, displays never; pokemon.com
+  turns scripts away: never get round its bot wall) is drawn with the set's real logo on its face (`boxArt` in lib/kindArt,
+  `productArt` in lib/amazonShop), everywhere a product shows (cards, heroes, card pages, blog). Johan 2026-11-10.
+- The collector's gear (2026-11-10): `/accessoires-pokemon` and `/en/card-accessories` (`AccessoriesPage`, a shop page in the
+  footer's first row, not a tab): binders, sleeves, toploaders, magnetic holders, boxes as Amazon searches (place
+  `accessoires`), drawn by `lib/gearArt`, and each set's binder pages from the catalogs (the page's own content). The card
+  pages' « Protège-la » links to it.
+- **Release alert** (Johan, 2026-11-10: the Amazon pages' visitors read, then leave): « Préviens-moi à la prochaine sortie »
+  (`shop/ReleaseAlert`) on /invitations-amazon, /en/amazon-invites and the calendars. `/api/alert` sends a confirmation mail
+  (Brevo transactional, a link signed with an HMAC of the Brevo key, nothing stored), `/api/alert/confirm` adds the address to
+  the Brevo list « NookDex · Alerte sorties FR » / « NookDex · Release alert EN » (made by name on the first sign-up, folder
+  NookDex, `lib/releaseAlert`). The Action « Alerte sorties » (daily 06:30 UTC, `scripts/release-alert.mjs`) sends a Brevo
+  campaign per set, kind and language, once (its name `alerte-<set>-<kind>-<lang>`): « preorder » as soon as a coming set's
+  products have an ASIN, « out » on release day. **Never an Amazon link in a mail** (the program forbids it): our pages.
+  Brevo is on the free plan (300 mails a day, shared with the auth and contact mails).
 - « Sous la lampe » (Johan, 2026-10-31): `/invitations-amazon`, the calendar, the set pages with their index, the card
   pages, the market (`/marche`, `/en/market`: the week's top riser under the lamp), the blog and the text pages (FR, EN) are shop
   pages, full width

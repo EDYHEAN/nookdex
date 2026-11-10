@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Fr() {
   return (
-    <ShellTextPage path="/confidentialite" title="Règles de confidentialité" updated="17 octobre 2026">
+    <ShellTextPage path="/confidentialite" title="Règles de confidentialité" updated="10 novembre 2026">
       <p>
         {SITE_NAME} ({SITE_DOMAIN}) est un site gratuit pour ranger et suivre sa collection de cartes Pokémon dans des classeurs virtuels. Cette page
         explique quelles données le site collecte, pourquoi, avec qui elles sont partagées, combien de temps elles sont gardées et comment les
@@ -49,6 +49,11 @@ function Fr() {
         <b>Le courrier du lundi.</b> Seulement si tu le demandes (avec un compte) : chaque lundi, un e-mail sur ta collection, calculé à
         partir de ta sauvegarde en ligne, envoyé par Brevo. On garde ta réponse et la date du dernier envoi. Chaque e-mail a un lien pour ne
         plus le recevoir, et l&apos;interrupteur de NookDex OS → Sauvegarde le coupe aussi.
+      </p>
+      <p>
+        <b>L&apos;alerte sorties.</b> Seulement si tu la demandes (sans compte) : ton e-mail et ta langue, gardés par Brevo, pour un e-mail le
+        jour d&apos;une nouvelle extension. Ton adresse n&apos;est ajoutée qu&apos;après un clic dans l&apos;e-mail de confirmation ; chaque
+        e-mail a un lien pour se désinscrire, et l&apos;adresse est alors retirée de la liste.
       </p>
       <p>
         <b>Formulaire de contact.</b> Si tu nous écris : ton e-mail, le sujet et ton message.
@@ -156,7 +161,7 @@ function Fr() {
 
 function En() {
   return (
-    <ShellTextPage path="/confidentialite" title="Privacy policy" updated="17 October 2026" en>
+    <ShellTextPage path="/confidentialite" title="Privacy policy" updated="10 November 2026" en>
       <p>
         {SITE_NAME} ({SITE_DOMAIN}) is a free site to file and track your Pokémon card collection in virtual binders. This page explains which
         data the site collects, why, who it is shared with, how long it is kept and how to delete it. We collect as little as possible, and nothing
@@ -191,6 +196,11 @@ function En() {
         <b>The Monday mail.</b> Only if you ask for it (with an account): every Monday, an e-mail about your collection, worked out from your
         online save, sent through Brevo. We keep your answer and when the last one was sent. Each e-mail has a link to stop it, and the
         switch in NookDex OS → Save turns it off too.
+      </p>
+      <p>
+        <b>The release alert.</b> Only if you ask for it (no account needed): your e-mail and language, kept by Brevo, for an e-mail on the
+        day a new set comes out. Your address is only added once you click the confirmation e-mail; each e-mail has a link to unsubscribe,
+        which takes it off the list.
       </p>
       <p>
         <b>Contact form.</b> If you write to us: your e-mail, the subject and your message.

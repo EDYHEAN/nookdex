@@ -1,7 +1,10 @@
 import data from "@/data/amazon-products.json";
 import dataUs from "@/data/amazon-products-us.json";
 import pics from "@/data/amazon-pics.json";
+import catalogEn from "@/data/catalog-en.json";
+import catalogFr from "@/data/catalog.json";
 import { amazonProduct, amazonSearch, type AmazonPlace } from "./amazon";
+import { boxArt } from "./kindArt";
 
 /**
  * Sealed Pokémon TCG products on amazon.fr (Johan, 2026-10-19: put the products forward, with their official picture and
@@ -92,6 +95,16 @@ const OF_BOOSTERS: ShopKind[] = ["bundle", "tripack", "blister"];
  */
 export const productPic = (p: ShopProduct, g: ShopGroup): ProductPic | null =>
   (p.pic && PICS[p.pic]) || (OF_BOOSTERS.includes(p.kind) && g.pic && PICS[g.pic]) || null;
+/** a group's set logo in that language (the site's 320 px one), for a box drawn while its picture is missing (lib/kindArt boxArt) */
+export function groupLogo(g: ShopGroup, lang: Lang = "fr") {
+  if (!g.setId) return null;
+  const s = ((lang === "fr" ? catalogFr : catalogEn) as { id: string; logo?: string | null }[]).find((x) => x.id === g.setId);
+  return s?.logo?.startsWith("/") ? `${s.logo}-sm.webp` : null;
+}
+
+/** what stands for a product without its picture: its box drawn with the set's logo, else its kind drawn (SVG markup) */
+export const productArt = (p: ShopProduct, g: ShopGroup, lang: Lang = "fr") => boxArt(p.kind, groupLogo(g, lang));
+
 /** the set's boosters (its picture, the products' booster pictures): the hero's fan when its box has no picture */
 export const boosterPics = (g: ShopGroup) =>
   [...new Set([g.pic, ...g.products.map((p) => p.pic)])].flatMap((k) => (k && PICS[k] && /\/booster-/.test(PICS[k].src) ? [PICS[k]] : []));

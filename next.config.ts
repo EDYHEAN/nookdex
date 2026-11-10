@@ -48,7 +48,7 @@ const nextConfig: NextConfig = {
   // change once a day, with the prices commit, and each deploy starts the CDN's cache afresh. The other pages follow the
   // visitor's language and stay uncached.
   headers: async () =>
-    ["/en", "/en/:path*", "/extensions", "/extensions/:path*", "/calendrier-des-sorties", "/invitations-amazon", "/marche"].map((source) => ({
+    ["/en", "/en/:path*", "/extensions", "/extensions/:path*", "/calendrier-des-sorties", "/invitations-amazon", "/accessoires-pokemon", "/marche"].map((source) => ({
       source,
       headers: [{ key: "Vercel-CDN-Cache-Control", value: "s-maxage=86400, stale-while-revalidate=86400" }],
     })),

@@ -36,6 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const sets = { languages: { fr: `${SITE_URL}/extensions`, en: `${SITE_URL}/en/sets` } };
   const market = { languages: { fr: `${SITE_URL}/marche`, en: `${SITE_URL}/en/market` } };
   const invites = { languages: { fr: `${SITE_URL}/invitations-amazon`, en: `${SITE_URL}/en/amazon-invites` } };
+  const gear = { languages: { fr: `${SITE_URL}/accessoires-pokemon`, en: `${SITE_URL}/en/card-accessories` } };
   return [
     { url: SITE_URL, lastModified: prices, changeFrequency: "daily", priority: 1, alternates: home },
     { url: `${SITE_URL}/en`, lastModified: prices, changeFrequency: "daily", priority: 1, alternates: home },
@@ -51,6 +52,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // the sealed products on Amazon, kept up to date with each release
     { url: `${SITE_URL}/invitations-amazon`, changeFrequency: "weekly", priority: 0.7, alternates: invites },
     { url: `${SITE_URL}/en/amazon-invites`, changeFrequency: "weekly", priority: 0.7, alternates: invites },
+    // the collector's gear (binders, sleeves, toploaders), with each set's binder pages
+    { url: `${SITE_URL}/accessoires-pokemon`, changeFrequency: "monthly", priority: 0.6, alternates: gear },
+    { url: `${SITE_URL}/en/card-accessories`, changeFrequency: "monthly", priority: 0.6, alternates: gear },
     { url: `${SITE_URL}/a-propos`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/blog`, lastModified: posts[0]?.date, changeFrequency: "weekly", priority: 0.7 },
     ...posts.map((p) => {

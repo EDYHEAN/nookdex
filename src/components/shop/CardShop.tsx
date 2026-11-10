@@ -1,5 +1,5 @@
 import { affiliateLabel, amazonOn, amazonSearch, inShops } from "@/lib/amazon";
-import { byInterest, goLabel, kindLabel, productHref, productPic, shopFor, type ProductPic, type ShopKind } from "@/lib/amazonShop";
+import { byInterest, goLabel, kindLabel, productArt, productHref, productPic, shopFor, type ProductPic, type ShopKind } from "@/lib/amazonShop";
 import { ProductArt } from "./ShopBits";
 import s from "./Shop.module.css";
 import cs from "./CardShop.module.css";
@@ -17,6 +17,8 @@ interface Item {
   kind: ShopKind;
   label: string;
   pic: ProductPic | null;
+  /** its box drawn with the set's logo while its picture is missing */
+  art?: string;
   go: string;
 }
 
@@ -48,6 +50,7 @@ export function SealedBlock({ lang, setId, setName, releaseDate }: { lang: Lang;
       kind: x.kind,
       label: kindLabel(x.kind, lang),
       pic: productPic(x, g),
+      art: productArt(x, g, lang),
       go: goLabel(x, soon, lang),
     }));
   } else {
@@ -67,7 +70,7 @@ export function SealedBlock({ lang, setId, setName, releaseDate }: { lang: Lang;
       <h2>{t(`Elle se cache dans les boosters ${setName}`, `It hides in ${setName} booster packs`)}</h2>
       <a className={cs.feat} href={feat.href} target="_blank" rel="sponsored noopener" data-amazon-place="carte">
         <span className={cs.ph}>
-          <ProductArt pic={feat.pic} kind={feat.kind} alt={`${feat.label} ${setName}`} />
+          <ProductArt pic={feat.pic} kind={feat.kind} art={feat.art} alt={`${feat.label} ${setName}`} />
         </span>
         <span>
           <span className={cs.k}>{feat.label}</span>
@@ -82,7 +85,7 @@ export function SealedBlock({ lang, setId, setName, releaseDate }: { lang: Lang;
           {rest.map((x) => (
             <li key={x.href}>
               <a href={x.href} target="_blank" rel="sponsored noopener" data-amazon-place="carte">
-                <ProductArt pic={x.pic} kind={x.kind} alt="" />
+                <ProductArt pic={x.pic} kind={x.kind} art={x.art} alt="" />
                 <span>{x.name} ↗</span>
               </a>
             </li>
@@ -110,7 +113,10 @@ export function ProtectIt({ lang, price }: { lang: Lang; price: number | null | 
       >
         {fr ? "Sleeves et toploaders sur Amazon" : "Sleeves & toploaders on Amazon"} ↗
       </a>
-      <small>{affiliateLabel(lang)}</small>
+      <small>
+        {affiliateLabel(lang)} ·{" "}
+        <a href={fr ? "/accessoires-pokemon" : "/en/card-accessories"}>{fr ? "Le guide du matériel" : "The gear guide"}</a>
+      </small>
     </p>
   );
 }

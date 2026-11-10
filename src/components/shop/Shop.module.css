@@ -676,6 +676,13 @@
   height: 112px;
 }
 
+/* a box drawn with its set's logo (lib/kindArt boxArt): as big as a product shot */
+.pic :global(.box-art) {
+  width: 150px;
+  height: 145px;
+  max-height: 145px;
+}
+
 .pcard:hover .pic img,
 .pcard:hover .pic svg {
   transform: translateY(-6px) scale(1.04);
@@ -1444,4 +1451,153 @@
   .stats > .fromTablet {
     display: none;
   }
+}
+
+/* ---------- the collector's gear (AccessoriesPage) ---------- */
+/* the name doesn't stretch here: the tips take the room, the button stays at the bottom */
+.gearName {
+  flex: none;
+}
+
+.gearWhat {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.tips {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 6px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.tips > span::before {
+  content: "✓ ";
+  color: #3f8f3a;
+  font-weight: 700;
+}
+
+
+.tableW {
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 0 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.table th,
+.table td {
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--paper-2);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table thead th {
+  border-bottom: 3px solid var(--ink);
+  font-family: var(--vt);
+  font-size: 19px;
+  font-weight: 400;
+}
+
+.table td {
+  font-variant-numeric: tabular-nums;
+}
+
+.table td:nth-child(n + 3),
+.table thead th:nth-child(n + 3) {
+  text-align: right;
+}
+
+.table tbody th {
+  font-weight: 600;
+  white-space: normal;
+}
+
+/* a phone: the set, its cards, pages and sheets; the date from a tablet up */
+@media (max-width: 599px) {
+  .table .wideOnly {
+    display: none;
+  }
+}
+
+/* ---------- the release alert (ReleaseAlert) ---------- */
+.alert {
+  display: flex;
+  gap: 14px;
+  margin: 32px 0;
+  padding: 18px;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 4px 5px 0 var(--ink);
+}
+
+.alertIcon {
+  flex: none;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.alert > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert b {
+  font-size: 18px;
+}
+
+.alert p {
+  margin: 4px 0 10px;
+}
+
+.alert small {
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.alertForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.alertForm input[type="email"] {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  /* 16 px at least: no zoom on a phone */
+  font-size: 16px;
+}
+
+.alertForm .btn {
+  flex: none;
+}
+
+.hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.alertErr {
+  color: #b8433d;
+  font-weight: 600;
 }

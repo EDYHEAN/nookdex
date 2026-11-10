@@ -4,6 +4,7 @@ import { WidePage } from "@/components/WidePage";
 import { Countdown } from "@/components/shop/Countdown";
 import { OpenHash } from "@/components/shop/OpenHash";
 import { Affiliate, AmazonButton, ProductRail, Stage } from "@/components/shop/ShopBits";
+import { ReleaseAlert } from "@/components/shop/ReleaseAlert";
 import { ShopHero } from "@/components/shop/ShopHero";
 import { StickyBuy } from "@/components/shop/StickyBuy";
 import s from "@/components/shop/Shop.module.css";
@@ -23,7 +24,7 @@ import {
 import { formatDate } from "@/lib/blog";
 import { kindArt } from "@/lib/kindArt";
 import { daysLeft } from "@/lib/parisTime";
-import { daysUntil } from "@/lib/releases";
+import { daysUntil, nextSetName } from "@/lib/releases";
 import { setPagePath } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -220,6 +221,7 @@ export default function InvitationsAmazon() {
           </ul>
         </section>
       )}
+      <ReleaseAlert lang="fr" next={nextSetName("fr")} />
 
       {rest.map((g) => {
         const gp = g.setId ? setPagePath("fr", g.setId) : null;

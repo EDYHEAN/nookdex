@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { affiliateLabel, amazonSearch, type AmazonPlace } from "@/lib/amazon";
-import { byInterest, goLabel, kindLabel, productHref, productPic, type ProductPic, type ShopGroup, type ShopKind } from "@/lib/amazonShop";
+import { byInterest, goLabel, kindLabel, productArt, productHref, productPic, type ProductPic, type ShopGroup, type ShopKind } from "@/lib/amazonShop";
 import { kindArt } from "@/lib/kindArt";
 import s from "./Shop.module.css";
 
@@ -44,12 +44,12 @@ export function AmazonButton({
 /** « Lien affilié », by a group of Amazon links */
 export const Affiliate = ({ lang, many }: { lang: Lang; many?: boolean }) => <p className={s.aff}>{affiliateLabel(lang, many)}</p>;
 
-/** a picture, or its kind drawn (lib/kindArt: never a booster for a box) */
-export function ProductArt({ pic, kind, alt, eager }: { pic: ProductPic | null; kind: ShopKind; alt: string; eager?: boolean }) {
+/** a picture, or its box drawn with its set's logo (`art`, lib/amazonShop productArt), else its kind drawn (never a booster for a box) */
+export function ProductArt({ pic, kind, alt, eager, art }: { pic: ProductPic | null; kind: ShopKind; alt: string; eager?: boolean; art?: string }) {
   return pic ? (
     <img src={pic.src} width={pic.w} height={pic.h} alt={alt} loading={eager ? undefined : "lazy"} fetchPriority={eager ? "high" : undefined} />
   ) : (
-    <span role="img" aria-label={alt} style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: kindArt(kind) }} />
+    <span role="img" aria-label={alt} style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: art ?? kindArt(kind) }} />
   );
 }
 
@@ -71,7 +71,7 @@ export function ProductCard({
     <a className={s.pcard} href={productHref(p, place, lang)} target="_blank" rel="sponsored noopener" data-amazon-place={place}>
       {soon && <span className={s.ribbon}>{lang === "fr" ? "Précommande" : "Pre-order"}</span>}
       <span className={s.pic}>
-        <ProductArt pic={productPic(p, group)} kind={p.kind} alt={`${kindLabel(p.kind, lang)} ${group.name}`} />
+        <ProductArt pic={productPic(p, group)} kind={p.kind} art={productArt(p, group, lang)} alt={`${kindLabel(p.kind, lang)} ${group.name}`} />
       </span>
       <span className={s.body}>
         <span className={s.kind}>{kindLabel(p.kind, lang)}</span>
@@ -155,7 +155,7 @@ export function CardStage({ src, alt }: { src: string; alt: string }) {
 }
 
 /** the hero's stage: the product under the lamp (its picture or its drawn kind), else the set's boosters fanned out */
-export function Stage({ pic, kind, fan, alt }: { pic: ProductPic | null; kind: ShopKind | null; fan: ProductPic[]; alt: string }) {
+export function Stage({ pic, kind, fan, alt, art }: { pic: ProductPic | null; kind: ShopKind | null; fan: ProductPic[]; alt: string; art?: string }) {
   // a box without its picture: the set's boosters say more than a drawing (they're the set's own, named so)
   const boosters = !pic && fan.length ? fan.slice(0, 3) : null;
   // the middle one (the second, drawn bigger) is the set's main booster
@@ -172,7 +172,7 @@ export function Stage({ pic, kind, fan, alt }: { pic: ProductPic | null; kind: S
             ))}
           </div>
         ) : (
-          <div className={s.solo}>{kind && <ProductArt pic={pic} kind={kind} alt={alt} eager />}</div>
+          <div className={s.solo}>{kind && <ProductArt pic={pic} kind={kind} alt={alt} art={art} eager />}</div>
         )}
       </div>
       <div className={s.desk} />
