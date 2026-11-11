@@ -447,14 +447,16 @@ function PaintedRoomView({
     const pockets = pocketsOf(b.id, collection);
     const items = [...pockets.values()].flatMap(({ cardId, copy }) => (cards[cardId] ? [{ card: cards[cardId], copies: [copy] }] : []));
     const t = copiesTotals(items);
+    const wanted = [...wantsOf(b)].filter(([pocket]) => !pockets.has(pocket)).length;
+    const total = t.cards + wanted;
     if (b.wish) {
-      const wanted = [...wantsOf(b)].filter(([pocket]) => !pockets.has(pocket)).length;
-      const total = t.cards + wanted;
       return {
         sub: total ? `★ wishlist · ${t.cards}/${total} ${tr("trouvées", "found")}` : tr("★ wishlist · vide", "★ wishlist · empty"),
         pct: total ? t.cards / total : 0,
       };
     }
+    // a free binder with missing cards (greyed): counted like a set
+    if (wanted) return { sub: `${t.cards}/${total} ${tr("cartes", "cards")} · ${formatMoney(t.trend)}`, pct: t.cards / total };
     return { sub: t.cards ? `${t.cards} ${tr("carte", "card")}${t.cards > 1 ? "s" : ""} · ${formatMoney(t.trend)}` : tr("classeur libre · vide", "free binder · empty"), pct: null };
   };
   /** the binders of the page shown, and the free place for a new one if it's on this page */

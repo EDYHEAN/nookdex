@@ -247,3 +247,75 @@
 .wishNote {
   color: var(--ink-gold);
 }
+
+/* a free binder: « ✓ Je l'ai » / « ◌ Elle me manque », two big paper tabs */
+.modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 18px 0;
+}
+
+.mode {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 12px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: #e6dcc6;
+  color: var(--ink-soft);
+  font: inherit;
+  text-align: left;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(43, 34, 48, 0.35);
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.8, 0.5, 1),
+    background 0.15s;
+}
+
+.mode b {
+  font-weight: normal;
+  font-size: 22px;
+}
+
+.mode small {
+  font-size: 16px;
+}
+
+.mode:hover {
+  transform: translateY(-2px);
+}
+
+.mode:active {
+  transform: scale(0.96);
+}
+
+.modeOn {
+  background: #fffaf0;
+  color: var(--ink);
+  box-shadow:
+    0 0 0 3px var(--ink),
+    3px 4px 0 3px rgba(20, 12, 28, 0.3);
+}
+
+/* « Elle me manque »: the results already look like the greyed pocket they'll go in */
+.ghostMode .card img {
+  filter: grayscale(1) sepia(0.35) contrast(0.8) brightness(1.1);
+  opacity: 0.55;
+}
+
+@media (max-width: 560px) {
+  .modes {
+    margin: 10px 12px 0;
+    gap: 8px;
+  }
+  .mode b {
+    font-size: 19px;
+  }
+  .mode small {
+    font-size: 14px;
+  }
+}

@@ -14,6 +14,7 @@ import { unlock } from "@/lib/trophyStore";
 import type { CardData, Copy, SetData } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { CardBack } from "../binder/CardBack";
+import { InstallButton } from "../InstallApp";
 import { AllCards } from "./AllCards";
 import { ImportPokecardex } from "./ImportPokecardex";
 import { TradePanel } from "../share/TradePanel";
@@ -317,6 +318,10 @@ function Home({ entries, onGo, onOpenBox }: { entries: Entry[]; onGo: (id: strin
       cards[cardId] ? [{ card: cards[cardId], copies: [copy] }] : [],
     );
     const s = copiesTotals(items);
+    // a free binder with missing cards (greyed) gets a bar like a set's
+    const kept = pocketsOf(b.id, collection);
+    const total = s.cards + [...wantsOf(b)].filter(([pocket]) => !kept.has(pocket)).length;
+    if (total > s.cards) return { b, pct: s.cards / total, count: `${s.cards}/${total}`, trend: s.trend };
     return { b, pct: null, count: `${s.cards} ${tr("carte", "card")}${s.cards > 1 ? "s" : ""}`, trend: s.trend };
   });
   const gain = t.spentTrend - t.spent;
@@ -333,6 +338,12 @@ function Home({ entries, onGo, onOpenBox }: { entries: Entry[]; onGo: (id: strin
 
   return (
     <div className={styles.home}>
+      {/* only where the device can install it, gone once it's installed */}
+      <InstallButton className={`${styles.setRow} ${styles.boxRow} ${styles.installRow}`}>
+        <span className={styles.freeIcon}>📲</span>
+        <span className={styles.setName}>{tr("Installer l'app", "Install the app")}</span>
+        <span className={styles.freeTag}>{tr("sur ton écran d'accueil, en plein écran", "on your home screen, full screen")}</span>
+      </InstallButton>
       <div className={styles.tiles}>
         {t.total ? (
           <Tile

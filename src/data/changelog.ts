@@ -13,6 +13,22 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.19",
+    date: "2026-11-11",
+    title: { fr: "Tes classeurs à toi", en: "Your own binders" },
+    items: [
+      { fr: "Classeur libre : range aussi les cartes qui te manquent, grisées en attendant.", en: "Free binders: file the cards you're missing too, greyed until you get them." },
+      { fr: "📲 Installer l'app sur ton écran d'accueil : NookDex OS → Accueil, ou le carnet.", en: "📲 Install the app on your home screen: NookDex OS → Home, or the notebook." },
+      { fr: "Ta liste d'échange en images, pour les groupes Facebook qui refusent les liens : 📸 dans le classeur d'échange.", en: "Your trade list as pictures, for the Facebook groups that refuse links: 📸 in the trade binder." },
+      { fr: "Règne Delta dès le jour de sa sortie, ses images arrivent dans quelques jours.", en: "Delta Reign from its release day, its pictures follow within days." },
+      { fr: "Un e-mail le jour de la prochaine sortie, si tu le demandes : sur le calendrier et les invitations Amazon.", en: "An e-mail on the day the next set is out, if you ask: on the calendar and the Amazon invites." },
+      { fr: "Le guide du matériel : classeur, sleeves, toploader, et combien de pages il faut pour chaque set.", en: "The gear guide: binder, sleeves, toploaders, and how many pages each set takes." },
+      { fr: "Tes lettres relues depuis l'enveloppe en haut à droite, plus sur le tableau.", en: "Read your letters again from the envelope at the top right, no longer on the board." },
+      { fr: "La radio sans la pluie ni les craquements, si tu préfères : NookDex OS → Sauvegarde.", en: "The radio without the rain and crackle, if you like: NookDex OS → Save." },
+      { fr: "Le marché et le blog en grand, comme les extensions.", en: "The market and the blog full size, like the sets." },
+    ],
+  },
+  {
     version: "0.18",
     date: "2026-10-31",
     title: { fr: "La Ligue", en: "The League" },
@@ -28,13 +44,6 @@ export const CHANGELOG: Release[] = [
       { fr: "Le calendrier des sorties en grand, avec le compte à rebours de la prochaine extension.", en: "The release calendar, full size, with a countdown to the next set." },
       { fr: "Les pages d'extension en grand aussi, leurs cartes les plus chères en vitrine.", en: "The set pages full size too, their most valuable cards on show." },
       { fr: "Les pages des cartes s'ouvrent bien plus vite.", en: "Card pages open much faster." },
-      { fr: "Le marché et le blog en grand, comme les extensions.", en: "The market and the blog full size, like the sets." },
-      { fr: "La radio sans la pluie ni les craquements, si tu préfères : NookDex OS → Sauvegarde.", en: "The radio without the rain and crackle, if you like: NookDex OS → Save." },
-      { fr: "Règne Delta dès le jour de sa sortie, ses images arrivent dans quelques jours.", en: "Delta Reign from its release day, its pictures follow within days." },
-      { fr: "Ta liste d'échange en images, pour les groupes Facebook qui refusent les liens : 📸 dans le classeur d'échange.", en: "Your trade list as pictures, for the Facebook groups that refuse links: 📸 in the trade binder." },
-      { fr: "Tes lettres relues depuis l'enveloppe en haut à droite, plus sur le tableau.", en: "Read your letters again from the envelope at the top right, no longer on the board." },
-      { fr: "Un e-mail le jour de la prochaine sortie, si tu le demandes : sur le calendrier et les invitations Amazon.", en: "An e-mail on the day the next set is out, if you ask: on the calendar and the Amazon invites." },
-      { fr: "Le guide du matériel : classeur, sleeves, toploader, et combien de pages il faut pour chaque set.", en: "The gear guide: binder, sleeves, toploaders, and how many pages each set takes." },
     ],
   },
   {

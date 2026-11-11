@@ -56,6 +56,8 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
   const pct = stats.total ? stats.owned / stats.total : 0;
   const gain = stats.spentTrend - stats.spent;
   const wish = binder.wish;
+  /** a free binder with missing cards (greyed) in its pockets: counted like a set, « 8 / 12 » and its ring */
+  const goal = free && !wish && stats.total > stats.owned;
   /**
    * A new binder (fewer than 10 cards, UX review 2026-10-24): the count first; its tools (search, sort, pockets a page,
    * colour, map) folded behind « ⚙ Réglages du classeur », no master-set jargon. Everything is out again at 10 cards.
@@ -134,7 +136,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
             / {stats.total} {t("trouvées", "found")}
           </span>
         </div>
-      ) : free ? (
+      ) : free && !goal ? (
         <div className={styles.bigCount}>
           <b>{stats.owned}</b>
           <span>{t(`carte${stats.owned > 1 ? "s" : ""} rangée${stats.owned > 1 ? "s" : ""}`, `card${stats.owned > 1 ? "s" : ""} filed`)}</span>
@@ -154,7 +156,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
           {stats.owned
             ? t(`🎉 ${stats.owned} ${cardsWord(stats.owned)} ! Continue, touche celles que tu as ▼`, `🎉 ${stats.owned} ${cardsWord(stats.owned)}! Keep going, tap the ones you have ▼`)
             : free
-              ? t("Touche une poche vide pour y ranger une carte ▼", "Tap an empty pocket to file a card ▼")
+              ? t("Touche une poche vide : une carte que tu as, ou une qui te manque (grisée) ▼", "Tap an empty pocket: a card you have, or one you're missing (greyed) ▼")
               : t("Touche les cartes que tu as : elles se colorent ▼", "Tap the cards you have: they colour in ▼")}
         </p>
       )}
@@ -162,7 +164,7 @@ export function StatsPage({ binder, title, stats, pages, collection, onJump, onF
       {/* the figures only once they say something: no wall of zeros, no « 0,03 € » on a new binder */}
       {stats.owned > 0 && (
         <dl className={styles.kv}>
-          {wish && (
+          {(wish || goal) && (
             <>
               <div>
                 <dt>{t("Il te manque", "Missing")}</dt>

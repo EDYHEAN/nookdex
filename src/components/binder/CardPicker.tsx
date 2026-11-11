@@ -18,6 +18,12 @@ interface Props {
   pocket: number;
   /** filling a wishlist: the card picked is wanted, not owned */
   wish?: boolean;
+  /**
+   * A free binder: « ✓ Je l'ai » or « ◌ Elle me manque » (a card the player is after, drawn greyed in the pocket like a set
+   * binder's missing card: a player's mail 2026-11-11, a "birds" binder holding the birds still to find). Kept by the binder.
+   */
+  ghost?: boolean;
+  onGhost?: (ghost: boolean) => void;
   onPick: (cardId: string) => Promise<void>;
   onClose: () => void;
 }
@@ -25,7 +31,7 @@ interface Props {
 /** cards drawn at once; "show more" adds as many (a "pikachu" has hundreds, the old ones come last) */
 const PAGE = 60;
 
-export function CardPicker({ pocket, wish, onPick, onClose }: Props) {
+export function CardPicker({ pocket, wish, ghost, onGhost, onPick, onClose }: Props) {
   const t = useT();
   // the site's language first; a binder can mix languages (a "Japanese cards" binder, French and English hits…)
   const [lang, setLang] = useState<CardLang>(useLang());
@@ -89,7 +95,7 @@ export function CardPicker({ pocket, wish, onPick, onClose }: Props) {
       }}
     >
       <motion.div
-        className={styles.panel}
+        className={`${styles.panel} ${onGhost && ghost ? styles.ghostMode : ""}`}
         initial={{ y: 60, scale: 0.94, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 24 }}
@@ -116,6 +122,38 @@ export function CardPicker({ pocket, wish, onPick, onClose }: Props) {
             ✕
           </button>
         </header>
+        {onGhost && (
+          <div className={styles.modes} role="radiogroup" aria-label={t("Cette carte", "This card")}>
+            {[false, true].map((g) => (
+              <button
+                key={String(g)}
+                role="radio"
+                aria-checked={!!ghost === g}
+                className={`${styles.mode} ${!!ghost === g ? styles.modeOn : ""}`}
+                onPointerEnter={sfx.hover}
+                onClick={() => {
+                  if (!!ghost === g) return;
+                  sfx.click();
+                  onGhost(g);
+                  input.current?.focus();
+                }}
+                disabled={!!busy}
+              >
+                {g ? (
+                  <>
+                    <b>◌ {t("Elle me manque", "Still missing")}</b>
+                    <small>{t("grisée en attendant", "greyed until you get it")}</small>
+                  </>
+                ) : (
+                  <>
+                    <b>✓ {t("Je l'ai", "I have it")}</b>
+                    <small>{t("rangée dans la pochette", "filed in the pocket")}</small>
+                  </>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
         <label className={styles.search}>
           <span aria-hidden>⌕</span>
           <input

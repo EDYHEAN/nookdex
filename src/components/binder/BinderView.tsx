@@ -173,6 +173,8 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
   const [inspect, setInspect] = useState<number | null>(null);
   /** empty pocket being filled (free binder) */
   const [picking, setPicking] = useState<number | null>(null);
+  /** free binder: the search files the next cards as missing ones (greyed), kept while the binder is open */
+  const [ghostMode, setGhostMode] = useState(false);
   const [party, setParty] = useState<{ id: number; card: CardData } | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -213,13 +215,14 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
       cardData[cardId] ? [{ card: cardData[cardId], copies: [copy] }] : [],
     );
     const t = copiesTotals(items);
-    if (wish) {
-      // what's still wanted, and what it costs on the market
-      const wanted = [...wants.entries()].filter(([pocket]) => !pockets?.has(pocket));
+    // what's still wanted (a wishlist, or the missing cards of a free binder), and what it costs on the market
+    const wanted = [...wants.entries()].filter(([pocket]) => !pockets?.has(pocket));
+    if (wanted.length) {
       const left = wanted.reduce((n, [, cardId]) => n + (cardData[cardId] ? unitPrice(cardData[cardId], cardData[cardId].variants[0], "trend") : 0), 0);
       const total = t.cards + wanted.length;
       return { ...t, owned: t.cards, total, masterOwned: 0, masterTotal: 0, count: `${t.cards}/${total}`, pricesUpdated: null, left };
     }
+    if (wish) return { ...t, owned: t.cards, total: t.cards, masterOwned: 0, masterTotal: 0, count: `${t.cards}/${t.cards}`, pricesUpdated: null, left: 0 };
     return { ...t, owned: t.cards, total: t.cards, masterOwned: 0, masterTotal: 0, count: String(t.cards), pricesUpdated: null };
   }, [set, pockets, wants, wish, collection, cardData]);
 
@@ -448,8 +451,8 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
       const card = (await loadSet(setId)).cards.find((c) => c.id === cardId);
       if (!card) throw new Error("unknown card");
       const pocket = picking;
-      // a wishlist takes the card as wanted, a free binder as a copy
-      if (wish) {
+      // a wishlist takes the card as wanted, a free binder as a copy, or as a missing one (greyed) if the player said so
+      if (wish || ghostMode) {
         wishCard(binder.id, cardId, pocket);
         sfx.wish();
       } else {
@@ -460,7 +463,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
       setFocused(pocket);
       setTimeout(() => setFocused((f) => (f === pocket ? null : f)), 1600);
     },
-    [picking, placeCard, binder.id, cheer, wish, wishCard],
+    [picking, placeCard, binder.id, cheer, wish, ghostMode, wishCard],
   );
 
   /** "dans Fourre-tout" on a set card that is only kept in free binders */
@@ -526,7 +529,8 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
                   focused={focused === p.index}
                   onAdd={(card) => obtain(p.index, card)}
                   onInspect={() => setInspect(p.index)}
-                  wish
+                  // a wishlist's ghost wears its gold star; a free binder's missing card is greyed like a set binder's
+                  wish={wish}
                   tag={collection[p.card.id]?.length ? t("déjà à toi", "already yours") : undefined}
                 />
               ) : p.card ? (
@@ -817,6 +821,7 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
                 }
               : undefined
           }
+          unwishLabel={wish ? undefined : t("◌ Retirer du classeur", "◌ Take out of the binder")}
           onClose={() => setInspect(null)}
           onNavigate={(d) => {
             const n = inspectIndex + d;
@@ -830,7 +835,17 @@ export function BinderView({ binder, focusCardId, onClosed, onRemoved, onCover, 
       )}
 
       <AnimatePresence>
-        {picking != null && <CardPicker key="pick" pocket={picking} wish={wish} onPick={onPlace} onClose={() => setPicking(null)} />}
+        {picking != null && (
+          <CardPicker
+            key="pick"
+            pocket={picking}
+            wish={wish}
+            ghost={ghostMode}
+            onGhost={wish ? undefined : setGhostMode}
+            onPick={onPlace}
+            onClose={() => setPicking(null)}
+          />
+        )}
       </AnimatePresence>
 
       {party && <Celebration key={party.id} card={party.card} onDone={() => setParty(null)} />}

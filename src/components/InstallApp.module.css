@@ -1,0 +1,127 @@
+/* « Installer l'app », the steps by hand (iPhone, Firefox…): a paper card over everything */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(16, 10, 24, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.card {
+  --paper: #f3ead9;
+  --ink: #2b2230;
+  --ink-soft: #6b5d66;
+  position: relative;
+  width: min(420px, 100%);
+  padding: 22px 20px 18px;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 3px var(--ink),
+    8px 10px 0 3px rgba(20, 12, 28, 0.45);
+  font-family: var(--font-vt), monospace;
+  font-size: 20px;
+  text-align: center;
+}
+
+.card h2 {
+  margin: 10px 0 16px;
+  font-size: 26px;
+  font-weight: normal;
+  line-height: 1;
+}
+
+.icon {
+  display: block;
+  margin: 0 auto;
+  border-radius: 18px;
+  box-shadow: 3px 4px 0 rgba(43, 34, 48, 0.35);
+  animation: bob 2.4s ease-in-out infinite;
+}
+
+@keyframes bob {
+  50% {
+    transform: translateY(-5px) rotate(-3deg);
+  }
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 17px;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.close:hover {
+  transform: rotate(90deg) scale(1.08);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #fffaf0;
+  box-shadow: 0 0 0 2px rgba(43, 34, 48, 0.25);
+  line-height: 1.05;
+}
+
+.steps b {
+  font-weight: normal;
+  color: #2a6fdb;
+}
+
+.num {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 18px;
+}
+
+/* the button to look for, as the browser draws it */
+.glyph {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #e6dcc6;
+  color: #2a6fdb;
+  font-size: 26px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon {
+    animation: none;
+  }
+}

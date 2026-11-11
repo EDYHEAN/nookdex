@@ -7,6 +7,7 @@ import { ABOUT, ABOUT_EN } from "@/data/about";
 import { INSTAGRAM_URL, SUPPORT_URL, TIKTOK_URL } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { unlock } from "@/lib/trophyStore";
+import { InstallButton } from "../InstallApp";
 import styles from "./AboutBook.module.css";
 import { useT } from "@/lib/lang";
 
@@ -78,6 +79,10 @@ export function AboutBook({ onClose, onTour, onRoadLog }: { onClose: () => void;
           ))}
         </div>
         <nav className={styles.links}>
+          {/* gone where the device can't install it, or once installed */}
+          <InstallButton className={styles.linkBtn} after={<> · </>}>
+            📲 {t("Installer l'app", "Install the app")}
+          </InstallButton>
           <button className={styles.linkBtn} onClick={onTour}>
             {t("Revoir la visite", "Replay the tour")}
           </button>{" "}
