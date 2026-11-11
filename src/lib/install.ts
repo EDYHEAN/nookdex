@@ -63,6 +63,19 @@ function wayNow(): InstallWay {
   return "none";
 }
 
+/**
+ * On an iPhone every browser installs through iOS's share sheet, but its Share button sits elsewhere: Safari's at the
+ * bottom (in « ··· » on iOS 26), Chrome's and Edge's in the address bar at the top right (Chrome's « ··· » menu has no
+ * home screen entry: Johan's video, 2026-11-11), Firefox's in its menu.
+ */
+export function iosBrowser(): "safari" | "chrome" | "edge" | "firefox" {
+  const ua = navigator.userAgent;
+  if (/CriOS/.test(ua)) return "chrome";
+  if (/EdgiOS/.test(ua)) return "edge";
+  if (/FxiOS/.test(ua)) return "firefox";
+  return "safari";
+}
+
 const subscribe = (l: () => void) => {
   listeners.add(l);
   return () => listeners.delete(l);

@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { type ReactNode, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { promptInstall, useInstallWay } from "@/lib/install";
+import { iosBrowser, promptInstall, useInstallWay } from "@/lib/install";
 import { useT } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
 import styles from "./InstallApp.module.css";
@@ -51,11 +51,22 @@ function InstallSteps({ ios, onClose }: { ios: boolean; onClose: () => void }) {
     return () => window.removeEventListener("keydown", onKey, true);
   }, [onClose]);
 
+  // where the iPhone's browser keeps its Share button (lib/install iosBrowser)
+  const browser = ios ? iosBrowser() : null;
+  const share =
+    browser === "chrome" || browser === "edge"
+      ? t(<>Touche <b>Partager</b> en haut à droite, dans la barre d&apos;adresse</>, <>Tap <b>Share</b> at the top right, in the address bar</>)
+      : browser === "firefox"
+        ? t(<>Ouvre le <b>menu ☰</b>, puis <b>Partager</b></>, <>Open the <b>☰ menu</b>, then <b>Share</b></>)
+        : t(<>Touche <b>Partager</b> en bas de Safari (dans <b>···</b> sur iOS 26)</>, <>Tap <b>Share</b> at the bottom of Safari (under <b>···</b> on iOS 26)</>);
   // a picture each step: the button to look for, as the browser draws it
   const list: [ReactNode, ReactNode][] = ios
     ? [
-        [<span key="i" className={styles.glyph}>⬆</span>, t(<>Touche <b>Partager</b> en bas de Safari (dans <b>···</b> sur iOS 26)</>, <>Tap <b>Share</b> at the bottom of Safari (under <b>···</b> on iOS 26)</>)],
-        [<span key="i" className={styles.glyph}>⊞</span>, t(<>Choisis <b>Sur l&apos;écran d&apos;accueil</b></>, <>Pick <b>Add to Home Screen</b></>)],
+        [<span key="i" className={styles.glyph}>⬆</span>, share],
+        [
+          <span key="i" className={styles.glyph}>⊞</span>,
+          t(<>Fais défiler et choisis <b>Sur l&apos;écran d&apos;accueil</b></>, <>Scroll down and pick <b>Add to Home Screen</b></>),
+        ],
         [<span key="i" className={styles.glyph}>✓</span>, t(<>Touche <b>Ajouter</b> : NookDex s&apos;ouvre en plein écran</>, <>Tap <b>Add</b>: NookDex opens full screen</>)],
       ]
     : [
