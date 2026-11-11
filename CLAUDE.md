@@ -166,7 +166,8 @@ doesn't show.
 - « 📲 Installer l'app » (2026-11-11, a player's friend never saw Chrome's banner): NookDex OS → Accueil's first row and the
   shelf notebook's links (`components/InstallApp`, `lib/install`). Chrome/Edge: their `beforeinstallprompt`, caught from the
   first render (ClientApp's Audience), opens their own window. iPhone and Android without it (Firefox, Samsung…): a card
-  with the steps. Hidden once installed (display-mode standalone) and on a computer that can't install. Chromium's
+  with the steps. On an iPhone each browser keeps Share elsewhere (`iosBrowser`): Chrome's « ··· » menu has no home screen
+  entry, its Share icon in the address bar does (checked on Johan's iPhone, 2026-11-11). Hidden once installed (display-mode standalone) and on a computer that can't install. Chromium's
   installability check passes on nookdex.com with no service worker. An APK / Play Store app (TWA) only if this isn't enough.
 
 ## The poster
