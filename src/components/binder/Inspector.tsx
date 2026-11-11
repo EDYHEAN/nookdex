@@ -31,9 +31,11 @@ interface Props {
   onOpenBinder?: () => void;
   /** A wishlist's wanted card: take it off the list (the sheet then has no ☆ of its own) */
   onUnwish?: () => void;
+  /** its button's words: a free binder's missing card is taken out of the binder, not off a wishlist */
+  unwishLabel?: string;
 }
 
-export function Inspector({ card, binderId, onClose, onNavigate, onAdd, onOpenBinder, onUnwish }: Props) {
+export function Inspector({ card, binderId, onClose, onNavigate, onAdd, onOpenBinder, onUnwish, unwishLabel }: Props) {
   const t = useT();
   // a card is priced on its language's market: Cardmarket for French cards, TCGplayer for English ones
   const cardLang = langOfKey(card.id);
@@ -335,7 +337,7 @@ export function Inspector({ card, binderId, onClose, onNavigate, onAdd, onOpenBi
               onClick={onUnwish}
               onPointerEnter={sfx.hover}
             >
-              {t("☆ Retirer de la wishlist", "☆ Off the wishlist")}
+              {unwishLabel ?? t("☆ Retirer de la wishlist", "☆ Off the wishlist")}
             </button>
           ) : (
             <WishButton card={card} />

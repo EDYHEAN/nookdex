@@ -161,6 +161,14 @@ doesn't show.
   top on a computer, bottom on a phone; closed or used = never again, localStorage `nookdex:pokecardex-bar`). Both open
   the OS on Save, scrolled to the import (`focusImport`).
 
+## Installing the app
+
+- « 📲 Installer l'app » (2026-11-11, a player's friend never saw Chrome's banner): NookDex OS → Accueil's first row and the
+  shelf notebook's links (`components/InstallApp`, `lib/install`). Chrome/Edge: their `beforeinstallprompt`, caught from the
+  first render (ClientApp's Audience), opens their own window. iPhone and Android without it (Firefox, Samsung…): a card
+  with the steps. Hidden once installed (display-mode standalone) and on a computer that can't install. Chromium's
+  installability check passes on nookdex.com with no service worker. An APK / Play Store app (TWA) only if this isn't enough.
+
 ## The poster
 
 - The poster above the desk is the player's pick (Johan, 2026-10-19), clicked through like the lava lamp (`POSTER_*` in
@@ -201,6 +209,10 @@ doesn't show.
   kept in that pocket like any free binder's; it never shows up in its set's binder (Johan, 2026-10-11: a wishlist is
   a way of filing cards, ticking Lugia there must not file it elsewhere). A card owned elsewhere stays wanted, tagged
   "déjà à toi".
+- Any free binder can hold ghosts too (a player's mail 2026-11-11: a "birds" binder with the birds still to find): its card
+  search has « ✓ Je l'ai » / « ◌ Elle me manque ». They're drawn greyed like a set binder's missing cards (no gold star), and
+  counted « 3 / 6 » with a ring (summary, shelf, NookDex OS). They're not in NookDex OS → Wishlist nor the shared lists:
+  those read `wishBinders`.
 - ☆ Wishlist on every card sheet (`binder/WishButton`), NookDex OS → Wishlist lists every ghost (total cost, copy the
   list) and makes a wishlist of a set binder's missing cards. Wishlists share the 12 shelf slots (an idea for later: a
   Collection / Wishlist switch of the shelf).

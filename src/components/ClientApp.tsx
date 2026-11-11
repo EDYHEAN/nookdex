@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { watchInstall } from "@/lib/install";
 import { isRoomless } from "@/lib/roomless";
 import { LoaderStill } from "./LoaderStill";
 
@@ -50,6 +51,8 @@ export function ClientApp() {
  * it. Their own chunk, asked for once the page is up.
  */
 function Audience() {
+  // Chrome's install prompt, kept for « Installer l'app » (lib/install): it can come before the room is up
+  useEffect(watchInstall, []);
   useEffect(() => {
     let stops: (() => void)[] = [];
     let gone = false;

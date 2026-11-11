@@ -35,6 +35,8 @@ export const CHANGELOG: Release[] = [
       { fr: "Tes lettres relues depuis l'enveloppe en haut à droite, plus sur le tableau.", en: "Read your letters again from the envelope at the top right, no longer on the board." },
       { fr: "Un e-mail le jour de la prochaine sortie, si tu le demandes : sur le calendrier et les invitations Amazon.", en: "An e-mail on the day the next set is out, if you ask: on the calendar and the Amazon invites." },
       { fr: "Le guide du matériel : classeur, sleeves, toploader, et combien de pages il faut pour chaque set.", en: "The gear guide: binder, sleeves, toploaders, and how many pages each set takes." },
+      { fr: "Classeur libre : range aussi les cartes qui te manquent, grisées en attendant.", en: "Free binders: file the cards you're missing too, greyed until you get them." },
+      { fr: "📲 Installer l'app sur ton écran d'accueil : NookDex OS → Accueil, ou le carnet.", en: "📲 Install the app on your home screen: NookDex OS → Home, or the notebook." },
     ],
   },
   {

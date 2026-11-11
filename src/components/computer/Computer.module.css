@@ -1202,6 +1202,13 @@
   background: rgba(151, 127, 184, 0.14);
 }
 
+/* « Installer l'app », on top of the home: the dashed line under it */
+.installRow {
+  margin: 0 0 10px;
+  border-top: 0;
+  border-bottom: 2px dashed rgba(151, 127, 184, 0.5);
+}
+
 /* ---------- Save: import from Pokécardex ---------- */
 
 .importBox {
