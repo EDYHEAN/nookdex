@@ -219,7 +219,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
       {deskSet && (
         <div className={s.app}>
           <p>{t(`Tes boosters ouverts ? Coche tes cartes de ${deskName} et suis leur cote chaque jour.`, `Opened your packs? Tick your ${deskName} cards and follow their value every day.`)}</p>
-          <Link prefetch={false} href={`${fr ? "/" : "/en"}?classeur=${encodeURIComponent(keyOf(lang, deskSet.setId!))}`} className={`${s.btn} ${s.green}`}>
+          <Link prefetch={false} rel="nofollow" href={`${fr ? "/" : "/en"}?classeur=${encodeURIComponent(keyOf(lang, deskSet.setId!))}`} className={`${s.btn} ${s.green}`}>
             {t("Ouvrir mon classeur ▶", "Open my binder ▶")}
           </Link>
         </div>
