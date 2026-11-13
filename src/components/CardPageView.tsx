@@ -106,6 +106,30 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
   const url = `${SITE_URL}${p.path}`;
   const root = SET_PAGES_ROOT[lang];
   const home = fr ? "/" : "/en";
+  // Product + AggregateOffer, the markup for a price-comparison page (Search Console, 2026-11-12: Google already took 326
+  // card pages for products on its own): the shown prices (every version's low and trend) as a range, which Google may
+  // draw under the result. We sell nothing, so no Merchant Center / Shopping. No price, or a card taken out: no block.
+  const shown = p.prices.flatMap((x) => [x.low, x.trend]).filter((v): v is number => v != null && v > 0);
+  const product =
+    shown.length && !card.unavailable
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: `${card.name} ${p.printed} (${p.set.name})`,
+          url,
+          ...(card.img ? { image: `${card.img}/high.webp` } : {}),
+          ...(card.rarity ? { description: `${card.name} ${p.printed}, ${p.set.name} (${card.rarity})` } : {}),
+          brand: { "@type": "Brand", name: "Pokémon" },
+          category: t("Carte Pokémon à collectionner", "Pokémon trading card"),
+          offers: {
+            "@type": "AggregateOffer",
+            priceCurrency: p.currency,
+            lowPrice: Math.min(...shown).toFixed(2),
+            highPrice: Math.max(...shown).toFixed(2),
+            url,
+          },
+        }
+      : null;
   return (
     <WidePage
       en={!fr}
@@ -133,6 +157,7 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
         inLanguage: lang,
         mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
       })}
+      {product && ld(product)}
 
       <section className={styles.hero}>
         <div className={styles.scan}>
