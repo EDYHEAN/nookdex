@@ -29,7 +29,9 @@ export default function robots(): MetadataRoute.Robots {
     // /studio stays crawlable on purpose: its noindex is only seen if Google may read the page
     rules: [
       { userAgent: UNWANTED, disallow: "/" },
-      { userAgent: "*", allow: "/" },
+      // ?carte= / ?classeur= are the desk (/ or /en) with a binder to open: no page of their own, but every card and set
+      // page links one, so a crawler fetched each card twice (2026-11-13: 24k of a scraper's 37k night requests).
+      { userAgent: "*", allow: "/", disallow: ["/*?carte=", "/*?classeur="] },
     ],
     // the site, then the card pages in their slices (app/cartes/sitemap.ts)
     sitemap: [`${SITE_URL}/sitemap.xml`, ...CARD_SITEMAPS.map((s) => `${SITE_URL}/cartes/sitemap/${s.id}.xml`)],

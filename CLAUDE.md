@@ -545,7 +545,11 @@ doesn't show.
 - Vercel Firewall (project → Firewall, readable and editable from the Vercel MCP: `get_firewall_config`,
   `update_firewall_config`), custom rules: « Challenge OVH scrapers » (AS16276, 2026-10-26), then the same scraper on
   Hetzner (2026-10-28: one IP, 46.4.94.214, made 46k of the day's 88k requests, HTTP/1.1, a script): « Deny Hetzner scraper
-  IP » and « Challenge Hetzner scrapers » (AS24940). A challenge stops a script and lets a person on a VPN through.
+  IP » and « Challenge Hetzner scrapers » (AS24940), then « Challenge Oracle Cloud scrapers » (AS31898, 2026-11-13: 3 IPs,
+  37k requests in a night, card pages and the `/?carte=` links they hold). A challenge stops a script and lets a person on
+  a VPN through. Since then robots.txt disallows `/*?carte=` and `/*?classeur=`, and the desk buttons of card, set and
+  calendar pages are `rel="nofollow"`. The observability query (`create_observability_query`, `vercel.request.count` grouped by `asn`,
+  `client_ip`, `ja4_digest`, `route`, `request_path`) finds them without the dashboard.
 - Before blocking: look at Firewall → Traffic (Top IPs, Top AS Names, Top JA4). A hosting provider's AS (OVH, Hetzner,
   DigitalOcean…) with no search engine in it: challenge it. Never Google (AS15169), Microsoft/Bing (AS8075), Apple, Amazon
   as a whole (AI and search crawlers live there): block one IP there instead. A scraper moved to another host: same again.

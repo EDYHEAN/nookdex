@@ -183,7 +183,7 @@ export async function CardPageView({ lang, set, slug }: { lang: PageLang; set: s
 
           <div className={styles.cta}>
             {/* the room takes it from there (App, ?carte): its binder, or its set as a newcomer's first one */}
-            <Link prefetch={false} href={`${home}?carte=${encodeURIComponent(keyOf(lang, card.id))}`} className={styles.ctaBtn}>
+            <Link prefetch={false} rel="nofollow" href={`${home}?carte=${encodeURIComponent(keyOf(lang, card.id))}`} className={styles.ctaBtn}>
               {t("Ajouter à ma collection", "Add it to my collection")} ▶
             </Link>
             <span>{t("Gratuit, sans compte pour commencer.", "Free, no account needed to start.")}</span>

@@ -196,7 +196,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
               <b>{t(`Ta collection ${name}`, `Your ${name} collection`)}</b>
             </p>
             <div className={s.btns}>
-              <Link prefetch={false} href={deskHref} className={`${s.btn} ${s.lg} ${s.green}`}>
+              <Link prefetch={false} rel="nofollow" href={deskHref} className={`${s.btn} ${s.lg} ${s.green}`}>
                 {t("Coche tes cartes ▶", "Tick your cards ▶")}
               </Link>
             </div>
@@ -329,7 +329,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
             ? t(`Tes boosters ouverts ? Coche tes cartes de ${name} et suis leur cote chaque jour.`, `Opened your packs? Tick your ${name} cards and follow their value every day.`)
             : t(`Coche tes cartes de ${name} et suis leur cote chaque jour, sur le bureau ${SITE_NAME}.`, `Tick your ${name} cards and follow their value every day, on the ${SITE_NAME} desk.`)}
         </p>
-        <Link prefetch={false} href={deskHref} className={`${s.btn} ${s.green}`}>
+        <Link prefetch={false} rel="nofollow" href={deskHref} className={`${s.btn} ${s.green}`}>
           {t("Coche tes cartes ▶", "Tick your cards ▶")}
         </Link>
       </div>
