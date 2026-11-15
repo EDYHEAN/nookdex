@@ -1,0 +1,53 @@
+{
+  "platforms": [
+    "tiktok"
+  ],
+  "tiktok": "photos",
+  "kind": "fun",
+  "format": "post",
+  "title": "TikTok : la page de nuit",
+  "note": "Carrousel photo TikTok (mode photo). Un son tendance. Dernière photo : Noctali-ex, vérifie son prix du jour.",
+  "prices": true,
+  "caption": "La page de nuit 🌙 Quand les Pokémon sortent après le coucher du soleil.\n\nTu prends laquelle ? 👇\n\n#pokemontcg #cartespokemon #noctali #pokemonfr #nuit",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "LA NUIT",
+      "title": "La page<br>de nuit",
+      "size": 110,
+      "cards": [
+        "sv08.5-161",
+        "sv06.5-071",
+        "sv06.5-068"
+      ],
+      "banner": "TU PRENDS LAQUELLE ?"
+    },
+    {
+      "type": "grid",
+      "label": "9 CARTES DE NUIT",
+      "cards": [
+        "sv08.5-161",
+        "sv06.5-071",
+        "sv06.5-068",
+        "sv02-212",
+        "sv10.5w-103",
+        "sv10-234",
+        "sv09-184",
+        "sv05-177",
+        "sv10-203"
+      ]
+    },
+    {
+      "type": "price",
+      "card": "sv08.5-161",
+      "name": "ET CELLE-CI VAUT…"
+    },
+    {
+      "type": "end",
+      "title": "Tu prends<br>laquelle ?",
+      "lead": "Fais-en ta wishlist sur NookDex"
+    }
+  ],
+  "date": "2026-11-19",
+  "time": "18:30"
+}

@@ -1,0 +1,55 @@
+{
+  "platforms": [
+    "instagram"
+  ],
+  "kind": "feature",
+  "format": "post",
+  "title": "Les cartes qui te manquent, grisées",
+  "note": "Feature 0.19 : un classeur libre range aussi les cartes qu'on n'a pas encore (grisées). Capture wishbinder.jpg (une wishlist, même principe visuel).",
+  "prices": false,
+  "caption": "Un classeur « oiseaux », « mes préférées »… avec les cartes qui te manquent déjà dedans 🕊️\n\nDans un classeur libre NookDex, range aussi celles que tu cherches : elles restent grisées, avec un compteur « 3 / 6 », jusqu'au jour où tu les trouves.\n\nTon prochain classeur, ce serait quoi ? 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #collectionpokemon #pokemonfr #wishlist",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "CLASSEUR LIBRE",
+      "title": "Les cartes<br>qui manquent",
+      "size": 100,
+      "cards": [
+        "sv09-161",
+        "sv03.5-202",
+        "sv10-229"
+      ],
+      "ghosts": [
+        0,
+        2
+      ],
+      "banner": "GRISEES EN ATTENDANT"
+    },
+    {
+      "type": "paper",
+      "kicker": "1 · RANGE-LES D'AVANCE",
+      "title": "Ajoute celles",
+      "em": "que tu cherches",
+      "asset": "wishbinder.jpg"
+    },
+    {
+      "type": "paper",
+      "kicker": "2 · ELLES ATTENDENT",
+      "title": "Grisées, puis",
+      "em": "en couleur",
+      "list": [
+        "un compteur « 3 / 6 » sur le classeur",
+        "elles n'entrent pas dans ta valeur",
+        "« Je l'ai ! » et la carte se colore"
+      ]
+    },
+    {
+      "type": "end",
+      "kicker": "TON PROCHAIN CLASSEUR ?",
+      "title": "Commence<br>par un thème",
+      "lead": "Gratuit et sans pub"
+    }
+  ],
+  "date": "2026-11-20",
+  "time": "18:30"
+}

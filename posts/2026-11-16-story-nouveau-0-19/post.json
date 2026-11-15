@@ -1,0 +1,23 @@
+{
+  "platforms": [
+    "instagram"
+  ],
+  "kind": "feature",
+  "format": "story",
+  "title": "Story : Nouveau 0.19, tes classeurs à toi",
+  "note": "À la une Nouveau : ajoute-la, retire la story 0.16. highlights.json mis à jour.",
+  "prices": false,
+  "caption": "",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "NOUVEAU · 0.19",
+      "title": "Tes classeurs<br>à toi",
+      "size": 100,
+      "asset": "wishbinder.jpg",
+      "banner": "LES CARTES QUI MANQUENT"
+    }
+  ],
+  "date": "2026-11-16",
+  "time": "18:30"
+}

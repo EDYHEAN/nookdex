@@ -1,0 +1,51 @@
+{
+  "platforms": [
+    "tiktok",
+    "reels"
+  ],
+  "kind": "fun",
+  "format": "post",
+  "title": "TikTok : quel Évoli vaut le plus ?",
+  "note": "Jeu, vidéo TikTok + Reel. Prix redessinés la veille et le jour même : la réponse suit les prix du jour (manche 2 : l'Évoli simple promo contre l'Évoli-ex promo, écart serré).",
+  "prices": true,
+  "caption": "Quel Évoli vaut le plus ? 🦊 Réponse en 3 manches, même les pros se trompent.\n\nTon score ? 👇\n\n#pokemontcg #evoli #cartespokemon #pokemonfr #eevee",
+  "slides": [
+    {
+      "type": "duel",
+      "label": "QUEL EVOLI ? · 1/3",
+      "a": "me06-114",
+      "b": "ecard2-75"
+    },
+    {
+      "type": "duel",
+      "label": "QUEL EVOLI ? · 2/3",
+      "a": "svp-173",
+      "b": "svp-174"
+    },
+    {
+      "type": "duel",
+      "label": "QUEL EVOLI ? · 3/3",
+      "a": "sv06-188",
+      "b": "sv08.5-167"
+    },
+    {
+      "type": "duelAnswers",
+      "rounds": [
+        [
+          "me06-114",
+          "ecard2-75"
+        ],
+        [
+          "svp-173",
+          "svp-174"
+        ],
+        [
+          "sv06-188",
+          "sv08.5-167"
+        ]
+      ]
+    }
+  ],
+  "date": "2026-11-17",
+  "time": "18:30"
+}

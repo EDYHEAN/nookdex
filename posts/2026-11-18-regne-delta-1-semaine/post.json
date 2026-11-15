@@ -1,0 +1,52 @@
+{
+  "platforms": [
+    "instagram"
+  ],
+  "kind": "fact",
+  "format": "post",
+  "title": "Règne Delta, 1 semaine après",
+  "note": "Courbes depuis la sortie (6 nov.), redessinées la veille et le jour : vérifie que Méga-Rayquaza-ex (les deux), Raikou-ex et Groudon suivent toujours la légende (baisse des Méga/Raikou, hausse de Groudon).",
+  "prices": true,
+  "caption": "Règne Delta, une semaine après sa sortie 📉\nLes cotes Cardmarket jour après jour : les Méga-Rayquaza-ex et Raikou-ex se détendent, Groudon grimpe.\n\nTu as sorti le jackpot ? 👇\nSuis la cote de tes cartes sur nookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #regnedelta #megarayquaza #pokemonfr",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "1 SEMAINE APRES",
+      "title": "Règne Delta<br>les cotes",
+      "size": 100,
+      "cards": [
+        "me06-141",
+        "me06-138",
+        "me06-136"
+      ]
+    },
+    {
+      "type": "curve",
+      "card": "me06-138"
+    },
+    {
+      "type": "curve",
+      "card": "me06-141"
+    },
+    {
+      "type": "curve",
+      "card": "me06-136"
+    },
+    {
+      "type": "curve",
+      "card": "me06-111"
+    },
+    {
+      "type": "curve",
+      "card": "me06-114"
+    },
+    {
+      "type": "end",
+      "kicker": "ET TOI ?",
+      "title": "Tu vends ou<br>tu gardes ?",
+      "lead": "Suis la cote de tes cartes, chaque jour"
+    }
+  ],
+  "date": "2026-11-18",
+  "time": "18:30"
+}

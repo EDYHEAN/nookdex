@@ -1,0 +1,35 @@
+{
+  "platforms": [
+    "instagram"
+  ],
+  "kind": "fun",
+  "format": "post",
+  "title": "La page du froid",
+  "note": "Page de classeur : 9 illustrations de Pokémon de glace et de neige, sets récents.",
+  "prices": false,
+  "caption": "Le froid arrive, la page de classeur aussi ❄️\n\nFrigodo, Glaivodo, Artikodin, Polarhume, Sorbébé, Sorbouboul, Lokhlass, Kyurem-ex et Givrali-ex : 9 illustrations bien givrées.\n\nTu prends laquelle pour l'hiver ? 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #givrali #kyurem #pokemonfr",
+  "slides": [
+    {
+      "type": "grid",
+      "label": "LA PAGE DU FROID",
+      "cards": [
+        "sv02-208",
+        "sv02-210",
+        "sv09-161",
+        "sv10.5b-109",
+        "sv10.5w-111",
+        "sv10.5w-113",
+        "sv10-194",
+        "sv10.5b-165",
+        "sv08.5-150"
+      ]
+    },
+    {
+      "type": "end",
+      "title": "Tu prends<br>laquelle ?",
+      "lead": "Dis-le en commentaire"
+    }
+  ],
+  "date": "2026-11-16",
+  "time": "18:30"
+}

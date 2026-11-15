@@ -1,6 +1,10 @@
 {
   "_": "What the Instagram story highlights hold now (« À la une »). Read and updated by the Sunday routine: docs/social.md on main, « Story highlights ». Sorties: the set stories in front of the evergreen calendar story. Nouveau: the versions shown, newest first.",
-  "updated": "2026-11-08",
+  "updated": "2026-11-15",
   "sorties": [],
-  "nouveau": ["0.18", "0.17", "0.16"]
+  "nouveau": [
+    "0.19",
+    "0.18",
+    "0.17"
+  ]
 }

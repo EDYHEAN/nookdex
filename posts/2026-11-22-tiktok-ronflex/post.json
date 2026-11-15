@@ -1,0 +1,73 @@
+{
+  "platforms": [
+    "tiktok",
+    "reels"
+  ],
+  "kind": "fact",
+  "format": "post",
+  "title": "TikTok : les 5 Ronflex les plus chers",
+  "note": "Vidéo TikTok + Reel. Prix redessinés la veille et le jour même : les n°3 à 5 se tiennent à 6 € près, vérifie l'ordre ; et que le n°1 reste un Ronflex simple (twist).",
+  "prices": true,
+  "caption": "Les 5 Ronflex les plus chers 😴 Le n°1 n'est pas celui que tu crois.\n\nTu en as un ? 👇\n\n#pokemontcg #ronflex #cartespokemon #pokemonfr #snorlax",
+  "slides": [
+    {
+      "type": "cover",
+      "kicker": "TOP 5",
+      "title": "Ronflex",
+      "size": 110,
+      "cards": [
+        "swsh1-140",
+        "swsh6-224",
+        "swsh1-142"
+      ],
+      "banner": "LES 5 PLUS CHERS"
+    },
+    {
+      "type": "price",
+      "card": "swsh1-140",
+      "rank": 5,
+      "name": "EPEE ET BOUCLIER · 2020"
+    },
+    {
+      "type": "price",
+      "card": "swsh1-206",
+      "rank": 4,
+      "name": "EPEE ET BOUCLIER · 2020"
+    },
+    {
+      "type": "price",
+      "card": "swsh1-142",
+      "rank": 3,
+      "name": "EPEE ET BOUCLIER · 2020"
+    },
+    {
+      "type": "price",
+      "card": "swshp-SWSH068",
+      "rank": 2,
+      "name": "PROMO EPEE ET BOUCLIER"
+    },
+    {
+      "type": "price",
+      "card": "swsh6-224",
+      "rank": 1,
+      "name": "REGNE DE GLACE · 2021"
+    },
+    {
+      "type": "paper",
+      "kicker": "LE TWIST",
+      "title": "Le n°1 est un",
+      "em": "Ronflex tout simple",
+      "lead": "Pas de V, pas de VMAX : juste une illustration magnifique.",
+      "cards": [
+        "swsh6-224"
+      ]
+    },
+    {
+      "type": "end",
+      "title": "Tu le<br>savais ?",
+      "lead": "La cote de tes cartes, chaque jour"
+    }
+  ],
+  "date": "2026-11-22",
+  "time": "18:30"
+}
