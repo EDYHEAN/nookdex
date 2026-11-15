@@ -26,7 +26,7 @@ import { BoilFilter } from "./fx/Boil";
 import { Grain } from "./fx/Grain";
 import { PaintedRoom } from "./room/PaintedRoom";
 import { markSeen, seenVersion } from "./room/RoadLog";
-import { ImportBar } from "./room/ImportBar";
+import { Quest } from "./room/Quest";
 import { ReleaseBar } from "./room/ReleaseBar";
 import { SavePrompt } from "./room/SavePrompt";
 import { MailAsk } from "./room/MailAsk";
@@ -148,7 +148,12 @@ export function App() {
   const copyCount = useStore((s) => Object.values(s.collection).reduce((n, c) => n + c.length, 0));
   useEffect(() => void (profile && funnelStep("profile")), [profile]);
   useEffect(() => void (binderCount && funnelStep("binder")), [binderCount]);
-  useEffect(() => void (copyCount >= 10 && funnelStep("cards10")), [copyCount]);
+  useEffect(() => {
+    if (copyCount >= 1) funnelStep("card1");
+    if (copyCount >= 5) funnelStep("cards5");
+    if (copyCount >= 10) funnelStep("cards10");
+  }, [copyCount]);
+  useEffect(() => void (shop && funnelStep("shop")), [shop]);
   useEffect(() => void (cloud.email && funnelStep("account")), [cloud.email]);
   useEffect(() => void (game && funnelStep("game")), [game]);
   // the skins this account bought, read again on each sign-in
@@ -425,6 +430,18 @@ export function App() {
   };
 
   const openBinder = open ? binders.find((b) => b.id === open.binderId) : undefined;
+
+  /** The quest's « J'ai tout »: the open set binder's tiles, else the first set binder opened, then its tiles. */
+  const fillFromQuest = async () => {
+    const tiles = () => document.querySelector<HTMLButtonElement>('[data-tour="fill-set"]')?.click();
+    if (openBinder?.setId) return tiles();
+    const b = binders.find((x) => x.setId);
+    if (!b?.setId) return;
+    await loadSet(b.setId);
+    setOpen({ binderId: b.id });
+    // once the binder is open and its header drawn
+    setTimeout(tiles, 900);
+  };
   const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || shop || (shopOpen && !!thanks) || !!game || !!tradeOpen;
   // the room pauses just after a panel opens: the panel is drawn first, the room's redraw doesn't hold it back
   const roomPaused = useDeferredValue(busy);
@@ -786,7 +803,36 @@ export function App() {
       />
       {/* a tip for the project, asked by the cat once the player has a few cards (never over a binder, the OS or the tour) */}
       {/* the account, offered once the player without one has a few cards */}
-      {entered && <ImportBar compact={compact} calm={calm && valued} onImport={openImport} />}
+      {/* the first 10 cards as a quest, with « J'ai tout » and the Pokécardex import at hand (it replaced the import strip) */}
+      {entered && (
+        <Quest
+          count={copyCount}
+          show={
+            !!profile &&
+            cloud.ready &&
+            cloud.status !== "loading" &&
+            !showWelcome &&
+            !tour &&
+            !tourSoon &&
+            !overPage &&
+            !computer &&
+            !adding &&
+            !about &&
+            !roadLog &&
+            !trophies &&
+            !box &&
+            !shop &&
+            !game &&
+            !tradeOpen &&
+            // a trophy toast takes the same corner: the quest comes back once it's gone
+            !trophyUp
+          }
+          compact={compact}
+          canFill={binders.some((b) => b.setId)}
+          onFill={fillFromQuest}
+          onImport={openImport}
+        />
+      )}
       {/* the release weekend's « bon opening » (one of lib/calm's gifts) */}
       {entered && <ReleaseBar compact={compact} calm={calm} onOpen={(set) => openSetBinder(keyOf(currentLang(), set))} />}
       {entered && <SavePrompt compact={compact} calm={calm} />}

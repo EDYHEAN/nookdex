@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { supabase, useCloud } from "./cloud";
+import { funnelStep } from "./funnel";
 import { STUDIO_EMAIL_HASHES } from "./site";
 import { BUNDLES, ITEM, ITEMS, itemsOf, lookOf, onSale, type Look, type Slot } from "./skins";
 
@@ -142,6 +143,7 @@ export async function buySkin(id: string): Promise<"ok" | "soon" | "error"> {
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
     if (!token) return "error";
+    funnelStep("checkout");
     const r = await fetch("/api/shop/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },

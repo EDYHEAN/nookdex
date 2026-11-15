@@ -26,13 +26,24 @@ export const CALENDAR_PATH: Record<PageLang, string> = { fr: "/calendrier-des-so
 export function calendarMetadata(lang: PageLang): Metadata {
   const fr = lang === "fr";
   const year = new Date().getFullYear();
-  const next = releases(lang).upcoming.find((r) => r.kind === "set" && r.region === "intl");
+  const { upcoming, past } = releases(lang);
+  const next = upcoming.find((r) => r.kind === "set" && r.region === "intl");
+  const last = past.find((r) => r.kind === "set" && r.region === "intl");
   // what people search ("prochaine sortie pokemon", "next pokemon set"), answered in the title and the snippet (weekly
-  // report, 2026-10-17: the page showed for those, from position 50 on)
-  const title = fr ? `Prochaine sortie Pokémon JCC : calendrier ${year}-${year + 1} · ${SITE_NAME}` : `Next Pokémon TCG set: release calendar ${year}-${year + 1} · ${SITE_NAME}`;
+  // report, 2026-10-17: the page showed for those, from position 50 on). The English one in Bing's words (business review
+  // of 2026-11-14: « next pokemon tcg set », « pokemon tcg 2027 release schedule », positions 4 to 10)
+  const title = fr
+    ? `Prochaine sortie Pokémon JCC : calendrier ${year}-${year + 1} · ${SITE_NAME}`
+    : `Next Pokémon TCG Set & ${scheduleYear()} Release Schedule · ${SITE_NAME}`;
   const description = fr
     ? `${next ? `Prochaine extension Pokémon : ${next.name}, le ${formatDate(next.date, "fr")}. ` : ""}Toutes les sorties du JCC Pokémon (extensions, coffrets, avant-premières) en France et au Japon, mois par mois.`
-    : `${next ? `Next Pokémon TCG set: ${next.name}, out ${formatDate(next.date, "en")}. ` : ""}Every Pokémon TCG release (sets, products, prereleases) worldwide and in Japan, month by month.`;
+    : `${
+        next
+          ? `Next Pokémon TCG set: ${next.name}, out ${formatDate(next.date, "en")}. `
+          : last
+            ? `The next set after ${shortSetName(last.name)}: what's announced, and when. `
+            : ""
+      }Every Pokémon TCG release (sets, products, prereleases) worldwide and in Japan, month by month.`;
   return {
     title,
     description,
@@ -40,6 +51,9 @@ export function calendarMetadata(lang: PageLang): Metadata {
     openGraph: { type: "website", url: CALENDAR_PATH[lang], siteName: SITE_NAME, title, description, locale: fr ? "fr_FR" : "en_GB" },
   };
 }
+
+/** the year a schedule is searched for: the next one from September on (« pokemon tcg 2027 release schedule » in November) */
+const scheduleYear = () => new Date().getUTCFullYear() + (new Date().getUTCMonth() >= 8 ? 1 : 0);
 
 const ld = (data: object) => <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 
@@ -64,13 +78,26 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
   const listed = (rs: Release[]) => rs.map((r) => `${r.name} (${formatDate(r.date, lang)})`).join(fr ? " ; " : "; ");
   const nextYear = Number(new Date().getUTCFullYear()) + 1;
   const ofNextYear = upcoming.filter((r) => r.date.startsWith(String(nextYear)));
-  const faq = [
-    nextSet && {
-      q: t("Quelle est la prochaine extension Pokémon ?", "What is the next Pokémon TCG set?"),
-      a: t(
+  const lastName = lastSet ? shortSetName(lastSet.name) : "";
+  /** the next set after the latest, in one sentence: the In short block and the FAQ (« next pokemon set after delta reign ») */
+  const afterLast = nextSet
+    ? t(
         `${nextSet.name}, qui sort le ${formatDate(nextSet.date, "fr")} en France (dans ${daysUntil(nextSet.date)} jours).`,
         `${nextSet.name}, out on ${formatDate(nextSet.date, "en")} (in ${daysUntil(nextSet.date)} days).`,
-      ),
+      )
+    : t(
+        `Pas encore annoncée officiellement. ${lastName ? `${lastName} est sortie le ${formatDate(lastSet!.date, "fr")} ; ` : ""}The Pokémon Company annonce d'habitude la suivante deux à trois mois avant sa sortie, souvent après sa sortie au Japon. Ce calendrier l'ajoute dès l'annonce.`,
+        `Not officially announced yet. ${lastName ? `${lastName} came out on ${formatDate(lastSet!.date, "en")}; ` : ""}The Pokémon Company usually announces the next one two to three months before it's out, often after its Japanese release. This calendar adds it as soon as it's announced.`,
+      );
+  const faq = [
+    // (between two announcements, the question names the set just out: what people type)
+    (nextSet || !lastSet) && {
+      q: t("Quelle est la prochaine extension Pokémon ?", "What is the next Pokémon TCG set?"),
+      a: afterLast,
+    },
+    lastSet && !nextSet && {
+      q: t(`Quelle extension Pokémon sort après ${lastName} ?`, `What is the next Pokémon TCG set after ${lastName}?`),
+      a: afterLast,
     },
     upcoming.length > 1 && {
       q: t("Quelles sont les prochaines sorties Pokémon ?", "What are the next Pokémon TCG releases?"),
@@ -81,7 +108,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
       a: listed(m.items) + ".",
     })),
     {
-      q: t(`Quelles extensions Pokémon sortent en ${nextYear} ?`, `Which Pokémon TCG sets come out in ${nextYear}?`),
+      q: t(`Quelles extensions Pokémon sortent en ${nextYear} ?`, `What is the Pokémon TCG ${nextYear} release schedule?`),
       a: ofNextYear.length
         ? t(`Déjà annoncé : ${listed(ofNextYear)}.`, `Announced so far: ${listed(ofNextYear)}.`)
         : t(
@@ -133,7 +160,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
     <ShopHero
       head={
         <>
-          <h1 className={s.eyebrow}>{t("Calendrier des sorties du JCC Pokémon", "Pokémon TCG release calendar")}</h1>
+          <h1 className={s.eyebrow}>{t("Calendrier des sorties du JCC Pokémon", `Next Pokémon TCG set & ${scheduleYear()} release schedule`)}</h1>
           {/* a set out already (the hero shows the latest once the next is out): its logo, in the page's language */}
           {heroSet.logo && <img className={s.setLogo} src={heroSet.logo} alt="" />}
           {/* under its logo, the name a size down: the logo already says it big */}
@@ -258,6 +285,16 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           <small>{t(`Mis à jour le ${formatDate(updated, "fr")}.`, `Updated ${formatDate(updated, "en")}.`)}</small>
         </p>
       )}
+      {/* between two announcements, still an answer: what comes after the set just out (« next pokemon set after delta reign ») */}
+      {!nextSet && lastSet && (
+        <p className={s.answer}>
+          <b>{t("En bref", "In short")}</b>
+          {t(`La prochaine extension après ${lastName} : `, `The next Pokémon TCG set after ${lastName}: `)}
+          {afterLast.charAt(0).toLowerCase() + afterLast.slice(1)}
+          {upcoming[0] && t(` En attendant : ${upcoming[0].name}, le ${formatDate(upcoming[0].date, "fr")}.`, ` Meanwhile: ${upcoming[0].name}, on ${formatDate(upcoming[0].date, "en")}.`)}
+          <small>{t(`Mis à jour le ${formatDate(updated, "fr")}.`, `Updated ${formatDate(updated, "en")}.`)}</small>
+        </p>
+      )}
 
       {/* the alert before the list: a visitor who came for a date leaves with it (Johan, 2026-11-10) */}
       {amazonOn(lang) && <ReleaseAlert lang={lang} next={nextSet ? shortSetName(nextSet.name) : null} when={nextSet ? formatDate(nextSet.date, lang) : null} />}
@@ -325,6 +362,35 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           </ol>
         </section>
       ))}
+
+      {/* every date as one table, the past year then what's coming: the schedule a search engine can read at a glance
+          (« pokemon tcg 2027 release schedule ») */}
+      <h2 className={s.month}>{t("Toutes les dates de sortie", `Pokémon TCG release schedule ${scheduleYear() - 1}-${scheduleYear()}`)}</h2>
+      <div className={s.tableW}>
+        <table className={s.table}>
+          <thead>
+            <tr>
+              <th>{t("Date", "Date")}</th>
+              <th>{t("Sortie", "Release")}</th>
+              <th>{t("Où", "Where")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...past].reverse().concat(upcoming).map((r) => (
+              <tr key={r.date + r.name}>
+                <td>
+                  <time dateTime={r.date}>{formatDate(r.date, lang)}</time>
+                </td>
+                <th scope="row">
+                  {r.href ? <Link prefetch={false} href={r.href}>{r.name}</Link> : r.name}
+                  {r.kind !== "set" && <small> · {kind(r)}</small>}
+                </th>
+                <td>{r.region === "jp" ? t("Japon", "Japan") : t("France", "Worldwide")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <h2 className={s.month}>{t("Sorties de l'année", "This past year")}</h2>
       {shelf.length > 0 && (

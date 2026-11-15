@@ -111,9 +111,14 @@ const report = {
   funnel: { week: await rpc("funnel_stats", { p_since: day(ago(7)) }), all: await rpc("funnel_stats", {}) },
   // where each source's new devices land, by kind of page (funnel_landings): the week's, with how far they went
   landings: await rpc("funnel_landings", { p_since: day(ago(7)) }),
+  // each step's newcomers by kind of landing page, the 4 last weeks (funnel_steps, 2026-11-15: card1, cards5, shop,
+  // checkout, market, desk came in that day)
+  steps: await rpc("funnel_steps", { p_since: day(ago(28)) }).catch((e) => ({ error: String(e) })),
   accounts: { byDay: await rpc("growth_stats", { p_days: 60 }), totals: await rpc("activity_stats") },
   // clicks on the Amazon affiliate links, by page (lib/funnel watchAmazonClicks); the sales are in Amazon's dashboard
   amazon: await amazon(),
+  // the same clicks by the clicking device's first source (google, bing, chatgpt…), the week's (since 2026-11-15)
+  amazonSources: await rpc("amazon_sources", { p_since: day(ago(7)) }).catch((e) => ({ error: String(e) })),
   // the players' public lists (lib/share): how many, updated this week, page visits
   shares: await rpc("share_stats").catch((e) => ({ error: String(e) })),
   search: await search().catch((e) => ({ error: String(e) })),

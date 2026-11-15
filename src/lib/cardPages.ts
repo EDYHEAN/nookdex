@@ -253,14 +253,19 @@ export type CardSlice = "top" | "recent" | "rest";
 const TOP_PRICE = 5;
 /** a set released less than this many days ago: the "recent" slice */
 const RECENT_DAYS = 365;
-/** The card sitemaps, /cartes/sitemap/<id>.xml: "fr" and "en" keep the rest (the addresses already submitted) */
-export const CARD_SITEMAPS: { id: string; lang: PageLang; slice: CardSlice }[] = [
-  { id: "fr-top", lang: "fr", slice: "top" },
-  { id: "fr-recent", lang: "fr", slice: "recent" },
-  { id: "fr", lang: "fr", slice: "rest" },
-  { id: "en-top", lang: "en", slice: "top" },
-  { id: "en-recent", lang: "en", slice: "recent" },
-  { id: "en", lang: "en", slice: "rest" },
+/**
+ * The card sitemaps, /cartes/sitemap/<id>.xml: "fr" and "en" had the rest (the addresses already submitted). Since
+ * 2026-11-15 they're served empty and left out of robots.txt (`listed: false`): ~29,000 cheap cards had brought no click
+ * in a month and Google left even the dearest "crawled, not indexed" (business review of 2026-11-14), so the sitemaps
+ * only put forward the pages worth indexing (~12,000). The pages themselves stay, linked from their set's page.
+ */
+export const CARD_SITEMAPS: { id: string; lang: PageLang; slice: CardSlice; listed: boolean }[] = [
+  { id: "fr-top", lang: "fr", slice: "top", listed: true },
+  { id: "fr-recent", lang: "fr", slice: "recent", listed: true },
+  { id: "fr", lang: "fr", slice: "rest", listed: false },
+  { id: "en-top", lang: "en", slice: "top", listed: true },
+  { id: "en-recent", lang: "en", slice: "recent", listed: true },
+  { id: "en", lang: "en", slice: "rest", listed: false },
 ];
 
 /** Every card page of a language, for the sitemap: set by set, with its lastmod (lastMoveOf) and its slice */

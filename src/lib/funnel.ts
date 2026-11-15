@@ -8,9 +8,27 @@
 
 import { amazonPlaceOf } from "@/lib/amazon";
 import { supabase } from "@/lib/cloud";
+import { isRoomless } from "@/lib/roomless";
 import { useStore } from "@/lib/store";
 
-export type FunnelStep = "profile" | "binder" | "cards10" | "account" | "game" | "share" | "tour_done" | "courrier";
+// card1 / cards5: where the first hour stops short of 10 cards; shop / checkout: the skins shop opened, a payment started;
+// market: « Voir sur Cardmarket / TCGplayer »; desk: a page drawn without the room sent the visitor to the desk (the
+// business review of 2026-11-14: the questions the funnel couldn't answer)
+export type FunnelStep =
+  | "profile"
+  | "binder"
+  | "card1"
+  | "cards5"
+  | "cards10"
+  | "account"
+  | "game"
+  | "share"
+  | "tour_done"
+  | "courrier"
+  | "shop"
+  | "checkout"
+  | "market"
+  | "desk";
 
 const DEVICE_KEY = "nookdex:device";
 const SENT_KEY = "nookdex:funnel";
@@ -123,22 +141,36 @@ export function funnelVisit() {
 }
 
 /**
- * A click on an Amazon link (the affiliate links, lib/amazon, amazon.fr and amazon.com): counted by day and by the place
+ * A click on an Amazon link (the affiliate links, lib/amazon, amazon.fr and amazon.com): counted by day, by the place
  * the link says it's on (`data-amazon-place`: invit, calendrier, extension, carte, blog, accessoires, *-bar; "-us" for
- * amazon.com, `amazonPlaceOf`), nothing else (Supabase amazon_click). The sales are in Johan's Amazon dashboard (no API
- * for it); this says which links get clicked. In dev it only says so in the console.
+ * amazon.com, `amazonPlaceOf`) and by the device's first source (google, bing, chatgpt…), nothing else (Supabase
+ * amazon_click). The sales are in Johan's Amazon dashboard (no API for it); this says which links get clicked, and by
+ * whom. In dev it only says so in the console.
+ * The same listener takes two funnel steps: a market link (Cardmarket, TCGplayer), and a page drawn without the room
+ * sending the visitor to the desk (a link to / or /en from there: « Ajouter à ma collection », « Mon bureau »…).
  */
 export function watchAmazonClicks() {
   const on = (e: MouseEvent) => {
-    const a = (e.target as Element | null)?.closest?.<HTMLAnchorElement>('a[href*="amazon.fr/"], a[href*="amazon.com/"]');
+    const a = (e.target as Element | null)?.closest?.<HTMLAnchorElement>("a[href]");
     if (!a) return;
+    let url: URL;
+    try {
+      url = new URL(a.href, location.href);
+    } catch {
+      return;
+    }
+    const host = url.hostname.replace(/^www\./, "");
+    if (host === "cardmarket.com" || host === "tcgplayer.com") return funnelStep("market");
+    if (url.origin === location.origin && /^\/(en\/?)?$/.test(url.pathname) && isRoomless(location.pathname)) return funnelStep("desk");
+    if (host !== "amazon.fr" && host !== "amazon.com") return;
     const place = amazonPlaceOf(a, location.pathname);
     if (!live()) {
       if (process.env.NODE_ENV !== "production") console.info("[amazon click]", place, a.href);
       return;
     }
-    void supabase.rpc("amazon_click", { p_place: place }).then(
-      () => {},
+    // the source rides along since 2026-11-15 (docs/supabase.sql); the one-argument function while that isn't in Supabase
+    void supabase.rpc("amazon_click", { p_place: place, p_source: sent().source }).then(
+      ({ error }) => void (error && supabase.rpc("amazon_click", { p_place: place }).then(() => {}, () => {})),
       () => {},
     );
   };

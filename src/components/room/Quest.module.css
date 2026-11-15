@@ -1,0 +1,176 @@
+/* The 10-card quest: a paper quest card in the bottom-left corner (computer), along the bottom (phone), over the room and an
+   open binder. Pixel boxes fill as cards are ticked. */
+.quest {
+  position: fixed;
+  left: 16px;
+  /* above the version tag (App .version) */
+  bottom: 44px;
+  z-index: 66;
+  display: grid;
+  gap: 7px;
+  width: 340px;
+  padding: 11px 14px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+  color: var(--ink);
+  font-family: var(--font-vt), monospace;
+  font-size: 19px;
+  line-height: 1.15;
+  box-shadow: 5px 6px 0 rgba(20, 12, 28, 0.45);
+  rotate: -1deg;
+}
+
+.phone {
+  left: 8px;
+  right: 8px;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: auto;
+  padding: 9px 40px 10px 12px;
+  rotate: none;
+}
+
+.head {
+  padding-right: 22px;
+  font-family: var(--font-press), monospace;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.boxes {
+  display: flex;
+  gap: 4px;
+}
+
+.boxes i {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper-2, #efe3c8);
+}
+
+/* a box filled: the desk's green, popped in */
+.boxes i.on {
+  background: #6bbf59;
+  box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.18);
+  animation: fill 0.35s cubic-bezier(0.34, 1.8, 0.5, 1) both;
+}
+
+@keyframes fill {
+  from {
+    transform: scale(0.4);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.count {
+  font-size: 22px;
+}
+
+.sub {
+  color: var(--ink-soft);
+}
+
+.btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btns:empty {
+  display: none;
+}
+
+.go {
+  flex: none;
+  padding: 7px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 7px;
+  background: #ffd35a;
+  color: var(--ink);
+  font-family: var(--font-press), monospace;
+  font-size: 11px;
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.go:hover {
+  transform: translate(-1px, -2px) rotate(-2deg);
+}
+
+.go:active {
+  transform: scale(0.92);
+}
+
+.alt {
+  background: var(--paper);
+}
+
+.close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* the 10th card */
+.cheer {
+  background-color: #fff3c4;
+  rotate: 1deg;
+}
+
+.cheer .boxes i.on {
+  background: #ffc531;
+}
+
+/* folded: a round pill in the corner, its count on it */
+.pill {
+  position: fixed;
+  left: 16px;
+  /* above the version tag (App .version) */
+  bottom: 44px;
+  z-index: 66;
+  padding: 8px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background-color: var(--paper);
+  background-image: var(--paper-grain), var(--paper-wash);
+  color: var(--ink);
+  font-family: var(--font-vt), monospace;
+  font-size: 20px;
+  box-shadow: 3px 4px 0 rgba(20, 12, 28, 0.45);
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+.pill:hover {
+  transform: translateY(-2px) rotate(-3deg);
+}
+
+.pillPhone {
+  left: 10px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boxes i.on {
+    animation: none;
+  }
+}
