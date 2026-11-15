@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-14T18:26:03.385Z",
+ "updated": "2026-11-15T06:17:32.105Z",
  "posts": [
   {
    "id": "2026-10-08-bienvenue",
@@ -937,6 +937,171 @@
    "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-11-15-tiktok-mega-latias/tiktok.mp4"
+  },
+  {
+   "id": "2026-11-16-froid-arrive",
+   "date": "2026-11-16",
+   "time": "18:30",
+   "platforms": [
+    "instagram"
+   ],
+   "kind": "fun",
+   "format": "post",
+   "title": "La page du froid",
+   "note": "Page de classeur : 9 illustrations de Pokémon de glace et de neige, sets récents.",
+   "caption": "Le froid arrive, la page de classeur aussi ❄️\n\nFrigodo, Glaivodo, Artikodin, Polarhume, Sorbébé, Sorbouboul, Lokhlass, Kyurem-ex et Givrali-ex : 9 illustrations bien givrées.\n\nTu prends laquelle pour l'hiver ? 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #givrali #kyurem #pokemonfr",
+   "captionTiktok": null,
+   "prices": false,
+   "slides": [
+    "2026-11-16-froid-arrive/slide-01.jpg",
+    "2026-11-16-froid-arrive/slide-02.jpg"
+   ],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": null
+  },
+  {
+   "id": "2026-11-16-story-nouveau-0-19",
+   "date": "2026-11-16",
+   "time": "18:30",
+   "platforms": [
+    "instagram"
+   ],
+   "kind": "feature",
+   "format": "story",
+   "title": "Story : Nouveau 0.19, tes classeurs à toi",
+   "note": "À la une Nouveau : ajoute-la, retire la story 0.16. highlights.json mis à jour.",
+   "caption": "",
+   "captionTiktok": null,
+   "prices": false,
+   "slides": [
+    "2026-11-16-story-nouveau-0-19/slide-01.jpg"
+   ],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": null
+  },
+  {
+   "id": "2026-11-17-tiktok-evoli",
+   "date": "2026-11-17",
+   "time": "18:30",
+   "platforms": [
+    "tiktok",
+    "reels"
+   ],
+   "kind": "fun",
+   "format": "post",
+   "title": "TikTok : quel Évoli vaut le plus ?",
+   "note": "Jeu, vidéo TikTok + Reel. Prix redessinés la veille et le jour même : la réponse suit les prix du jour (manche 2 : l'Évoli simple promo contre l'Évoli-ex promo, écart serré).",
+   "caption": "Quel Évoli vaut le plus ? 🦊 Réponse en 3 manches, même les pros se trompent.\n\nTon score ? 👇\n\n#pokemontcg #evoli #cartespokemon #pokemonfr #eevee",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": "2026-11-17-tiktok-evoli/tiktok.mp4"
+  },
+  {
+   "id": "2026-11-18-regne-delta-1-semaine",
+   "date": "2026-11-18",
+   "time": "18:30",
+   "platforms": [
+    "instagram"
+   ],
+   "kind": "fact",
+   "format": "post",
+   "title": "Règne Delta, 1 semaine après",
+   "note": "Courbes depuis la sortie (6 nov.), redessinées la veille et le jour : vérifie que Méga-Rayquaza-ex (les deux), Raikou-ex et Groudon suivent toujours la légende (baisse des Méga/Raikou, hausse de Groudon).",
+   "caption": "Règne Delta, une semaine après sa sortie 📉\nLes cotes Cardmarket jour après jour : les Méga-Rayquaza-ex et Raikou-ex se détendent, Groudon grimpe.\n\nTu as sorti le jackpot ? 👇\nSuis la cote de tes cartes sur nookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #regnedelta #megarayquaza #pokemonfr",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [
+    "2026-11-18-regne-delta-1-semaine/slide-01.jpg",
+    "2026-11-18-regne-delta-1-semaine/slide-02.jpg",
+    "2026-11-18-regne-delta-1-semaine/slide-03.jpg",
+    "2026-11-18-regne-delta-1-semaine/slide-04.jpg",
+    "2026-11-18-regne-delta-1-semaine/slide-05.jpg",
+    "2026-11-18-regne-delta-1-semaine/slide-06.jpg",
+    "2026-11-18-regne-delta-1-semaine/slide-07.jpg"
+   ],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": null
+  },
+  {
+   "id": "2026-11-19-tiktok-nuit",
+   "date": "2026-11-19",
+   "time": "18:30",
+   "platforms": [
+    "tiktok"
+   ],
+   "kind": "fun",
+   "format": "post",
+   "title": "TikTok : la page de nuit",
+   "note": "Carrousel photo TikTok (mode photo). Un son tendance. Dernière photo : Noctali-ex, vérifie son prix du jour.",
+   "caption": "La page de nuit 🌙 Quand les Pokémon sortent après le coucher du soleil.\n\nTu prends laquelle ? 👇\n\n#pokemontcg #cartespokemon #noctali #pokemonfr #nuit",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [],
+   "photos": [
+    "2026-11-19-tiktok-nuit/photo-01.jpg",
+    "2026-11-19-tiktok-nuit/photo-02.jpg",
+    "2026-11-19-tiktok-nuit/photo-03.jpg",
+    "2026-11-19-tiktok-nuit/photo-04.jpg"
+   ],
+   "tiktokAs": "photos",
+   "video": null,
+   "tiktok": null
+  },
+  {
+   "id": "2026-11-20-classeur-libre-manquantes",
+   "date": "2026-11-20",
+   "time": "18:30",
+   "platforms": [
+    "instagram"
+   ],
+   "kind": "feature",
+   "format": "post",
+   "title": "Les cartes qui te manquent, grisées",
+   "note": "Feature 0.19 : un classeur libre range aussi les cartes qu'on n'a pas encore (grisées). Capture wishbinder.jpg (une wishlist, même principe visuel).",
+   "caption": "Un classeur « oiseaux », « mes préférées »… avec les cartes qui te manquent déjà dedans 🕊️\n\nDans un classeur libre NookDex, range aussi celles que tu cherches : elles restent grisées, avec un compteur « 3 / 6 », jusqu'au jour où tu les trouves.\n\nTon prochain classeur, ce serait quoi ? 👇\nnookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #collectionpokemon #pokemonfr #wishlist",
+   "captionTiktok": null,
+   "prices": false,
+   "slides": [
+    "2026-11-20-classeur-libre-manquantes/slide-01.jpg",
+    "2026-11-20-classeur-libre-manquantes/slide-02.jpg",
+    "2026-11-20-classeur-libre-manquantes/slide-03.jpg",
+    "2026-11-20-classeur-libre-manquantes/slide-04.jpg"
+   ],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": null
+  },
+  {
+   "id": "2026-11-22-tiktok-ronflex",
+   "date": "2026-11-22",
+   "time": "18:30",
+   "platforms": [
+    "tiktok",
+    "reels"
+   ],
+   "kind": "fact",
+   "format": "post",
+   "title": "TikTok : les 5 Ronflex les plus chers",
+   "note": "Vidéo TikTok + Reel. Prix redessinés la veille et le jour même : les n°3 à 5 se tiennent à 6 € près, vérifie l'ordre ; et que le n°1 reste un Ronflex simple (twist).",
+   "caption": "Les 5 Ronflex les plus chers 😴 Le n°1 n'est pas celui que tu crois.\n\nTu en as un ? 👇\n\n#pokemontcg #ronflex #cartespokemon #pokemonfr #snorlax",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": "2026-11-22-tiktok-ronflex/tiktok.mp4"
   }
  ]
 }
