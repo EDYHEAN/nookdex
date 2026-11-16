@@ -53,7 +53,7 @@ interface SkinState {
   equipped: string[];
   /** items bought (from the server: a bundle counts as its items) */
   owned: string[];
-  /** the Soutien pack bought (the pack itself, not its items one by one): the Mécène plaque and the ★ on shared lists */
+  /** the Soutien pack bought (the pack itself, not its items one by one): the Bienfaiteur plaque, the poster and the ★ on shared lists */
   patron: boolean;
   /** an item or a bundle tried on from the shop: shown over what's worn, not kept */
   trying: string | null;

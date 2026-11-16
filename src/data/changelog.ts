@@ -13,6 +13,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.20",
+    date: "2026-11-16",
+    title: { fr: "La boutique rouvre", en: "The shop is back" },
+    items: [
+      { fr: "🛍️ Le pack Soutien, toute l'année : plantes, Warwick en écharpe, lampe menthe, radio jazz.", en: "🛍️ The Supporter pack, all year round: plants, Warwick in a scarf, a mint lamp, jazz radio." },
+      { fr: "Avec le pack : ta plaque de Bienfaiteur, le poster de Warwick et une ★ sur ta liste.", en: "With the pack: your Benefactor plaque, Warwick's poster and a ★ on your list." },
+      { fr: "Une quête pour tes 10 premières cartes, en bas à gauche.", en: "A quest for your first 10 cards, bottom left." },
+    ],
+  },
+  {
     version: "0.19",
     date: "2026-11-11",
     title: { fr: "Tes classeurs à toi", en: "Your own binders" },

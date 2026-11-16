@@ -139,7 +139,7 @@ export function ListPage({ en, slug, gone, name = "", patron = false, updatedAt 
           <h1>
             {t(`La liste de ${name}`, `${name}'s list`)}
             {patron && (
-              <span className={styles.patron} title={t("Mécène de NookDex", "NookDex patron")}>
+              <span className={styles.patron} title={t("Bienfaiteur de NookDex", "NookDex benefactor")}>
                 ★
               </span>
             )}

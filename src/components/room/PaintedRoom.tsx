@@ -131,7 +131,7 @@ const POSTER_NAMES: Record<string, [string, string]> = {
   map: ["Carte du monde", "World map"],
   sakura: ["Cerisiers en fleurs", "Cherry blossoms"],
   // the Soutien pack's, for patrons only (posters.json `patron`)
-  patron: ["Le mécène", "The patron"],
+  patron: ["Le bienfaiteur", "The benefactor"],
 };
 const POSTER_KEY = "nookdex:poster";
 const readPoster = () => {
@@ -565,7 +565,7 @@ function PaintedRoomView({
               {PLAQUE.shadow && <span className={styles.skinShadow} style={{ left: PLAQUE.x + PLAQUE.w * 0.08, top: PLAQUE.y + PLAQUE.h - 10, width: PLAQUE.w * 0.84, height: 16 }} aria-hidden />}
               <img className={`${styles.sprite} ${PLAQUE.still ? "" : styles.skinThing}`} src={!daytime && PLAQUE.srcNight ? PLAQUE.srcNight : PLAQUE.src} style={place(PLAQUE)} alt="" draggable={false} />
               <span className={styles.plaqueText} style={{ ...place(PLAQUE.text), fontSize: Math.round(PLAQUE.text.h * 0.36) }} aria-hidden>
-                <small>{tr("Mécène", "Patron")}</small>
+                <small>{tr("Bienfaiteur", "Benefactor")}</small>
                 {patronName.slice(0, 24)}
               </span>
             </span>
