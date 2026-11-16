@@ -8,7 +8,7 @@ import { MAX_BINDERS, SHELF_LEAD, boxOf, spineName, shelfPlace, pocketsOf, shelf
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
-import { NAME_PARTS, OS_NAME } from "@/lib/site";
+import { NAME_PARTS, NICKNAME_MAX, OS_NAME } from "@/lib/site";
 import { radioBed, setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { PLAQUE, SUPPORT_BUNDLE, useLook, usePatron, useSkins, type LavaTheme } from "@/lib/shop";
 import { useAskUp, useWantAsk } from "@/lib/calm";
@@ -268,6 +268,8 @@ function PaintedRoomView({
   // the plaque shows to whoever bought the pack, and while it is tried on from the shop
   const tryingPack = useSkins((s) => s.trying === SUPPORT_BUNDLE);
   const patron = usePatron() || tryingPack;
+  // the plaque's engraving: the player's nickname (Johan, 2026-11-16), else the word
+  const nickname = useStore((s) => s.profile?.name?.trim() ?? "");
   const skinLava = skin?.lava;
   const lavaThemes = useMemo<LavaTheme[]>(() => (skinLava ? [skinLava, ...LAVA_THEMES] : LAVA_THEMES), [skinLava]);
   const themesRef = useRef(lavaThemes);
@@ -569,20 +571,23 @@ function PaintedRoomView({
             </span>
           ))}
 
-          {/* the Soutien pack's plaque, « Bienfaiteur » engraved on it (Johan, 2026-11-16: the word alone): there whatever is worn */}
-          {patron && PLAQUE && (
+          {/* the engraved plaque (the Soutien collection's, worn like any item): the player's nickname on it */}
+          {skin?.plaque && PLAQUE && (() => {
+            const name = nickname ? (nickname.length > NICKNAME_MAX ? nickname.slice(0, NICKNAME_MAX - 1) + "…" : nickname) : tr("Bienfaiteur", "Benefactor");
+            return (
             <span>
               {PLAQUE.shadow && <span className={styles.skinShadow} style={{ left: PLAQUE.x + PLAQUE.w * 0.08, top: PLAQUE.y + PLAQUE.h - 10, width: PLAQUE.w * 0.84, height: 16 }} aria-hidden />}
               <img className={`${styles.sprite} ${PLAQUE.still ? "" : styles.skinThing}`} src={!daytime && PLAQUE.srcNight ? PLAQUE.srcNight : PLAQUE.src} style={place(PLAQUE)} alt="" draggable={false} />
               <span
                 className={styles.plaqueText}
-                style={{ ...place(PLAQUE.text), fontSize: Math.round(Math.min(PLAQUE.text.h * 0.42, PLAQUE.text.w / 10.5)) }}
+                style={{ ...place(PLAQUE.text), fontSize: Math.round(Math.min(PLAQUE.text.h * 0.5, PLAQUE.text.w / (Math.max(5, name.length) * 0.72))) }}
                 aria-hidden
               >
-                {tr("Bienfaiteur", "Benefactor")}
+                {name}
               </span>
             </span>
-          )}
+            );
+          })()}
 
           {skin?.art.spider && <SkinSpider spider={skin.art.spider} paused={paused} />}
 

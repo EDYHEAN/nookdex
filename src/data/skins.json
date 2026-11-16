@@ -50,6 +50,14 @@
         "fr": "Radio lofi",
         "en": "Lofi radio"
       }
+    },
+    {
+      "slot": "plaque",
+      "icon": "/skins/base/plaque.webp",
+      "name": {
+        "fr": "Mur nu",
+        "en": "Bare wall"
+      }
     }
   ],
   "items": [
@@ -238,6 +246,22 @@
         "en": "A café trio: walking bass, brushes and vibes."
       },
       "music": "jazz"
+    },
+    {
+      "id": "soutien-plaque",
+      "set": "soutien",
+      "slot": "plaque",
+      "rarity": "rare",
+      "price": 1.49,
+      "icon": "/skins/soutien/icon-plaque.webp",
+      "name": {
+        "fr": "Plaque gravée",
+        "en": "Engraved plaque"
+      },
+      "blurb": {
+        "fr": "Une plaque en laiton au mur, sous l'horloge, gravée à ton pseudo.",
+        "en": "A brass plaque on the wall, under the clock, engraved with your name."
+      }
     }
   ],
   "bundles": [
@@ -277,15 +301,16 @@
         "soutien-decor",
         "soutien-cat",
         "soutien-lamp",
-        "soutien-radio"
+        "soutien-radio",
+        "soutien-plaque"
       ],
       "name": {
         "fr": "Pack Soutien",
         "en": "Supporter pack"
       },
       "blurb": {
-        "fr": "Les cinq objets, plus la plaque « Bienfaiteur » gravée à ton pseudo, le poster de Warwick et une ★ sur ta liste partagée. Il aide NookDex à rester gratuit.",
-        "en": "All five items, plus a « Benefactor » plaque engraved with your name, Warwick's poster and a ★ on your shared list. It keeps NookDex free."
+        "fr": "Les six objets, plus le poster de Warwick et une ★ sur ta liste partagée. Il aide NookDex à rester gratuit.",
+        "en": "All six items, plus Warwick's poster and a ★ on your shared list. It keeps NookDex free."
       }
     }
   ]

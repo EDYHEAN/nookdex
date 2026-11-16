@@ -15,6 +15,8 @@ export const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 
 
 /** The name, everywhere on the site (split in two for the two-tone lettering). */
 export const SITE_NAME = "NookDex";
+/** A player's nickname, at most (Johan, 2026-11-16: it's engraved on the Soutien plaque) */
+export const NICKNAME_MAX = 16;
 export const NAME_PARTS = ["Nook", "Dex"] as const;
 export const OS_NAME = `${SITE_NAME.toUpperCase()} OS`;
 export const SITE_DESCRIPTION =

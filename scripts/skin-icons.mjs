@@ -16,15 +16,16 @@ const cache = path.join(".cache", "skin-icons");
 fs.mkdirSync(cache, { recursive: true });
 
 /** The room at 1400x900, twice the pixels: what's worn (?skin), by day or night, the strips that float over it hidden */
-async function shoot(page, skin, day) {
+async function shoot(page, skin, day, name = "Warwick") {
   const file = path.join(cache, `${skin || "none"}-${day ? "day" : "night"}.png`);
   const url = `${base}/?skip&skin${skin ? `=${skin}` : ""}`;
   await page.goto(url, { waitUntil: "networkidle", timeout: 90000 });
-  await page.evaluate((day) => {
+  await page.evaluate(([day, name]) => {
     const v = JSON.parse(localStorage.getItem("pokepocket:v1"));
     v.state.daytime = day;
+    if (name && v.state.profile) v.state.profile.name = name;
     localStorage.setItem("pokepocket:v1", JSON.stringify(v));
-  }, day);
+  }, [day, name]);
   await page.goto(url, { waitUntil: "networkidle", timeout: 90000 });
   await page.addStyleTag({ content: '[class*="Quest"],[class*="SupportCat"]{display:none!important}' });
   await page.waitForTimeout(4500);
@@ -43,6 +44,15 @@ const shots = {
   skyDay: await shoot(page, `${set}-sky`, true),
   skyNight: await shoot(page, `${set}-sky`, false),
 };
+// a collection with an engraved plaque, and the bare wall (every shot's plaque reads « Warwick », not the dev profile's « Dev »)
+const catalogue = JSON.parse(fs.readFileSync("src/data/skins.json", "utf8"));
+const hasPlaque = catalogue.items.some((i) => i.id === `${set}-plaque`);
+if (hasPlaque) shots.plaque = await shoot(page, `${set}-plaque`, true);
+await page.evaluate(() => {
+  const v = JSON.parse(localStorage.getItem("pokepocket:v1"));
+  if (v.state.profile) v.state.profile.name = "Dev";
+  localStorage.setItem("pokepocket:v1", JSON.stringify(v));
+});
 await browser.close();
 
 // the boxes, in the 2800x1800 screenshot's px (the room at 1400x900, x2)
@@ -50,6 +60,8 @@ await browser.close();
 const WINDOW = { left: 90, top: 70, width: 640, height: 480 };
 const DESK = { left: 600, top: 660, width: 920, height: 690 };
 const DECOR = { left: 40, top: 500, width: 1120, height: 840 };
+// the plaque under the clock (build-skins SPOTS wall)
+const PLAQUE = { left: 1419, top: 541, width: 440, height: 330 };
 const SIZE = { width: 480, height: 360 };
 
 const frame = (file, box) => sharp(file).extract(box).resize(SIZE.width, SIZE.height).removeAlpha().raw().toBuffer();
@@ -78,4 +90,8 @@ await loop(frame(shots.skyDay, WINDOW), frame(shots.skyNight, WINDOW), `${out}/i
 await loop(frame(shots.bare, DESK), frame(shots.lamp, DESK), `${out}/icon-lamp.webp`);
 await sharp(shots.packDay).extract(DECOR).resize(SIZE.width, SIZE.height).webp({ quality: 84 }).toFile(`${out}/icon-decor.webp`);
 await sharp(shots.packNight).extract({ left: 0, top: 60, width: 2800, height: 1575 }).resize(960, 540).webp({ quality: 82 }).toFile(`${out}/preview.webp`);
+if (hasPlaque) {
+  await sharp(shots.plaque).extract(PLAQUE).resize(SIZE.width, SIZE.height).webp({ quality: 84 }).toFile(`${out}/icon-plaque.webp`);
+  await sharp(shots.bare).extract(PLAQUE).resize(SIZE.width, SIZE.height).webp({ quality: 84 }).toFile("public/skins/base/plaque.webp");
+}
 console.log(`${set}: icon-sky, icon-lamp (loops), icon-decor, preview -> ${out}`);
