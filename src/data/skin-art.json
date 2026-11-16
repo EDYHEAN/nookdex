@@ -113,9 +113,9 @@
       {
         "src": "/skins/soutien/spot-sill.webp",
         "srcNight": "/skins/soutien/spot-sill-night.webp",
-        "x": 378,
+        "x": 379,
         "y": 525,
-        "w": 347,
+        "w": 330,
         "h": 239,
         "still": true
       },
@@ -163,10 +163,10 @@
       "h": 135,
       "still": true,
       "text": {
-        "x": 1496,
-        "y": 553,
-        "w": 144,
-        "h": 81
+        "x": 1504,
+        "y": 563,
+        "w": 134,
+        "h": 72
       }
     }
   }
