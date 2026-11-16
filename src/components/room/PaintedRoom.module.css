@@ -1079,9 +1079,10 @@
 /* the Mécène plaque's engraving: dark letters cut in the brass, lit from above */
 .plaqueText {
   position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* a grid cell and a centred line: every browser centres it, whatever the font it falls back on */
+  display: grid;
+  place-items: center;
+  text-align: center;
   overflow: hidden;
   font-family: Georgia, "Times New Roman", serif;
   font-weight: bold;
