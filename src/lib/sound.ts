@@ -326,7 +326,28 @@ const JAZZ = [
 ];
 const JAZZ_ROOTS = [50, 43, 48, 45];
 const VIBES = [72, 74, 76, 79, 81, 83, 84];
-export type AmbientMood = "lofi" | "spooky" | "jazz";
+// The Advent calendar's 24th box: « Douce nuit » (Gruber, 1818, public domain) on a music box: [note, beats] in 3/4
+const NOEL: [number, number][] = [
+  [67, 1.5], [69, 0.5], [67, 1], [64, 3], [67, 1.5], [69, 0.5], [67, 1], [64, 3],
+  [74, 2], [74, 1], [71, 3], [72, 2], [72, 1], [67, 3],
+  [69, 2], [69, 1], [72, 1.5], [71, 0.5], [69, 1], [67, 1.5], [69, 0.5], [67, 1], [64, 3],
+  [69, 2], [69, 1], [72, 1.5], [71, 0.5], [69, 1], [67, 1.5], [69, 0.5], [67, 1], [64, 3],
+  [74, 2], [74, 1], [77, 1.5], [74, 0.5], [71, 1], [72, 3], [76, 3],
+  [72, 1.5], [67, 0.5], [64, 1], [67, 1.5], [65, 0.5], [62, 1], [60, 6],
+];
+/** its bars' roots, one a bar (C, G or F) */
+const NOEL_BASS = [48, 48, 48, 48, 43, 43, 48, 48, 53, 53, 48, 48, 53, 53, 48, 48, 43, 43, 48, 48, 48, 43, 48, 48];
+// The winter pack's radio: Jingle Bells (Pierpont, 1857, public domain) in lofi: the chorus, [note, beats] bar by bar
+const JINGLE: [number, number][][] = [
+  [[76, 1], [76, 1], [76, 2]], [[76, 1], [76, 1], [76, 2]], [[76, 1], [79, 1], [72, 1.5], [74, 0.5]], [[76, 4]],
+  [[77, 1], [77, 1], [77, 1.5], [77, 0.5]], [[77, 1], [76, 1], [76, 1], [76, 0.5], [76, 0.5]], [[76, 1], [74, 1], [74, 1], [76, 1]], [[74, 2], [79, 2]],
+  [[76, 1], [76, 1], [76, 2]], [[76, 1], [76, 1], [76, 2]], [[76, 1], [79, 1], [72, 1.5], [74, 0.5]], [[76, 4]],
+  [[77, 1], [77, 1], [77, 1.5], [77, 0.5]], [[77, 1], [76, 1], [76, 1], [76, 0.5], [76, 0.5]], [[79, 1], [79, 1], [77, 1], [74, 1]], [[72, 4]],
+];
+/** each bar's chord, lofi sevenths: C, F, D7, G7 */
+const CMAJ7 = [48, 55, 59, 64], FMAJ7 = [41, 53, 57, 64], D7 = [38, 54, 57, 60], G7 = [43, 53, 57, 59];
+const JINGLE_CHORDS = [CMAJ7, CMAJ7, CMAJ7, CMAJ7, FMAJ7, CMAJ7, D7, G7, CMAJ7, CMAJ7, CMAJ7, CMAJ7, FMAJ7, CMAJ7, G7, CMAJ7];
+export type AmbientMood = "lofi" | "spooky" | "jazz" | "noel" | "jingle";
 let mood: AmbientMood = "lofi";
 /** The radio's tune: taken up from the next beat */
 export const setAmbientMood = (m: AmbientMood) => {
@@ -338,6 +359,8 @@ function schedule() {
   if (!ctx || !ambientGain) return;
   if (mood === "spooky") return scheduleSpooky();
   if (mood === "jazz") return scheduleJazz();
+  if (mood === "noel") return scheduleNoel();
+  if (mood === "jingle") return scheduleJingle();
   const spb = 60 / 72;
   while (nextBeat < ctx.currentTime + 0.4) {
     const t = nextBeat - ctx.currentTime;
@@ -445,6 +468,69 @@ function scheduleJazz() {
       tone({ freq: midi(n + 12), type: "sine", dur: 0.35, vol: 0.008, delay: at, attack: 0.005, dest: g });
     }
     nextBeat += spb;
+    beat++;
+  }
+}
+
+/** Jingle Bells in lofi: the lofi radio's beat and its chords, the tune on soft keys, sleigh bells on the off-beats */
+function scheduleJingle() {
+  if (!ctx || !ambientGain) return;
+  const spb = 60 / 80;
+  const g = ambientGain;
+  while (nextBeat < ctx.currentTime + 0.4) {
+    const t = nextBeat - ctx.currentTime;
+    const bar = Math.floor(beat / 4) % JINGLE.length;
+    const inBar = beat % 4;
+    const chord = JINGLE_CHORDS[bar];
+    if (inBar === 0) {
+      chord.slice(1).forEach((n, i) => {
+        tone({ freq: midi(n), type: "sine", dur: spb * 4, vol: 0.04, delay: t + i * 0.03, attack: 0.04, dest: g });
+        tone({ freq: midi(n) * 1.003, type: "triangle", dur: spb * 1.5, vol: 0.01, delay: t + i * 0.03, dest: g });
+      });
+      tone({ freq: midi(chord[0]), type: "sine", dur: spb * 2, vol: 0.09, delay: t, dest: g });
+      // the tune of this bar, note by note from its start
+      let at = 0;
+      for (const [n, len] of JINGLE[bar]) {
+        tone({ freq: midi(n), type: "triangle", dur: Math.min(1.4, spb * len + 0.2), vol: 0.03, delay: t + at * spb, attack: 0.01, dest: g });
+        tone({ freq: midi(n + 12), type: "sine", dur: 0.3, vol: 0.008, delay: t + at * spb, attack: 0.005, dest: g });
+        at += len;
+      }
+    }
+    if (inBar === 2) tone({ freq: midi(chord[0]), type: "sine", dur: spb * 1.5, vol: 0.07, delay: t, dest: g });
+    // the lofi beat: kick on 1 and 3, a soft snare on 2 and 4, hats
+    if (inBar === 0 || inBar === 2) tone({ freq: 110, to: 42, type: "sine", dur: 0.28, vol: 0.2, delay: t, dest: g });
+    if (inBar === 1 || inBar === 3) noise({ dur: 0.16, vol: 0.055, freq: 1700, q: 0.7, delay: t, dest: g });
+    // sleigh bells: a shake on every off-beat
+    noise({ dur: 0.09, vol: 0.022, type: "highpass", freq: 8000, delay: t + spb * 0.5, attack: 0.01, dest: g });
+    nextBeat += spb;
+    beat++;
+  }
+}
+
+/** The music box: the tune note by note (`beat` counts its notes here), a soft root each bar, a pause before it comes round */
+let noelAt = 0;
+function scheduleNoel() {
+  if (!ctx || !ambientGain) return;
+  const spb = 60 / 96;
+  const g = ambientGain;
+  while (nextBeat < ctx.currentTime + 0.4) {
+    const t = nextBeat - ctx.currentTime;
+    const i = beat % (NOEL.length + 1);
+    if (i === NOEL.length) {
+      // a breath before it starts again
+      nextBeat += spb * 3;
+      beat++;
+      noelAt = 0;
+      continue;
+    }
+    const [n, len] = NOEL[i];
+    tone({ freq: midi(n), type: "triangle", dur: Math.min(1.6, spb * len + 0.4), vol: 0.035, delay: t, attack: 0.004, dest: g });
+    tone({ freq: midi(n + 12), type: "sine", dur: 0.5, vol: 0.012, delay: t, attack: 0.004, dest: g });
+    // the bar's root under its first note
+    const bar = Math.floor(noelAt / 3);
+    if (noelAt % 3 === 0) tone({ freq: midi(NOEL_BASS[bar % NOEL_BASS.length]), type: "sine", dur: spb * 3, vol: 0.05, delay: t, attack: 0.05, dest: g });
+    noelAt += len;
+    nextBeat += spb * len;
     beat++;
   }
 }

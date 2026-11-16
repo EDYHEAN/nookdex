@@ -1378,3 +1378,24 @@
   transform: scale(0.92);
 }
 
+
+/* the Advent sleigh, hanging from the ceiling by its ribbons: a slow swing (a transform only, the GPU's) */
+.sway {
+  transform-origin: 50% 0;
+  animation: sway 4.5s ease-in-out infinite alternate;
+}
+
+@keyframes sway {
+  from {
+    transform: rotate(-2.5deg);
+  }
+  to {
+    transform: rotate(2.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sway {
+    animation: none;
+  }
+}

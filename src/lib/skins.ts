@@ -44,6 +44,12 @@ export interface SkinArt {
   spider?: { src: string; w: number; h: number; x: number; top: number; drop: number };
   /** the Soutien collection's plaque (its own item, in the pack too): the player's name engraved in `text` */
   plaque?: Placed & { text: Box };
+  /** a frame round the clock (the winter pack's holly): under the hands the code draws */
+  clock?: Placed;
+  /** the Advent calendar's sleigh hanging on the wall (its 17th box) */
+  sleigh?: Placed;
+  /** the Advent tree (lib/advent): the bare fir, its decorations by name, its baubles in the order they're hung */
+  tree?: { base: Placed; layers: Partial<Record<"lights" | "gifts" | "snow" | "candy" | "garland" | "socks" | "star", Placed>>; baubles: Placed[] };
 }
 
 export interface LavaTheme {
@@ -57,7 +63,7 @@ export interface LavaTheme {
 
 export type Rarity = "uncommon" | "rare" | "epic" | "legendary";
 /** where an item goes: one of each worn at a time */
-export type Slot = "sky" | "decor" | "cat" | "lamp" | "radio" | "plaque";
+export type Slot = "sky" | "decor" | "cat" | "lamp" | "radio" | "plaque" | "clock" | "season";
 
 /** A thing sold on its own (src/data/skins.json): a part of a set's art, or a colour, or a tune */
 export interface Item {
@@ -79,12 +85,18 @@ export interface Item {
   tint?: string;
   /** the room's corners darkened in this colour (multiply) */
   vignette?: string;
-  /** things floating in the room (PaintedRoom, sceneAnim drawSpooky) */
-  particles?: "spooky";
+  /** things floating in the room (PaintedRoom, sceneAnim drawSpooky / drawFairy) */
+  particles?: "spooky" | "fairy";
   /** the radio's tune (lib/sound) */
   music?: AmbientMood;
+  /** what falls outside the window: snow instead of the rain (the winter sky) */
+  weather?: "snow";
+  /** given, never sold (the Advent calendar's: lib/advent), owned once its box is open */
+  gift?: number;
   /** last day in the shop (ISO), from its bundle: bought ones stay forever */
   until?: string;
+  /** first day in the shop (ISO), from its bundle */
+  from?: string;
 }
 
 /** Items sold together, cheaper */
@@ -96,6 +108,8 @@ export interface Bundle {
   cutout?: boolean;
   /** last day in the shop (ISO) */
   until?: string;
+  /** first day in the shop (ISO): before it, not shown (the winter pack, December 1st) */
+  from?: string;
   /** once gone: when it comes back (the shop's past collections say it) */
   returns?: { fr: string; en: string };
   items: string[];
@@ -109,8 +123,11 @@ export interface Look {
   lava?: LavaTheme;
   tint?: string;
   vignette?: string;
-  particles?: "spooky";
+  particles?: "spooky" | "fairy";
   music?: AmbientMood;
+  weather?: "snow";
+  /** the season's decoration (the Advent calendar's: the tree, its snow, its sleigh, as its boxes made them) */
+  season?: boolean;
   /** the plaque on the wall, the player's name engraved (the Soutien collection's) */
   plaque?: boolean;
 }
@@ -145,9 +162,16 @@ export const COLLECTIONS = Object.entries(CAT.sets)
 export const BUNDLES: Bundle[] = CAT.bundles.filter((b) => b.items.every((id) => READY_ITEMS.some((i) => i.id === id)));
 /** The permanent pack that supports the site (Johan, 2026-11-16): bought as a pack, it adds Warwick's poster and the ★ */
 export const SUPPORT_BUNDLE = "soutien";
+/** The Advent tree, once its art is cut (scripts/build-skins SPOTS hiver) */
+export const TREE = ART.hiver?.tree;
+/** The Advent sleigh, once its art is cut */
+export const SLEIGH = ART.hiver?.sleigh;
 /** The engraved plaque, once its art is cut (scripts/build-skins) */
 export const PLAQUE = ART[SUPPORT_BUNDLE]?.plaque;
-export const ITEMS: Item[] = READY_ITEMS.map((i) => ({ ...i, until: BUNDLES.find((b) => b.items.includes(i.id))?.until }));
+export const ITEMS: Item[] = READY_ITEMS.map((i) => {
+  const b = BUNDLES.find((x) => x.items.includes(i.id));
+  return { ...i, until: b?.until, from: b?.from };
+});
 export const ITEM = new Map(ITEMS.map((i) => [i.id, i]));
 export const BUNDLE = new Map(BUNDLES.map((b) => [b.id, b]));
 
@@ -156,7 +180,10 @@ export const itemsOf = (id: string): string[] => BUNDLE.get(id)?.items ?? (ITEM.
 /** A bundle's worth when its items are bought one by one */
 export const worthOf = (b: Bundle) => b.items.reduce((n, id) => n + (ITEM.get(id)?.price ?? 0), 0);
 /** Still for sale (its last day not past) */
-export const onSale = (x: { until?: string }) => !x.until || new Date().toISOString().slice(0, 10) <= x.until;
+export const onSale = (x: { until?: string; from?: string; gift?: number }) => {
+  const today = new Date().toISOString().slice(0, 10);
+  return !x.gift && (!x.until || today <= x.until) && (!x.from || today >= x.from);
+};
 
 /** The room's look from the items worn (one per slot: the last one wins) */
 export function lookOf(ids: string[]): Look | null {
@@ -170,12 +197,15 @@ export function lookOf(ids: string[]): Look | null {
     if (it.slot === "sky") Object.assign(look.art, { sky: a.sky, skyDay: a.skyDay });
     if (it.slot === "decor") Object.assign(look.art, { decor: a.decor, spider: a.spider });
     if (it.slot === "cat") look.art.cat = a.cat;
+    if (it.slot === "clock") look.art.clock = a.clock;
     if (it.lava) look.lava = it.lava;
     if (it.tint) look.tint = it.tint;
     if (it.vignette) look.vignette = it.vignette;
     if (it.particles) look.particles = it.particles;
     if (it.music) look.music = it.music;
+    if (it.weather) look.weather = it.weather;
     if (it.slot === "plaque") look.plaque = true;
+    if (it.slot === "season") look.season = true;
   }
   return any ? look : null;
 }

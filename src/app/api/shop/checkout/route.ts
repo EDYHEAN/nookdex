@@ -31,6 +31,8 @@ export async function POST(req: Request) {
       mode: "payment",
       "line_items[0][price]": price,
       "line_items[0][quantity]": 1,
+      // the Advent calendar's code (its 1st box, −20 % on the winter pack until December 31st): its coupon only fits winter
+      allow_promotion_codes: true,
       // said outright: Managed Payments (Link the seller) stays off whatever the account's default (dropped 2026-10-20)
       "managed_payments[enabled]": false,
       // printed on Stripe's receipt: what was bought, and the VAT-exempt mention Johan's sales carry

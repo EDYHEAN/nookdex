@@ -50,6 +50,39 @@ const SHEETS = [
     },
     skies: { sky: "img/soutien/sky.jpg", "sky-day": "img/soutien/sky-day.jpg" },
   },
+  // the winter pack (docs/skins.md lot 2): Warwick's sweater, the snowy skies; its decorations are SPOTS
+  {
+    skin: "hiver",
+    clean: true,
+    src: "img/hiver/cat-pull.jpg",
+    cols: 1,
+    rows: 1,
+    names: [],
+    light: [],
+    crops: {
+      "img/hiver/cat-pull.jpg": {
+        "cat-sleep": { box: [40, 600, 1100, 920] },
+        "cat-awake": { box: [1100, 200, 1026, 1169], erase: [[1100, 798, 56, 571]] },
+      },
+    },
+    skies: { sky: "img/hiver/sky.jpg", "sky-day": "img/hiver/sky-day.jpg" },
+  },
+  // the Advent calendar's Warwicks (docs/skins.md A3): Gemini's edits of the Halloween cats, the same boxes
+  ...["renne", "lutin", "bonnet"].map((id) => ({
+    skin: `avent-${id}`,
+    clean: true,
+    src: `img/hiver/cat-${id}.jpg`,
+    cols: 1,
+    rows: 1,
+    names: [],
+    light: [],
+    crops: {
+      [`img/hiver/cat-${id}.jpg`]: {
+        "cat-sleep": { box: [40, 600, 1100, 920] },
+        "cat-awake": { box: [1100, 200, 1026, 1169], erase: [[1100, 798, 56, 571]] },
+      },
+    },
+  })),
 ];
 
 /**
@@ -76,6 +109,13 @@ const PLACES = {
     // the spider of the corner's cobweb: its thread hangs from (x, top), it drops down to `drop` now and then
     spider: { name: "spider", x: 1150, top: 30, drop: 560, w: 84 },
   },
+  hiver: { decor: [], cat: { sleep: { name: "cat-sleep", cx: 2148, bottom: 1243, w: 400 }, awake: { name: "cat-awake", cx: 2163, bottom: 1250, w: 412 } } },
+  ...Object.fromEntries(
+    ["renne", "lutin", "bonnet"].map((id) => [
+      `avent-${id}`,
+      { decor: [], cat: { sleep: { name: "cat-sleep", cx: 2148, bottom: 1243, w: 400 }, awake: { name: "cat-awake", cx: 2163, bottom: 1250, w: 412 } } },
+    ]),
+  ),
   soutien: {
     decor: [],
     // the same cats as Halloween's, at the same scale: the sleeping one's scarf hangs lower than its body
@@ -107,6 +147,50 @@ const SPOTS = {
     // `sharp`: a crisp outline (a wooden board's edge, not leaves): no halo kept, barely feathered
     wall: { box: [1340, 420, 520, 420], keep: [104, 90, 400, 290], plaque: true, sharp: true },
   },
+};
+/**
+ * The Advent tree (docs/skins.md « Calendrier de l'Avent »): Gemini's bare fir in place of the monstera (`cover`: the
+ * monstera's own leaves and pot, found by colour on the plate, taken whatever the difference, so none of it shows
+ * through), then each decoration as Gemini added it to that bare tree (`against`): a layer each, the baubles one by one
+ * (`split`), the lights and the star lit at night (`glow`), loops of garland not filled (`noFill`).
+ */
+const TREE_BOX = [0, 380, 800, 1156];
+// only around the tree (Gemini retouches the rest a little on every edit), and a firmer difference than for the room
+const layer = (name, extra = {}) => ({ box: TREE_BOX, keep: [0, 140, 570, 1156], diff: 40, edit: `tree-${name}.png`, against: "tree-0.jpg", tree: name, noFill: true, ...extra });
+SPOTS.hiver = {
+  // covers: the monstera it replaces, and the sill's cactus it stands in front of (Johan, 2026-11-16: the tree's green
+  // over the cactus's green made no difference, the room's cactus came back over the tree)
+  tree: {
+    box: TREE_BOX, keep: [0, 0, 800, 1156], edit: "tree-0.jpg", tree: "base", window: true,
+    cover: [{ rect: [0, 470, 500, 1156], pot: [60, 960, 400, 1156] }],
+    // its top, before the window and the cactus: Gemini's own tree on flat magenta (tree-key.png), its silhouette as is
+    // (Johan, 2026-11-16: pixel perfect; the greens of the tree and the cactus told nothing apart)
+    key: { file: "tree-key.png", rect: [0, 0, 800, 470] },
+  },
+  "tree-baubles": layer("baubles", { split: true }),
+  // the winter pack's decorations: nothing on the window's panes (Johan, 2026-11-16: too fiddly, never seen), a fir
+  // garland along the curtain rod, garlands across the top of the wall, the hot chocolate (its marshmallows are small:
+  // `speck`) and its candle; their lights stay lit at night (`glowIf`: the bright warm pixels)
+  "window-top": { box: [0, 0, 1020, 300], keep: [0, 0, 1020, 300], window: true, glowIf: (r, g, b) => r > 235 && g > 200 && b < 170 },
+  "wall-garlands": { box: [1000, 0, 900, 300], keep: [0, 0, 900, 300], edit: "wall-garlands-edit.png" },
+  mug: { box: [1480, 880, 400, 320], keep: [60, 60, 260, 300], speck: 20, glowIf: (r, g, b) => r > 235 && g > 170 && b < 150 },
+  // the Advent calendar's sleigh (its 17th box), hanging high on the wall
+  sleigh: { box: [1000, 0, 900, 300], keep: [0, 0, 900, 300], edit: "sleigh-edit.png", into: "sleigh" },
+  "tree-lights": layer("lights", { glow: true }),
+  "tree-gifts": layer("gifts"),
+  "tree-snow": layer("snow"),
+  "tree-candy": layer("candy"),
+  "tree-garland": layer("garland"),
+  "tree-socks": layer("socks"),
+  // the star: its own outline traced by hand (crop px, its 5 tips and the 5 corners between), as its gold is the window's
+  // and Gemini lit the frame round it: no difference tells it apart
+  "tree-star": layer("star", {
+    glow: true,
+    keep: [180, 90, 300, 210],
+    polygon: [[244, 99], [259, 130], [292, 136], [270, 163], [278, 195], [244, 178], [211, 192], [218, 160], [195, 137], [228, 130]],
+  }),
+  // the holly round the clock: not its face (the code draws the hands on the room's own)
+  clock: { box: [1400, 230, 300, 300], keep: [0, 0, 300, 300], into: "clock", hole: { cx: 147, cy: 143, rx: 80, ry: 102 } },
 };
 /** how far (0-255, the largest channel) an edited pixel must be from the room's to count as painted in */
 const SPOT_DIFF = 26;
@@ -304,11 +388,12 @@ function fillHoles(m, W, H, open = () => false) {
 }
 
 for (const [skin, spots] of Object.entries(SPOTS)) {
-  if (!art[skin]) continue;
+  art[skin] ??= {};
   const dir = `public/skins/${skin}`;
+  fs.mkdirSync(dir, { recursive: true });
   const decor = [];
   for (const [name, spot] of Object.entries(spots)) {
-    const edited = `img/${skin}/spots/${name}-edit.png`;
+    const edited = `img/${skin}/spots/${spot.edit ?? `${name}-edit.png`}`;
     if (!fs.existsSync(edited)) {
       console.log(skin, name, "skipped: no", edited);
       continue;
@@ -326,8 +411,10 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
     const [edit, dayB, editB, dayWide, nightWide] = await Promise.all([
       fromEdit(0),
       // compared a little blurred: Gemini's own grain isn't a change
-      crop("public/scene/day.webp", 1.5),
-      fromEdit(1.5),
+      // a decoration is what Gemini added to its own bare tree, not to the room
+      // `diffBlur`: less for fine lines (the frost's), the usual blur would wash them out
+      spot.against ? sharp(`img/${skin}/spots/${spot.against}`).resize(W, H, { fit: "fill", kernel: "lanczos3" }).removeAlpha().blur(spot.diffBlur ?? 1.5).raw().toBuffer() : crop("public/scene/day.webp", spot.diffBlur ?? 1.5),
+      fromEdit(spot.diffBlur ?? 1.5),
       // the light around, day and night
       crop("public/scene/day.webp", 24),
       crop("public/scene/plate.webp", 24),
@@ -343,32 +430,117 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
     }
     const [kx0, ky0, kx1, ky1] = spot.keep;
     let mask = new Uint8Array(N);
+    // a shape traced by hand: inside it, all of it
+    const inPoly = (x, y, poly) => {
+      let inside = false;
+      for (let a = 0, b = poly.length - 1; a < poly.length; b = a++) {
+        const [xa, ya] = poly[a], [xb, yb] = poly[b];
+        if (ya > y !== yb > y && x < ((xb - xa) * (y - ya)) / (yb - ya) + xa) inside = !inside;
+      }
+      return inside;
+    };
     for (let i = 0; i < N; i++) {
       const x = i % W, y = (i - x) / W;
       if (x < kx0 || x > kx1 || y < ky0 || y > ky1) continue;
+      if (spot.hole && ((x - spot.hole.cx) / spot.hole.rx) ** 2 + ((y - spot.hole.cy) / spot.hole.ry) ** 2 < 1) continue;
+      if (spot.polygon) {
+        mask[i] = inPoly(x, y, spot.polygon) ? 1 : 0;
+        continue;
+      }
       let d = 0;
       for (let c = 0; c < 3; c++) d = Math.max(d, Math.abs(dayB[i * 3 + c] - editB[i * 3 + c]));
-      mask[i] = d > SPOT_DIFF ? 1 : 0;
+      // `only`: the thing's own colour too (the star's gold), when the difference alone takes the background with it
+      mask[i] = d > (spot.diff ?? SPOT_DIFF) && (!spot.only || spot.only(editB[i * 3], editB[i * 3 + 1], editB[i * 3 + 2])) ? 1 : 0;
     }
     // specks (Gemini's grain, a dust mote moved) dropped, then the patches closed: grown, holes filled, shrunk back
-    for (const px of patches(mask, W, H)) if (px.length < N * 0.003) for (const j of px) mask[j] = 0;
+    if (!spot.polygon) for (const px of patches(mask, W, H)) if (px.length < (spot.speck ?? (spot.against ? 25 : N * 0.003))) for (const j of px) mask[j] = 0;
+    if (spot.cover) {
+      // the plant it replaces, all of it: its leaves (green) and its pot (terracotta), on the room's own plate, grown a little
+      const plate = await crop("public/scene/day.webp", 0);
+      for (const cover of [spot.cover].flat()) {
+        const [cx0, cy0, cx1, cy1] = cover.rect, [px0, py0, px1, py1] = cover.pot;
+        let plant = new Uint8Array(N);
+        for (let i = 0; i < N; i++) {
+          const x = i % W, y = (i - x) / W, [rr, gg, bb] = [plate[i * 3], plate[i * 3 + 1], plate[i * 3 + 2]];
+          // `dark`: an olive cactus in the warm light isn't green: anything darker than the bright panes behind it
+          const leaf = x >= cx0 && x <= cx1 && y >= cy0 && y <= cy1 && (cover.dark ? 0.3 * rr + 0.59 * gg + 0.11 * bb < 175 : gg > rr + 6 && gg > bb);
+          const pot = x >= px0 && x <= px1 && y >= py0 && y <= py1 && rr > 110 && rr > gg + 20 && gg > bb;
+          plant[i] = leaf || pot ? 1 : 0;
+        }
+        // grown so none of its edge is left (the cactus by less: the window's panes are round it)
+        const g = cover.grow ?? 8;
+        plant = morph(fillHoles(morph(plant, W, H, g, true), W, H), W, H, Math.min(2, g - 1), false);
+        for (let i = 0; i < N; i++) if (plant[i]) mask[i] = 1;
+      }
+    }
     // a hole mostly over a pane, bigger than a speck, is sky between leaves: left open
     const open = spot.window ? (px) => px.length > 120 && px.filter((j) => pane[j]).length > px.length / 2 : undefined;
-    mask = morph(fillHoles(morph(mask, W, H, 3, true), W, H, open), W, H, spot.sharp ? 3 : 2, false);
+    mask = spot.polygon ? mask : spot.noFill ? morph(morph(mask, W, H, 1, true), W, H, 1, false) : morph(fillHoles(morph(mask, W, H, 3, true), W, H, open), W, H, spot.sharp ? 3 : 2, false);
     // over the panes, a pixel more taken off the edge: the fringe there is Gemini's day sky, a light halo against the night's
     if (spot.window) {
       const tight = morph(mask, W, H, 1, false);
       for (let i = 0; i < N; i++) if (pane[i]) mask[i] = tight[i];
     }
-    const alpha = await sharp(Buffer.from(mask.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(spot.sharp ? 0.6 : 2).extractChannel(0).raw().toBuffer();
+    const alpha = await sharp(Buffer.from(mask.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(spot.sharp || spot.polygon ? 0.6 : 2).extractChannel(0).raw().toBuffer();
+    if (spot.key) {
+      // the silhouette: what isn't magenta, the edge's blend of the two as its softness
+      const key = await sharp(`img/${skin}/spots/${spot.key.file}`).resize(W, H, { fit: "fill", kernel: "lanczos3" }).removeAlpha().raw().toBuffer();
+      const [kx0, ky0, kx1, ky1] = spot.key.rect;
+      for (let i = 0; i < N; i++) {
+        const x = i % W, y = (i - x) / W;
+        if (x < kx0 || x >= kx1 || y < ky0 || y >= ky1) continue;
+        const [rr, gg, bb] = [key[i * 3], key[i * 3 + 1], key[i * 3 + 2]];
+        const magenta = Math.min(1, Math.max(0, (Math.min(rr, bb) - gg - 60) / 110));
+        alpha[i] = Math.round(255 * (1 - magenta));
+      }
+    }
+    if (spot.outline) {
+      // inside the rect, the painting's own outlines decide: a fill from what Gemini left as the room was (the sky in the
+      // panes, the cactus the tree doesn't hide) and from the rect's top and sides, through all but the dark lines; what
+      // it can't reach is the tree, its outline with it where it borders it
+      const [ox0, oy0, ox1, oy1] = spot.outline.rect;
+      const lum = (i) => 0.3 * edit[i * 3] + 0.59 * edit[i * 3 + 1] + 0.11 * edit[i * 3 + 2];
+      const inRect = (x, y) => x >= ox0 && x <= ox1 && y >= oy0 && y <= oy1;
+      const dark = new Uint8Array(N), reached = new Uint8Array(N), stack = [];
+      for (let i = 0; i < N; i++) {
+        const x = i % W, y = (i - x) / W;
+        if (!inRect(x, y)) continue;
+        // a wall for the fill: the black outlines, and the fir's own green (its painted outline isn't closed everywhere)
+        const [rr, gg, bb] = [edit[i * 3], edit[i * 3 + 1], edit[i * 3 + 2]];
+        dark[i] = lum(i) < 95 || (gg > rr + 4 && gg >= bb) ? 1 : 0;
+        let d = 0;
+        for (let c = 0; c < 3; c++) d = Math.max(d, Math.abs(dayB[i * 3 + c] - editB[i * 3 + c]));
+        // the rect's top only: its sides cross the tree's lower branches
+        const edge = y === oy0;
+        if (!dark[i] && (d < 10 || edge)) (reached[i] = 1), stack.push(i);
+      }
+      while (stack.length) {
+        const j = stack.pop();
+        const x = j % W;
+        for (const k of [x > 0 ? j - 1 : -1, x < W - 1 ? j + 1 : -1, j - W, j + W]) {
+          if (k < 0 || k >= N || reached[k] || dark[k] || !inRect(k % W, Math.floor(k / W))) continue;
+          reached[k] = 1;
+          stack.push(k);
+        }
+      }
+      // what the fill can't reach is the tree, its outline and green included; lone bits (a line of the frame) dropped
+      const inside = new Uint8Array(N);
+      for (let i = 0; i < N; i++) if (inRect(i % W, Math.floor(i / W)) && !reached[i]) inside[i] = 1;
+      for (const px of patches(inside, W, H)) if (px.length < 400) for (const j of px) inside[j] = 0;
+      const crisp = await sharp(Buffer.from(inside.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(0.5).extractChannel(0).raw().toBuffer();
+      for (let i = 0; i < N; i++) if (inRect(i % W, Math.floor(i / W))) alpha[i] = crisp[i];
+    }
     // day: Gemini's pixels; night: the same, darkened and tinted as the night plate is from the day one there
     const day = Buffer.alloc(N * 4), night = Buffer.alloc(N * 4);
     for (let i = 0; i < N; i++)
       for (let c = 0; c < 3; c++) {
         const ratio = Math.min(1.6, Math.max(0.08, (nightWide[i * 3 + c] + 1) / (dayWide[i * 3 + c] + 1)));
         day[i * 4 + c] = edit[i * 3 + c];
-        night[i * 4 + c] = Math.min(255, Math.round(edit[i * 3 + c] * ratio));
+        // a light (the tree's fairy lights, its star) shines the same by night
+        night[i * 4 + c] = spot.glow || spot.glowIf?.(edit[i * 3], edit[i * 3 + 1], edit[i * 3 + 2]) ? edit[i * 3 + c] : Math.min(255, Math.round(edit[i * 3 + c] * ratio));
         day[i * 4 + 3] = night[i * 4 + 3] = alpha[i];
+        // `tint`: its shape only, in one colour (the frost's icy white: on the day's window it had taken its warmth)
+        if (spot.tint) (day[i * 4 + c] = spot.tint[c]), (night[i * 4 + c] = spot.tint[c]);
       }
     if (spot.move) {
       // the biggest patch right of the cut (its shadow on the sill with it), its pixels moved: where it was, the room again
@@ -389,6 +561,28 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
         day.set(d, k * 4);
         night.set(n, k * 4);
       }
+    }
+    if (spot.split) {
+      // one picture per bauble: the tree gets one a day, in an order spread over the whole tree
+      const blobs = patches(Uint8Array.from(alpha, (a) => (a > 8 ? 1 : 0)), W, H).filter((px) => px.length > 40);
+      const parts = [];
+      for (const [k, px] of blobs.entries()) {
+        const xs = px.map((j) => j % W), ys = px.map((j) => Math.floor(j / W));
+        const bx = Math.min(...xs), by = Math.min(...ys), bw = Math.max(...xs) - bx + 1, bh = Math.max(...ys) - by + 1;
+        const one = Buffer.alloc(N * 4), oneN = Buffer.alloc(N * 4);
+        for (const j of px) (day.copy(one, j * 4, j * 4, j * 4 + 4), night.copy(oneN, j * 4, j * 4, j * 4 + 4));
+        const b = { left: bx, top: by, width: bw, height: bh };
+        await sharp(one, { raw: { width: W, height: H, channels: 4 } }).extract(b).webp({ quality: 90, alphaQuality: 90 }).toFile(`${dir}/${name}-${k}.webp`);
+        await sharp(oneN, { raw: { width: W, height: H, channels: 4 } }).extract(b).webp({ quality: 90, alphaQuality: 90 }).toFile(`${dir}/${name}-${k}-night.webp`);
+        parts.push({ src: `/skins/${skin}/${name}-${k}.webp`, srcNight: `/skins/${skin}/${name}-${k}-night.webp`, x: L + bx, y: T + by, w: bw, h: bh, still: true });
+      }
+      // top to bottom, then dealt like cards (every 5th): day after day the baubles land all over the tree
+      parts.sort((a, b) => a.y - b.y);
+      const dealt = [0, 1, 2, 3, 4].flatMap((k) => parts.filter((_, i) => i % 5 === k));
+      art[skin].tree ??= { layers: {} };
+      art[skin].tree.baubles = dealt;
+      console.log(skin, "spot", name, `${dealt.length} baubles`);
+      continue;
     }
     // trimmed to what's painted in
     let x0 = W, y0 = H, x1 = -1, y1 = -1;
@@ -427,10 +621,25 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
       const fy = median(cols.map((c) => c[0])), fh = median(cols.map((c) => c[1])) - fy + 1;
       const text = { x: L + fx + Math.round(fw * 0.08), y: T + fy + Math.round(fh * 0.1), w: Math.round(fw * 0.84), h: Math.round(fh * 0.8) };
       art[skin].plaque = { ...placed, text };
+    } else if (spot.into) {
+      art[skin][spot.into] = placed;
+    } else if (spot.tree) {
+      art[skin].tree ??= { layers: {} };
+      if (spot.tree === "base") art[skin].tree.base = placed;
+      else art[skin].tree.layers[spot.tree] = { ...placed, ...(spot.glow ? { glow: true } : {}) };
     } else decor.push(placed);
     console.log(skin, "spot", name, `${box.width}x${box.height} at ${placed.x},${placed.y}`);
   }
-  art[skin].decor = decor;
+  if (decor.length || art[skin].decor) art[skin].decor = decor;
 }
 
+// the greeting card's background (the Advent calendar's 23rd box, app/share/voeux): the room by night with the whole
+// tree, star lit, cut in portrait round it
+if (art.hiver?.tree) {
+  const t = art.hiver.tree;
+  const parts = [t.base, ...["gifts", "snow", "candy", "garland", "socks", "lights"].map((k) => t.layers[k]), ...t.baubles, t.layers.star].filter(Boolean);
+  const room = await sharp("public/scene/plate.webp").composite(parts.map((q) => ({ input: `public${q.srcNight ?? q.src}`, left: q.x, top: q.y }))).png().toBuffer();
+  await sharp(room).extract({ left: 0, top: 186, width: 1080, height: 1350 }).jpeg({ quality: 84 }).toFile("src/assets/voeux-desk.jpg");
+  console.log("hiver: voeux-desk.jpg");
+}
 fs.writeFileSync("src/data/skin-art.json", JSON.stringify(art, null, 2) + "\n");

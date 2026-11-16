@@ -10,7 +10,8 @@ import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, NICKNAME_MAX, OS_NAME } from "@/lib/site";
 import { radioBed, setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
-import { PLAQUE, SUPPORT_BUNDLE, useLook, usePatron, useSkins, type LavaTheme } from "@/lib/shop";
+import { treeOf, useAdvent, useAdventDev } from "@/lib/advent";
+import { PLAQUE, SLEIGH, SUPPORT_BUNDLE, TREE, useLook, usePatron, useSkins, type LavaTheme } from "@/lib/shop";
 import { useAskUp, useWantAsk } from "@/lib/calm";
 import { useTradeShelf } from "@/lib/share";
 import { useStore } from "@/lib/store";
@@ -19,7 +20,7 @@ import { bump, unlock, useTrophyStore } from "@/lib/trophyStore";
 import type { BinderDef } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { useViewport } from "@/lib/useViewport";
-import { LAVA_THEMES, drawDust, drawLava, drawRain, drawSpooky, drawSunDust } from "./sceneAnim";
+import { LAVA_THEMES, drawDust, drawFairy, drawLava, drawRain, drawSnow, drawSpooky, drawSunDust } from "./sceneAnim";
 import { GbBubble } from "./GbBubble";
 import { Monitor } from "./Monitor";
 import { SkinSpider } from "./SkinSpider";
@@ -43,6 +44,8 @@ interface Props {
   onOpenTrophies: (at: { x: number; y: number }) => void;
   /** the purple box next to it: the cards no binder holds */
   onOpenBox: (at: { x: number; y: number }) => void;
+  /** the Advent tree clicked: the calendar */
+  onOpenAdvent: () => void;
   /** the Game Boy on the desk: the NookBoy game (computers only) */
   onOpenGame: (at: { x: number; y: number }) => void;
   /** the gold binder first on the shelf: the trade binder (share/TradeBinder) */
@@ -143,6 +146,13 @@ const POSTER_NAMES: Record<string, [string, string]> = {
   sakura: ["Cerisiers en fleurs", "Cherry blossoms"],
   // the Soutien pack's, for patrons only (posters.json `patron`)
   patron: ["Le bienfaiteur", "The benefactor"],
+  // the Advent calendar's, each once its box is open (posters.json `gifts`)
+  "hiver-village": ["Village sous la neige", "Snowy village"],
+  "hiver-marche": ["Marché de Noël", "Christmas market"],
+  "hiver-chalet": ["Chalet la nuit", "Chalet at night"],
+  "hiver-patinoire": ["Patinoire", "Ice rink"],
+  "hiver-bonhomme": ["Bonhomme de neige", "Snowman"],
+  "hiver-aurore": ["Aurore boréale", "Northern lights"],
 };
 const POSTER_KEY = "nookdex:poster";
 const readPoster = () => {
@@ -195,6 +205,7 @@ function PaintedRoomView({
   onOpenAbout,
   onOpenTrophies,
   onOpenBox,
+  onOpenAdvent,
   onOpenGame,
   onOpenTrade,
   noteCalm,
@@ -267,6 +278,23 @@ function PaintedRoomView({
   const skin = useLook();
   // the plaque shows to whoever bought the pack, and while it is tried on from the shop
   const tryingPack = useSkins((s) => s.trying === SUPPORT_BUNDLE);
+  // the Advent tree as the opened boxes made it (lib/advent)
+  const advent = useAdvent();
+  const tree = useMemo(() => treeOf(advent), [advent]);
+  // snow outside instead of the rain: the winter sky, or the calendar's 14th box (with « Noël 2026 » on) from December
+  // to February, or any day the calendar is played in dev (?adventDay)
+  const devDay = useAdventDev((s) => s.day);
+  const winterMonths = [11, 0, 1].includes(new Date().getMonth()) || !!devDay;
+  const snowing = skin?.weather === "snow" || (!!skin?.season && tree.snow && winterMonths);
+  const snowRef = useRef(snowing);
+  // which particles the skin's canvas draws (Halloween's embers, winter's fairy sparkles)
+  const particlesRef = useRef(skin?.particles);
+  useEffect(() => {
+    particlesRef.current = skin?.particles;
+  }, [skin?.particles]);
+  useEffect(() => {
+    snowRef.current = snowing;
+  }, [snowing]);
   const patron = usePatron() || tryingPack;
   // the plaque's engraving: the player's nickname (Johan, 2026-11-16), else the word
   // invisible characters (zero-width, emoji variation selectors) taken out: they'd push the visible name off centre
@@ -289,11 +317,23 @@ function PaintedRoomView({
   const [lavaIdx, setLavaIdx] = useState(0);
   const [poster, setPoster] = useState(readPoster);
   // the posters this player may hang: the patrons' too once the Soutien pack is theirs (or tried on)
-  const posterIds = useMemo(() => (patron ? POSTERS.ids : POSTERS.ids.filter((id) => !POSTERS.patron.includes(id))), [patron]);
+  const posterIds = useMemo(() => {
+    const gifts: Record<string, number> = POSTERS.gifts;
+    return POSTERS.ids.filter((id) => (patron || !POSTERS.patron.includes(id)) && (!gifts[id] || advent.includes(gifts[id])));
+  }, [patron, advent]);
   // trying the pack on hangs its poster, to see all it brings
   const shownPoster = tryingPack && POSTERS.patron[0] ? POSTERS.patron[0] : posterIds.includes(poster) ? poster : posterIds[0];
   /** a glint across the poster each time it changes (none on load) */
   const [posterGlint, setPosterGlint] = useState(0);
+  // a poster the Advent calendar just gave, hung at once (lib/advent openDay)
+  useEffect(() => {
+    const hang = (e: Event) => {
+      setPoster((e as CustomEvent<string>).detail);
+      setPosterGlint((n) => n + 1);
+    };
+    window.addEventListener("nookdex:poster", hang);
+    return () => window.removeEventListener("nookdex:poster", hang);
+  }, []);
   // a skin put on or taken off: the lamp starts again on the first colour of its cycle
   const [themesSeen, setThemesSeen] = useState(lavaThemes);
   if (themesSeen !== lavaThemes) {
@@ -308,7 +348,8 @@ function PaintedRoomView({
   const skinMusic = skin?.music ?? "lofi";
   useEffect(() => setAmbientMood(skinMusic), [skinMusic]);
   const won = useTrophyStore((s) => s.got);
-  const fresh = useTrophyStore((s) => Object.values(s.got).filter((at) => at > s.seenAt).length);
+  // the Advent boxes ride with the trophies (lib/advent): not trophies to show as new
+  const fresh = useTrophyStore((s) => Object.entries(s.got).filter(([id, at]) => at > s.seenAt && !id.startsWith("advent:")).length);
   const [ballHover, setBallHover] = useState(false);
   const [boxHover, setBoxHover] = useState(false);
   const inBox = useMemo(() => boxOf(collection, userBinders).reduce((n, g) => n + g.count, 0), [collection, userBinders]);
@@ -408,13 +449,15 @@ function PaintedRoomView({
         last = t;
         if (!reduced) weave = { x: (Math.random() - 0.5) * 0.9, y: (Math.random() - 0.5) * 0.9 };
         // rain only at night, dust in the sunbeams only by day
-        if (rc && !dayRef.current) drawRain(rc, t);
+        // snow falls by day too; rain only at night
+        if (rc && snowRef.current) drawSnow(rc, t);
+        else if (rc && !dayRef.current) drawRain(rc, t);
         if (lc) drawLava(lc, t, themesRef.current[lavaTheme.current] ?? LAVA_THEMES[0], SCENE.lavaRows);
         if (dc) drawDust(dc, t, lampRef.current);
         if (sc && dayRef.current) drawSunDust(sc, t);
         // looked up each time: the canvas comes and goes with the skin
         const pc = reduced ? null : spooky.current?.getContext("2d");
-        if (pc) drawSpooky(pc, t, !dayRef.current);
+        if (pc) (particlesRef.current === "fairy" ? drawFairy : drawSpooky)(pc, t, !dayRef.current);
       }
       const wt = `${(-cur.x * 16 + weave.x).toFixed(1)}px ${(-cur.y * 9 + weave.y).toFixed(1)}px`;
       if (world.current && world.current.style.translate !== wt) world.current.style.translate = wt;
@@ -552,11 +595,16 @@ function PaintedRoomView({
           {/* rain running down the window: under a skin's things, a plant on the sill stays dry */}
           <canvas
             ref={rain}
-            className={`${styles.rain} ${daytime ? styles.off : ""}`}
+            className={`${styles.rain} ${daytime && !snowing ? styles.off : ""}`}
             width={Math.round(SCENE.window.w / 2)}
             height={Math.round(SCENE.window.h / 2)}
             style={{ ...place(SCENE.window), maskImage: windowMask, WebkitMaskImage: windowMask }}
           />
+
+          {/* the Advent calendar's sleigh hanging on the wall (its 17th box) */}
+          {SLEIGH && tree.sleigh && skin?.season && (
+            <img className={`${styles.sprite} ${styles.sway}`} src={!daytime && SLEIGH.srcNight ? SLEIGH.srcNight : SLEIGH.src} style={place(SLEIGH)} alt="" draggable={false} aria-hidden />
+          )}
 
           {/* a skin's decorations standing in the room (lib/shop), a warm glow flickering round the lit ones at night */}
           {skin?.art.decor?.map((d, i) => (
@@ -598,6 +646,45 @@ function PaintedRoomView({
             </span>
             );
           })()}
+
+          {/* the Advent tree, in place of the monstera: the bare fir, then what each opened box hung on it, the star last */}
+          {TREE && tree.tree && skin?.season && (
+            <span aria-hidden>
+              {[
+                TREE.base,
+                ...(["gifts", "snow", "candy", "garland", "socks", "lights"] as const).filter((k) => tree.layers.has(k)).map((k) => TREE?.layers[k]),
+                ...TREE.baubles.filter((_, n) => tree.baubles(n)),
+                tree.layers.has("star") ? TREE.layers.star : undefined,
+              ]
+                .filter((p) => !!p)
+                .map((p) => (
+                  <img key={p.src} className={styles.sprite} src={!daytime && p.srcNight ? p.srcNight : p.src} style={place(p)} alt="" draggable={false} />
+                ))}
+            </span>
+          )}
+          {TREE && tree.tree && skin?.season && (
+            <button
+              className={styles.hotspot}
+              style={place({ x: TREE.base.x + TREE.base.w * 0.1, y: TREE.base.y, w: TREE.base.w * 0.8, h: TREE.base.h })}
+              aria-label={tr("Le sapin : le calendrier de l'Avent", "The tree: the Advent calendar")}
+              onPointerEnter={() => {
+                sfx.hover();
+                const b = TREE?.base;
+                if (b) showTip(b.x + b.w / 2, b.y + 40, tr("Le sapin de l'Avent", "The Advent tree"), tr("clic : le calendrier", "click: the calendar"));
+              }}
+              onPointerLeave={() => setTip(null)}
+              onClick={() => {
+                sfx.pop();
+                setTip(null);
+                onOpenAdvent();
+              }}
+            />
+          )}
+
+          {/* a frame round the clock (the winter pack's holly), under the hands */}
+          {skin?.art.clock && (
+            <img className={styles.sprite} src={!daytime && skin.art.clock.srcNight ? skin.art.clock.srcNight : skin.art.clock.src} style={place(skin.art.clock)} alt="" draggable={false} aria-hidden />
+          )}
 
           {skin?.art.spider && <SkinSpider spider={skin.art.spider} paused={paused} />}
 

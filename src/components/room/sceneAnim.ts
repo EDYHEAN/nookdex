@@ -55,6 +55,58 @@ export function drawRain(c: Ctx, t: number) {
   }
 }
 
+/** Snow instead of the rain (the winter sky, the Advent calendar's 14th box): flakes drifting down, small and big */
+const flakes = Array.from({ length: 90 }, () => ({ x: Math.random() * 400, y: Math.random() * 400, r: 1.2 + Math.random() * 2.2, v: 0.25 + Math.random() * 0.55, p: Math.random() * 6.28 }));
+export function drawSnow(c: Ctx, t: number) {
+  const { width: w, height: h } = c.canvas;
+  c.clearRect(0, 0, w, h);
+  for (const f of flakes) {
+    f.y += f.v * (0.6 + f.r * 0.25);
+    f.x += Math.sin(t / 1400 + f.p) * 0.25;
+    if (f.y > h + 4) {
+      f.y = -4;
+      f.x = Math.random() * w;
+    }
+    if (f.x < -4) f.x = w + 2;
+    if (f.x > w + 4) f.x = -2;
+    c.fillStyle = `rgba(255,255,255,${0.6 + f.r * 0.12})`;
+    c.beginPath();
+    c.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+    c.fill();
+    // a soft blue-grey edge: white on a bright day sky would vanish
+    c.strokeStyle = "rgba(110,130,165,0.35)";
+    c.lineWidth = 0.7;
+    c.stroke();
+  }
+}
+
+/** Winter's fairy sparkles (the Christmas mood): gold, red and green motes twinkling as they drift down, a soft glow each */
+const FAIRY = ["255,214,110", "255,120,120", "150,235,160", "255,245,220"];
+let sparkles: { x: number; y: number; r: number; v: number; p: number; c: string }[] = [];
+export function drawFairy(c: Ctx, t: number, night: boolean) {
+  const { width: w, height: h } = c.canvas;
+  if (!sparkles.length) sparkles = Array.from({ length: 60 }, () => ({ x: Math.random() * w, y: Math.random() * h, r: 0.6 + Math.random() * 1.4, v: 0.08 + Math.random() * 0.22, p: Math.random() * 6.28, c: FAIRY[Math.floor(Math.random() * FAIRY.length)] }));
+  c.clearRect(0, 0, w, h);
+  const k = night ? 1 : 0.6;
+  for (const m of sparkles) {
+    m.y += m.v;
+    m.x += Math.sin(t / 1800 + m.p) * 0.2;
+    if (m.y > h + 4) {
+      m.y = -4;
+      m.x = Math.random() * w;
+    }
+    const tw = 0.35 + 0.65 * Math.abs(Math.sin(t / 420 + m.p * 3));
+    const g = c.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.r * 4);
+    g.addColorStop(0, `rgba(${m.c}, ${0.9 * tw * k})`);
+    g.addColorStop(0.35, `rgba(${m.c}, ${0.3 * tw * k})`);
+    g.addColorStop(1, `rgba(${m.c}, 0)`);
+    c.fillStyle = g;
+    c.beginPath();
+    c.arc(m.x, m.y, m.r * 4, 0, Math.PI * 2);
+    c.fill();
+  }
+}
+
 /* ---------------- lava lamp blobs ---------------- */
 
 export const LAVA_THEMES = [
