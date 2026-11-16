@@ -269,7 +269,8 @@ function PaintedRoomView({
   const tryingPack = useSkins((s) => s.trying === SUPPORT_BUNDLE);
   const patron = usePatron() || tryingPack;
   // the plaque's engraving: the player's nickname (Johan, 2026-11-16), else the word
-  const nickname = useStore((s) => s.profile?.name?.trim() ?? "");
+  // invisible characters (zero-width, emoji variation selectors) taken out: they'd push the visible name off centre
+  const nickname = useStore((s) => s.profile?.name?.replace(/[​-‏⁠︎️]/g, "").trim() ?? "");
   const skinLava = skin?.lava;
   const lavaThemes = useMemo<LavaTheme[]>(() => (skinLava ? [skinLava, ...LAVA_THEMES] : LAVA_THEMES), [skinLava]);
   const themesRef = useRef(lavaThemes);

@@ -97,7 +97,9 @@ const SPOTS = {
   soutien: {
     // keep: where the new things are, in the crop's px (left, top, right, bottom): Gemini also retouches what was there
     // (the jar, the boombox's edges), nothing outside it is taken
-    sill: { box: [240, 300, 760, 560], keep: [130, 200, 492, 475] },
+    // `window`: over the window's panes, where the live sky shows through: the gaps between its leaves stay open there
+    // (Johan, 2026-11-16: Gemini's sky between the fern's fronds hid the night's); the keep ends before the honey jar
+    sill: { box: [240, 300, 760, 560], keep: [130, 200, 480, 475], window: true },
     desk: { box: [380, 820, 760, 540], keep: [180, 285, 398, 490] },
     monitor: { box: [900, 380, 620, 560], keep: [78, 236, 252, 512] },
     // `sharp`: a crisp outline (a wooden board's edge, not leaves): no halo kept, barely feathered
@@ -292,10 +294,10 @@ function patches(m, W, H, value = 1) {
   return all;
 }
 /** The holes of a mask filled: the empty patches that don't reach its edge */
-function fillHoles(m, W, H) {
+function fillHoles(m, W, H, open = () => false) {
   const out = Uint8Array.from(m);
   for (const px of patches(m, W, H, 0))
-    if (!px.some((j) => j % W === 0 || j % W === W - 1 || j < W || j >= W * (H - 1))) for (const j of px) out[j] = 1;
+    if (!px.some((j) => j % W === 0 || j % W === W - 1 || j < W || j >= W * (H - 1)) && !open(px)) for (const j of px) out[j] = 1;
   return out;
 }
 
@@ -328,6 +330,15 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
       crop("public/scene/day.webp", 24),
       crop("public/scene/plate.webp", 24),
     ]);
+    const pane = new Uint8Array(N);
+    if (spot.window) {
+      const win = JSON.parse(fs.readFileSync("src/data/scene.json", "utf8")).window;
+      const { data: wm } = await sharp("public/scene/window-mask.png").ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      for (let i = 0; i < N; i++) {
+        const wx = L + (i % W) - win.x, wy = T + Math.floor(i / W) - win.y;
+        if (wx >= 0 && wy >= 0 && wx < win.w && wy < win.h) pane[i] = wm[(wy * win.w + wx) * 4 + 3] > 128 ? 1 : 0;
+      }
+    }
     const [kx0, ky0, kx1, ky1] = spot.keep;
     let mask = new Uint8Array(N);
     for (let i = 0; i < N; i++) {
@@ -339,7 +350,9 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
     }
     // specks (Gemini's grain, a dust mote moved) dropped, then the patches closed: grown, holes filled, shrunk back
     for (const px of patches(mask, W, H)) if (px.length < N * 0.003) for (const j of px) mask[j] = 0;
-    mask = morph(fillHoles(morph(mask, W, H, 3, true), W, H), W, H, spot.sharp ? 3 : 2, false);
+    // a hole mostly over a pane, bigger than a speck, is sky between leaves: left open
+    const open = spot.window ? (px) => px.length > 120 && px.filter((j) => pane[j]).length > px.length / 2 : undefined;
+    mask = morph(fillHoles(morph(mask, W, H, 3, true), W, H, open), W, H, spot.sharp ? 3 : 2, false);
     const alpha = await sharp(Buffer.from(mask.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(spot.sharp ? 0.6 : 2).extractChannel(0).raw().toBuffer();
     // day: Gemini's pixels; night: the same, darkened and tinted as the night plate is from the day one there
     const day = Buffer.alloc(N * 4), night = Buffer.alloc(N * 4);
