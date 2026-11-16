@@ -130,6 +130,8 @@ const POSTER_NAMES: Record<string, [string, string]> = {
   fair: ["Le salon des cartes", "The card fair"],
   map: ["Carte du monde", "World map"],
   sakura: ["Cerisiers en fleurs", "Cherry blossoms"],
+  // the Soutien pack's, for patrons only (posters.json `patron`)
+  patron: ["Le mécène", "The patron"],
 };
 const POSTER_KEY = "nookdex:poster";
 const readPoster = () => {
@@ -273,6 +275,10 @@ function PaintedRoomView({
   const [petting, setPetting] = useState(0);
   const [lavaIdx, setLavaIdx] = useState(0);
   const [poster, setPoster] = useState(readPoster);
+  // the posters this player may hang: the patrons' too once the Soutien pack is theirs (or tried on)
+  const posterIds = useMemo(() => (patron ? POSTERS.ids : POSTERS.ids.filter((id) => !POSTERS.patron.includes(id))), [patron]);
+  // trying the pack on hangs its poster, to see all it brings
+  const shownPoster = tryingPack && POSTERS.patron[0] ? POSTERS.patron[0] : posterIds.includes(poster) ? poster : posterIds[0];
   /** a glint across the poster each time it changes (none on load) */
   const [posterGlint, setPosterGlint] = useState(0);
   // a skin put on or taken off: the lamp starts again on the first colour of its cycle
@@ -498,7 +504,7 @@ function PaintedRoomView({
           {/* the poster above the desk, on the night plate under the day one (they fade together) */}
           {showNight && (
             <span className={styles.poster} style={place(POSTER_BOX)} aria-hidden>
-              <img src={sceneImg(`posters/${poster}-night.webp`)} alt="" draggable={false} fetchPriority="low" />
+              <img src={sceneImg(`posters/${shownPoster}-night.webp`)} alt="" draggable={false} fetchPriority="low" />
             </span>
           )}
           {showDay && (
@@ -506,13 +512,13 @@ function PaintedRoomView({
           )}
           {showDay && (
             <span className={`${styles.poster} ${styles.dayPlate} ${daytime ? "" : styles.off}`} style={place(POSTER_BOX)} aria-hidden>
-              <img src={sceneImg(`posters/${poster}-day.webp`)} alt="" draggable={false} fetchPriority="low" />
+              <img src={sceneImg(`posters/${shownPoster}-day.webp`)} alt="" draggable={false} fetchPriority="low" />
             </span>
           )}
           {/* a new poster catches the light (drawn again for each one) */}
           {posterGlint > 0 && (
             <span key={`glint-${posterGlint}`} className={styles.poster} style={place(POSTER_BOX)} aria-hidden>
-              <i className={styles.posterGlint} style={{ maskImage: `url(${sceneImg(`posters/${poster}-night.webp`)})`, WebkitMaskImage: `url(${sceneImg(`posters/${poster}-night.webp`)})` }} />
+              <i className={styles.posterGlint} style={{ maskImage: `url(${sceneImg(`posters/${shownPoster}-night.webp`)})`, WebkitMaskImage: `url(${sceneImg(`posters/${shownPoster}-night.webp`)})` }} />
             </span>
           )}
 
@@ -933,13 +939,13 @@ function PaintedRoomView({
             aria-label={tr("Le poster : en changer", "The poster: change it")}
             onPointerEnter={() => {
               sfx.hover();
-              const [fr, en] = POSTER_NAMES[poster] ?? ["", ""];
+              const [fr, en] = POSTER_NAMES[shownPoster] ?? ["", ""];
               showTip(POSTER_HIT.x + POSTER_HIT.w / 2, POSTER_HIT.y, tr(fr, en), tr("clic : un autre poster", "click: another poster"));
             }}
             onPointerLeave={() => setTip(null)}
             onClick={() => {
-              const ids = POSTERS.ids;
-              const next = ids[(ids.indexOf(poster) + 1) % ids.length];
+              const ids = posterIds;
+              const next = ids[(ids.indexOf(shownPoster) + 1) % ids.length];
               sfx.pop();
               setPoster(next);
               setPosterGlint((n) => n + 1);

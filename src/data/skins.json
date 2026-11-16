@@ -212,7 +212,8 @@
         "fr": "La lampe à lave vert menthe et une lumière fraîche sur toute la pièce.",
         "en": "The mint green lava lamp and a fresh light over the whole room."
       },
-      "tint": "rgba(110, 230, 190, 0.32)",
+      "tint": "rgba(70, 225, 185, 0.5)",
+      "vignette": "rgba(10, 55, 70, 0.7)",
       "lava": {
         "name": "menthe",
         "nameEn": "mint",

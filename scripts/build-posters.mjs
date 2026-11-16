@@ -17,6 +17,11 @@ const DATA = path.join(ROOT, "src/data/posters.json");
 const debug = process.argv.includes("--debug");
 /** the sheet's order, left to right, top to bottom */
 const IDS = ["moon", "rain", "lake", "cat", "nookboy", "fair", "map", "sakura"];
+/**
+ * Posters painted on their own (a picture each, edge to edge), after the sheet's; `patron`: only for whoever bought the
+ * Soutien pack (2026-11-16). `trim`: a share cut off each side (Gemini's rounded white corners).
+ */
+const EXTRA = [{ id: "patron", src: "img/soutien/poster.png", trim: 0.025, patron: true }];
 /** where the poster is on the plates (scene px), with some wall around */
 const BOX = { x: 1070, y: 180, w: 350, h: 500 };
 
@@ -66,6 +71,13 @@ for (const [y0, y1] of rows)
     arts.push(await sheet.clone().extract(crop).removeAlpha().toBuffer());
   }
 
+
+for (const e of EXTRA) {
+  const m = await sharp(path.join(ROOT, e.src)).metadata();
+  const dx = Math.round(m.width * e.trim), dy = Math.round(m.height * e.trim);
+  arts.push(await sharp(path.join(ROOT, e.src)).extract({ left: dx, top: dy, width: m.width - dx * 2, height: m.height - dy * 2 }).removeAlpha().toBuffer());
+}
+const ALL = [...IDS, ...EXTRA.map((e) => e.id)];
 
 /* ---------------- the poster on the plates: its artwork's shape and corners ---------------- */
 
@@ -272,7 +284,7 @@ async function paste(art, lightOf) {
 }
 
 await fs.mkdir(OUT, { recursive: true });
-for (const [k, id] of IDS.entries()) {
+for (const [k, id] of ALL.entries()) {
   for (const mode of ["night", "day"]) {
     const img = await paste(arts[k], light[mode]);
     await img.clone().webp({ quality: 86, alphaQuality: 90 }).toFile(path.join(OUT, `${id}-${mode}.webp`));
@@ -283,5 +295,5 @@ for (const [k, id] of IDS.entries()) {
   }
   await sharp(arts[k]).resize(150, 200, { fit: "cover" }).webp({ quality: 82 }).toFile(path.join(OUT, `${id}-thumb.webp`));
 }
-await fs.writeFile(DATA, JSON.stringify({ box: BOX, ids: IDS }, null, 2) + "\n");
-console.log(`${IDS.length} posters -> public/scene/posters`);
+await fs.writeFile(DATA, JSON.stringify({ box: BOX, ids: ALL, patron: EXTRA.filter((e) => e.patron).map((e) => e.id) }, null, 2) + "\n");
+console.log(`${ALL.length} posters -> public/scene/posters`);

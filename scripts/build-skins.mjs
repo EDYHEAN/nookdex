@@ -100,7 +100,7 @@ const SPOTS = {
     sill: { box: [240, 300, 760, 560], keep: [130, 200, 492, 475] },
     desk: { box: [380, 820, 760, 540], keep: [180, 285, 398, 490] },
     monitor: { box: [900, 380, 620, 560], keep: [78, 236, 252, 512] },
-    wall: { box: [1340, 420, 520, 420], keep: [118, 102, 318, 258], plaque: true },
+    wall: { box: [1340, 420, 520, 420], keep: [110, 96, 350, 268], plaque: true },
   },
 };
 /** how far (0-255, the largest channel) an edited pixel must be from the room's to count as painted in */

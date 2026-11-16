@@ -77,6 +77,10 @@ No text, no letters, no logos.
 
 Warwick en sorcier : le chapeau de la planche D1, posé sur sa tête par le code (endormi et réveillé).
 
+**Chaque pack a son ambiance lumineuse** (Johan, 2026-11-16) : sa lampe à lave porte une lumière sur toute la pièce
+(`tint`, en soft-light) et des coins teintés (`vignette`, en multiply), assez marquées pour qu'on la sente (Halloween :
+orange et violet ; Soutien : menthe et bleu-vert). Un pack sans ça ne change pas l'atmosphère.
+
 ## Pack Soutien (permanent, 4,99 €, décidé le 2026-11-16)
 
 Toute l'année, thème « atelier cosy » : ciel « Aube rose », décor « Coin jungle », Warwick « Écharpe dorée », lampe
