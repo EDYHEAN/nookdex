@@ -44,6 +44,8 @@ export interface SkinArt {
   spider?: { src: string; w: number; h: number; x: number; top: number; drop: number };
   /** the Soutien collection's plaque (its own item, in the pack too): the player's name engraved in `text` */
   plaque?: Placed & { text: Box };
+  /** the Advent tree (lib/advent): the bare fir, its decorations by name, its baubles in the order they're hung */
+  tree?: { base: Placed; layers: Partial<Record<"lights" | "gifts" | "snow" | "candy" | "garland" | "socks" | "star", Placed>>; baubles: Placed[] };
 }
 
 export interface LavaTheme {
@@ -145,6 +147,8 @@ export const COLLECTIONS = Object.entries(CAT.sets)
 export const BUNDLES: Bundle[] = CAT.bundles.filter((b) => b.items.every((id) => READY_ITEMS.some((i) => i.id === id)));
 /** The permanent pack that supports the site (Johan, 2026-11-16): bought as a pack, it adds Warwick's poster and the ★ */
 export const SUPPORT_BUNDLE = "soutien";
+/** The Advent tree, once its art is cut (scripts/build-skins SPOTS hiver) */
+export const TREE = ART.hiver?.tree;
 /** The engraved plaque, once its art is cut (scripts/build-skins) */
 export const PLAQUE = ART[SUPPORT_BUNDLE]?.plaque;
 export const ITEMS: Item[] = READY_ITEMS.map((i) => ({ ...i, until: BUNDLES.find((b) => b.items.includes(i.id))?.until }));

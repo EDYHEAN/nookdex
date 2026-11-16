@@ -108,6 +108,32 @@ const SPOTS = {
     wall: { box: [1340, 420, 520, 420], keep: [104, 90, 400, 290], plaque: true, sharp: true },
   },
 };
+/**
+ * The Advent tree (docs/skins.md « Calendrier de l'Avent »): Gemini's bare fir in place of the monstera (`cover`: the
+ * monstera's own leaves and pot, found by colour on the plate, taken whatever the difference, so none of it shows
+ * through), then each decoration as Gemini added it to that bare tree (`against`): a layer each, the baubles one by one
+ * (`split`), the lights and the star lit at night (`glow`), loops of garland not filled (`noFill`).
+ */
+const TREE_BOX = [0, 380, 800, 1156];
+// only around the tree (Gemini retouches the rest a little on every edit), and a firmer difference than for the room
+const layer = (name, extra = {}) => ({ box: TREE_BOX, keep: [0, 140, 570, 1156], diff: 40, edit: `tree-${name}.png`, against: "tree-0.jpg", tree: name, noFill: true, ...extra });
+SPOTS.hiver = {
+  tree: { box: TREE_BOX, keep: [0, 0, 800, 1156], edit: "tree-0.jpg", tree: "base", window: true, cover: { rect: [0, 470, 500, 1156], pot: [60, 960, 400, 1156] } },
+  "tree-baubles": layer("baubles", { split: true }),
+  "tree-lights": layer("lights", { glow: true }),
+  "tree-gifts": layer("gifts"),
+  "tree-snow": layer("snow"),
+  "tree-candy": layer("candy"),
+  "tree-garland": layer("garland"),
+  "tree-socks": layer("socks"),
+  // the star: its own outline traced by hand (crop px, its 5 tips and the 5 corners between), as its gold is the window's
+  // and Gemini lit the frame round it: no difference tells it apart
+  "tree-star": layer("star", {
+    glow: true,
+    keep: [180, 90, 300, 210],
+    polygon: [[244, 99], [259, 130], [292, 136], [270, 163], [278, 195], [244, 178], [211, 192], [218, 160], [195, 137], [228, 130]],
+  }),
+};
 /** how far (0-255, the largest channel) an edited pixel must be from the room's to count as painted in */
 const SPOT_DIFF = 26;
 
@@ -304,11 +330,12 @@ function fillHoles(m, W, H, open = () => false) {
 }
 
 for (const [skin, spots] of Object.entries(SPOTS)) {
-  if (!art[skin]) continue;
+  art[skin] ??= {};
   const dir = `public/skins/${skin}`;
+  fs.mkdirSync(dir, { recursive: true });
   const decor = [];
   for (const [name, spot] of Object.entries(spots)) {
-    const edited = `img/${skin}/spots/${name}-edit.png`;
+    const edited = `img/${skin}/spots/${spot.edit ?? `${name}-edit.png`}`;
     if (!fs.existsSync(edited)) {
       console.log(skin, name, "skipped: no", edited);
       continue;
@@ -326,7 +353,8 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
     const [edit, dayB, editB, dayWide, nightWide] = await Promise.all([
       fromEdit(0),
       // compared a little blurred: Gemini's own grain isn't a change
-      crop("public/scene/day.webp", 1.5),
+      // a decoration is what Gemini added to its own bare tree, not to the room
+      spot.against ? sharp(`img/${skin}/spots/${spot.against}`).resize(W, H, { fit: "fill", kernel: "lanczos3" }).removeAlpha().blur(1.5).raw().toBuffer() : crop("public/scene/day.webp", 1.5),
       fromEdit(1.5),
       // the light around, day and night
       crop("public/scene/day.webp", 24),
@@ -343,31 +371,60 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
     }
     const [kx0, ky0, kx1, ky1] = spot.keep;
     let mask = new Uint8Array(N);
+    // a shape traced by hand: inside it, all of it
+    const inPoly = (x, y, poly) => {
+      let inside = false;
+      for (let a = 0, b = poly.length - 1; a < poly.length; b = a++) {
+        const [xa, ya] = poly[a], [xb, yb] = poly[b];
+        if (ya > y !== yb > y && x < ((xb - xa) * (y - ya)) / (yb - ya) + xa) inside = !inside;
+      }
+      return inside;
+    };
     for (let i = 0; i < N; i++) {
       const x = i % W, y = (i - x) / W;
       if (x < kx0 || x > kx1 || y < ky0 || y > ky1) continue;
+      if (spot.polygon) {
+        mask[i] = inPoly(x, y, spot.polygon) ? 1 : 0;
+        continue;
+      }
       let d = 0;
       for (let c = 0; c < 3; c++) d = Math.max(d, Math.abs(dayB[i * 3 + c] - editB[i * 3 + c]));
-      mask[i] = d > SPOT_DIFF ? 1 : 0;
+      // `only`: the thing's own colour too (the star's gold), when the difference alone takes the background with it
+      mask[i] = d > (spot.diff ?? SPOT_DIFF) && (!spot.only || spot.only(editB[i * 3], editB[i * 3 + 1], editB[i * 3 + 2])) ? 1 : 0;
     }
     // specks (Gemini's grain, a dust mote moved) dropped, then the patches closed: grown, holes filled, shrunk back
-    for (const px of patches(mask, W, H)) if (px.length < N * 0.003) for (const j of px) mask[j] = 0;
+    if (!spot.polygon) for (const px of patches(mask, W, H)) if (px.length < (spot.against ? 25 : N * 0.003)) for (const j of px) mask[j] = 0;
+    if (spot.cover) {
+      // the plant it replaces, all of it: its leaves (green) and its pot (terracotta), on the room's own plate, grown a little
+      const plate = await crop("public/scene/day.webp", 0);
+      const [cx0, cy0, cx1, cy1] = spot.cover.rect, [px0, py0, px1, py1] = spot.cover.pot;
+      let plant = new Uint8Array(N);
+      for (let i = 0; i < N; i++) {
+        const x = i % W, y = (i - x) / W, [rr, gg, bb] = [plate[i * 3], plate[i * 3 + 1], plate[i * 3 + 2]];
+        const leaf = x >= cx0 && x <= cx1 && y >= cy0 && y <= cy1 && gg > rr + 6 && gg > bb;
+        const pot = x >= px0 && x <= px1 && y >= py0 && y <= py1 && rr > 110 && rr > gg + 20 && gg > bb;
+        plant[i] = leaf || pot ? 1 : 0;
+      }
+      plant = morph(fillHoles(morph(plant, W, H, 8, true), W, H), W, H, 2, false);
+      for (let i = 0; i < N; i++) if (plant[i]) mask[i] = 1;
+    }
     // a hole mostly over a pane, bigger than a speck, is sky between leaves: left open
     const open = spot.window ? (px) => px.length > 120 && px.filter((j) => pane[j]).length > px.length / 2 : undefined;
-    mask = morph(fillHoles(morph(mask, W, H, 3, true), W, H, open), W, H, spot.sharp ? 3 : 2, false);
+    mask = spot.polygon ? mask : spot.noFill ? morph(morph(mask, W, H, 1, true), W, H, 1, false) : morph(fillHoles(morph(mask, W, H, 3, true), W, H, open), W, H, spot.sharp ? 3 : 2, false);
     // over the panes, a pixel more taken off the edge: the fringe there is Gemini's day sky, a light halo against the night's
     if (spot.window) {
       const tight = morph(mask, W, H, 1, false);
       for (let i = 0; i < N; i++) if (pane[i]) mask[i] = tight[i];
     }
-    const alpha = await sharp(Buffer.from(mask.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(spot.sharp ? 0.6 : 2).extractChannel(0).raw().toBuffer();
+    const alpha = await sharp(Buffer.from(mask.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(spot.sharp || spot.polygon ? 0.6 : 2).extractChannel(0).raw().toBuffer();
     // day: Gemini's pixels; night: the same, darkened and tinted as the night plate is from the day one there
     const day = Buffer.alloc(N * 4), night = Buffer.alloc(N * 4);
     for (let i = 0; i < N; i++)
       for (let c = 0; c < 3; c++) {
         const ratio = Math.min(1.6, Math.max(0.08, (nightWide[i * 3 + c] + 1) / (dayWide[i * 3 + c] + 1)));
         day[i * 4 + c] = edit[i * 3 + c];
-        night[i * 4 + c] = Math.min(255, Math.round(edit[i * 3 + c] * ratio));
+        // a light (the tree's fairy lights, its star) shines the same by night
+        night[i * 4 + c] = spot.glow ? edit[i * 3 + c] : Math.min(255, Math.round(edit[i * 3 + c] * ratio));
         day[i * 4 + 3] = night[i * 4 + 3] = alpha[i];
       }
     if (spot.move) {
@@ -389,6 +446,28 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
         day.set(d, k * 4);
         night.set(n, k * 4);
       }
+    }
+    if (spot.split) {
+      // one picture per bauble: the tree gets one a day, in an order spread over the whole tree
+      const blobs = patches(Uint8Array.from(alpha, (a) => (a > 8 ? 1 : 0)), W, H).filter((px) => px.length > 40);
+      const parts = [];
+      for (const [k, px] of blobs.entries()) {
+        const xs = px.map((j) => j % W), ys = px.map((j) => Math.floor(j / W));
+        const bx = Math.min(...xs), by = Math.min(...ys), bw = Math.max(...xs) - bx + 1, bh = Math.max(...ys) - by + 1;
+        const one = Buffer.alloc(N * 4), oneN = Buffer.alloc(N * 4);
+        for (const j of px) (day.copy(one, j * 4, j * 4, j * 4 + 4), night.copy(oneN, j * 4, j * 4, j * 4 + 4));
+        const b = { left: bx, top: by, width: bw, height: bh };
+        await sharp(one, { raw: { width: W, height: H, channels: 4 } }).extract(b).webp({ quality: 90, alphaQuality: 90 }).toFile(`${dir}/${name}-${k}.webp`);
+        await sharp(oneN, { raw: { width: W, height: H, channels: 4 } }).extract(b).webp({ quality: 90, alphaQuality: 90 }).toFile(`${dir}/${name}-${k}-night.webp`);
+        parts.push({ src: `/skins/${skin}/${name}-${k}.webp`, srcNight: `/skins/${skin}/${name}-${k}-night.webp`, x: L + bx, y: T + by, w: bw, h: bh, still: true });
+      }
+      // top to bottom, then dealt like cards (every 5th): day after day the baubles land all over the tree
+      parts.sort((a, b) => a.y - b.y);
+      const dealt = [0, 1, 2, 3, 4].flatMap((k) => parts.filter((_, i) => i % 5 === k));
+      art[skin].tree ??= { layers: {} };
+      art[skin].tree.baubles = dealt;
+      console.log(skin, "spot", name, `${dealt.length} baubles`);
+      continue;
     }
     // trimmed to what's painted in
     let x0 = W, y0 = H, x1 = -1, y1 = -1;
@@ -427,10 +506,14 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
       const fy = median(cols.map((c) => c[0])), fh = median(cols.map((c) => c[1])) - fy + 1;
       const text = { x: L + fx + Math.round(fw * 0.08), y: T + fy + Math.round(fh * 0.1), w: Math.round(fw * 0.84), h: Math.round(fh * 0.8) };
       art[skin].plaque = { ...placed, text };
+    } else if (spot.tree) {
+      art[skin].tree ??= { layers: {} };
+      if (spot.tree === "base") art[skin].tree.base = placed;
+      else art[skin].tree.layers[spot.tree] = { ...placed, ...(spot.glow ? { glow: true } : {}) };
     } else decor.push(placed);
     console.log(skin, "spot", name, `${box.width}x${box.height} at ${placed.x},${placed.y}`);
   }
-  art[skin].decor = decor;
+  if (decor.length || art[skin].decor) art[skin].decor = decor;
 }
 
 fs.writeFileSync("src/data/skin-art.json", JSON.stringify(art, null, 2) + "\n");

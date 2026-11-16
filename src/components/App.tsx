@@ -34,6 +34,7 @@ import { Courrier } from "./room/Courrier";
 import { MailButton } from "./room/MailButton";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
+import { useAdvent } from "@/lib/advent";
 import { ITEM, backFromShop, itemsOf, paidFor, preloadShop, refreshOwned, selling, setShopView, useShopNews, useShopOpen, useSkins } from "@/lib/shop";
 import type { ListView } from "./share/TradePanel";
 import { TrophyToasts } from "./room/TrophyToast";
@@ -253,6 +254,8 @@ export function App() {
     if (process.env.NODE_ENV === "production") return;
     const q = new URLSearchParams(window.location.search);
     // the Soutien pack worn makes the player a patron too (its plaque)
+    // ?advent=12: the Advent calendar's first 12 boxes opened (?advent alone: none)
+    if (q.has("advent")) useAdvent.setState({ opened: Array.from({ length: Number(q.get("advent")) || 0 }, (_, i) => i + 1) });
     if (q.has("skin")) useSkins.setState({ equipped: itemsOf(q.get("skin") ?? ""), patron: q.get("skin") === "soutien" });
     /**
      * ?demo=big: a big collector's shelf, for the public list's pickers (Johan, 2026-10-23: 1,200 doubles): 30 set binders

@@ -10,7 +10,8 @@ import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, NICKNAME_MAX, OS_NAME } from "@/lib/site";
 import { radioBed, setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
-import { PLAQUE, SUPPORT_BUNDLE, useLook, usePatron, useSkins, type LavaTheme } from "@/lib/shop";
+import { treeOf, useAdvent } from "@/lib/advent";
+import { PLAQUE, SUPPORT_BUNDLE, TREE, useLook, usePatron, useSkins, type LavaTheme } from "@/lib/shop";
 import { useAskUp, useWantAsk } from "@/lib/calm";
 import { useTradeShelf } from "@/lib/share";
 import { useStore } from "@/lib/store";
@@ -267,6 +268,9 @@ function PaintedRoomView({
   const skin = useLook();
   // the plaque shows to whoever bought the pack, and while it is tried on from the shop
   const tryingPack = useSkins((s) => s.trying === SUPPORT_BUNDLE);
+  // the Advent tree as the opened boxes made it (lib/advent)
+  const advent = useAdvent((s) => s.opened);
+  const tree = useMemo(() => treeOf(advent), [advent]);
   const patron = usePatron() || tryingPack;
   // the plaque's engraving: the player's nickname (Johan, 2026-11-16), else the word
   // invisible characters (zero-width, emoji variation selectors) taken out: they'd push the visible name off centre
@@ -598,6 +602,22 @@ function PaintedRoomView({
             </span>
             );
           })()}
+
+          {/* the Advent tree, in place of the monstera: the bare fir, then what each opened box hung on it, the star last */}
+          {TREE && tree.tree && (
+            <span aria-hidden>
+              {[
+                TREE.base,
+                ...(["gifts", "snow", "candy", "garland", "socks", "lights"] as const).filter((k) => tree.layers.has(k)).map((k) => TREE?.layers[k]),
+                ...TREE.baubles.filter((_, n) => tree.baubles(n)),
+                tree.layers.has("star") ? TREE.layers.star : undefined,
+              ]
+                .filter((p) => !!p)
+                .map((p) => (
+                  <img key={p.src} className={styles.sprite} src={!daytime && p.srcNight ? p.srcNight : p.src} style={place(p)} alt="" draggable={false} />
+                ))}
+            </span>
+          )}
 
           {skin?.art.spider && <SkinSpider spider={skin.art.spider} paused={paused} />}
 

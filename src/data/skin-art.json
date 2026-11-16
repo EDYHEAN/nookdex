@@ -169,5 +169,285 @@
         "h": 72
       }
     }
+  },
+  "hiver": {
+    "tree": {
+      "layers": {
+        "lights": {
+          "src": "/skins/hiver/spot-tree-lights.webp",
+          "srcNight": "/skins/hiver/spot-tree-lights-night.webp",
+          "x": 7,
+          "y": 590,
+          "w": 474,
+          "h": 736,
+          "still": true,
+          "glow": true
+        },
+        "gifts": {
+          "src": "/skins/hiver/spot-tree-gifts.webp",
+          "srcNight": "/skins/hiver/spot-tree-gifts-night.webp",
+          "x": 0,
+          "y": 1419,
+          "w": 542,
+          "h": 117,
+          "still": true
+        },
+        "snow": {
+          "src": "/skins/hiver/spot-tree-snow.webp",
+          "srcNight": "/skins/hiver/spot-tree-snow-night.webp",
+          "x": 0,
+          "y": 532,
+          "w": 550,
+          "h": 871,
+          "still": true
+        },
+        "candy": {
+          "src": "/skins/hiver/spot-tree-candy.webp",
+          "srcNight": "/skins/hiver/spot-tree-candy-night.webp",
+          "x": 89,
+          "y": 741,
+          "w": 374,
+          "h": 580,
+          "still": true
+        },
+        "garland": {
+          "src": "/skins/hiver/spot-tree-garland.webp",
+          "srcNight": "/skins/hiver/spot-tree-garland-night.webp",
+          "x": 12,
+          "y": 662,
+          "w": 513,
+          "h": 712,
+          "still": true
+        },
+        "socks": {
+          "src": "/skins/hiver/spot-tree-socks.webp",
+          "srcNight": "/skins/hiver/spot-tree-socks-night.webp",
+          "x": 69,
+          "y": 1202,
+          "w": 398,
+          "h": 164,
+          "still": true
+        },
+        "star": {
+          "src": "/skins/hiver/spot-tree-star.webp",
+          "srcNight": "/skins/hiver/spot-tree-star-night.webp",
+          "x": 194,
+          "y": 479,
+          "w": 99,
+          "h": 97,
+          "still": true,
+          "glow": true
+        }
+      },
+      "base": {
+        "src": "/skins/hiver/spot-tree.webp",
+        "srcNight": "/skins/hiver/spot-tree-night.webp",
+        "x": 0,
+        "y": 528,
+        "w": 554,
+        "h": 1008,
+        "still": true
+      },
+      "baubles": [
+        {
+          "src": "/skins/hiver/tree-baubles-0.webp",
+          "srcNight": "/skins/hiver/tree-baubles-0-night.webp",
+          "x": 260,
+          "y": 690,
+          "w": 56,
+          "h": 55,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-5.webp",
+          "srcNight": "/skins/hiver/tree-baubles-5-night.webp",
+          "x": 95,
+          "y": 916,
+          "w": 54,
+          "h": 56,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-10.webp",
+          "srcNight": "/skins/hiver/tree-baubles-10-night.webp",
+          "x": 53,
+          "y": 1060,
+          "w": 52,
+          "h": 65,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-15.webp",
+          "srcNight": "/skins/hiver/tree-baubles-15-night.webp",
+          "x": 340,
+          "y": 1214,
+          "w": 51,
+          "h": 58,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-20.webp",
+          "srcNight": "/skins/hiver/tree-baubles-20-night.webp",
+          "x": 21,
+          "y": 1332,
+          "w": 52,
+          "h": 55,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-1.webp",
+          "srcNight": "/skins/hiver/tree-baubles-1-night.webp",
+          "x": 138,
+          "y": 748,
+          "w": 54,
+          "h": 60,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-6.webp",
+          "srcNight": "/skins/hiver/tree-baubles-6-night.webp",
+          "x": 347,
+          "y": 916,
+          "w": 61,
+          "h": 69,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-11.webp",
+          "srcNight": "/skins/hiver/tree-baubles-11-night.webp",
+          "x": 243,
+          "y": 1098,
+          "w": 54,
+          "h": 62,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-16.webp",
+          "srcNight": "/skins/hiver/tree-baubles-16-night.webp",
+          "x": 225,
+          "y": 1234,
+          "w": 50,
+          "h": 53,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-21.webp",
+          "srcNight": "/skins/hiver/tree-baubles-21-night.webp",
+          "x": 294,
+          "y": 1333,
+          "w": 52,
+          "h": 57,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-2.webp",
+          "srcNight": "/skins/hiver/tree-baubles-2-night.webp",
+          "x": 306,
+          "y": 805,
+          "w": 55,
+          "h": 60,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-7.webp",
+          "srcNight": "/skins/hiver/tree-baubles-7-night.webp",
+          "x": 212,
+          "y": 957,
+          "w": 55,
+          "h": 64,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-12.webp",
+          "srcNight": "/skins/hiver/tree-baubles-12-night.webp",
+          "x": 410,
+          "y": 1105,
+          "w": 60,
+          "h": 55,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-17.webp",
+          "srcNight": "/skins/hiver/tree-baubles-17-night.webp",
+          "x": 433,
+          "y": 1241,
+          "w": 49,
+          "h": 42,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-3.webp",
+          "srcNight": "/skins/hiver/tree-baubles-3-night.webp",
+          "x": 185,
+          "y": 830,
+          "w": 56,
+          "h": 64,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-8.webp",
+          "srcNight": "/skins/hiver/tree-baubles-8-night.webp",
+          "x": 129,
+          "y": 1017,
+          "w": 55,
+          "h": 60,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-13.webp",
+          "srcNight": "/skins/hiver/tree-baubles-13-night.webp",
+          "x": 167,
+          "y": 1169,
+          "w": 55,
+          "h": 64,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-18.webp",
+          "srcNight": "/skins/hiver/tree-baubles-18-night.webp",
+          "x": 428,
+          "y": 1266,
+          "w": 23,
+          "h": 27,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-4.webp",
+          "srcNight": "/skins/hiver/tree-baubles-4-night.webp",
+          "x": 377,
+          "y": 890,
+          "w": 13,
+          "h": 13,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-9.webp",
+          "srcNight": "/skins/hiver/tree-baubles-9-night.webp",
+          "x": 346,
+          "y": 1051,
+          "w": 52,
+          "h": 60,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-14.webp",
+          "srcNight": "/skins/hiver/tree-baubles-14-night.webp",
+          "x": 23,
+          "y": 1184,
+          "w": 49,
+          "h": 56,
+          "still": true
+        },
+        {
+          "src": "/skins/hiver/tree-baubles-19.webp",
+          "srcNight": "/skins/hiver/tree-baubles-19-night.webp",
+          "x": 125,
+          "y": 1272,
+          "w": 56,
+          "h": 62,
+          "still": true
+        }
+      ]
+    }
   }
 }
