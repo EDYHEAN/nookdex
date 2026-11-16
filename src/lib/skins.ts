@@ -44,11 +44,11 @@ export interface SkinArt {
   spider?: { src: string; w: number; h: number; x: number; top: number; drop: number };
   /** the Soutien collection's plaque (its own item, in the pack too): the player's name engraved in `text` */
   plaque?: Placed & { text: Box };
-  /** the Advent tree (lib/advent): the bare fir, its decorations by name, its baubles in the order they're hung */
   /** a frame round the clock (the winter pack's holly): under the hands the code draws */
   clock?: Placed;
-  /** the Advent calendar's frost on the window panes (its 14th box) */
-  frost?: Placed;
+  /** the Advent calendar's sleigh hanging on the wall (its 17th box) */
+  sleigh?: Placed;
+  /** the Advent tree (lib/advent): the bare fir, its decorations by name, its baubles in the order they're hung */
   tree?: { base: Placed; layers: Partial<Record<"lights" | "gifts" | "snow" | "candy" | "garland" | "socks" | "star", Placed>>; baubles: Placed[] };
 }
 
@@ -85,10 +85,12 @@ export interface Item {
   tint?: string;
   /** the room's corners darkened in this colour (multiply) */
   vignette?: string;
-  /** things floating in the room (PaintedRoom, sceneAnim drawSpooky) */
-  particles?: "spooky";
+  /** things floating in the room (PaintedRoom, sceneAnim drawSpooky / drawFairy) */
+  particles?: "spooky" | "fairy";
   /** the radio's tune (lib/sound) */
   music?: AmbientMood;
+  /** what falls outside the window: snow instead of the rain (the winter sky) */
+  weather?: "snow";
   /** given, never sold (the Advent calendar's: lib/advent), owned once its box is open */
   gift?: number;
   /** last day in the shop (ISO), from its bundle: bought ones stay forever */
@@ -121,8 +123,9 @@ export interface Look {
   lava?: LavaTheme;
   tint?: string;
   vignette?: string;
-  particles?: "spooky";
+  particles?: "spooky" | "fairy";
   music?: AmbientMood;
+  weather?: "snow";
   /** the plaque on the wall, the player's name engraved (the Soutien collection's) */
   plaque?: boolean;
 }
@@ -159,8 +162,8 @@ export const BUNDLES: Bundle[] = CAT.bundles.filter((b) => b.items.every((id) =>
 export const SUPPORT_BUNDLE = "soutien";
 /** The Advent tree, once its art is cut (scripts/build-skins SPOTS hiver) */
 export const TREE = ART.hiver?.tree;
-/** The frost on the panes, once its art is cut */
-export const FROST = ART.hiver?.frost;
+/** The Advent sleigh, once its art is cut */
+export const SLEIGH = ART.hiver?.sleigh;
 /** The engraved plaque, once its art is cut (scripts/build-skins) */
 export const PLAQUE = ART[SUPPORT_BUNDLE]?.plaque;
 export const ITEMS: Item[] = READY_ITEMS.map((i) => {
@@ -198,6 +201,7 @@ export function lookOf(ids: string[]): Look | null {
     if (it.vignette) look.vignette = it.vignette;
     if (it.particles) look.particles = it.particles;
     if (it.music) look.music = it.music;
+    if (it.weather) look.weather = it.weather;
     if (it.slot === "plaque") look.plaque = true;
   }
   return any ? look : null;

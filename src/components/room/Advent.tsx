@@ -51,8 +51,10 @@ function giftLine(g: Gift, t: (fr: string, en: string) => string, gold: number |
       return ["🏆", t("Un trophée", "A trophy")];
     case "promo":
       return ["🏷️", t("−20 % sur le pack d'hiver, jusqu'au 31 décembre", "−20% off the winter pack, until December 31st")];
-    case "frost":
-      return ["🪟", t("Du givre aux carreaux", "Frost on the window panes")];
+    case "snow":
+      return ["🌨️", t("La neige tombe dehors, tout l'hiver", "Snow falls outside, all winter")];
+    case "sleigh":
+      return ["🛷", t("Un traîneau suspendu au mur", "A sleigh hanging on the wall")];
     case "card":
       return ["💌", t("Ta carte de vœux à partager", "Your greeting card to share")];
     case "radio":

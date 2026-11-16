@@ -30,7 +30,8 @@ export type Gift =
   | { kind: "gold"; waves: number }
   | { kind: "trophy"; id: string }
   | { kind: "promo" }
-  | { kind: "frost" }
+  | { kind: "snow" }
+  | { kind: "sleigh" }
   | { kind: "card" }
   | { kind: "radio" };
 
@@ -52,10 +53,10 @@ export const DAYS: Gift[][] = [
   [{ kind: "gold", waves: 3 }],
   [{ kind: "layer", layer: "snow" }],
   [{ kind: "poster", id: "hiver-patinoire" }],
-  [{ kind: "frost" }],
+  [{ kind: "snow" }],
   [{ kind: "layer", layer: "candy" }],
   [{ kind: "poster", id: "hiver-bonhomme" }],
-  [{ kind: "gold", waves: 3 }],
+  [{ kind: "sleigh" }],
   [{ kind: "cat", id: "bonnet" }],
   [{ kind: "layer", layer: "garland" }],
   [{ kind: "layer", layer: "socks" }],
@@ -102,8 +103,8 @@ export function treeOf(opened: number[]) {
     for (const g of gifts) if (g.kind === "layer") layers.add(g.layer);
   });
   // the first box opened, whichever, brings the tree
-  const frost = DAYS.some((gifts, i) => has.has(i + 1) && gifts.some((g) => g.kind === "frost"));
-  return { tree: opened.length > 0, layers, frost, baubles: (n: number) => has.has(baubleDay(n)) };
+  const got = (kind: Gift["kind"]) => DAYS.some((gifts, i) => has.has(i + 1) && gifts.some((g) => g.kind === kind));
+  return { tree: opened.length > 0, layers, snow: got("snow"), sleigh: got("sleigh"), baubles: (n: number) => has.has(baubleDay(n)) };
 }
 
 /**

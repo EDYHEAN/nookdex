@@ -59,8 +59,8 @@ await browser.close();
 // the panes, the sky through them (the sill under them would take the picture)
 const WINDOW = { left: 90, top: 70, width: 640, height: 480 };
 const DESK = { left: 600, top: 660, width: 920, height: 690 };
-// where a collection's decorations show best: the sill by default, the window for winter's fairy lights
-const DECOR = { hiver: { left: 60, top: 40, width: 840, height: 630 } }[set] ?? { left: 40, top: 500, width: 1120, height: 840 };
+// where a collection's decorations show best: the sill by default, the top of the room for winter's garlands
+const DECOR = { hiver: { left: 0, top: 0, width: 1280, height: 960 } }[set] ?? { left: 40, top: 500, width: 1120, height: 840 };
 // the plaque under the clock (build-skins SPOTS wall)
 const PLAQUE = { left: 1419, top: 541, width: 440, height: 330 };
 // the boombox, the clock (with what's round it)
@@ -92,8 +92,7 @@ async function loop(a, b, file) {
 
 await loop(frame(shots.skyDay, WINDOW), frame(shots.skyNight, WINDOW), `${out}/icon-sky.webp`);
 await loop(frame(shots.bare, DESK), frame(shots.lamp, DESK), `${out}/icon-lamp.webp`);
-// lights show by night (winter's fairy lights)
-await sharp(set === "hiver" ? shots.packNight : shots.packDay).extract(DECOR).resize(SIZE.width, SIZE.height).webp({ quality: 84 }).toFile(`${out}/icon-decor.webp`);
+await sharp(shots.packDay).extract(DECOR).resize(SIZE.width, SIZE.height).webp({ quality: 84 }).toFile(`${out}/icon-decor.webp`);
 await sharp(shots.packNight).extract({ left: 0, top: 60, width: 2800, height: 1575 }).resize(960, 540).webp({ quality: 82 }).toFile(`${out}/preview.webp`);
 // a collection with its own radio or clock: their snapshot (and the room's own clock for the locker's base)
 if (catalogue.items.some((i) => i.id === `${set}-radio`)) await sharp(shots.packDay).extract(RADIO).resize(SIZE.width, SIZE.height).webp({ quality: 84 }).toFile(`${out}/icon-radio.webp`);

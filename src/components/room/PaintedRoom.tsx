@@ -11,7 +11,7 @@ import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, NICKNAME_MAX, OS_NAME } from "@/lib/site";
 import { radioBed, setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { treeOf, useAdvent } from "@/lib/advent";
-import { FROST, PLAQUE, SUPPORT_BUNDLE, TREE, useLook, usePatron, useSkins, type LavaTheme } from "@/lib/shop";
+import { PLAQUE, SLEIGH, SUPPORT_BUNDLE, TREE, useLook, usePatron, useSkins, type LavaTheme } from "@/lib/shop";
 import { useAskUp, useWantAsk } from "@/lib/calm";
 import { useTradeShelf } from "@/lib/share";
 import { useStore } from "@/lib/store";
@@ -20,7 +20,7 @@ import { bump, unlock, useTrophyStore } from "@/lib/trophyStore";
 import type { BinderDef } from "@/lib/types";
 import { useTotals } from "@/lib/useTotals";
 import { useViewport } from "@/lib/useViewport";
-import { LAVA_THEMES, drawDust, drawLava, drawRain, drawSpooky, drawSunDust } from "./sceneAnim";
+import { LAVA_THEMES, drawDust, drawFairy, drawLava, drawRain, drawSnow, drawSpooky, drawSunDust } from "./sceneAnim";
 import { GbBubble } from "./GbBubble";
 import { Monitor } from "./Monitor";
 import { SkinSpider } from "./SkinSpider";
@@ -281,6 +281,18 @@ function PaintedRoomView({
   // the Advent tree as the opened boxes made it (lib/advent)
   const advent = useAdvent();
   const tree = useMemo(() => treeOf(advent), [advent]);
+  // snow outside instead of the rain: the winter sky, or the calendar's 14th box from December to February
+  const winterMonths = [11, 0, 1].includes(new Date().getMonth());
+  const snowing = skin?.weather === "snow" || (tree.snow && winterMonths);
+  const snowRef = useRef(snowing);
+  // which particles the skin's canvas draws (Halloween's embers, winter's fairy sparkles)
+  const particlesRef = useRef(skin?.particles);
+  useEffect(() => {
+    particlesRef.current = skin?.particles;
+  }, [skin?.particles]);
+  useEffect(() => {
+    snowRef.current = snowing;
+  }, [snowing]);
   const patron = usePatron() || tryingPack;
   // the plaque's engraving: the player's nickname (Johan, 2026-11-16), else the word
   // invisible characters (zero-width, emoji variation selectors) taken out: they'd push the visible name off centre
@@ -435,13 +447,15 @@ function PaintedRoomView({
         last = t;
         if (!reduced) weave = { x: (Math.random() - 0.5) * 0.9, y: (Math.random() - 0.5) * 0.9 };
         // rain only at night, dust in the sunbeams only by day
-        if (rc && !dayRef.current) drawRain(rc, t);
+        // snow falls by day too; rain only at night
+        if (rc && snowRef.current) drawSnow(rc, t);
+        else if (rc && !dayRef.current) drawRain(rc, t);
         if (lc) drawLava(lc, t, themesRef.current[lavaTheme.current] ?? LAVA_THEMES[0], SCENE.lavaRows);
         if (dc) drawDust(dc, t, lampRef.current);
         if (sc && dayRef.current) drawSunDust(sc, t);
         // looked up each time: the canvas comes and goes with the skin
         const pc = reduced ? null : spooky.current?.getContext("2d");
-        if (pc) drawSpooky(pc, t, !dayRef.current);
+        if (pc) (particlesRef.current === "fairy" ? drawFairy : drawSpooky)(pc, t, !dayRef.current);
       }
       const wt = `${(-cur.x * 16 + weave.x).toFixed(1)}px ${(-cur.y * 9 + weave.y).toFixed(1)}px`;
       if (world.current && world.current.style.translate !== wt) world.current.style.translate = wt;
@@ -579,15 +593,15 @@ function PaintedRoomView({
           {/* rain running down the window: under a skin's things, a plant on the sill stays dry */}
           <canvas
             ref={rain}
-            className={`${styles.rain} ${daytime ? styles.off : ""}`}
+            className={`${styles.rain} ${daytime && !snowing ? styles.off : ""}`}
             width={Math.round(SCENE.window.w / 2)}
             height={Math.round(SCENE.window.h / 2)}
             style={{ ...place(SCENE.window), maskImage: windowMask, WebkitMaskImage: windowMask }}
           />
 
-          {/* the Advent calendar's frost on the panes (its 14th box), over the sky and the rain */}
-          {FROST && tree.frost && (
-            <img className={styles.sprite} src={!daytime && FROST.srcNight ? FROST.srcNight : FROST.src} style={place(FROST)} alt="" draggable={false} aria-hidden />
+          {/* the Advent calendar's sleigh hanging on the wall (its 17th box) */}
+          {SLEIGH && tree.sleigh && (
+            <img className={`${styles.sprite} ${styles.sway}`} src={!daytime && SLEIGH.srcNight ? SLEIGH.srcNight : SLEIGH.src} style={place(SLEIGH)} alt="" draggable={false} aria-hidden />
           )}
 
           {/* a skin's decorations standing in the room (lib/shop), a warm glow flickering round the lit ones at night */}

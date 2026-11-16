@@ -165,27 +165,16 @@ SPOTS.hiver = {
     cover: [{ rect: [0, 470, 500, 1156], pot: [60, 960, 400, 1156] }, { rect: [235, 140, 370, 300], pot: [245, 270, 370, 385], grow: 2, dark: true }],
   },
   "tree-baubles": layer("baubles", { split: true }),
-  // the winter pack's decorations (lot 2): the window's fairy lights and paper snowflakes, the hot chocolate and its
-  // candle; their lights stay lit at night (`glowIf`: the bright warm pixels)
-  "window-lights": { box: [160, 20, 690, 740], keep: [0, 0, 690, 740], window: true, glowIf: (r, g, b) => r > 235 && g > 200 && b < 200 },
-  mug: { box: [1480, 880, 400, 320], keep: [60, 60, 260, 300], glowIf: (r, g, b) => r > 235 && g > 170 && b < 150 },
+  // the winter pack's decorations: nothing on the window's panes (Johan, 2026-11-16: too fiddly, never seen), a fir
+  // garland along the curtain rod, garlands across the top of the wall, the hot chocolate (its marshmallows are small:
+  // `speck`) and its candle; their lights stay lit at night (`glowIf`: the bright warm pixels)
+  "window-top": { box: [0, 0, 1020, 300], keep: [0, 0, 1020, 300], window: true, glowIf: (r, g, b) => r > 235 && g > 200 && b < 170 },
+  "wall-garlands": { box: [1000, 0, 900, 300], keep: [0, 0, 900, 300], edit: "wall-garlands-edit.png" },
+  mug: { box: [1480, 880, 400, 320], keep: [60, 60, 260, 300], speck: 20, glowIf: (r, g, b) => r > 235 && g > 170 && b < 150 },
+  // the Advent calendar's sleigh (its 17th box), hanging high on the wall
+  sleigh: { box: [1000, 0, 900, 300], keep: [0, 0, 900, 300], edit: "sleigh-edit.png", into: "sleigh" },
   // the holly round the clock: not its face (the code draws the hands on the room's own)
   clock: { box: [1400, 230, 300, 300], keep: [0, 0, 300, 300], into: "clock", hole: { cx: 147, cy: 143, rx: 80, ry: 102 } },
-  // the frost on the panes (the 14th's box): white crystals only, over the window's whole crop (docs/skins.md A4)
-  frost: { box: [186, 40, 634, 700], keep: [0, 0, 634, 700], edit: "window-frost.png", into: "frost", noFill: true, diff: 16, speck: 8, glow: true, diffBlur: 0.4, tint: [232, 242, 255], only: (r, g, b) => b > 175 && r - b < 45 && g - b < 40 },
-  "tree-lights": layer("lights", { glow: true }),
-  "tree-gifts": layer("gifts"),
-  "tree-snow": layer("snow"),
-  "tree-candy": layer("candy"),
-  "tree-garland": layer("garland"),
-  "tree-socks": layer("socks"),
-  // the star: its own outline traced by hand (crop px, its 5 tips and the 5 corners between), as its gold is the window's
-  // and Gemini lit the frame round it: no difference tells it apart
-  "tree-star": layer("star", {
-    glow: true,
-    keep: [180, 90, 300, 210],
-    polygon: [[244, 99], [259, 130], [292, 136], [270, 163], [278, 195], [244, 178], [211, 192], [218, 160], [195, 137], [228, 130]],
-  }),
 };
 /** how far (0-255, the largest channel) an edited pixel must be from the room's to count as painted in */
 const SPOT_DIFF = 26;
@@ -477,6 +466,42 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
       for (let i = 0; i < N; i++) if (pane[i]) mask[i] = tight[i];
     }
     const alpha = await sharp(Buffer.from(mask.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(spot.sharp || spot.polygon ? 0.6 : 2).extractChannel(0).raw().toBuffer();
+    if (spot.outline) {
+      // inside the rect, the painting's own outlines decide: a fill from what Gemini left as the room was (the sky in the
+      // panes, the cactus the tree doesn't hide) and from the rect's top and sides, through all but the dark lines; what
+      // it can't reach is the tree, its outline with it where it borders it
+      const [ox0, oy0, ox1, oy1] = spot.outline.rect;
+      const lum = (i) => 0.3 * edit[i * 3] + 0.59 * edit[i * 3 + 1] + 0.11 * edit[i * 3 + 2];
+      const inRect = (x, y) => x >= ox0 && x <= ox1 && y >= oy0 && y <= oy1;
+      const dark = new Uint8Array(N), reached = new Uint8Array(N), stack = [];
+      for (let i = 0; i < N; i++) {
+        const x = i % W, y = (i - x) / W;
+        if (!inRect(x, y)) continue;
+        // a wall for the fill: the black outlines, and the fir's own green (its painted outline isn't closed everywhere)
+        const [rr, gg, bb] = [edit[i * 3], edit[i * 3 + 1], edit[i * 3 + 2]];
+        dark[i] = lum(i) < 95 || (gg > rr + 4 && gg >= bb) ? 1 : 0;
+        let d = 0;
+        for (let c = 0; c < 3; c++) d = Math.max(d, Math.abs(dayB[i * 3 + c] - editB[i * 3 + c]));
+        // the rect's top only: its sides cross the tree's lower branches
+        const edge = y === oy0;
+        if (!dark[i] && (d < 10 || edge)) (reached[i] = 1), stack.push(i);
+      }
+      while (stack.length) {
+        const j = stack.pop();
+        const x = j % W;
+        for (const k of [x > 0 ? j - 1 : -1, x < W - 1 ? j + 1 : -1, j - W, j + W]) {
+          if (k < 0 || k >= N || reached[k] || dark[k] || !inRect(k % W, Math.floor(k / W))) continue;
+          reached[k] = 1;
+          stack.push(k);
+        }
+      }
+      // what the fill can't reach is the tree, its outline and green included; lone bits (a line of the frame) dropped
+      const inside = new Uint8Array(N);
+      for (let i = 0; i < N; i++) if (inRect(i % W, Math.floor(i / W)) && !reached[i]) inside[i] = 1;
+      for (const px of patches(inside, W, H)) if (px.length < 400) for (const j of px) inside[j] = 0;
+      const crisp = await sharp(Buffer.from(inside.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(0.5).extractChannel(0).raw().toBuffer();
+      for (let i = 0; i < N; i++) if (inRect(i % W, Math.floor(i / W))) alpha[i] = crisp[i];
+    }
     // day: Gemini's pixels; night: the same, darkened and tinted as the night plate is from the day one there
     const day = Buffer.alloc(N * 4), night = Buffer.alloc(N * 4);
     for (let i = 0; i < N; i++)

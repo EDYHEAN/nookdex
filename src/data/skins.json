@@ -353,9 +353,10 @@
         "en": "First snow"
       },
       "blurb": {
-        "fr": "La neige tombe sur la ville la nuit, un matin tout blanc le jour.",
-        "en": "Snow falling on the city by night, a white morning by day."
-      }
+        "fr": "La neige tombe sur la ville, de jour comme de nuit.",
+        "en": "Snow falling on the city, by day and by night."
+      },
+      "weather": "snow"
     },
     {
       "set": "hiver",
@@ -369,8 +370,8 @@
         "en": "Cosy desk"
       },
       "blurb": {
-        "fr": "Une guirlande lumineuse et des flocons de papier à la fenêtre, un chocolat chaud et sa bougie.",
-        "en": "Fairy lights and paper snowflakes on the window, a hot chocolate and its candle."
+        "fr": "Une guirlande de sapin sur la fenêtre, des guirlandes au mur, un chocolat chaud et sa bougie.",
+        "en": "A fir garland on the window, garlands on the wall, a hot chocolate and its candle."
       }
     },
     {
@@ -398,23 +399,24 @@
       "price": 1.49,
       "icon": "/skins/hiver/icon-lamp.webp",
       "name": {
-        "fr": "Ambiance coin du feu",
-        "en": "Fireside mood"
+        "fr": "Ambiance de Noël",
+        "en": "Christmas mood"
       },
       "blurb": {
-        "fr": "La lampe à lave vire à la braise et toute la pièce se réchauffe, coins bleu nuit.",
-        "en": "The lava lamp turns to embers and the whole room warms up, night-blue corners."
+        "fr": "La lampe à lave vire au rouge de Noël, la pièce rosit et ses coins verdissent comme un sapin.",
+        "en": "The lava lamp turns Christmas red, the room blushes and its corners go fir green."
       },
-      "tint": "rgba(255, 150, 60, 0.45)",
-      "vignette": "rgba(20, 30, 70, 0.7)",
+      "tint": "rgba(255, 80, 90, 0.3)",
+      "vignette": "rgba(10, 70, 40, 0.65)",
       "lava": {
-        "name": "braise",
-        "nameEn": "ember",
-        "fill": "#ff9a3c",
-        "light": "#ffd9a0",
-        "line": "#5a2a08",
-        "glow": "rgba(255,150,60,0.34)"
-      }
+        "name": "Noël",
+        "nameEn": "Christmas",
+        "fill": "#e2343c",
+        "light": "#ffd6d6",
+        "line": "#5a0f14",
+        "glow": "rgba(240,60,70,0.34)"
+      },
+      "particles": "fairy"
     },
     {
       "set": "hiver",
@@ -424,14 +426,14 @@
       "price": 1.49,
       "icon": "/skins/hiver/icon-radio.webp",
       "name": {
-        "fr": "Coin du feu",
-        "en": "Fireside"
+        "fr": "Noël lofi",
+        "en": "Lofi Christmas"
       },
       "blurb": {
-        "fr": "Un feu qui crépite, des grelots et des accords chauds.",
-        "en": "A crackling fire, sleigh bells and warm chords."
+        "fr": "Jingle Bells en lofi : accords feutrés, grelots et craquements de vinyle.",
+        "en": "Jingle Bells gone lofi: soft chords, sleigh bells and vinyl crackle."
       },
-      "music": "fireside"
+      "music": "jingle"
     },
     {
       "set": "hiver",
@@ -541,8 +543,8 @@
         "en": "Winter pack"
       },
       "blurb": {
-        "fr": "Tout l'hiver d'un coup : la neige à la fenêtre, le coin cocooning, Warwick en pull, l'ambiance et la radio du coin du feu, la couronne de houx.",
-        "en": "All of winter at once: snow at the window, the cosy corner, Warwick's jumper, the fireside mood and radio, the holly wreath."
+        "fr": "Tout l'hiver d'un coup : la neige qui tombe dehors, les guirlandes, le chocolat chaud, Warwick en pull, l'ambiance et la radio de Noël, la couronne de houx.",
+        "en": "All of winter at once: snow falling outside, garlands, a hot chocolate, Warwick's jumper, the Christmas mood and radio, the holly wreath."
       }
     }
   ]
