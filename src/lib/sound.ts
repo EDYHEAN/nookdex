@@ -326,7 +326,18 @@ const JAZZ = [
 ];
 const JAZZ_ROOTS = [50, 43, 48, 45];
 const VIBES = [72, 74, 76, 79, 81, 83, 84];
-export type AmbientMood = "lofi" | "spooky" | "jazz";
+// The Advent calendar's 24th box: « Douce nuit » (Gruber, 1818, public domain) on a music box: [note, beats] in 3/4
+const NOEL: [number, number][] = [
+  [67, 1.5], [69, 0.5], [67, 1], [64, 3], [67, 1.5], [69, 0.5], [67, 1], [64, 3],
+  [74, 2], [74, 1], [71, 3], [72, 2], [72, 1], [67, 3],
+  [69, 2], [69, 1], [72, 1.5], [71, 0.5], [69, 1], [67, 1.5], [69, 0.5], [67, 1], [64, 3],
+  [69, 2], [69, 1], [72, 1.5], [71, 0.5], [69, 1], [67, 1.5], [69, 0.5], [67, 1], [64, 3],
+  [74, 2], [74, 1], [77, 1.5], [74, 0.5], [71, 1], [72, 3], [76, 3],
+  [72, 1.5], [67, 0.5], [64, 1], [67, 1.5], [65, 0.5], [62, 1], [60, 6],
+];
+/** its bars' roots, one a bar (C, G or F) */
+const NOEL_BASS = [48, 48, 48, 48, 43, 43, 48, 48, 53, 53, 48, 48, 53, 53, 48, 48, 43, 43, 48, 48, 48, 43, 48, 48];
+export type AmbientMood = "lofi" | "spooky" | "jazz" | "noel";
 let mood: AmbientMood = "lofi";
 /** The radio's tune: taken up from the next beat */
 export const setAmbientMood = (m: AmbientMood) => {
@@ -338,6 +349,7 @@ function schedule() {
   if (!ctx || !ambientGain) return;
   if (mood === "spooky") return scheduleSpooky();
   if (mood === "jazz") return scheduleJazz();
+  if (mood === "noel") return scheduleNoel();
   const spb = 60 / 72;
   while (nextBeat < ctx.currentTime + 0.4) {
     const t = nextBeat - ctx.currentTime;
@@ -445,6 +457,34 @@ function scheduleJazz() {
       tone({ freq: midi(n + 12), type: "sine", dur: 0.35, vol: 0.008, delay: at, attack: 0.005, dest: g });
     }
     nextBeat += spb;
+    beat++;
+  }
+}
+
+/** The music box: the tune note by note (`beat` counts its notes here), a soft root each bar, a pause before it comes round */
+let noelAt = 0;
+function scheduleNoel() {
+  if (!ctx || !ambientGain) return;
+  const spb = 60 / 96;
+  const g = ambientGain;
+  while (nextBeat < ctx.currentTime + 0.4) {
+    const t = nextBeat - ctx.currentTime;
+    const i = beat % (NOEL.length + 1);
+    if (i === NOEL.length) {
+      // a breath before it starts again
+      nextBeat += spb * 3;
+      beat++;
+      noelAt = 0;
+      continue;
+    }
+    const [n, len] = NOEL[i];
+    tone({ freq: midi(n), type: "triangle", dur: Math.min(1.6, spb * len + 0.4), vol: 0.035, delay: t, attack: 0.004, dest: g });
+    tone({ freq: midi(n + 12), type: "sine", dur: 0.5, vol: 0.012, delay: t, attack: 0.004, dest: g });
+    // the bar's root under its first note
+    const bar = Math.floor(noelAt / 3);
+    if (noelAt % 3 === 0) tone({ freq: midi(NOEL_BASS[bar % NOEL_BASS.length]), type: "sine", dur: spb * 3, vol: 0.05, delay: t, attack: 0.05, dest: g });
+    noelAt += len;
+    nextBeat += spb * len;
     beat++;
   }
 }

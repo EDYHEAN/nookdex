@@ -39,18 +39,27 @@ export function AdventBar({ compact, calm, onOpen }: { compact: boolean; calm: b
   const free = useAskFree("advent");
   useAskUp("advent", shown && eligible);
 
-  useEffect(() => {
-    if (!eligible || !free || shown) return;
-    const id = setTimeout(() => claimAsk("advent") && setShown(true), CALM_MS);
-    return () => clearTimeout(id);
-  }, [eligible, free, shown]);
-
   const done = () => {
     try {
       if (today) localStorage.setItem(key(today), "1");
     } catch {}
     setShown(false);
   };
+
+  // nothing opened yet: the calendar opens by itself, its first box brings the tree (Johan, 2026-11-16: make it obvious)
+  const fresh = opened.length === 0;
+  useEffect(() => {
+    if (!eligible || !free || shown) return;
+    const id = setTimeout(() => {
+      if (!claimAsk("advent")) return;
+      if (fresh) {
+        done();
+        onOpen();
+      } else setShown(true);
+    }, CALM_MS);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- done and onOpen: the moment it's claimed only
+  }, [eligible, free, shown, fresh]);
 
   return (
     <AnimatePresence>

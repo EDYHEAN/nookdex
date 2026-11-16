@@ -14,9 +14,23 @@
     "fair",
     "map",
     "sakura",
+    "hiver-village",
+    "hiver-marche",
+    "hiver-chalet",
+    "hiver-patinoire",
+    "hiver-bonhomme",
+    "hiver-aurore",
     "patron"
   ],
   "patron": [
     "patron"
-  ]
+  ],
+  "gifts": {
+    "hiver-village": 3,
+    "hiver-marche": 6,
+    "hiver-chalet": 9,
+    "hiver-patinoire": 13,
+    "hiver-bonhomme": 16,
+    "hiver-aurore": 21
+  }
 }

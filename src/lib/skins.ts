@@ -45,6 +45,8 @@ export interface SkinArt {
   /** the Soutien collection's plaque (its own item, in the pack too): the player's name engraved in `text` */
   plaque?: Placed & { text: Box };
   /** the Advent tree (lib/advent): the bare fir, its decorations by name, its baubles in the order they're hung */
+  /** the Advent calendar's frost on the window panes (its 14th box) */
+  frost?: Placed;
   tree?: { base: Placed; layers: Partial<Record<"lights" | "gifts" | "snow" | "candy" | "garland" | "socks" | "star", Placed>>; baubles: Placed[] };
 }
 
@@ -85,6 +87,8 @@ export interface Item {
   particles?: "spooky";
   /** the radio's tune (lib/sound) */
   music?: AmbientMood;
+  /** given, never sold (the Advent calendar's: lib/advent), owned once its box is open */
+  gift?: number;
   /** last day in the shop (ISO), from its bundle: bought ones stay forever */
   until?: string;
 }
@@ -149,6 +153,8 @@ export const BUNDLES: Bundle[] = CAT.bundles.filter((b) => b.items.every((id) =>
 export const SUPPORT_BUNDLE = "soutien";
 /** The Advent tree, once its art is cut (scripts/build-skins SPOTS hiver) */
 export const TREE = ART.hiver?.tree;
+/** The frost on the panes, once its art is cut */
+export const FROST = ART.hiver?.frost;
 /** The engraved plaque, once its art is cut (scripts/build-skins) */
 export const PLAQUE = ART[SUPPORT_BUNDLE]?.plaque;
 export const ITEMS: Item[] = READY_ITEMS.map((i) => ({ ...i, until: BUNDLES.find((b) => b.items.includes(i.id))?.until }));
@@ -160,7 +166,7 @@ export const itemsOf = (id: string): string[] => BUNDLE.get(id)?.items ?? (ITEM.
 /** A bundle's worth when its items are bought one by one */
 export const worthOf = (b: Bundle) => b.items.reduce((n, id) => n + (ITEM.get(id)?.price ?? 0), 0);
 /** Still for sale (its last day not past) */
-export const onSale = (x: { until?: string }) => !x.until || new Date().toISOString().slice(0, 10) <= x.until;
+export const onSale = (x: { until?: string; gift?: number }) => !x.gift && (!x.until || new Date().toISOString().slice(0, 10) <= x.until);
 
 /** The room's look from the items worn (one per slot: the last one wins) */
 export function lookOf(ids: string[]): Look | null {

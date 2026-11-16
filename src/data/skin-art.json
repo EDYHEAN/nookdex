@@ -448,6 +448,72 @@
           "still": true
         }
       ]
+    },
+    "frost": {
+      "src": "/skins/hiver/spot-frost.webp",
+      "srcNight": "/skins/hiver/spot-frost-night.webp",
+      "x": 186,
+      "y": 79,
+      "w": 556,
+      "h": 633,
+      "still": true
+    }
+  },
+  "avent-renne": {
+    "decor": [],
+    "cat": {
+      "sleep": {
+        "src": "/skins/avent-renne/cat-sleep.webp",
+        "x": 1948,
+        "y": 993,
+        "w": 400,
+        "h": 250
+      },
+      "awake": {
+        "src": "/skins/avent-renne/cat-awake.webp",
+        "x": 1957,
+        "y": 803,
+        "w": 412,
+        "h": 447
+      }
+    }
+  },
+  "avent-lutin": {
+    "decor": [],
+    "cat": {
+      "sleep": {
+        "src": "/skins/avent-lutin/cat-sleep.webp",
+        "x": 1948,
+        "y": 978,
+        "w": 400,
+        "h": 265
+      },
+      "awake": {
+        "src": "/skins/avent-lutin/cat-awake.webp",
+        "x": 1957,
+        "y": 798,
+        "w": 412,
+        "h": 452
+      }
+    }
+  },
+  "avent-bonnet": {
+    "decor": [],
+    "cat": {
+      "sleep": {
+        "src": "/skins/avent-bonnet/cat-sleep.webp",
+        "x": 1948,
+        "y": 983,
+        "w": 400,
+        "h": 260
+      },
+      "awake": {
+        "src": "/skins/avent-bonnet/cat-awake.webp",
+        "x": 1957,
+        "y": 815,
+        "w": 412,
+        "h": 435
+      }
     }
   }
 }

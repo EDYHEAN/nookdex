@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { ADVENT_PROMO, DAYS, type Gift, goldOf, openDay, useAdvent, useAdventToday } from "@/lib/advent";
+import { ADVENT_PROMO, DAYS, type Gift, giftsOfDay, goldOf, openDay, useAdvent, useAdventToday } from "@/lib/advent";
 import { useT } from "@/lib/lang";
 import { sfx } from "@/lib/sound";
 import styles from "./Advent.module.css";
@@ -11,12 +11,12 @@ import styles from "./Advent.module.css";
 const ORDER = [13, 4, 21, 8, 1, 17, 10, 24, 6, 15, 2, 19, 11, 22, 7, 3, 18, 9, 14, 23, 5, 20, 12, 16];
 
 const POSTERS: Record<string, [string, string]> = {
-  village: ["Village sous la neige", "Snowy village"],
-  marche: ["Marché de Noël", "Christmas market"],
-  chalet: ["Chalet la nuit", "Chalet at night"],
-  patinoire: ["Patinoire", "Ice rink"],
-  bonhomme: ["Bonhomme de neige", "Snowman"],
-  aurore: ["Aurore boréale", "Northern lights"],
+  "hiver-village": ["Village sous la neige", "Snowy village"],
+  "hiver-marche": ["Marché de Noël", "Christmas market"],
+  "hiver-chalet": ["Chalet la nuit", "Chalet at night"],
+  "hiver-patinoire": ["Patinoire", "Ice rink"],
+  "hiver-bonhomme": ["Bonhomme de neige", "Snowman"],
+  "hiver-aurore": ["Aurore boréale", "Northern lights"],
 };
 const CATS: Record<string, [string, string]> = {
   renne: ["Warwick en renne", "Reindeer Warwick"],
@@ -41,9 +41,9 @@ function giftLine(g: Gift, t: (fr: string, en: string) => string, gold: number |
     case "layer":
       return [LAYERS[g.layer][0], t(LAYERS[g.layer][1], LAYERS[g.layer][2])];
     case "poster":
-      return ["🖼️", t(`Un poster : ${POSTERS[g.id]?.[0]}`, `A poster: ${POSTERS[g.id]?.[1]}`)];
+      return ["🖼️", t(`Un poster, « ${POSTERS[g.id]?.[0]} », déjà accroché (un clic dessus pour en changer)`, `A poster, « ${POSTERS[g.id]?.[1]} », already up (click it to change)`)];
     case "cat":
-      return ["🐱", t(CATS[g.id]?.[0] ?? "", CATS[g.id]?.[1] ?? "")];
+      return ["🐱", t(`${CATS[g.id]?.[0]}, il la porte déjà`, `${CATS[g.id]?.[1]}, already wearing it`)];
     case "gold":
       return ["🪙", gold ? t(`${gold.toLocaleString("fr-FR")} pièces d'or pour Nook Survivors`, `${gold.toLocaleString("en-US")} gold for Nook Survivors`) : t("De l'or pour Nook Survivors", "Gold for Nook Survivors")];
     case "trophy":
@@ -55,13 +55,13 @@ function giftLine(g: Gift, t: (fr: string, en: string) => string, gold: number |
     case "card":
       return ["💌", t("Ta carte de vœux à partager", "Your greeting card to share")];
     case "radio":
-      return ["📻", t("« Douce nuit » à la radio", "« Silent Night » on the radio")];
+      return ["📻", t("« Douce nuit » en boîte à musique, à la radio", "« Silent Night » on a music box, on the radio")];
   }
 }
 
-/** What a box gives, its bauble first (the 2nd to the 23rd) */
-function giftsOf(day: number, t: (fr: string, en: string) => string, gold: number | null): [string, string][] {
-  const lines = DAYS[day - 1].map((g) => giftLine(g, t, gold));
+/** What a box gives, its bauble first (the 2nd to the 23rd); `first`: the first box opened, with the 1st's gifts */
+function giftsOf(day: number, t: (fr: string, en: string) => string, gold: number | null, first = false): [string, string][] {
+  const lines = giftsOfDay(day, first).map((g) => giftLine(g, t, gold));
   return day >= 2 && day <= 23 ? [["🔴", t("Une boule sur ton sapin", "A bauble on your tree")], ...lines] : lines;
 }
 
@@ -77,6 +77,8 @@ export function Advent({ onClose }: { onClose: () => void }) {
   const [opening, setOpening] = useState<number | null>(null);
   const [gold, setGold] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  // the box being shown was the first opened (it brought the tree): kept for its card
+  const [first, setFirst] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && (reveal ? setReveal(null) : onClose());
@@ -94,7 +96,9 @@ export function Advent({ onClose }: { onClose: () => void }) {
     if (day !== today || opened.includes(day) || opening) return;
     setOpening(day);
     sfx.ballOpen();
+    const isFirst = opened.length === 0;
     setTimeout(() => {
+      setFirst(isFirst);
       void openDay(day);
       setOpening(null);
       setReveal(day);
@@ -138,7 +142,7 @@ export function Advent({ onClose }: { onClose: () => void }) {
                 key={day}
                 className={`${styles.door} ${state} ${day === 24 ? styles.last : ""}`}
                 onPointerEnter={isToday || isOpen ? sfx.hover : undefined}
-                onClick={() => (isOpen ? (sfx.pop(), setReveal(day)) : open(day))}
+                onClick={() => (isOpen ? (sfx.pop(), setFirst(false), setReveal(day)) : open(day))}
                 disabled={!isOpen && !isToday}
                 aria-label={t(`Case ${day}`, `Door ${day}`)}
               >
@@ -165,14 +169,14 @@ export function Advent({ onClose }: { onClose: () => void }) {
                 <span className={styles.number}>{reveal}</span>
                 <h3>{t(`Case ${reveal}`, `Door ${reveal}`)}</h3>
                 <ul>
-                  {giftsOf(reveal, t, gold).map(([icon, text], i) => (
+                  {giftsOf(reveal, t, gold, first).map(([icon, text], i) => (
                     <motion.li key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + i * 0.12 }}>
                       <span>{icon}</span>
                       {text}
                     </motion.li>
                   ))}
                 </ul>
-                {DAYS[reveal - 1].some((g) => g.kind === "promo") && (
+                {giftsOfDay(reveal, first).some((g) => g.kind === "promo") && (
                   <button
                     className={styles.code}
                     onClick={() => {

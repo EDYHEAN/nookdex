@@ -41,6 +41,8 @@ const ORDER_GAME4 = [
   "game-shiny", "game-wave300", "game-ally", "game-team",
   "game-paragon", "game-pact", "game-shield", "game-fast",
 ];
+/** the Advent calendar's three (2026-11-16), in a row */
+const ORDER_AVENT = ["advent-1", "advent-7", "advent-24"];
 const SHEETS = [
   { src: "img/trophies.jpg", cols: 10, rows: 6, order: ORDER },
   { src: "img/trophies-game.jpg", cols: 4, rows: 4, order: ORDER_GAME },
@@ -48,6 +50,7 @@ const SHEETS = [
   // the locket's chain is a thin pale gold: the paper inside its loops isn't ringed by dark ink
   { src: "img/trophies-beyond.jpg", cols: 4, rows: 2, order: ORDER_GAME3, height: 1200, anyHole: 400 },
   { src: "img/trophies-plus.jpg", cols: 4, rows: 2, order: ORDER_GAME4, height: 1200 },
+  { src: "img/trophies-avent.jpg", cols: 3, rows: 1, order: ORDER_AVENT },
 ];
 
 /** one sheet's trinkets, placed in the sprite from cell offset on */

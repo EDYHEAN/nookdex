@@ -22,6 +22,19 @@ const IDS = ["moon", "rain", "lake", "cat", "nookboy", "fair", "map", "sakura"];
  * Soutien pack (2026-11-16). `trim`: a share cut off each side (Gemini's rounded white corners).
  */
 const EXTRA = [{ id: "patron", src: "img/soutien/poster.png", trim: 0.025, patron: true }];
+/**
+ * Other sheets of posters on white (a grid each, found like the first): the Advent calendar's, each given by its box
+ * (`gifts`: poster id -> day, lib/advent DAYS), not in the click-through until then.
+ */
+const SHEETS = [
+  {
+    src: "img/hiver/posters.jpg",
+    cols: 3,
+    rows: 2,
+    ids: ["hiver-village", "hiver-marche", "hiver-chalet", "hiver-patinoire", "hiver-bonhomme", "hiver-aurore"],
+    gifts: { "hiver-village": 3, "hiver-marche": 6, "hiver-chalet": 9, "hiver-patinoire": 13, "hiver-bonhomme": 16, "hiver-aurore": 21 },
+  },
+];
 /** where the poster is on the plates (scene px), with some wall around */
 const BOX = { x: 1070, y: 180, w: 350, h: 500 };
 
@@ -72,12 +85,22 @@ for (const [y0, y1] of rows)
   }
 
 
+for (const sh of SHEETS) {
+  const img = sharp(path.join(ROOT, sh.src));
+  const { data, info } = await img.clone().removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const inked = (x, y) => Math.min(data[(y * info.width + x) * 3], data[(y * info.width + x) * 3 + 1], data[(y * info.width + x) * 3 + 2]) < 225;
+  const c = runs(info.width, info.height, (x, y) => inked(x, y));
+  const rr = runs(info.height, info.width, (y, x) => inked(x, y));
+  if (c.length !== sh.cols || rr.length !== sh.rows) throw new Error(`${sh.src}: expected ${sh.cols}x${sh.rows} posters, found ${c.length}x${rr.length}`);
+  for (const [y0, y1] of rr)
+    for (const [x0, x1] of c) arts.push(await img.clone().extract({ left: x0 + INSET, top: y0 + INSET, width: x1 - x0 - INSET * 2, height: y1 - y0 - INSET * 2 }).removeAlpha().toBuffer());
+}
 for (const e of EXTRA) {
   const m = await sharp(path.join(ROOT, e.src)).metadata();
   const dx = Math.round(m.width * e.trim), dy = Math.round(m.height * e.trim);
   arts.push(await sharp(path.join(ROOT, e.src)).extract({ left: dx, top: dy, width: m.width - dx * 2, height: m.height - dy * 2 }).removeAlpha().toBuffer());
 }
-const ALL = [...IDS, ...EXTRA.map((e) => e.id)];
+const ALL = [...IDS, ...SHEETS.flatMap((sh) => sh.ids), ...EXTRA.map((e) => e.id)];
 
 /* ---------------- the poster on the plates: its artwork's shape and corners ---------------- */
 
@@ -295,5 +318,5 @@ for (const [k, id] of ALL.entries()) {
   }
   await sharp(arts[k]).resize(150, 200, { fit: "cover" }).webp({ quality: 82 }).toFile(path.join(OUT, `${id}-thumb.webp`));
 }
-await fs.writeFile(DATA, JSON.stringify({ box: BOX, ids: ALL, patron: EXTRA.filter((e) => e.patron).map((e) => e.id) }, null, 2) + "\n");
+await fs.writeFile(DATA, JSON.stringify({ box: BOX, ids: ALL, patron: EXTRA.filter((e) => e.patron).map((e) => e.id), gifts: Object.assign({}, ...SHEETS.map((sh) => sh.gifts ?? {})) }, null, 2) + "\n");
 console.log(`${ALL.length} posters -> public/scene/posters`);

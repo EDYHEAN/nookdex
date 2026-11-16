@@ -8,7 +8,7 @@ import { rankOf, sortCards } from "./rarity";
 import type { CardData, Copy, SetData, UserBinder } from "./types";
 
 export type TrophyTier = "bronze" | "silver" | "gold" | "platinum";
-export type TrophyCat = "collection" | "binders" | "treasures" | "pokemon" | "desk" | "game" | "secret";
+export type TrophyCat = "collection" | "binders" | "treasures" | "pokemon" | "desk" | "game" | "season" | "secret";
 
 /** What a tier is worth in the trainer's score. */
 export const TIER_POINTS: Record<TrophyTier, number> = { bronze: 10, silver: 25, gold: 50, platinum: 100 };
@@ -20,6 +20,8 @@ export const CATS: { id: TrophyCat; fr: string; en: string }[] = [
   { id: "pokemon", fr: "Pokémon", en: "Pokémon" },
   { id: "desk", fr: "Le bureau", en: "The desk" },
   { id: "game", fr: "Nook Survivors", en: "Nook Survivors" },
+  // won in their season only (the Advent calendar): not needed for "all", it couldn't be had after
+  { id: "season", fr: "Saisons", en: "Seasons" },
   { id: "secret", fr: "Secrets", en: "Secrets" },
 ];
 
@@ -187,6 +189,11 @@ export const TROPHIES: Trophy[] = [
   { id: "konami", tier: "gold", cat: "secret", secret: true, name: { fr: "↑↑↓↓←→←→BA", en: "↑↑↓↓←→←→BA" }, desc: { fr: "Le code des anciens.", en: "The elders' code." } },
   { id: "treat", tier: "gold", cat: "secret", secret: true, name: { fr: "Un bonbon pour Warwick", en: "A treat for Warwick" }, desc: { fr: "Merci de soutenir NookDex ♥", en: "Thank you for supporting NookDex ♥" } },
 
+  // The Advent calendar 2026 (lib/advent): in December only
+  { id: "advent-1", tier: "bronze", cat: "season", name: { fr: "Premier cadeau", en: "First present" }, desc: { fr: "Ouvre ta première case du calendrier de l'Avent.", en: "Open your first Advent calendar door." } },
+  { id: "advent-7", tier: "silver", cat: "season", name: { fr: "Une semaine d'Avent", en: "A week of Advent" }, desc: { fr: "Ouvre 7 cases du calendrier de l'Avent.", en: "Open 7 Advent calendar doors." } },
+  { id: "advent-24", tier: "gold", cat: "season", name: { fr: "Calendrier complet", en: "Advent complete" }, desc: { fr: "Ouvre 20 cases du calendrier de l'Avent.", en: "Open 20 Advent calendar doors." } },
+
   // The big one: every trophy that isn't a secret
   { id: "all", tier: "platinum", cat: "collection", name: { fr: "Attrapez-les tous", en: "Gotta catch 'em all" }, desc: { fr: "Tous les trophées (sauf les secrets et ceux du jeu).", en: "Every trophy (secrets and the game's aside)." } },
 ];
@@ -270,6 +277,6 @@ export function factsOf({ collection, binders, cards, sets, signedIn }: Input): 
 export function earned(f: Facts, got: Record<string, number>): string[] {
   const out = TROPHIES.filter((t) => t.test?.(f) && !got[t.id]).map((t) => t.id);
   const won = new Set([...Object.keys(got), ...out]);
-  if (!won.has("all") && TROPHIES.every((t) => t.secret || t.cat === "game" || t.id === "all" || won.has(t.id))) out.push("all");
+  if (!won.has("all") && TROPHIES.every((t) => t.secret || t.cat === "game" || t.cat === "season" || t.id === "all" || won.has(t.id))) out.push("all");
   return out;
 }

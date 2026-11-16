@@ -36,8 +36,8 @@ import { Courrier } from "./room/Courrier";
 import { MailButton } from "./room/MailButton";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
-import { useAdventDev } from "@/lib/advent";
-import { ITEM, backFromShop, itemsOf, paidFor, preloadShop, refreshOwned, selling, setShopView, useShopNews, useShopOpen, useSkins } from "@/lib/shop";
+import { useAdvent, useAdventDev } from "@/lib/advent";
+import { ITEM, syncGifts, backFromShop, itemsOf, paidFor, preloadShop, refreshOwned, selling, setShopView, useShopNews, useShopOpen, useSkins } from "@/lib/shop";
 import type { ListView } from "./share/TradePanel";
 import { TrophyToasts } from "./room/TrophyToast";
 import type { BinderChoice } from "./shelf/BinderPicker";
@@ -111,6 +111,8 @@ export function App() {
   const [box, setBox] = useState<{ x: number; y: number } | null>(null);
   // the Advent calendar (lib/advent), from the tree or its strip
   const [advent, setAdvent] = useState(false);
+  const adventOpened = useAdvent();
+  useEffect(syncGifts, [adventOpened]);
   /** the shop (lib/shop): hidden for players until it opens */
   const shopOpen = useShopOpen();
   const [shop, setShop] = useState(false);

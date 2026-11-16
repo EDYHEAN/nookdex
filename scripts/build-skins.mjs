@@ -50,6 +50,22 @@ const SHEETS = [
     },
     skies: { sky: "img/soutien/sky.jpg", "sky-day": "img/soutien/sky-day.jpg" },
   },
+  // the Advent calendar's Warwicks (docs/skins.md A3): Gemini's edits of the Halloween cats, the same boxes
+  ...["renne", "lutin", "bonnet"].map((id) => ({
+    skin: `avent-${id}`,
+    clean: true,
+    src: `img/hiver/cat-${id}.jpg`,
+    cols: 1,
+    rows: 1,
+    names: [],
+    light: [],
+    crops: {
+      [`img/hiver/cat-${id}.jpg`]: {
+        "cat-sleep": { box: [40, 600, 1100, 920] },
+        "cat-awake": { box: [1100, 200, 1026, 1169], erase: [[1100, 798, 56, 571]] },
+      },
+    },
+  })),
 ];
 
 /**
@@ -76,6 +92,12 @@ const PLACES = {
     // the spider of the corner's cobweb: its thread hangs from (x, top), it drops down to `drop` now and then
     spider: { name: "spider", x: 1150, top: 30, drop: 560, w: 84 },
   },
+  ...Object.fromEntries(
+    ["renne", "lutin", "bonnet"].map((id) => [
+      `avent-${id}`,
+      { decor: [], cat: { sleep: { name: "cat-sleep", cx: 2148, bottom: 1243, w: 400 }, awake: { name: "cat-awake", cx: 2163, bottom: 1250, w: 412 } } },
+    ]),
+  ),
   soutien: {
     decor: [],
     // the same cats as Halloween's, at the same scale: the sleeping one's scarf hangs lower than its body
@@ -125,6 +147,8 @@ SPOTS.hiver = {
     cover: [{ rect: [0, 470, 500, 1156], pot: [60, 960, 400, 1156] }, { rect: [235, 140, 370, 300], pot: [245, 270, 370, 385], grow: 2, dark: true }],
   },
   "tree-baubles": layer("baubles", { split: true }),
+  // the frost on the panes (the 14th's box): white crystals only, over the window's whole crop (docs/skins.md A4)
+  frost: { box: [186, 40, 634, 700], keep: [0, 0, 634, 700], edit: "window-frost.png", into: "frost", noFill: true, diff: 16, speck: 8, glow: true, diffBlur: 0.4, tint: [232, 242, 255], only: (r, g, b) => b > 175 && r - b < 45 && g - b < 40 },
   "tree-lights": layer("lights", { glow: true }),
   "tree-gifts": layer("gifts"),
   "tree-snow": layer("snow"),
@@ -359,8 +383,9 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
       fromEdit(0),
       // compared a little blurred: Gemini's own grain isn't a change
       // a decoration is what Gemini added to its own bare tree, not to the room
-      spot.against ? sharp(`img/${skin}/spots/${spot.against}`).resize(W, H, { fit: "fill", kernel: "lanczos3" }).removeAlpha().blur(1.5).raw().toBuffer() : crop("public/scene/day.webp", 1.5),
-      fromEdit(1.5),
+      // `diffBlur`: less for fine lines (the frost's), the usual blur would wash them out
+      spot.against ? sharp(`img/${skin}/spots/${spot.against}`).resize(W, H, { fit: "fill", kernel: "lanczos3" }).removeAlpha().blur(spot.diffBlur ?? 1.5).raw().toBuffer() : crop("public/scene/day.webp", spot.diffBlur ?? 1.5),
+      fromEdit(spot.diffBlur ?? 1.5),
       // the light around, day and night
       crop("public/scene/day.webp", 24),
       crop("public/scene/plate.webp", 24),
@@ -398,7 +423,7 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
       mask[i] = d > (spot.diff ?? SPOT_DIFF) && (!spot.only || spot.only(editB[i * 3], editB[i * 3 + 1], editB[i * 3 + 2])) ? 1 : 0;
     }
     // specks (Gemini's grain, a dust mote moved) dropped, then the patches closed: grown, holes filled, shrunk back
-    if (!spot.polygon) for (const px of patches(mask, W, H)) if (px.length < (spot.against ? 25 : N * 0.003)) for (const j of px) mask[j] = 0;
+    if (!spot.polygon) for (const px of patches(mask, W, H)) if (px.length < (spot.speck ?? (spot.against ? 25 : N * 0.003))) for (const j of px) mask[j] = 0;
     if (spot.cover) {
       // the plant it replaces, all of it: its leaves (green) and its pot (terracotta), on the room's own plate, grown a little
       const plate = await crop("public/scene/day.webp", 0);
@@ -436,6 +461,8 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
         // a light (the tree's fairy lights, its star) shines the same by night
         night[i * 4 + c] = spot.glow ? edit[i * 3 + c] : Math.min(255, Math.round(edit[i * 3 + c] * ratio));
         day[i * 4 + 3] = night[i * 4 + 3] = alpha[i];
+        // `tint`: its shape only, in one colour (the frost's icy white: on the day's window it had taken its warmth)
+        if (spot.tint) (day[i * 4 + c] = spot.tint[c]), (night[i * 4 + c] = spot.tint[c]);
       }
     if (spot.move) {
       // the biggest patch right of the cut (its shadow on the sill with it), its pixels moved: where it was, the room again
@@ -516,6 +543,8 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
       const fy = median(cols.map((c) => c[0])), fh = median(cols.map((c) => c[1])) - fy + 1;
       const text = { x: L + fx + Math.round(fw * 0.08), y: T + fy + Math.round(fh * 0.1), w: Math.round(fw * 0.84), h: Math.round(fh * 0.8) };
       art[skin].plaque = { ...placed, text };
+    } else if (spot.into) {
+      art[skin][spot.into] = placed;
     } else if (spot.tree) {
       art[skin].tree ??= { layers: {} };
       if (spot.tree === "base") art[skin].tree.base = placed;

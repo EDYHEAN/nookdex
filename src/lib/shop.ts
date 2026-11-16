@@ -6,6 +6,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { supabase, useCloud } from "./cloud";
 import { funnelStep } from "./funnel";
 import { STUDIO_EMAIL_HASHES } from "./site";
+import { useTrophyStore } from "./trophyStore";
 import { BUNDLES, ITEM, ITEMS, itemsOf, lookOf, onSale, SUPPORT_BUNDLE, type Look, type Slot } from "./skins";
 
 export * from "./skins";
@@ -161,6 +162,17 @@ export async function buySkin(id: string): Promise<"ok" | "soon" | "error"> {
   }
 }
 
+/** The items the Advent calendar gave (each its box's: lib/advent, the boxes kept among the trophies) */
+export const giftedItems = () => {
+  const got = useTrophyStore.getState().got;
+  return ITEMS.filter((i) => i.gift && got[`advent:${i.gift}`]).map((i) => i.id);
+};
+/** The calendar's gifts among the items owned (a box opened, on this device or another) */
+export function syncGifts() {
+  const gifts = giftedItems();
+  if (gifts.some((id) => !useSkins.getState().owned.includes(id))) useSkins.setState((s) => ({ owned: [...new Set([...s.owned, ...gifts])] }));
+}
+
 /** The skins this account bought (Supabase purchases, read by the player only): kept for the next visit. */
 export async function refreshOwned() {
   // Johan's accounts own the whole shop (Johan, 2026-10-16)
@@ -172,7 +184,8 @@ export async function refreshOwned() {
   const { data, error } = await supabase.from("purchases").select("skin");
   if (error) return;
   const rows = (data ?? []) as { skin: string }[];
-  useSkins.setState({ owned: [...new Set(rows.flatMap((r) => itemsOf(r.skin)))], patron: rows.some((r) => r.skin === SUPPORT_BUNDLE) });
+  // what was bought, and what the calendar gave
+  useSkins.setState({ owned: [...new Set([...rows.flatMap((r) => itemsOf(r.skin)), ...giftedItems()])], patron: rows.some((r) => r.skin === SUPPORT_BUNDLE) });
 }
 
 /** The Soutien pack bought, while the shop is there (its plaque in the room) */

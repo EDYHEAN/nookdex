@@ -1,6 +1,6 @@
 {
   "cols": 10,
-  "rows": 10,
+  "rows": 11,
   "cell": 128,
   "index": {
     "first-card": 0,
@@ -102,6 +102,9 @@
     "game-paragon": 96,
     "game-pact": 97,
     "game-shield": 98,
-    "game-fast": 99
+    "game-fast": 99,
+    "advent-1": 100,
+    "advent-7": 101,
+    "advent-24": 102
   }
 }

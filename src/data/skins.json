@@ -7,6 +7,22 @@
     "soutien": {
       "fr": "Soutien",
       "en": "Supporter"
+    },
+    "avent-renne": {
+      "fr": "Calendrier de l'Avent",
+      "en": "Advent calendar"
+    },
+    "avent-lutin": {
+      "fr": "Calendrier de l'Avent",
+      "en": "Advent calendar"
+    },
+    "avent-bonnet": {
+      "fr": "Calendrier de l'Avent",
+      "en": "Advent calendar"
+    },
+    "hiver": {
+      "fr": "Hiver",
+      "en": "Winter"
     }
   },
   "base": [
@@ -262,6 +278,78 @@
         "fr": "Une plaque en laiton au mur, sous l'horloge, gravée à ton pseudo.",
         "en": "A brass plaque on the wall, under the clock, engraved with your name."
       }
+    },
+    {
+      "id": "avent-renne",
+      "set": "avent-renne",
+      "slot": "cat",
+      "rarity": "rare",
+      "price": 0,
+      "gift": 4,
+      "icon": "/skins/avent-renne/cat-sleep.webp",
+      "cutout": true,
+      "name": {
+        "fr": "Warwick en renne",
+        "en": "Reindeer Warwick"
+      },
+      "blurb": {
+        "fr": "Des bois de renne en feutre et un grelot rouge.",
+        "en": "Felt reindeer antlers and a red bell."
+      }
+    },
+    {
+      "id": "avent-lutin",
+      "set": "avent-lutin",
+      "slot": "cat",
+      "rarity": "rare",
+      "price": 0,
+      "gift": 10,
+      "icon": "/skins/avent-lutin/cat-sleep.webp",
+      "cutout": true,
+      "name": {
+        "fr": "Warwick en lutin",
+        "en": "Elf Warwick"
+      },
+      "blurb": {
+        "fr": "Un bonnet de lutin vert et son grelot doré.",
+        "en": "A green elf hat with its golden bell."
+      }
+    },
+    {
+      "id": "avent-bonnet",
+      "set": "avent-bonnet",
+      "slot": "cat",
+      "rarity": "rare",
+      "price": 0,
+      "gift": 18,
+      "icon": "/skins/avent-bonnet/cat-sleep.webp",
+      "cutout": true,
+      "name": {
+        "fr": "Warwick bonnet de nuit",
+        "en": "Nightcap Warwick"
+      },
+      "blurb": {
+        "fr": "Un bonnet de nuit bleu étoilé, pompon blanc.",
+        "en": "A starry blue nightcap with a white pompom."
+      }
+    },
+    {
+      "id": "avent-radio",
+      "set": "hiver",
+      "slot": "radio",
+      "rarity": "epic",
+      "price": 0,
+      "gift": 24,
+      "icon": "/skins/base/radio.webp",
+      "name": {
+        "fr": "Douce nuit",
+        "en": "Silent Night"
+      },
+      "blurb": {
+        "fr": "« Douce nuit » sur une boîte à musique, le cadeau du 24 décembre.",
+        "en": "« Silent Night » on a music box, December 24th's present."
+      },
+      "music": "noel"
     }
   ],
   "bundles": [

@@ -11,7 +11,7 @@ import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, NICKNAME_MAX, OS_NAME } from "@/lib/site";
 import { radioBed, setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
 import { treeOf, useAdvent } from "@/lib/advent";
-import { PLAQUE, SUPPORT_BUNDLE, TREE, useLook, usePatron, useSkins, type LavaTheme } from "@/lib/shop";
+import { FROST, PLAQUE, SUPPORT_BUNDLE, TREE, useLook, usePatron, useSkins, type LavaTheme } from "@/lib/shop";
 import { useAskUp, useWantAsk } from "@/lib/calm";
 import { useTradeShelf } from "@/lib/share";
 import { useStore } from "@/lib/store";
@@ -146,6 +146,13 @@ const POSTER_NAMES: Record<string, [string, string]> = {
   sakura: ["Cerisiers en fleurs", "Cherry blossoms"],
   // the Soutien pack's, for patrons only (posters.json `patron`)
   patron: ["Le bienfaiteur", "The benefactor"],
+  // the Advent calendar's, each once its box is open (posters.json `gifts`)
+  "hiver-village": ["Village sous la neige", "Snowy village"],
+  "hiver-marche": ["Marché de Noël", "Christmas market"],
+  "hiver-chalet": ["Chalet la nuit", "Chalet at night"],
+  "hiver-patinoire": ["Patinoire", "Ice rink"],
+  "hiver-bonhomme": ["Bonhomme de neige", "Snowman"],
+  "hiver-aurore": ["Aurore boréale", "Northern lights"],
 };
 const POSTER_KEY = "nookdex:poster";
 const readPoster = () => {
@@ -296,11 +303,23 @@ function PaintedRoomView({
   const [lavaIdx, setLavaIdx] = useState(0);
   const [poster, setPoster] = useState(readPoster);
   // the posters this player may hang: the patrons' too once the Soutien pack is theirs (or tried on)
-  const posterIds = useMemo(() => (patron ? POSTERS.ids : POSTERS.ids.filter((id) => !POSTERS.patron.includes(id))), [patron]);
+  const posterIds = useMemo(() => {
+    const gifts: Record<string, number> = POSTERS.gifts;
+    return POSTERS.ids.filter((id) => (patron || !POSTERS.patron.includes(id)) && (!gifts[id] || advent.includes(gifts[id])));
+  }, [patron, advent]);
   // trying the pack on hangs its poster, to see all it brings
   const shownPoster = tryingPack && POSTERS.patron[0] ? POSTERS.patron[0] : posterIds.includes(poster) ? poster : posterIds[0];
   /** a glint across the poster each time it changes (none on load) */
   const [posterGlint, setPosterGlint] = useState(0);
+  // a poster the Advent calendar just gave, hung at once (lib/advent openDay)
+  useEffect(() => {
+    const hang = (e: Event) => {
+      setPoster((e as CustomEvent<string>).detail);
+      setPosterGlint((n) => n + 1);
+    };
+    window.addEventListener("nookdex:poster", hang);
+    return () => window.removeEventListener("nookdex:poster", hang);
+  }, []);
   // a skin put on or taken off: the lamp starts again on the first colour of its cycle
   const [themesSeen, setThemesSeen] = useState(lavaThemes);
   if (themesSeen !== lavaThemes) {
@@ -565,6 +584,11 @@ function PaintedRoomView({
             height={Math.round(SCENE.window.h / 2)}
             style={{ ...place(SCENE.window), maskImage: windowMask, WebkitMaskImage: windowMask }}
           />
+
+          {/* the Advent calendar's frost on the panes (its 14th box), over the sky and the rain */}
+          {FROST && tree.frost && (
+            <img className={styles.sprite} src={!daytime && FROST.srcNight ? FROST.srcNight : FROST.src} style={place(FROST)} alt="" draggable={false} aria-hidden />
+          )}
 
           {/* a skin's decorations standing in the room (lib/shop), a warm glow flickering round the lit ones at night */}
           {skin?.art.decor?.map((d, i) => (
