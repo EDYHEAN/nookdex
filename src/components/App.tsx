@@ -265,7 +265,8 @@ export function App() {
     if (q.has("skin")) useSkins.setState({ equipped: itemsOf(q.get("skin") ?? ""), patron: q.get("skin") === "soutien" });
     if (q.has("advent")) {
       useAdventDev.setState({ opened: Array.from({ length: Number(q.get("advent")) || 0 }, (_, i) => i + 1) });
-      if (Number(q.get("advent"))) useSkins.setState((s) => ({ equipped: [...s.equipped.filter((id) => id !== "avent-noel"), "avent-noel"] }));
+      // the tree worn and owned, as the first box makes it (the locker shows it)
+      if (Number(q.get("advent"))) useSkins.setState((s) => ({ equipped: [...s.equipped.filter((id) => id !== "avent-noel"), "avent-noel"], owned: [...new Set([...s.owned, "avent-noel"])] }));
     }
     /**
      * ?demo=big: a big collector's shelf, for the public list's pickers (Johan, 2026-10-23: 1,200 doubles): 30 set binders
