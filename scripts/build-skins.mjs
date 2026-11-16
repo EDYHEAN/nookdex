@@ -33,6 +33,8 @@ const SHEETS = [
   {
     // the Soutien pack (2026-11-16): prompts P1-P4 in docs/skins.md
     skin: "soutien",
+    // neighbours's scraps dropped (Halloween's cut-outs stay as they were sold)
+    clean: true,
     src: "img/soutien/decor-sheet.jpg",
     cols: 4,
     rows: 2,
@@ -41,7 +43,8 @@ const SHEETS = [
     // Gemini's edit of the Halloween cats keeps their places: the same boxes first, measured again on the sheet
     crops: {
       "img/soutien/cat-sheet.jpg": {
-        "cat-sleep": { box: [55, 647, 1101, 729] },
+        // the scarf's fringe hangs lower than the hat did
+        "cat-sleep": { box: [40, 640, 1100, 880] },
         "cat-awake": { box: [1100, 255, 1026, 1114], erase: [[1100, 798, 56, 571], [1100, 255, 90, 70]] },
       },
     },
@@ -73,29 +76,29 @@ const PLACES = {
     // the spider of the corner's cobweb: its thread hangs from (x, top), it drops down to `drop` now and then
     spider: { name: "spider", x: 1150, top: 30, drop: 560, w: 84 },
   },
-  // first guesses from the Halloween places: to check in the room once the art is cut
   soutien: {
     decor: [
-      { name: "kalanchoe", cx: 523, bottom: 746, w: 110, shadow: true }, // on the window sill, between the cactus and the jar
-      { name: "basil", cx: 752, bottom: 1256, w: 96, shadow: true }, // on the desk, in front of the boombox
-      { name: "books", cx: 1741, bottom: 1212, w: 120, shadow: true }, // on the desk, by the mouse pad
-      { name: "terrarium", cx: 640, bottom: 746, w: 92, shadow: true }, // on the sill
-      { name: "macrame", x: 1150, y: 40, w: 150 }, // hanging from the corner, its vines down the wall
-      { name: "fern", cx: 2560, bottom: 1500, w: 300, shadow: true }, // on the floor, the right corner
+      { name: "fern", cx: 470, bottom: 746, w: 150, shadow: true }, // on the window sill, by the cactus
+      { name: "kalanchoe", cx: 640, bottom: 746, w: 92, shadow: true }, // on the sill, before the jar
+      { name: "basil", cx: 752, bottom: 1256, w: 116, shadow: true }, // on the desk, in front of the boombox
+      { name: "terrarium", cx: 1735, bottom: 1214, w: 62, shadow: true }, // on the desk, between the mouse pad and the cards
+      { name: "macrame", x: 1960, y: 452, w: 140 }, // hanging from the top shelf, its vines down the wall
+      { name: "books", cx: 2170, bottom: 778, w: 125, shadow: true }, // on the middle shelf, before the painted books
     ],
+    // the same cats as Halloween's, at the same scale: the sleeping one's scarf hangs lower than its body
     cat: {
-      sleep: { name: "cat-sleep", cx: 2148, bottom: 1243, w: 400 },
+      sleep: { name: "cat-sleep", cx: 2145, bottom: 1254, w: 394 },
       awake: { name: "cat-awake", cx: 2163, bottom: 1250, w: 412 },
     },
-    // the Mécène plaque, on the desk; `text`: where the name is engraved, as parts of the picture (left, top, width, height)
-    plaque: { name: "plaque", cx: 1560, bottom: 1222, w: 150, shadow: true, text: [0.16, 0.2, 0.68, 0.42] },
+    // the Mécène plaque, on the middle shelf by the succulent; its text box: where the name is engraved, as parts of the picture
+    plaque: { name: "plaque", cx: 1905, bottom: 780, w: 170, shadow: true, text: [0.17, 0.09, 0.66, 0.56] },
   },
 };
 
 const BG = 22; // how far from paper white the background may be (JPEG noise)
 const SOFT = 70;
 
-async function cutCell(file, left, top, width, height, light, erase = []) {
+async function cutCell(file, left, top, width, height, light, erase = [], clean = false) {
   const { data } = await sharp(file).extract({ left, top, width, height }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const W = width, H = height, N = W * H;
   for (const [ex, ey, ew, eh] of erase)
@@ -139,6 +142,34 @@ async function cutCell(file, left, top, width, height, light, erase = []) {
       out.set([un(data[i * 3]), un(data[i * 3 + 1]), un(data[i * 3 + 2]), Math.round(a * 255)], i * 4);
     }
   }
+  // bits of a neighbour reaching into the cell (a fern's frond in the macramé's): the painted patches that touch the cell's
+  // edge are dropped, the biggest one kept whatever it touches
+  if (clean && !light) {
+    const label = new Int32Array(N).fill(-1);
+    const parts = [];
+    for (let i = 0; i < N; i++) {
+      if (label[i] >= 0 || out[i * 4 + 3] <= 10) continue;
+      const id = parts.length;
+      const part = { size: 0, edge: false, px: [] };
+      const stack = [i];
+      label[i] = id;
+      while (stack.length) {
+        const j = stack.pop();
+        part.size++;
+        part.px.push(j);
+        const x = j % W, y = (j - x) / W;
+        if (x === 0 || y === 0 || x === W - 1 || y === H - 1) part.edge = true;
+        for (const k of [x > 0 ? j - 1 : -1, x < W - 1 ? j + 1 : -1, j - W, j + W])
+          if (k >= 0 && k < N && label[k] < 0 && out[k * 4 + 3] > 10) {
+            label[k] = id;
+            stack.push(k);
+          }
+      }
+      parts.push(part);
+    }
+    const biggest = parts.reduce((a, b) => (b.size > a.size ? b : a), parts[0]);
+    for (const part of parts) if (part.edge && part !== biggest) for (const j of part.px) out[j * 4 + 3] = 0;
+  }
   // trimmed to what's painted
   let minX = W, minY = H, maxX = -1, maxY = -1;
   for (let y = 0; y < H; y++)
@@ -171,7 +202,7 @@ for (const sheet of SHEETS) {
     ),
   ];
   for (const { name, file, left, top, width: w, height: h, erase } of cells) {
-    const img = await cutCell(file, left, top, w, h, sheet.light.includes(name), erase);
+    const img = await cutCell(file, left, top, w, h, sheet.light.includes(name), erase, sheet.clean);
     // drawn at most ~2x its size in the room: no need for Gemini's full size
     const max = name === "garland" || name.startsWith("cat") ? 900 : 300;
     const { data, info } = await img.resize({ width: max, height: max, fit: "inside", withoutEnlargement: true }).webp({ quality: 88, alphaQuality: 90 }).toBuffer({ resolveWithObject: true });

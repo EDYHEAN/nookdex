@@ -248,11 +248,12 @@ export function App() {
     void loadSets(neededSets(binders, collection));
   }, []);
 
-  // Dev-only shortcuts for screenshots: ?skip  ?open=swsh12  ?demo  ?os  ?game  ?skin=halloween (an item or a bundle worn; ?skin alone takes them off)
+  // Dev-only shortcuts for screenshots: ?skip  ?open=swsh12  ?demo  ?os  ?game  ?skin=halloween (an item or a bundle worn; ?skin alone takes them off; ?skin=soutien adds the plaque)
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const q = new URLSearchParams(window.location.search);
-    if (q.has("skin")) useSkins.setState({ equipped: itemsOf(q.get("skin") ?? "") });
+    // the Soutien pack worn makes the player a patron too (its plaque)
+    if (q.has("skin")) useSkins.setState({ equipped: itemsOf(q.get("skin") ?? ""), patron: q.get("skin") === "soutien" });
     /**
      * ?demo=big: a big collector's shelf, for the public list's pickers (Johan, 2026-10-23: 1,200 doubles): 30 set binders
      * across the series, two cards in three owned, a third of them two to four times.

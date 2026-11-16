@@ -105,5 +105,88 @@
       "top": 30,
       "drop": 560
     }
+  },
+  "soutien": {
+    "sky": "/skins/soutien/sky.webp",
+    "skyDay": "/skins/soutien/sky-day.webp",
+    "decor": [
+      {
+        "src": "/skins/soutien/fern.webp",
+        "x": 395,
+        "y": 608,
+        "w": 150,
+        "h": 138,
+        "shadow": true
+      },
+      {
+        "src": "/skins/soutien/kalanchoe.webp",
+        "x": 594,
+        "y": 628,
+        "w": 92,
+        "h": 118,
+        "shadow": true
+      },
+      {
+        "src": "/skins/soutien/basil.webp",
+        "x": 694,
+        "y": 1096,
+        "w": 116,
+        "h": 160,
+        "shadow": true
+      },
+      {
+        "src": "/skins/soutien/terrarium.webp",
+        "x": 1704,
+        "y": 1127,
+        "w": 62,
+        "h": 87,
+        "shadow": true
+      },
+      {
+        "src": "/skins/soutien/macrame.webp",
+        "x": 1960,
+        "y": 452,
+        "w": 140,
+        "h": 247
+      },
+      {
+        "src": "/skins/soutien/books.webp",
+        "x": 2108,
+        "y": 681,
+        "w": 125,
+        "h": 97,
+        "shadow": true
+      }
+    ],
+    "cat": {
+      "sleep": {
+        "src": "/skins/soutien/cat-sleep.webp",
+        "x": 1948,
+        "y": 974,
+        "w": 394,
+        "h": 280
+      },
+      "awake": {
+        "src": "/skins/soutien/cat-awake.webp",
+        "x": 1957,
+        "y": 859,
+        "w": 412,
+        "h": 391
+      }
+    },
+    "plaque": {
+      "src": "/skins/soutien/plaque.webp",
+      "x": 1820,
+      "y": 651,
+      "w": 170,
+      "h": 129,
+      "shadow": true,
+      "text": {
+        "x": 1849,
+        "y": 663,
+        "w": 112,
+        "h": 72
+      }
+    }
   }
 }
