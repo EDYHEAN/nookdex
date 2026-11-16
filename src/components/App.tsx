@@ -444,6 +444,11 @@ export function App() {
     setTimeout(tiles, 900);
   };
   const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || shop || (shopOpen && !!thanks) || !!game || !!tradeOpen;
+  // a try-on is to look at the room (day and night, the lamp, the radio, the cat): opening anything else ends it, the
+  // room as it was (Johan, 2026-11-16: no living in a skin one hasn't bought). The shop itself keeps it (its card, the sign-in).
+  useEffect(() => {
+    if (busy && !shop && useSkins.getState().trying) useSkins.setState({ trying: null });
+  }, [busy, shop]);
   // the room pauses just after a panel opens: the panel is drawn first, the room's redraw doesn't hold it back
   const roomPaused = useDeferredValue(busy);
   // A nickname, then a first binder; the account is offered later (SavePrompt).

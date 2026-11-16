@@ -968,6 +968,29 @@
   flex: 1;
 }
 
+/* the try-on's time running out along the strip's bottom edge */
+.tryTimer {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 3px;
+  height: 3px;
+  border-radius: 2px;
+  background: #ffd35a;
+  transform-origin: left;
+  animation: tryTime linear forwards;
+  pointer-events: none;
+}
+
+@keyframes tryTime {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
 .tryBar b {
   font-weight: normal;
   color: #ffe14a;

@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { signIn, signInWithGoogle, useCloud } from "@/lib/cloud";
 import { useLang, useT } from "@/lib/lang";
 import { BASE, BUNDLE, BUNDLES, COLLECTIONS, ITEM, ITEMS, buySkin, formatEuros, selling, setShopView, shopView, itemsOf, onSale, useSkins, wear, worthOf, type Bundle, type Item, type Rarity, type Slot } from "@/lib/shop";
@@ -489,7 +489,13 @@ function SignInFirst() {
   );
 }
 
-/** While something is tried on: a strip at the bottom to buy it (signed in: straight to Stripe) or give it back. */
+/**
+ * While something is tried on: a strip at the bottom to buy it (signed in: straight to Stripe) or give it back. It lasts
+ * TRY_SECONDS (a gold line runs out), then the shop opens again on its card.
+ */
+/** How long a try-on lasts */
+const TRY_SECONDS = 60;
+
 export function TryOnBar({ onOpenShop }: { onOpenShop: () => void }) {
   const t = useT();
   const lang = useLang();
@@ -497,6 +503,21 @@ export function TryOnBar({ onOpenShop }: { onOpenShop: () => void }) {
   const email = useCloud((s) => s.email);
   const [going, setGoing] = useState(false);
   const thing = trying ? (BUNDLE.get(trying) ?? ITEM.get(trying)) : undefined;
+  // App hands a new function each render: the timer reads the latest without starting again
+  const openShop = useRef(onOpenShop);
+  useEffect(() => {
+    openShop.current = onOpenShop;
+  });
+  useEffect(() => {
+    if (!trying) return;
+    const end = setTimeout(() => {
+      sfx.pop();
+      useSkins.setState({ trying: null });
+      setShopView({ tab: "shop", open: trying });
+      openShop.current();
+    }, TRY_SECONDS * 1000);
+    return () => clearTimeout(end);
+  }, [trying]);
   const buy = async (id: string) => {
     if (!email) {
       // its card, with the sign-in box already open
@@ -519,6 +540,7 @@ export function TryOnBar({ onOpenShop }: { onOpenShop: () => void }) {
           <span>
             {t("Essai", "Trying")} · <b>{t(thing.name.fr, thing.name.en)}</b>
           </span>
+          <i key={thing.id} className={styles.tryTimer} style={{ animationDuration: `${TRY_SECONDS}s` }} aria-hidden />
           <button
             className={`${styles.btn} ${styles.primary}`}
             disabled={going}
