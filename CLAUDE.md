@@ -121,7 +121,10 @@ doesn't show.
 - Funnel (`lib/funnel.ts`, 2026-10-17: since the welcome asks no account, the players without one were invisible): a
   random id per device (localStorage `nookdex:device`, redrawn after 13 months), its first source (utm_source, else the
   referrer's site by one name: instagram, linkedin, google…, else "direct"; a player from before it: "existing"), its
-  landing page, the days it came back and its steps (profile, binder, cards10, account, game). Short links for posts add the
+  landing page, the days it came back and its steps (profile, binder, card1, cards5, cards10, account, game, share, tour_done,
+  courrier; since 2026-11-15 also shop, checkout, market (a Cardmarket / TCGplayer link), desk (a roomless page sent the
+  visitor to the desk); `funnel_steps(since)` counts them by landing kind). Amazon clicks carry the device's source too
+  (`amazon_sources`). Short links for posts add the
   source: `/reddit`, `/en/reddit`, `/facebook`, `/en/facebook`, `/instagram`, `/en/instagram` (the story highlights) (next.config `redirects`; a new place: add one there). Supabase `funnel` behind
   `funnel_ping` (writes) and `funnel_stats(since)` (counts by source), docs/supabase.sql; production on nookdex.com only.
   Nothing personal, nothing tied to the account (/confidentialite says so). A visit counts at the device's first gesture
@@ -156,9 +159,13 @@ doesn't show.
   skipped, waits for the player on the key gestures. Replayable from the shelf notebook. Renaming or removing a
   `data-tour` attribute breaks a step. It ends back in its binder, open, on « J'ai tout » (`fill-set`), the card it had
   ticked kept (Johan, 2026-10-20: it used to have it removed and end on the closed desk, with 0 cards).
+- The 10-card quest (`room/Quest`, 2026-11-15, business review: 58 % of the players past 10 cards come back, 15 % of the
+  others, and it's done in the first hour or never): from the tour's end to the 10th copy, bottom-left on a computer, the
+  bottom strip on a phone (it shares it through lib/calm's `quest`), over the room and an open binder: ten boxes, « J'ai
+  tout » (opens a set binder's tiles), « 📦 Importer » (French site). ✕ folds it to a pill; the 10th gets a cheer, then
+  never again (localStorage `nookdex:quest10`). It replaced the Pokécardex strip (ImportBar).
 - The Pokécardex import (`computer/ImportPokecardex`, in NookDex OS → Save) is offered to newcomers on the French site:
-  a link at the welcome's step 2, and a strip in the calm room while they own fewer than 10 cards (`room/ImportBar`,
-  top on a computer, bottom on a phone; closed or used = never again, localStorage `nookdex:pokecardex-bar`). Both open
+  a link at the welcome's step 2, and « 📦 Importer » on the 10-card quest. Both open
   the OS on Save, scrolled to the import (`focusImport`).
 
 ## Installing the app
@@ -289,8 +296,9 @@ doesn't show.
   from the price before it in `public/history` (`lastMoveOf`), else its first priced day; a set page's, the latest of its 8
   dearest cards'; extra sets (no history) get none. It used to be the day of the prices (every URL "changed today", ignored).
   The card sitemaps are cut per language: `<lang>-top.xml` (> 5 €/$), `<lang>-recent.xml` (sets of the last 12 months),
-  `<lang>.xml` the rest (`CARD_SITEMAPS`, all in robots.txt; submit the new ones in Search Console to read each slice's
-  indexing). `/extensions` and `/en/sets` end with 50 plain links to card pages (`topCards`, from the search index): the 25
+  `<lang>.xml` the rest (`CARD_SITEMAPS`; submit the new ones in Search Console to read each slice's indexing). Since
+  2026-11-15 the rest is served empty and left out of robots.txt (`listed: false`, business review: ~29,000 cheap cards, no
+  click, Google left even the dearest "crawled, not indexed"): the sitemaps put forward ~12,000 cards, the pages stay. `/extensions` and `/en/sets` end with 50 plain links to card pages (`topCards`, from the search index): the 25
   dearest (2 per set at most) and the 25 dearest of the two latest series, so Google finds them one click from the index.
 - IndexNow (2026-11-02, once on Vercel Pro): the Action « IndexNow » (daily 14:30 UTC, `scripts/indexnow.mjs`) sends Bing the
   URLs whose sitemap lastmod is today or yesterday (a few hundred). Its key is `public/<key>.txt` (public by design): renaming
@@ -303,7 +311,9 @@ doesn't show.
   only, with their source, kept up to date by the blog routine, see docs/blog.md); the past year = the catalogs'
   binder sets, linked to their pages. An « En bref » answer on top (the next set, in how many days), the coming releases
   by month (« Sorties Pokémon de novembre 2026 »), a generated FAQ (next set, next releases, each month's, next year's, latest
-  set, Japanese sets) for search and AI answers (2026-10-17, from the first weekly report). An entry's `post`
+  set, Japanese sets) for search and AI answers (2026-10-17, from the first weekly report). The English page speaks Bing's
+  queries (2026-11-15: « Next Pokémon TCG Set & 2027 Release Schedule », « the next set after Delta Reign » answered even
+  before it's announced, every date in one table). An entry's `post`
   (`{ fr, en }` slugs) links it to its blog post. The routine writes about releases on its own (docs/blog.md
   "Releases come first": the month's releases on the first run of a month, a set preview 21 days before, its first
   prices 7-30 days after).
@@ -327,7 +337,10 @@ doesn't show.
   (a group per set, `setId` = its FR id; a product = `asin` -> amazon.fr/dp, else a search), `lib/amazonShop`, cards drawn by
   `ProductRail` / `ProductCard` (components/shop: official picture, kind, name, a big yellow button: « Demander l'invitation », Amazon sells sealed Pokémon
   by invitation; « Précommander » before the release on its own page, « Voir les précommandes » on a search: `goLabel`). On `/invitations-amazon` (a notebook tab, French only, FAQ), on a
-  set's page (its 4 most looked-for) and under a coming set in the calendar. Pictures: the official ones from Poképédia
+  set's page (its 4 most looked-for) and under a coming set in the calendar. Once the newest set is out, /invitations-amazon's
+  hero puts « Voir ce qui est dispo » first (a search of the set, main tag `nookdex-21`, place `invit-dispo`) and the
+  invitation second (Amazon's report, 2026-11-15: `nookdex-invit-21` 134 clicks, 0 sales: the invited buy days later
+  from Amazon's mail, out of the 24 h cookie; the US invites page sold 8 items). Pictures: the official ones from Poképédia
   (`scripts/fetch-amazon-pics.mjs` -> `public/amazon/`, `src/data/amazon-pics.json`; the daily prices Action fetches the
   missing ones; `lib/shop` is the skins shop, not this). The blog routine keeps the products up to date (docs/blog.md).
   Clicks counted by place (`watchAmazonClicks`, amazon.fr and amazon.com, "-us" for the latter; each link's
@@ -541,7 +554,8 @@ doesn't show.
   passed in October 2026 (1.33 M CDN requests and 9.8 GB FOT on 2026-11-02, hence Pro)
   by crawlers on the ~45,000 card pages, not by players (~40). #201 (2026-10-26): the pages whose address says their
   language are cached a day on Vercel's CDN (next.config `headers`), SEO pages don't prefetch, robots.txt turns away SEO
-  tools and scrapers (search engines and AI answer engines stay).
+  tools and scrapers (search engines and AI answer engines stay). AI training crawlers (ClaudeBot, GPTBot,
+  meta-externalagent, CCBot) are kept off the card pages only (2026-11-15: ~120k requests in 12 days, no visitor).
 - Vercel Firewall (project → Firewall, readable and editable from the Vercel MCP: `get_firewall_config`,
   `update_firewall_config`), custom rules: « Challenge OVH scrapers » (AS16276, 2026-10-26), then the same scraper on
   Hetzner (2026-10-28: one IP, 46.4.94.214, made 46k of the day's 88k requests, HTTP/1.1, a script): « Deny Hetzner scraper

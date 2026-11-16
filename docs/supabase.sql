@@ -1118,3 +1118,139 @@ $$;
 revoke all on function public.funnel_landings(date) from public;
 grant execute on function public.funnel_landings(date) to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- The business review's missing numbers (2026-11-15, lib/funnel): new funnel steps (card1, cards5: where the first hour
+-- stops short of 10 cards; shop, checkout: the skins shop; market: « Voir sur Cardmarket / TCGplayer »; desk: a page
+-- without the room sent the visitor to the desk), counted by funnel_steps; and the Amazon clicks by the device's first
+-- source too (amazon_click's second argument, amazon_sources). Safe to run again.
+create or replace function public.funnel_ping(p_device text, p_source text, p_landing text, p_lang text, p_step text default null)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  ua text := coalesce(current_setting('request.headers', true)::json ->> 'user-agent', '');
+begin
+  if p_device is null or length(p_device) not between 8 and 40 then return; end if;
+  if ua ~* '(bot|crawl|spider|slurp|headless|lighthouse|preview|facebookexternalhit|embedly|bingpreview|python|curl|wget|node-fetch|axios)' then
+    return;
+  end if;
+  insert into public.funnel (device, source, landing, lang)
+  values (p_device, left(p_source, 60), left(p_landing, 120), left(p_lang, 5))
+  on conflict (device) do update set
+    days = public.funnel.days + case when public.funnel.last_at::date < now()::date then 1 else 0 end,
+    last_at = now();
+  if p_step in ('profile', 'binder', 'card1', 'cards5', 'cards10', 'account', 'game', 'share', 'tour_done', 'courrier',
+                'shop', 'checkout', 'market', 'desk') then
+    update public.funnel set steps = steps || jsonb_build_object(p_step, now()) where device = p_device and not steps ? p_step;
+  end if;
+  if random() < 0.01 then delete from public.funnel where last_at < now() - interval '13 months'; end if;
+end $$;
+revoke all on function public.funnel_ping(text, text, text, text, text) from public;
+grant execute on function public.funnel_ping(text, text, text, text, text) to anon, authenticated;
+
+-- each step's devices among the newcomers since a day, by kind of landing page (as funnel_landings)
+create or replace function public.funnel_steps(p_since date default null)
+returns table (kind text, step text, devices bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with f as (
+    select coalesce(landing, '') as l, steps
+    from public.funnel
+    where (p_since is null or first_at >= p_since) and source is distinct from 'existing'
+  )
+  select
+    case
+      when f.l in ('/', '/en', '') then 'accueil'
+      when f.l ~ '^/(extensions|en/sets)/[^/]+/[^/]+' then 'carte'
+      when f.l ~ '^/(extensions|en/sets)' then 'extension'
+      when f.l ~ '^/blog' then 'blog'
+      when f.l ~ '^/(calendrier-des-sorties|en/release-calendar)' then 'calendrier'
+      when f.l ~ '^/(invitations-amazon|en/amazon-invites)' then 'invitations'
+      else 'autre'
+    end,
+    s.key, count(*)
+  from f, jsonb_object_keys(f.steps) as s(key)
+  group by 1, 2
+  order by 1, 3 desc
+$$;
+revoke all on function public.funnel_steps(date) from public;
+grant execute on function public.funnel_steps(date) to anon, authenticated;
+
+alter table public.amazon_clicks add column if not exists source text not null default '';
+do $$ begin
+  if (select count(*) from information_schema.key_column_usage
+      where table_schema = 'public' and table_name = 'amazon_clicks' and constraint_name = 'amazon_clicks_pkey') = 2 then
+    alter table public.amazon_clicks drop constraint amazon_clicks_pkey;
+    alter table public.amazon_clicks add primary key (day, place, source);
+  end if;
+end $$;
+
+create or replace function public.amazon_click(p_place text, p_source text)
+returns void
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  insert into public.amazon_clicks (day, place, source, clicks)
+  values ((now() at time zone 'utc')::date, left(coalesce(nullif(btrim(p_place), ''), 'home'), 40),
+          left(coalesce(btrim(p_source), ''), 40), 1)
+  on conflict (day, place, source) do update set clicks = public.amazon_clicks.clicks + 1
+$$;
+-- the one-argument version (older pages still open) writes with no source
+create or replace function public.amazon_click(p_place text)
+returns void
+language sql
+volatile
+security definer
+set search_path = ''
+as $$ select public.amazon_click(p_place, '') $$;
+
+create or replace function public.amazon_sources(p_since date default null)
+returns table (place text, source text, clicks bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select c.place, c.source, sum(c.clicks) from public.amazon_clicks c
+  where (p_since is null or c.day >= p_since) and c.source <> ''
+  group by 1, 2 order by 3 desc
+$$;
+revoke all on function public.amazon_click(text, text) from public;
+revoke all on function public.amazon_click(text) from public;
+revoke all on function public.amazon_sources(date) from public;
+grant execute on function public.amazon_click(text, text) to anon, authenticated;
+grant execute on function public.amazon_click(text) to anon, authenticated;
+grant execute on function public.amazon_sources(date) to anon, authenticated;
+notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------------------------------------------------
+-- The Soutien pack (2026-11-16, docs/skins.md): a list whose owner bought it shows a ★ by the name. share_get gains
+-- `patron` (a new column in its result: dropped and made again, same grants).
+-- ---------------------------------------------------------------------------------------------------------------
+drop function if exists public.share_get(text, boolean);
+create function public.share_get(p_slug text, p_view boolean default false)
+returns table (name text, lang text, prices boolean, data jsonb, updated_at timestamptz, patron boolean)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+begin
+  if p_view then update public.shares s set views = s.views + 1 where s.slug = p_slug; end if;
+  return query
+    select s.name, s.lang, s.prices, s.data, s.updated_at,
+      exists (select 1 from public.purchases p where p.user_id = s.user_id and p.skin = 'soutien')
+    from public.shares s
+    where s.slug = p_slug and (s.user_id is not null or s.updated_at > now() - interval '6 months');
+end $$;
+revoke all on function public.share_get(text, boolean) from public;
+grant execute on function public.share_get(text, boolean) to anon, authenticated;
+notify pgrst, 'reload schema';

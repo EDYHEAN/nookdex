@@ -8,6 +8,7 @@ import { LangStamps } from "./LangStamps";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import styles from "./BinderPicker.module.css";
+import { BINDER_NAME_MAX } from "@/lib/binders";
 import { useLang, useT } from "@/lib/lang";
 import { TWIN, seriesOf, tabOf, twinOf } from "@/lib/series";
 
@@ -245,7 +246,7 @@ export function BinderPicker({ title, subtitle, onPick, onClose, wishes = true }
             <input
               ref={input}
               value={name}
-              maxLength={28}
+              maxLength={BINDER_NAME_MAX}
               placeholder={kind === "wish" ? t("Cartes de rêve", "Dream cards") : t("Fourre-tout", "Bits & bobs")}
               onChange={(e) => {
                 setName(e.target.value);

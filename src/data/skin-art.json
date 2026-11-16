@@ -105,5 +105,69 @@
       "top": 30,
       "drop": 560
     }
+  },
+  "soutien": {
+    "sky": "/skins/soutien/sky.webp",
+    "skyDay": "/skins/soutien/sky-day.webp",
+    "decor": [
+      {
+        "src": "/skins/soutien/spot-sill.webp",
+        "srcNight": "/skins/soutien/spot-sill-night.webp",
+        "x": 378,
+        "y": 525,
+        "w": 359,
+        "h": 239,
+        "still": true
+      },
+      {
+        "src": "/skins/soutien/spot-desk.webp",
+        "srcNight": "/skins/soutien/spot-desk-night.webp",
+        "x": 556,
+        "y": 1101,
+        "w": 227,
+        "h": 211,
+        "still": true
+      },
+      {
+        "src": "/skins/soutien/spot-monitor.webp",
+        "srcNight": "/skins/soutien/spot-monitor-night.webp",
+        "x": 987,
+        "y": 626,
+        "w": 158,
+        "h": 261,
+        "still": true
+      }
+    ],
+    "cat": {
+      "sleep": {
+        "src": "/skins/soutien/cat-sleep.webp",
+        "x": 1948,
+        "y": 974,
+        "w": 394,
+        "h": 280
+      },
+      "awake": {
+        "src": "/skins/soutien/cat-awake.webp",
+        "x": 1957,
+        "y": 859,
+        "w": 412,
+        "h": 391
+      }
+    },
+    "plaque": {
+      "src": "/skins/soutien/spot-wall.webp",
+      "srcNight": "/skins/soutien/spot-wall-night.webp",
+      "x": 1477,
+      "y": 535,
+      "w": 204,
+      "h": 135,
+      "still": true,
+      "text": {
+        "x": 1496,
+        "y": 553,
+        "w": 144,
+        "h": 81
+      }
+    }
   }
 }

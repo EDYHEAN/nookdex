@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { catalogSet, loadSets, neededSets } from "@/lib/catalog";
 import { askPlayers, signIn, signInWithGoogle, useCloud, usePlayers } from "@/lib/cloud";
-import { NAME_PARTS, SITE_NAME } from "@/lib/site";
+import { NAME_PARTS, SITE_NAME, NICKNAME_MAX } from "@/lib/site";
 import { sfx } from "@/lib/sound";
 import { useLang, useT } from "@/lib/lang";
 import { isBackup, useStore } from "@/lib/store";
@@ -287,7 +287,7 @@ export function Welcome({ onPick, onDone, onExplore, onImport, startSet }: Props
                     ref={input}
                     autoFocus
                     value={nickname}
-                    maxLength={20}
+                    maxLength={NICKNAME_MAX}
                     placeholder={t("Sacha", "Ash")}
                     autoComplete="nickname"
                     animate={shake ? { x: [0, -10, 9, -6, 4, 0] } : undefined}

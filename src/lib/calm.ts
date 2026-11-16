@@ -7,7 +7,7 @@ import { useStore } from "./store";
 /**
  * The calm room's asks and gifts (Johan, 2026-10-23, « pas de demande avant la valeur »; 2026-11-06, « que rien ne se gêne et
  * existe quand même »). Gifts give: the letter (room/Courrier), the trade binder's note, the road log, a release weekend's
- * strip (room/ReleaseBar). Asks ask: the account card (room/SavePrompt), the Pokécardex strip (room/ImportBar), the Monday
+ * strip (room/ReleaseBar). Asks ask: the account card (room/SavePrompt), the 10-card quest on a phone (room/Quest), the Monday
  * mail (room/MailAsk), the cat (room/SupportCat). Not the tip corner (room/TipCorner), a quiet corner that steps aside.
  * - One on screen at a time in each place: one claimed (`claimAsk`) holds its place until it's put away (`useAskUp` back
  *   to false), then the next ready one comes, after its own calm delay. The places (`ZONE`): the strips (top on a computer,
@@ -23,14 +23,14 @@ import { useStore } from "./store";
  * The trophy toasts are neither. And nothing asks before the site has given something: 10 cards, or a 3rd day of visits.
  */
 
-export type Ask = "save" | "courrier" | "trade-note" | "roadlog" | "release" | "import" | "mail" | "cat";
+export type Ask = "save" | "courrier" | "trade-note" | "roadlog" | "release" | "quest" | "mail" | "cat";
 
 const GIFTS = new Set<Ask>(["courrier", "trade-note", "roadlog", "release"]);
 
 /** where each one shows: two in different places may be on screen together, the middle takes the whole room */
 const ZONE: Record<Ask, "strip" | "desk" | "middle"> = {
   release: "strip",
-  import: "strip",
+  quest: "strip",
   mail: "strip",
   courrier: "desk",
   "trade-note": "desk",
@@ -43,7 +43,7 @@ const clash = (a: Ask, b: Ask) => ZONE[a] === ZONE[b] || ZONE[a] === "middle" ||
 /** the order: the first ready one has the room */
 // the account first (once 10 cards are in), the gifts, then the asks; the Monday mail's offer (room/MailAsk) after the road
 // log that announces it
-const PRIORITY: Record<Ask, number> = { save: 0, courrier: 0.5, "trade-note": 1, roadlog: 1.5, release: 1.8, import: 2, mail: 3.5, cat: 4 };
+const PRIORITY: Record<Ask, number> = { save: 0, courrier: 0.5, "trade-note": 1, roadlog: 1.5, release: 1.8, quest: 2, mail: 3.5, cat: 4 };
 
 const DAYS_KEY = "nookdex:visit-days";
 /** a third day of visits, or this many cards: the site has given something, it may ask */
@@ -118,6 +118,11 @@ export function useWantAsk(ask: Ask, wants: boolean) {
   }, [ask, wants]);
 }
 
+/**
+ * Another one in its place is on screen: for one that shows without claiming its turn (the 10-card quest steps aside on a
+ * phone, where it shares the bottom strip, and comes back once that's put away).
+ */
+export const useOthersUp = (ask: Ask) => useCalm((c) => c.up.some((u) => u !== ask && clash(u, ask)));
 /** It may take the room now (claimAsk would say yes): wait for this before its calm delay starts. */
 export const useAskFree = (ask: Ask) => useCalm((c) => freeIn(ask, c));
 /** The site has given something: 10 cards, or a third day of visits. Before that, nothing asks. */

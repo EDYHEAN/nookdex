@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { BINDER_COLORS, GRIDS, type Pocket } from "@/lib/binders";
+import { BINDER_COLORS, BINDER_NAME_MAX, GRIDS, type Pocket } from "@/lib/binders";
 import { formatMoney, marketName, type SetStats } from "@/lib/price";
 import { SORT_LABEL, SORT_LABEL_EN } from "@/lib/rarity";
 import { sfx } from "@/lib/sound";
@@ -487,7 +487,7 @@ function Rename({ id, name }: { id: string; name: string }) {
       className={styles.renameInput}
       autoFocus
       value={draft}
-      maxLength={28}
+      maxLength={BINDER_NAME_MAX}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onPointerDown={(e) => e.stopPropagation()}

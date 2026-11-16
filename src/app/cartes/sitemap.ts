@@ -15,7 +15,10 @@ export async function generateSitemaps() {
 
 export default async function sitemap(props: { id: Promise<string> }): Promise<MetadataRoute.Sitemap> {
   const id = await props.id;
-  const { lang, slice } = CARD_SITEMAPS.find((s) => s.id === id) ?? CARD_SITEMAPS[2];
+  const map = CARD_SITEMAPS.find((s) => s.id === id);
+  // an unlisted slice answers empty: its submitted address tells Search Console those pages left the sitemaps
+  if (!map?.listed) return [];
+  const { lang, slice } = map;
   const list = await cardPageList(lang, setPageEntries(lang));
   return list
     .filter((c) => c.slice === slice)

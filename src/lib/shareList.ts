@@ -20,6 +20,8 @@ export interface ShareRow {
   prices: boolean;
   data: { v: 1; want: string[]; give: [string, Variant, number][] };
   updated_at: string;
+  /** its owner bought the Soutien pack: a ★ by the name (share_get, from 2026-11-16) */
+  patron?: boolean;
 }
 
 const SLUG = /^[a-z0-9]{8}$/;

@@ -26,6 +26,9 @@ export interface Placed extends Box {
   shadow?: boolean;
   /** flames that dance over the painted ones: the bottom of each, and its height (scene px) */
   flames?: { x: number; y: number; h: number }[];
+  /** painted into the room (build-skins SPOTS): its night picture, and it stays still (no hand-drawn wobble) */
+  srcNight?: string;
+  still?: boolean;
 }
 
 /** What a skin paints over the room: pictures cut by scripts/build-skins, placed in src/data/skin-art.json */
@@ -39,6 +42,8 @@ export interface SkinArt {
   cat?: { sleep: Placed; awake: Placed };
   /** a spider that drops down its thread from (x, top) to `drop` now and then, and climbs back */
   spider?: { src: string; w: number; h: number; x: number; top: number; drop: number };
+  /** the Soutien collection's plaque (its own item, in the pack too): the player's name engraved in `text` */
+  plaque?: Placed & { text: Box };
 }
 
 export interface LavaTheme {
@@ -52,7 +57,7 @@ export interface LavaTheme {
 
 export type Rarity = "uncommon" | "rare" | "epic" | "legendary";
 /** where an item goes: one of each worn at a time */
-export type Slot = "sky" | "decor" | "cat" | "lamp" | "radio";
+export type Slot = "sky" | "decor" | "cat" | "lamp" | "radio" | "plaque";
 
 /** A thing sold on its own (src/data/skins.json): a part of a set's art, or a colour, or a tune */
 export interface Item {
@@ -91,6 +96,8 @@ export interface Bundle {
   cutout?: boolean;
   /** last day in the shop (ISO) */
   until?: string;
+  /** once gone: when it comes back (the shop's past collections say it) */
+  returns?: { fr: string; en: string };
   items: string[];
   name: { fr: string; en: string };
   blurb: { fr: string; en: string };
@@ -104,6 +111,8 @@ export interface Look {
   vignette?: string;
   particles?: "spooky";
   music?: AmbientMood;
+  /** the plaque on the wall, the player's name engraved (the Soutien collection's) */
+  plaque?: boolean;
 }
 
 const ART = art as Record<string, SkinArt>;
@@ -122,11 +131,23 @@ const CAT = catalogue as {
   bundles: Bundle[];
 };
 export const BASE: BaseItem[] = CAT.base;
+/**
+ * A collection whose art isn't cut yet (scripts/build-skins) stays out of the shop in production: its catalogue can be
+ * merged before its pictures (the Soutien pack, 2026-11-16, would have reopened the shop with empty tiles).
+ */
+const ready = (set: string) => process.env.NODE_ENV !== "production" || !!ART[set];
+const READY_ITEMS = CAT.items.filter((i) => ready(i.set));
 /** The collections, in the catalogue's order: each set's name and items */
-export const COLLECTIONS = Object.entries(CAT.sets).map(([id, name]) => ({ id, name, items: CAT.items.filter((i) => i.set === id).map((i) => i.id) }));
+export const COLLECTIONS = Object.entries(CAT.sets)
+  .filter(([id]) => ready(id))
+  .map(([id, name]) => ({ id, name, items: READY_ITEMS.filter((i) => i.set === id).map((i) => i.id) }));
 
-export const BUNDLES: Bundle[] = CAT.bundles;
-export const ITEMS: Item[] = CAT.items.map((i) => ({ ...i, until: BUNDLES.find((b) => b.items.includes(i.id))?.until }));
+export const BUNDLES: Bundle[] = CAT.bundles.filter((b) => b.items.every((id) => READY_ITEMS.some((i) => i.id === id)));
+/** The permanent pack that supports the site (Johan, 2026-11-16): bought as a pack, it adds Warwick's poster and the ★ */
+export const SUPPORT_BUNDLE = "soutien";
+/** The engraved plaque, once its art is cut (scripts/build-skins) */
+export const PLAQUE = ART[SUPPORT_BUNDLE]?.plaque;
+export const ITEMS: Item[] = READY_ITEMS.map((i) => ({ ...i, until: BUNDLES.find((b) => b.items.includes(i.id))?.until }));
 export const ITEM = new Map(ITEMS.map((i) => [i.id, i]));
 export const BUNDLE = new Map(BUNDLES.map((b) => [b.id, b]));
 
@@ -154,6 +175,7 @@ export function lookOf(ids: string[]): Look | null {
     if (it.vignette) look.vignette = it.vignette;
     if (it.particles) look.particles = it.particles;
     if (it.music) look.music = it.music;
+    if (it.slot === "plaque") look.plaque = true;
   }
   return any ? look : null;
 }

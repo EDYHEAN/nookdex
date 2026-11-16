@@ -77,6 +77,69 @@ No text, no letters, no logos.
 
 Warwick en sorcier : le chapeau de la planche D1, posé sur sa tête par le code (endormi et réveillé).
 
+**Chaque pack a son ambiance lumineuse** (Johan, 2026-11-16) : sa lampe à lave porte une lumière sur toute la pièce
+(`tint`, en soft-light) et des coins teintés (`vignette`, en multiply), assez marquées pour qu'on la sente (Halloween :
+orange et violet ; Soutien : menthe et bleu-vert). Un pack sans ça ne change pas l'atmosphère.
+
+## Pack Soutien (permanent, 4,99 €, décidé le 2026-11-16)
+
+Toute l'année, thème « atelier cosy » : ciel « Aube rose », décor « Coin jungle », Warwick « Écharpe dorée », lampe
+« Menthe », radio « Café jazz » (1,49 € l'objet). La pièce a déjà un monstera, un cactus et une plante grasse : la planche n'en refait pas. Le pack seul ajoute la plaque « Mécène » gravée du pseudo (dans la
+pièce) et une ★ à côté du pseudo sur la liste partagée et les images de liste d'échange. Sans `until` : la boutique reste
+ouverte. Enregistrer dans `img/soutien/`.
+
+### P1. Planche de décos → `img/soutien/decor-sheet.jpg` (format 4:3, aucune image jointe)
+
+```text
+A sheet of 8 small cozy plant and desk decorations for a cozy bedroom, each one painted separately, arranged in a neat grid of 4 columns and 2 rows on a plain pure white background, evenly spaced, each object centered in its cell, nothing touching, no shadow on the background.
+Painted like the background of a 2000s hand-drawn Japanese animated film: gouache, soft painted edges, visible brushwork, rich textures, warm peach highlights and cool blue-violet shadows. NO black ink outlines, NOT vector clipart, NOT 3D, NOT pixel art.
+Row 1, left to right: a cream macramé plant hanger holding a small pot, a pothos's long leafy vines trailing straight down well below it; a lush Boston fern in a woven basket; a stack of three old cloth-bound books lying flat, a small brass magnifying glass on top; a small glass dome terrarium with moss, a pebble and tiny ferns.
+Row 2, left to right: a small copper watering can; a little pot of fresh basil; a small blank brass plaque on a dark wooden base, slightly angled toward the viewer, its brass face completely empty and smooth; a small pink flowering kalanchoe in a speckled ceramic pot.
+No text, no letters, no logos, nothing engraved on the plaque.
+```
+
+### P1 bis. Les décos peintes dans la pièce (2026-11-16, remplace P1)
+
+P1 (objets seuls sur fond blanc) a donné des objets sans la perspective, la lumière ni le grain de la pièce, et le blanc
+enfermé (macramé) restait (Johan : « c'est naze »). Désormais Gemini peint l'objet **dans un morceau de la pièce**
+(`img/soutien/spots/<nom>.png`, coupé du plateau de jour `public/scene/day.webp` à l'échelle 1) ; le script garde ce qui
+a changé, le recolle sans tremblement, et l'éclaire pour la nuit d'après le plateau de nuit. Jamais sur les étagères
+(classeurs), jamais sur ce qui est animé ou cliquable. Enregistrer le résultat à côté : `<nom>-edit.png`.
+
+Le début de chaque prompt (joindre `img/soutien/spots/<nom>.png`) :
+
+```text
+Edit the attached image at the highest resolution. It is a crop of a painted cozy bedroom. Keep EVERYTHING exactly as it is: same framing, same lines, same colours, same light, same grain; do not move, redraw or clean anything. Only add what is described below, painted in exactly the same hand-drawn style, the same perspective and the same warm afternoon light (the sun comes from the window on the left), with soft contact shadows.
+```
+
+Puis, selon le morceau :
+
+- `sill` : `Add, standing on the wooden window sill between the cactus and the glass jar: a lush Boston fern in a small woven basket, and a small pink flowering kalanchoe in a speckled cream ceramic pot. No text.`
+- `desk` : `Add, on the free wooden desk surface in front of the boombox, near the front corner of the desk: a small terracotta pot of fresh basil, and beside it a tiny glass dome terrarium with moss and a little fern. Nothing touches the boombox or the lava lamp. No text.`
+- `monitor` : `Add a small pothos plant in a little white pot standing on top of the beige CRT monitor, at its left corner; a few leafy vines drape down over the top left corner of the monitor case only, never over its screen, never reaching the lava lamp. No text.`
+- `wall` : `Add a small blank brass plaque screwed on a dark wooden board, hung flat on the wall in the middle of the empty area below the clock, facing the viewer, about as wide as the clock. Its brass face is completely empty and smooth: no text, no letters, no engraving.`
+
+### P2. Warwick à l'écharpe → `img/soutien/cat-sheet.jpg` (joindre `img/halloween/cat-sheet.jpg`)
+
+```text
+Edit the attached image at the highest resolution. Keep exactly the same painting style, the same white background, the same layout, the same two cats in the same poses and at the same places and sizes (the sleeping one and the sitting one). Remove the witch hats and the spider. Give each cat a chunky hand-knitted mustard-gold scarf wrapped loosely around its neck, one end hanging down, with soft knitted texture and warm highlights. Nothing else changes.
+No text, no letters, no logos.
+```
+
+### P3. Ciel de nuit → `img/soutien/sky.jpg` (joindre `img/sky.jpg`)
+
+```text
+Edit the attached image at the highest resolution. Keep the same painting style and the same city. Turn it into the first minutes of dawn: a soft pink, peach and lilac sky over the city, the last stars fading, a thin crescent moon, light pastel clouds, no rain. A few city windows are still lit.
+No text, no letters, no logos.
+```
+
+### P4. Ciel de jour → `img/soutien/sky-day.jpg` (joindre `img/sky-day.jpg`)
+
+```text
+Edit the attached image at the highest resolution. Keep the same painting style and the same city. Turn it into a fresh spring morning: a clear pale blue sky with soft white clouds, a gentle pink glow near the horizon, a few pink blossom petals drifting in the air.
+No text, no letters, no logos.
+```
+
 ## Où on en est (2026-10-16) : **la boutique est ouverte**
 
 **Depuis le 2026-11-04 (pack Halloween fini) : plus rien en vente.** Entre deux collections (`selling()` faux dans

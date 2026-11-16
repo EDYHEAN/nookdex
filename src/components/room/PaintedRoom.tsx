@@ -4,13 +4,13 @@ import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import POSTERS from "@/data/posters.json";
 import { type CSSProperties, memo, useEffect, useMemo, useRef, useState } from "react";
-import { MAX_BINDERS, SHELF_LEAD, boxOf, shelfPlace, pocketsOf, shelfBinders, shelfPageCount, wantsOf } from "@/lib/binders";
+import { MAX_BINDERS, SHELF_LEAD, boxOf, spineName, shelfPlace, pocketsOf, shelfBinders, shelfPageCount, wantsOf } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
-import { NAME_PARTS, OS_NAME } from "@/lib/site";
+import { NAME_PARTS, NICKNAME_MAX, OS_NAME } from "@/lib/site";
 import { radioBed, setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
-import { useLook, type LavaTheme } from "@/lib/shop";
+import { PLAQUE, SUPPORT_BUNDLE, useLook, usePatron, useSkins, type LavaTheme } from "@/lib/shop";
 import { useAskUp, useWantAsk } from "@/lib/calm";
 import { useTradeShelf } from "@/lib/share";
 import { useStore } from "@/lib/store";
@@ -114,6 +114,17 @@ const readPage = () => {
     return 0;
   }
 };
+/** A binder's name down its spine: as big as it fits, smaller the longer it is (whole up to BINDER_NAME_MAX letters) */
+function SpineText({ text, color }: { text: string; color: string }) {
+  // the label holds ~13 letters at 13cqh; past that each letter gets its share of ~170cqh
+  const size = `min(70cqw, 13cqh, ${Math.floor(170 / Math.max(1, text.length))}cqh)`;
+  return (
+    <span className={styles.labelText} style={{ color, fontSize: size }}>
+      {text}
+    </span>
+  );
+}
+
 /**
  * The poster above the desk (Johan, 2026-10-19): the player's pick, clicked through like the lava lamp. Each one is pasted
  * into the painted poster by scripts/build-posters.mjs (its torn corner and tape kept, lit like the paper around it), for
@@ -130,6 +141,8 @@ const POSTER_NAMES: Record<string, [string, string]> = {
   fair: ["Le salon des cartes", "The card fair"],
   map: ["Carte du monde", "World map"],
   sakura: ["Cerisiers en fleurs", "Cherry blossoms"],
+  // the Soutien pack's, for patrons only (posters.json `patron`)
+  patron: ["Le bienfaiteur", "The benefactor"],
 };
 const POSTER_KEY = "nookdex:poster";
 const readPoster = () => {
@@ -252,6 +265,11 @@ function PaintedRoomView({
   const lavaTheme = useRef(0);
   /** the shop's items worn (lib/shop): their pictures over the room, a lava colour first in the lamp's cycle */
   const skin = useLook();
+  // the plaque shows to whoever bought the pack, and while it is tried on from the shop
+  const tryingPack = useSkins((s) => s.trying === SUPPORT_BUNDLE);
+  const patron = usePatron() || tryingPack;
+  // the plaque's engraving: the player's nickname (Johan, 2026-11-16), else the word
+  const nickname = useStore((s) => s.profile?.name?.trim() ?? "");
   const skinLava = skin?.lava;
   const lavaThemes = useMemo<LavaTheme[]>(() => (skinLava ? [skinLava, ...LAVA_THEMES] : LAVA_THEMES), [skinLava]);
   const themesRef = useRef(lavaThemes);
@@ -269,6 +287,10 @@ function PaintedRoomView({
   const [petting, setPetting] = useState(0);
   const [lavaIdx, setLavaIdx] = useState(0);
   const [poster, setPoster] = useState(readPoster);
+  // the posters this player may hang: the patrons' too once the Soutien pack is theirs (or tried on)
+  const posterIds = useMemo(() => (patron ? POSTERS.ids : POSTERS.ids.filter((id) => !POSTERS.patron.includes(id))), [patron]);
+  // trying the pack on hangs its poster, to see all it brings
+  const shownPoster = tryingPack && POSTERS.patron[0] ? POSTERS.patron[0] : posterIds.includes(poster) ? poster : posterIds[0];
   /** a glint across the poster each time it changes (none on load) */
   const [posterGlint, setPosterGlint] = useState(0);
   // a skin put on or taken off: the lamp starts again on the first colour of its cycle
@@ -494,7 +516,7 @@ function PaintedRoomView({
           {/* the poster above the desk, on the night plate under the day one (they fade together) */}
           {showNight && (
             <span className={styles.poster} style={place(POSTER_BOX)} aria-hidden>
-              <img src={sceneImg(`posters/${poster}-night.webp`)} alt="" draggable={false} fetchPriority="low" />
+              <img src={sceneImg(`posters/${shownPoster}-night.webp`)} alt="" draggable={false} fetchPriority="low" />
             </span>
           )}
           {showDay && (
@@ -502,13 +524,13 @@ function PaintedRoomView({
           )}
           {showDay && (
             <span className={`${styles.poster} ${styles.dayPlate} ${daytime ? "" : styles.off}`} style={place(POSTER_BOX)} aria-hidden>
-              <img src={sceneImg(`posters/${poster}-day.webp`)} alt="" draggable={false} fetchPriority="low" />
+              <img src={sceneImg(`posters/${shownPoster}-day.webp`)} alt="" draggable={false} fetchPriority="low" />
             </span>
           )}
           {/* a new poster catches the light (drawn again for each one) */}
           {posterGlint > 0 && (
             <span key={`glint-${posterGlint}`} className={styles.poster} style={place(POSTER_BOX)} aria-hidden>
-              <i className={styles.posterGlint} style={{ maskImage: `url(${sceneImg(`posters/${poster}-night.webp`)})`, WebkitMaskImage: `url(${sceneImg(`posters/${poster}-night.webp`)})` }} />
+              <i className={styles.posterGlint} style={{ maskImage: `url(${sceneImg(`posters/${shownPoster}-night.webp`)})`, WebkitMaskImage: `url(${sceneImg(`posters/${shownPoster}-night.webp`)})` }} />
             </span>
           )}
 
@@ -532,8 +554,8 @@ function PaintedRoomView({
               {d.glow && !daytime && <span className={styles.skinGlow} style={glow(d, 60)} aria-hidden />}
               {d.shadow && <span className={styles.skinShadow} style={{ left: d.x + d.w * 0.08, top: d.y + d.h - 12, width: d.w * 0.84, height: 22 }} aria-hidden />}
               <img
-                className={`${styles.sprite} ${styles.skinThing}`}
-                src={d.src}
+                className={`${styles.sprite} ${d.still ? "" : styles.skinThing}`}
+                src={!daytime && d.srcNight ? d.srcNight : d.src}
                 style={{ ...place(d), transform: d.rot ? `rotate(${d.rot}deg)` : undefined }}
                 alt=""
                 draggable={false}
@@ -548,6 +570,24 @@ function PaintedRoomView({
               ))}
             </span>
           ))}
+
+          {/* the engraved plaque (the Soutien collection's, worn like any item): the player's nickname on it */}
+          {skin?.plaque && PLAQUE && (() => {
+            const name = nickname ? (nickname.length > NICKNAME_MAX ? nickname.slice(0, NICKNAME_MAX - 1) + "…" : nickname) : tr("Bienfaiteur", "Benefactor");
+            return (
+            <span>
+              {PLAQUE.shadow && <span className={styles.skinShadow} style={{ left: PLAQUE.x + PLAQUE.w * 0.08, top: PLAQUE.y + PLAQUE.h - 10, width: PLAQUE.w * 0.84, height: 16 }} aria-hidden />}
+              <img className={`${styles.sprite} ${PLAQUE.still ? "" : styles.skinThing}`} src={!daytime && PLAQUE.srcNight ? PLAQUE.srcNight : PLAQUE.src} style={place(PLAQUE)} alt="" draggable={false} />
+              <span
+                className={styles.plaqueText}
+                style={{ ...place(PLAQUE.text), fontSize: Math.round(Math.min(PLAQUE.text.h * 0.5, PLAQUE.text.w / (Math.max(5, name.length) * 0.72))) }}
+                aria-hidden
+              >
+                {name}
+              </span>
+            </span>
+            );
+          })()}
 
           {skin?.art.spider && <SkinSpider spider={skin.art.spider} paused={paused} />}
 
@@ -712,9 +752,7 @@ function PaintedRoomView({
                     {b.logo ? (
                       <img src={`${b.logo}.png`} alt="" draggable={false} />
                     ) : (
-                      <span className={styles.labelText} style={{ color: b.kind === "free" ? "#2b2230" : b.ink }}>
-                        {b.wish ? `★ ${b.name}` : b.kind === "free" ? b.name : b.code}
-                      </span>
+                      <SpineText text={b.wish ? `★ ${spineName(b.name)}` : b.kind === "free" ? spineName(b.name) : b.code} color={b.kind === "free" ? "#2b2230" : b.ink} />
                     )}
                     {langTag(b) && <span className={styles.langTag}>{langTag(b)}</span>}
                     {sum.pct != null && (
@@ -917,13 +955,13 @@ function PaintedRoomView({
             aria-label={tr("Le poster : en changer", "The poster: change it")}
             onPointerEnter={() => {
               sfx.hover();
-              const [fr, en] = POSTER_NAMES[poster] ?? ["", ""];
+              const [fr, en] = POSTER_NAMES[shownPoster] ?? ["", ""];
               showTip(POSTER_HIT.x + POSTER_HIT.w / 2, POSTER_HIT.y, tr(fr, en), tr("clic : un autre poster", "click: another poster"));
             }}
             onPointerLeave={() => setTip(null)}
             onClick={() => {
-              const ids = POSTERS.ids;
-              const next = ids[(ids.indexOf(poster) + 1) % ids.length];
+              const ids = posterIds;
+              const next = ids[(ids.indexOf(shownPoster) + 1) % ids.length];
               sfx.pop();
               setPoster(next);
               setPosterGlint((n) => n + 1);
