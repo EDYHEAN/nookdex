@@ -27,7 +27,8 @@ async function stripe(path, params, method = params ? "POST" : "GET") {
 
 const { items, bundles } = JSON.parse(fs.readFileSync("src/data/skins.json", "utf8"));
 // one product per item sold on its own, one per bundle
-for (const s of [...items, ...bundles]) {
+// the Advent calendar's gifts are never sold (no product)
+for (const s of [...items.filter((i) => !i.gift), ...bundles]) {
   const lookup = `skin_${s.id}`;
   const cents = Math.round(s.price * 100);
   const name = `NookDex · ${s.name.fr}`;

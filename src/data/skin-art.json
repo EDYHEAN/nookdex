@@ -171,6 +171,44 @@
     }
   },
   "hiver": {
+    "sky": "/skins/hiver/sky.webp",
+    "skyDay": "/skins/hiver/sky-day.webp",
+    "decor": [
+      {
+        "src": "/skins/hiver/spot-window-lights.webp",
+        "srcNight": "/skins/hiver/spot-window-lights-night.webp",
+        "x": 161,
+        "y": 20,
+        "w": 641,
+        "h": 691,
+        "still": true
+      },
+      {
+        "src": "/skins/hiver/spot-mug.webp",
+        "srcNight": "/skins/hiver/spot-mug-night.webp",
+        "x": 1558,
+        "y": 1030,
+        "w": 65,
+        "h": 94,
+        "still": true
+      }
+    ],
+    "cat": {
+      "sleep": {
+        "src": "/skins/hiver/cat-sleep.webp",
+        "x": 1948,
+        "y": 991,
+        "w": 400,
+        "h": 252
+      },
+      "awake": {
+        "src": "/skins/hiver/cat-awake.webp",
+        "x": 1957,
+        "y": 861,
+        "w": 412,
+        "h": 389
+      }
+    },
     "tree": {
       "layers": {
         "lights": {
@@ -448,6 +486,15 @@
           "still": true
         }
       ]
+    },
+    "clock": {
+      "src": "/skins/hiver/spot-clock.webp",
+      "srcNight": "/skins/hiver/spot-clock-night.webp",
+      "x": 1421,
+      "y": 231,
+      "w": 270,
+      "h": 297,
+      "still": true
     },
     "frost": {
       "src": "/skins/hiver/spot-frost.webp",

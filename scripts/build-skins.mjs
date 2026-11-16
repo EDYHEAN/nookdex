@@ -50,6 +50,23 @@ const SHEETS = [
     },
     skies: { sky: "img/soutien/sky.jpg", "sky-day": "img/soutien/sky-day.jpg" },
   },
+  // the winter pack (docs/skins.md lot 2): Warwick's sweater, the snowy skies; its decorations are SPOTS
+  {
+    skin: "hiver",
+    clean: true,
+    src: "img/hiver/cat-pull.jpg",
+    cols: 1,
+    rows: 1,
+    names: [],
+    light: [],
+    crops: {
+      "img/hiver/cat-pull.jpg": {
+        "cat-sleep": { box: [40, 600, 1100, 920] },
+        "cat-awake": { box: [1100, 200, 1026, 1169], erase: [[1100, 798, 56, 571]] },
+      },
+    },
+    skies: { sky: "img/hiver/sky.jpg", "sky-day": "img/hiver/sky-day.jpg" },
+  },
   // the Advent calendar's Warwicks (docs/skins.md A3): Gemini's edits of the Halloween cats, the same boxes
   ...["renne", "lutin", "bonnet"].map((id) => ({
     skin: `avent-${id}`,
@@ -92,6 +109,7 @@ const PLACES = {
     // the spider of the corner's cobweb: its thread hangs from (x, top), it drops down to `drop` now and then
     spider: { name: "spider", x: 1150, top: 30, drop: 560, w: 84 },
   },
+  hiver: { decor: [], cat: { sleep: { name: "cat-sleep", cx: 2148, bottom: 1243, w: 400 }, awake: { name: "cat-awake", cx: 2163, bottom: 1250, w: 412 } } },
   ...Object.fromEntries(
     ["renne", "lutin", "bonnet"].map((id) => [
       `avent-${id}`,
@@ -147,6 +165,12 @@ SPOTS.hiver = {
     cover: [{ rect: [0, 470, 500, 1156], pot: [60, 960, 400, 1156] }, { rect: [235, 140, 370, 300], pot: [245, 270, 370, 385], grow: 2, dark: true }],
   },
   "tree-baubles": layer("baubles", { split: true }),
+  // the winter pack's decorations (lot 2): the window's fairy lights and paper snowflakes, the hot chocolate and its
+  // candle; their lights stay lit at night (`glowIf`: the bright warm pixels)
+  "window-lights": { box: [160, 20, 690, 740], keep: [0, 0, 690, 740], window: true, glowIf: (r, g, b) => r > 235 && g > 200 && b < 200 },
+  mug: { box: [1480, 880, 400, 320], keep: [60, 60, 260, 300], glowIf: (r, g, b) => r > 235 && g > 170 && b < 150 },
+  // the holly round the clock: not its face (the code draws the hands on the room's own)
+  clock: { box: [1400, 230, 300, 300], keep: [0, 0, 300, 300], into: "clock", hole: { cx: 147, cy: 143, rx: 80, ry: 102 } },
   // the frost on the panes (the 14th's box): white crystals only, over the window's whole crop (docs/skins.md A4)
   frost: { box: [186, 40, 634, 700], keep: [0, 0, 634, 700], edit: "window-frost.png", into: "frost", noFill: true, diff: 16, speck: 8, glow: true, diffBlur: 0.4, tint: [232, 242, 255], only: (r, g, b) => b > 175 && r - b < 45 && g - b < 40 },
   "tree-lights": layer("lights", { glow: true }),
@@ -413,6 +437,7 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
     for (let i = 0; i < N; i++) {
       const x = i % W, y = (i - x) / W;
       if (x < kx0 || x > kx1 || y < ky0 || y > ky1) continue;
+      if (spot.hole && ((x - spot.hole.cx) / spot.hole.rx) ** 2 + ((y - spot.hole.cy) / spot.hole.ry) ** 2 < 1) continue;
       if (spot.polygon) {
         mask[i] = inPoly(x, y, spot.polygon) ? 1 : 0;
         continue;
@@ -459,7 +484,7 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
         const ratio = Math.min(1.6, Math.max(0.08, (nightWide[i * 3 + c] + 1) / (dayWide[i * 3 + c] + 1)));
         day[i * 4 + c] = edit[i * 3 + c];
         // a light (the tree's fairy lights, its star) shines the same by night
-        night[i * 4 + c] = spot.glow ? edit[i * 3 + c] : Math.min(255, Math.round(edit[i * 3 + c] * ratio));
+        night[i * 4 + c] = spot.glow || spot.glowIf?.(edit[i * 3], edit[i * 3 + 1], edit[i * 3 + 2]) ? edit[i * 3 + c] : Math.min(255, Math.round(edit[i * 3 + c] * ratio));
         day[i * 4 + 3] = night[i * 4 + 3] = alpha[i];
         // `tint`: its shape only, in one colour (the frost's icy white: on the day's window it had taken its warmth)
         if (spot.tint) (day[i * 4 + c] = spot.tint[c]), (night[i * 4 + c] = spot.tint[c]);

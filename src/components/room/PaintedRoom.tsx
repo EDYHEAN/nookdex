@@ -665,6 +665,11 @@ function PaintedRoomView({
             />
           )}
 
+          {/* a frame round the clock (the winter pack's holly), under the hands */}
+          {skin?.art.clock && (
+            <img className={styles.sprite} src={!daytime && skin.art.clock.srcNight ? skin.art.clock.srcNight : skin.art.clock.src} style={place(skin.art.clock)} alt="" draggable={false} aria-hidden />
+          )}
+
           {skin?.art.spider && <SkinSpider spider={skin.art.spider} paused={paused} />}
 
           {/* steam: the painted wisp, boiling like a hand-drawn loop. One per backdrop, each fading with its

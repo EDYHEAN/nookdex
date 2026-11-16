@@ -74,6 +74,14 @@
         "fr": "Mur nu",
         "en": "Bare wall"
       }
+    },
+    {
+      "slot": "clock",
+      "icon": "/skins/base/clock.webp",
+      "name": {
+        "fr": "Horloge",
+        "en": "Clock"
+      }
     }
   ],
   "items": [
@@ -334,6 +342,114 @@
       }
     },
     {
+      "set": "hiver",
+      "id": "hiver-sky",
+      "slot": "sky",
+      "rarity": "epic",
+      "price": 1.49,
+      "icon": "/skins/hiver/icon-sky.webp",
+      "name": {
+        "fr": "Première neige",
+        "en": "First snow"
+      },
+      "blurb": {
+        "fr": "La neige tombe sur la ville la nuit, un matin tout blanc le jour.",
+        "en": "Snow falling on the city by night, a white morning by day."
+      }
+    },
+    {
+      "set": "hiver",
+      "id": "hiver-decor",
+      "slot": "decor",
+      "rarity": "rare",
+      "price": 1.49,
+      "icon": "/skins/hiver/icon-decor.webp",
+      "name": {
+        "fr": "Bureau cocooning",
+        "en": "Cosy desk"
+      },
+      "blurb": {
+        "fr": "Une guirlande lumineuse et des flocons de papier à la fenêtre, un chocolat chaud et sa bougie.",
+        "en": "Fairy lights and paper snowflakes on the window, a hot chocolate and its candle."
+      }
+    },
+    {
+      "set": "hiver",
+      "id": "hiver-cat",
+      "slot": "cat",
+      "rarity": "epic",
+      "price": 1.99,
+      "icon": "/skins/hiver/cat-sleep.webp",
+      "cutout": true,
+      "name": {
+        "fr": "Warwick pull de Noël",
+        "en": "Christmas-jumper Warwick"
+      },
+      "blurb": {
+        "fr": "Warwick dans un pull rouge à flocons, qu'il dorme ou qu'on le caresse.",
+        "en": "Warwick in a red snowflake jumper, asleep or purring."
+      }
+    },
+    {
+      "set": "hiver",
+      "id": "hiver-lamp",
+      "slot": "lamp",
+      "rarity": "uncommon",
+      "price": 1.49,
+      "icon": "/skins/hiver/icon-lamp.webp",
+      "name": {
+        "fr": "Ambiance coin du feu",
+        "en": "Fireside mood"
+      },
+      "blurb": {
+        "fr": "La lampe à lave vire à la braise et toute la pièce se réchauffe, coins bleu nuit.",
+        "en": "The lava lamp turns to embers and the whole room warms up, night-blue corners."
+      },
+      "tint": "rgba(255, 150, 60, 0.45)",
+      "vignette": "rgba(20, 30, 70, 0.7)",
+      "lava": {
+        "name": "braise",
+        "nameEn": "ember",
+        "fill": "#ff9a3c",
+        "light": "#ffd9a0",
+        "line": "#5a2a08",
+        "glow": "rgba(255,150,60,0.34)"
+      }
+    },
+    {
+      "set": "hiver",
+      "id": "hiver-radio",
+      "slot": "radio",
+      "rarity": "uncommon",
+      "price": 1.49,
+      "icon": "/skins/hiver/icon-radio.webp",
+      "name": {
+        "fr": "Coin du feu",
+        "en": "Fireside"
+      },
+      "blurb": {
+        "fr": "Un feu qui crépite, des grelots et des accords chauds.",
+        "en": "A crackling fire, sleigh bells and warm chords."
+      },
+      "music": "fireside"
+    },
+    {
+      "set": "hiver",
+      "id": "hiver-clock",
+      "slot": "clock",
+      "rarity": "rare",
+      "price": 1.49,
+      "icon": "/skins/hiver/icon-clock.webp",
+      "name": {
+        "fr": "Couronne de houx",
+        "en": "Holly wreath"
+      },
+      "blurb": {
+        "fr": "Une couronne de houx et son nœud rouge autour de l'horloge.",
+        "en": "A holly wreath and its red bow round the clock."
+      }
+    },
+    {
       "id": "avent-radio",
       "set": "hiver",
       "slot": "radio",
@@ -399,6 +515,34 @@
       "blurb": {
         "fr": "Les six objets, plus le poster de Warwick et une ★ sur ta liste partagée. Il aide NookDex à rester gratuit.",
         "en": "All six items, plus Warwick's poster and a ★ on your shared list. It keeps NookDex free."
+      }
+    },
+    {
+      "id": "hiver",
+      "rarity": "legendary",
+      "price": 5.99,
+      "icon": "/skins/hiver/preview.webp",
+      "from": "2026-12-01",
+      "until": "2027-01-06",
+      "returns": {
+        "fr": "De retour l'hiver prochain",
+        "en": "Back next winter"
+      },
+      "items": [
+        "hiver-sky",
+        "hiver-decor",
+        "hiver-cat",
+        "hiver-lamp",
+        "hiver-radio",
+        "hiver-clock"
+      ],
+      "name": {
+        "fr": "Pack d'hiver",
+        "en": "Winter pack"
+      },
+      "blurb": {
+        "fr": "Tout l'hiver d'un coup : la neige à la fenêtre, le coin cocooning, Warwick en pull, l'ambiance et la radio du coin du feu, la couronne de houx.",
+        "en": "All of winter at once: snow at the window, the cosy corner, Warwick's jumper, the fireside mood and radio, the holly wreath."
       }
     }
   ]

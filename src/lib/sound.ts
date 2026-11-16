@@ -337,7 +337,14 @@ const NOEL: [number, number][] = [
 ];
 /** its bars' roots, one a bar (C, G or F) */
 const NOEL_BASS = [48, 48, 48, 48, 43, 43, 48, 48, 53, 53, 48, 48, 53, 53, 48, 48, 43, 43, 48, 48, 48, 43, 48, 48];
-export type AmbientMood = "lofi" | "spooky" | "jazz" | "noel";
+// The winter pack's radio: « coin du feu », slow warm chords (Cmaj9 - Am9 - Fmaj9 - G9sus), sleigh bells, a crackling fire
+const FIRESIDE = [
+  [48, 55, 59, 62, 64],
+  [45, 52, 55, 59, 60],
+  [41, 48, 52, 55, 57],
+  [43, 50, 53, 57, 60],
+];
+export type AmbientMood = "lofi" | "spooky" | "jazz" | "noel" | "fireside";
 let mood: AmbientMood = "lofi";
 /** The radio's tune: taken up from the next beat */
 export const setAmbientMood = (m: AmbientMood) => {
@@ -350,6 +357,7 @@ function schedule() {
   if (mood === "spooky") return scheduleSpooky();
   if (mood === "jazz") return scheduleJazz();
   if (mood === "noel") return scheduleNoel();
+  if (mood === "fireside") return scheduleFireside();
   const spb = 60 / 72;
   while (nextBeat < ctx.currentTime + 0.4) {
     const t = nextBeat - ctx.currentTime;
@@ -456,6 +464,35 @@ function scheduleJazz() {
       tone({ freq: midi(n), type: "sine", dur: 0.7, vol: 0.03, delay: at, attack: 0.005, dest: g });
       tone({ freq: midi(n + 12), type: "sine", dur: 0.35, vol: 0.008, delay: at, attack: 0.005, dest: g });
     }
+    nextBeat += spb;
+    beat++;
+  }
+}
+
+/** The fireside: a chord a bar held long, a bell's jingle on the off-beats, logs crackling now and then */
+function scheduleFireside() {
+  if (!ctx || !ambientGain) return;
+  const spb = 60 / 66;
+  const g = ambientGain;
+  while (nextBeat < ctx.currentTime + 0.4) {
+    const t = nextBeat - ctx.currentTime;
+    const bar = Math.floor(beat / 4) % FIRESIDE.length;
+    const inBar = beat % 4;
+    const chord = FIRESIDE[bar];
+    if (inBar === 0) {
+      tone({ freq: midi(chord[0] - 12), type: "sine", dur: spb * 4, vol: 0.08, delay: t, attack: 0.08, dest: g });
+      chord.slice(1).forEach((n, i) => {
+        tone({ freq: midi(n), type: "sine", dur: spb * 4, vol: 0.035, delay: t + i * 0.04, attack: 0.1, dest: g });
+        tone({ freq: midi(n) * 1.002, type: "triangle", dur: spb * 2, vol: 0.008, delay: t + i * 0.04, dest: g });
+      });
+    }
+    // the sleigh bells: a shake on 2 and 4, a jingle (two high pings) now and then
+    if (inBar === 1 || inBar === 3) noise({ dur: 0.18, vol: 0.03, type: "highpass", freq: 7500, delay: t, attack: 0.02, dest: g });
+    if (Math.random() < 0.25) [0, 0.09].forEach((d) => tone({ freq: midi(96 + Math.floor(Math.random() * 3) * 2), type: "sine", dur: 0.25, vol: 0.012, delay: t + spb / 2 + d, attack: 0.002, dest: g }));
+    // the fire: little cracks
+    for (let k = 0; k < 3; k++) if (Math.random() < 0.45) noise({ dur: 0.02 + Math.random() * 0.03, vol: 0.05 + Math.random() * 0.05, type: "bandpass", freq: 1200 + Math.random() * 2500, q: 1.5, delay: t + Math.random() * spb, dest: g });
+    // a soft bell melody over the top, a note of the chord
+    if (inBar === 2 && Math.random() < 0.6) tone({ freq: midi(chord[2 + Math.floor(Math.random() * 3)] + 24), type: "sine", dur: 0.9, vol: 0.02, delay: t, attack: 0.005, dest: g });
     nextBeat += spb;
     beat++;
   }
