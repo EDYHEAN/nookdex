@@ -28,13 +28,15 @@ import { PaintedRoom } from "./room/PaintedRoom";
 import { markSeen, seenVersion } from "./room/RoadLog";
 import { Quest } from "./room/Quest";
 import { ReleaseBar } from "./room/ReleaseBar";
+import { AdventBar } from "./room/AdventBar";
+import { Advent } from "./room/Advent";
 import { SavePrompt } from "./room/SavePrompt";
 import { MailAsk } from "./room/MailAsk";
 import { Courrier } from "./room/Courrier";
 import { MailButton } from "./room/MailButton";
 import { SupportCat } from "./room/SupportCat";
 import { TipCorner } from "./room/TipCorner";
-import { useAdvent } from "@/lib/advent";
+import { useAdventDev } from "@/lib/advent";
 import { ITEM, backFromShop, itemsOf, paidFor, preloadShop, refreshOwned, selling, setShopView, useShopNews, useShopOpen, useSkins } from "@/lib/shop";
 import type { ListView } from "./share/TradePanel";
 import { TrophyToasts } from "./room/TrophyToast";
@@ -107,6 +109,8 @@ export function App() {
   const [trophies, setTrophies] = useState<{ x: number; y: number } | null>(null);
   /** the box on the shelf, open (from where it is on screen) */
   const [box, setBox] = useState<{ x: number; y: number } | null>(null);
+  // the Advent calendar (lib/advent), from the tree or its strip
+  const [advent, setAdvent] = useState(false);
   /** the shop (lib/shop): hidden for players until it opens */
   const shopOpen = useShopOpen();
   const [shop, setShop] = useState(false);
@@ -254,8 +258,9 @@ export function App() {
     if (process.env.NODE_ENV === "production") return;
     const q = new URLSearchParams(window.location.search);
     // the Soutien pack worn makes the player a patron too (its plaque)
-    // ?advent=12: the Advent calendar's first 12 boxes opened (?advent alone: none)
-    if (q.has("advent")) useAdvent.setState({ opened: Array.from({ length: Number(q.get("advent")) || 0 }, (_, i) => i + 1) });
+    // ?advent=12: the Advent calendar's first 12 boxes shown opened (?advent alone: none); ?adventDay=5: it's December 5th
+    if (q.has("advent")) useAdventDev.setState({ opened: Array.from({ length: Number(q.get("advent")) || 0 }, (_, i) => i + 1) });
+    if (q.has("adventDay")) useAdventDev.setState({ day: Number(q.get("adventDay")) || null });
     if (q.has("skin")) useSkins.setState({ equipped: itemsOf(q.get("skin") ?? ""), patron: q.get("skin") === "soutien" });
     /**
      * ?demo=big: a big collector's shelf, for the public list's pickers (Johan, 2026-10-23: 1,200 doubles): 30 set binders
@@ -446,7 +451,7 @@ export function App() {
     // once the binder is open and its header drawn
     setTimeout(tiles, 900);
   };
-  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || shop || (shopOpen && !!thanks) || !!game || !!tradeOpen;
+  const busy = !!openBinder || !!computer || adding || about || roadLog || !!trophies || !!box || advent || shop || (shopOpen && !!thanks) || !!game || !!tradeOpen;
   // a try-on is to look at the room (day and night, the lamp, the radio, the cat): opening anything else ends it, the
   // room as it was (Johan, 2026-11-16: no living in a skin one hasn't bought). The shop itself keeps it (its card, the sign-in).
   useEffect(() => {
@@ -499,6 +504,7 @@ export function App() {
         }}
         onOpenTrophies={setTrophies}
         onOpenBox={setBox}
+        onOpenAdvent={() => setAdvent(true)}
         onOpenGame={setGame}
         onOpenTrade={openTradeBinder}
         noteCalm={calm && tradeNoteFree && !trophyUp}
@@ -844,6 +850,8 @@ export function App() {
       )}
       {/* the release weekend's « bon opening » (one of lib/calm's gifts) */}
       {entered && <ReleaseBar compact={compact} calm={calm} onOpen={(set) => openSetBinder(keyOf(currentLang(), set))} />}
+      {entered && <AdventBar compact={compact} calm={calm} onOpen={() => setAdvent(true)} />}
+      <AnimatePresence>{advent && <Advent key="advent" onClose={() => setAdvent(false)} />}</AnimatePresence>
       {entered && <SavePrompt compact={compact} calm={calm} />}
       {/* the Monday mail offered once to the accounts that haven't said yes (lib/mailOptin) */}
       {entered && <MailAsk compact={compact} calm={calm} />}

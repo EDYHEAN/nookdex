@@ -243,9 +243,9 @@
         "src": "/skins/hiver/spot-tree.webp",
         "srcNight": "/skins/hiver/spot-tree-night.webp",
         "x": 0,
-        "y": 528,
+        "y": 515,
         "w": 554,
-        "h": 1008,
+        "h": 1021,
         "still": true
       },
       "baubles": [

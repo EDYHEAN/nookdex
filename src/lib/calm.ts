@@ -23,13 +23,14 @@ import { useStore } from "./store";
  * The trophy toasts are neither. And nothing asks before the site has given something: 10 cards, or a 3rd day of visits.
  */
 
-export type Ask = "save" | "courrier" | "trade-note" | "roadlog" | "release" | "quest" | "mail" | "cat";
+export type Ask = "save" | "courrier" | "trade-note" | "roadlog" | "release" | "advent" | "quest" | "mail" | "cat";
 
-const GIFTS = new Set<Ask>(["courrier", "trade-note", "roadlog", "release"]);
+const GIFTS = new Set<Ask>(["courrier", "trade-note", "roadlog", "release", "advent"]);
 
 /** where each one shows: two in different places may be on screen together, the middle takes the whole room */
 const ZONE: Record<Ask, "strip" | "desk" | "middle"> = {
   release: "strip",
+  advent: "strip",
   quest: "strip",
   mail: "strip",
   courrier: "desk",
@@ -43,7 +44,7 @@ const clash = (a: Ask, b: Ask) => ZONE[a] === ZONE[b] || ZONE[a] === "middle" ||
 /** the order: the first ready one has the room */
 // the account first (once 10 cards are in), the gifts, then the asks; the Monday mail's offer (room/MailAsk) after the road
 // log that announces it
-const PRIORITY: Record<Ask, number> = { save: 0, courrier: 0.5, "trade-note": 1, roadlog: 1.5, release: 1.8, quest: 2, mail: 3.5, cat: 4 };
+const PRIORITY: Record<Ask, number> = { save: 0, courrier: 0.5, "trade-note": 1, roadlog: 1.5, release: 1.8, advent: 1.9, quest: 2, mail: 3.5, cat: 4 };
 
 const DAYS_KEY = "nookdex:visit-days";
 /** a third day of visits, or this many cards: the site has given something, it may ask */

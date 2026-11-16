@@ -118,7 +118,12 @@ const TREE_BOX = [0, 380, 800, 1156];
 // only around the tree (Gemini retouches the rest a little on every edit), and a firmer difference than for the room
 const layer = (name, extra = {}) => ({ box: TREE_BOX, keep: [0, 140, 570, 1156], diff: 40, edit: `tree-${name}.png`, against: "tree-0.jpg", tree: name, noFill: true, ...extra });
 SPOTS.hiver = {
-  tree: { box: TREE_BOX, keep: [0, 0, 800, 1156], edit: "tree-0.jpg", tree: "base", window: true, cover: { rect: [0, 470, 500, 1156], pot: [60, 960, 400, 1156] } },
+  // covers: the monstera it replaces, and the sill's cactus it stands in front of (Johan, 2026-11-16: the tree's green
+  // over the cactus's green made no difference, the room's cactus came back over the tree)
+  tree: {
+    box: TREE_BOX, keep: [0, 0, 800, 1156], edit: "tree-0.jpg", tree: "base", window: true,
+    cover: [{ rect: [0, 470, 500, 1156], pot: [60, 960, 400, 1156] }, { rect: [235, 140, 370, 300], pot: [245, 270, 370, 385], grow: 2, dark: true }],
+  },
   "tree-baubles": layer("baubles", { split: true }),
   "tree-lights": layer("lights", { glow: true }),
   "tree-gifts": layer("gifts"),
@@ -397,16 +402,21 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
     if (spot.cover) {
       // the plant it replaces, all of it: its leaves (green) and its pot (terracotta), on the room's own plate, grown a little
       const plate = await crop("public/scene/day.webp", 0);
-      const [cx0, cy0, cx1, cy1] = spot.cover.rect, [px0, py0, px1, py1] = spot.cover.pot;
-      let plant = new Uint8Array(N);
-      for (let i = 0; i < N; i++) {
-        const x = i % W, y = (i - x) / W, [rr, gg, bb] = [plate[i * 3], plate[i * 3 + 1], plate[i * 3 + 2]];
-        const leaf = x >= cx0 && x <= cx1 && y >= cy0 && y <= cy1 && gg > rr + 6 && gg > bb;
-        const pot = x >= px0 && x <= px1 && y >= py0 && y <= py1 && rr > 110 && rr > gg + 20 && gg > bb;
-        plant[i] = leaf || pot ? 1 : 0;
+      for (const cover of [spot.cover].flat()) {
+        const [cx0, cy0, cx1, cy1] = cover.rect, [px0, py0, px1, py1] = cover.pot;
+        let plant = new Uint8Array(N);
+        for (let i = 0; i < N; i++) {
+          const x = i % W, y = (i - x) / W, [rr, gg, bb] = [plate[i * 3], plate[i * 3 + 1], plate[i * 3 + 2]];
+          // `dark`: an olive cactus in the warm light isn't green: anything darker than the bright panes behind it
+          const leaf = x >= cx0 && x <= cx1 && y >= cy0 && y <= cy1 && (cover.dark ? 0.3 * rr + 0.59 * gg + 0.11 * bb < 175 : gg > rr + 6 && gg > bb);
+          const pot = x >= px0 && x <= px1 && y >= py0 && y <= py1 && rr > 110 && rr > gg + 20 && gg > bb;
+          plant[i] = leaf || pot ? 1 : 0;
+        }
+        // grown so none of its edge is left (the cactus by less: the window's panes are round it)
+        const g = cover.grow ?? 8;
+        plant = morph(fillHoles(morph(plant, W, H, g, true), W, H), W, H, Math.min(2, g - 1), false);
+        for (let i = 0; i < N; i++) if (plant[i]) mask[i] = 1;
       }
-      plant = morph(fillHoles(morph(plant, W, H, 8, true), W, H), W, H, 2, false);
-      for (let i = 0; i < N; i++) if (plant[i]) mask[i] = 1;
     }
     // a hole mostly over a pane, bigger than a speck, is sky between leaves: left open
     const open = spot.window ? (px) => px.length > 120 && px.filter((j) => pane[j]).length > px.length / 2 : undefined;

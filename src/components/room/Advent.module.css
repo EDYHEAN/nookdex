@@ -1,0 +1,265 @@
+/* The Advent calendar: a wooden board of little doors on a snowy night */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(10, 14, 32, 0.6);
+}
+
+.board {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 18px 20px 22px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.5) 0 1.5px, transparent 2px) 0 0 / 46px 46px,
+    radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.35) 0 1px, transparent 1.5px) 0 0 / 34px 34px,
+    linear-gradient(#1b2748, #2a1f45);
+  box-shadow:
+    0 0 0 3px #f3d27a,
+    0 20px 60px rgba(0, 0, 0, 0.5);
+  color: #fff6e6;
+  scrollbar-width: thin;
+  scrollbar-color: #f3d27a rgba(255, 255, 255, 0.06);
+}
+
+.head {
+  margin-bottom: 14px;
+  padding-right: 40px;
+}
+
+.head h2 {
+  margin: 0;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: clamp(15px, 3.4vw, 22px);
+  color: #ffd35a;
+  text-shadow: 0 2px 0 #7a3a12;
+}
+
+.head p {
+  margin: 6px 0 0;
+  font-family: var(--font-vt), monospace;
+  font-size: 20px;
+  color: #cfe3ff;
+}
+
+.close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  perspective: 600px;
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+}
+
+/* a little door: wood, its number painted on */
+.door {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: #3a2418;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.35);
+  cursor: default;
+  transform-style: preserve-3d;
+}
+
+/* the 24th: red, ribboned, the big one */
+.last .leaf {
+  background: linear-gradient(145deg, #d24a4a, #9e2a2a);
+  box-shadow:
+    inset 0 0 0 2px #ffd35a,
+    inset 0 -4px 0 rgba(0, 0, 0, 0.2);
+}
+
+.leaf {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #b4733f, #8a5530);
+  box-shadow:
+    inset 0 0 0 2px #e4b36a,
+    inset 0 -4px 0 rgba(0, 0, 0, 0.18);
+  font-family: var(--font-press), monospace;
+  font-size: clamp(14px, 3.2vw, 22px);
+  color: #fff3d6;
+  text-shadow: 0 2px 0 #5a2f12;
+  transform-origin: left center;
+  backface-visibility: hidden;
+}
+
+/* today's: gold, breathing, it's the one to open */
+.today {
+  cursor: pointer;
+}
+
+.today .leaf {
+  background: linear-gradient(145deg, #ffd35a, #e09a2c);
+  color: #5a2f12;
+  text-shadow: 0 1px 0 #fff3c4;
+  box-shadow:
+    inset 0 0 0 2px #fff3c4,
+    0 0 18px rgba(255, 211, 90, 0.8);
+  animation: breathe 1.4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  50% {
+    transform: scale(1.06) rotate(-1.5deg);
+  }
+}
+
+/* one gone by unopened: frozen shut */
+.missed .leaf {
+  background: linear-gradient(145deg, #6c7a93, #4a566d);
+  box-shadow: inset 0 0 0 2px #a9c2e0;
+  color: #dceaff;
+  text-shadow: none;
+}
+
+/* one to come: shut, a bit darker */
+.locked .leaf {
+  filter: brightness(0.75) saturate(0.8);
+}
+
+/* opened: its gift in the hollow */
+.open {
+  cursor: pointer;
+  background: radial-gradient(circle, #4a2e1f, #24140c);
+}
+
+.inside {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(20px, 4.6vw, 32px);
+}
+
+.reveal {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(10, 14, 32, 0.7);
+}
+
+.card {
+  position: relative;
+  width: min(420px, 100%);
+  padding: 26px 22px 20px;
+  border-radius: 12px;
+  background: #fff6e6;
+  color: #2b2230;
+  box-shadow: 0 0 0 4px #ffd35a;
+  text-align: center;
+}
+
+.number {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #c23b3b;
+  color: #fff;
+  font-family: var(--font-press), monospace;
+  font-size: 16px;
+  box-shadow: 0 0 0 3px #ffd35a;
+}
+
+.card h3 {
+  margin: 4px 0 10px;
+  font-family: var(--font-press), monospace;
+  font-weight: normal;
+  font-size: 15px;
+}
+
+.card ul {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+  font-family: var(--font-vt), monospace;
+  font-size: 21px;
+}
+
+.card li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.card li span {
+  flex: none;
+  width: 30px;
+  text-align: center;
+  font-size: 22px;
+}
+
+.code {
+  display: block;
+  margin: 0 auto 12px;
+  padding: 8px 16px;
+  border: 2px dashed #c23b3b;
+  border-radius: 8px;
+  background: #fff;
+  font-family: var(--font-press), monospace;
+  font-size: 16px;
+  color: #c23b3b;
+  cursor: pointer;
+}
+
+.code small {
+  margin-left: 6px;
+  font-family: var(--font-vt), monospace;
+  font-size: 16px;
+  color: #6f6280;
+}
+
+.go {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #2e7d4f;
+  color: #fff;
+  font-family: var(--font-press), monospace;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #1b4d30;
+}

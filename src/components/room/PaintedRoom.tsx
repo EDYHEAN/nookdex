@@ -44,6 +44,8 @@ interface Props {
   onOpenTrophies: (at: { x: number; y: number }) => void;
   /** the purple box next to it: the cards no binder holds */
   onOpenBox: (at: { x: number; y: number }) => void;
+  /** the Advent tree clicked: the calendar */
+  onOpenAdvent: () => void;
   /** the Game Boy on the desk: the NookBoy game (computers only) */
   onOpenGame: (at: { x: number; y: number }) => void;
   /** the gold binder first on the shelf: the trade binder (share/TradeBinder) */
@@ -196,6 +198,7 @@ function PaintedRoomView({
   onOpenAbout,
   onOpenTrophies,
   onOpenBox,
+  onOpenAdvent,
   onOpenGame,
   onOpenTrade,
   noteCalm,
@@ -269,7 +272,7 @@ function PaintedRoomView({
   // the plaque shows to whoever bought the pack, and while it is tried on from the shop
   const tryingPack = useSkins((s) => s.trying === SUPPORT_BUNDLE);
   // the Advent tree as the opened boxes made it (lib/advent)
-  const advent = useAdvent((s) => s.opened);
+  const advent = useAdvent();
   const tree = useMemo(() => treeOf(advent), [advent]);
   const patron = usePatron() || tryingPack;
   // the plaque's engraving: the player's nickname (Johan, 2026-11-16), else the word
@@ -312,7 +315,8 @@ function PaintedRoomView({
   const skinMusic = skin?.music ?? "lofi";
   useEffect(() => setAmbientMood(skinMusic), [skinMusic]);
   const won = useTrophyStore((s) => s.got);
-  const fresh = useTrophyStore((s) => Object.values(s.got).filter((at) => at > s.seenAt).length);
+  // the Advent boxes ride with the trophies (lib/advent): not trophies to show as new
+  const fresh = useTrophyStore((s) => Object.entries(s.got).filter(([id, at]) => at > s.seenAt && !id.startsWith("advent:")).length);
   const [ballHover, setBallHover] = useState(false);
   const [boxHover, setBoxHover] = useState(false);
   const inBox = useMemo(() => boxOf(collection, userBinders).reduce((n, g) => n + g.count, 0), [collection, userBinders]);
@@ -617,6 +621,24 @@ function PaintedRoomView({
                   <img key={p.src} className={styles.sprite} src={!daytime && p.srcNight ? p.srcNight : p.src} style={place(p)} alt="" draggable={false} />
                 ))}
             </span>
+          )}
+          {TREE && tree.tree && (
+            <button
+              className={styles.hotspot}
+              style={place({ x: TREE.base.x + TREE.base.w * 0.1, y: TREE.base.y, w: TREE.base.w * 0.8, h: TREE.base.h })}
+              aria-label={tr("Le sapin : le calendrier de l'Avent", "The tree: the Advent calendar")}
+              onPointerEnter={() => {
+                sfx.hover();
+                const b = TREE?.base;
+                if (b) showTip(b.x + b.w / 2, b.y + 40, tr("Le sapin de l'Avent", "The Advent tree"), tr("clic : le calendrier", "click: the calendar"));
+              }}
+              onPointerLeave={() => setTip(null)}
+              onClick={() => {
+                sfx.pop();
+                setTip(null);
+                onOpenAdvent();
+              }}
+            />
           )}
 
           {skin?.art.spider && <SkinSpider spider={skin.art.spider} paused={paused} />}
