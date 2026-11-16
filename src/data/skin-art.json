@@ -111,51 +111,31 @@
     "skyDay": "/skins/soutien/sky-day.webp",
     "decor": [
       {
-        "src": "/skins/soutien/fern.webp",
-        "x": 395,
-        "y": 608,
-        "w": 150,
-        "h": 138,
-        "shadow": true
+        "src": "/skins/soutien/spot-sill.webp",
+        "srcNight": "/skins/soutien/spot-sill-night.webp",
+        "x": 378,
+        "y": 525,
+        "w": 359,
+        "h": 239,
+        "still": true
       },
       {
-        "src": "/skins/soutien/kalanchoe.webp",
-        "x": 594,
-        "y": 628,
-        "w": 92,
-        "h": 118,
-        "shadow": true
+        "src": "/skins/soutien/spot-desk.webp",
+        "srcNight": "/skins/soutien/spot-desk-night.webp",
+        "x": 556,
+        "y": 1101,
+        "w": 227,
+        "h": 211,
+        "still": true
       },
       {
-        "src": "/skins/soutien/basil.webp",
-        "x": 694,
-        "y": 1096,
-        "w": 116,
-        "h": 160,
-        "shadow": true
-      },
-      {
-        "src": "/skins/soutien/terrarium.webp",
-        "x": 1704,
-        "y": 1127,
-        "w": 62,
-        "h": 87,
-        "shadow": true
-      },
-      {
-        "src": "/skins/soutien/macrame.webp",
-        "x": 1960,
-        "y": 452,
-        "w": 140,
-        "h": 247
-      },
-      {
-        "src": "/skins/soutien/books.webp",
-        "x": 2108,
-        "y": 681,
-        "w": 125,
-        "h": 97,
-        "shadow": true
+        "src": "/skins/soutien/spot-monitor.webp",
+        "srcNight": "/skins/soutien/spot-monitor-night.webp",
+        "x": 987,
+        "y": 626,
+        "w": 158,
+        "h": 261,
+        "still": true
       }
     ],
     "cat": {
@@ -175,17 +155,18 @@
       }
     },
     "plaque": {
-      "src": "/skins/soutien/plaque.webp",
-      "x": 1820,
-      "y": 651,
-      "w": 170,
-      "h": 129,
-      "shadow": true,
+      "src": "/skins/soutien/spot-wall.webp",
+      "srcNight": "/skins/soutien/spot-wall-night.webp",
+      "x": 1474,
+      "y": 532,
+      "w": 189,
+      "h": 141,
+      "still": true,
       "text": {
-        "x": 1849,
-        "y": 663,
-        "w": 112,
-        "h": 72
+        "x": 1503,
+        "y": 560,
+        "w": 137,
+        "h": 74
       }
     }
   }

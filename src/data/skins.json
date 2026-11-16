@@ -169,15 +169,15 @@
       "slot": "decor",
       "rarity": "rare",
       "price": 1.49,
-      "icon": "/skins/soutien/fern.webp",
+      "icon": "/skins/soutien/spot-sill.webp",
       "cutout": true,
       "name": {
         "fr": "Coin jungle",
         "en": "Jungle corner"
       },
       "blurb": {
-        "fr": "Une suspension en macramé, une fougère, un terrarium, du basilic et une pile de vieux livres.",
-        "en": "A macramé hanger, a fern, a terrarium, some basil and a pile of old books."
+        "fr": "Une fougère et une plante fleurie à la fenêtre, un pothos sur l'écran, du basilic et un terrarium sur le bureau.",
+        "en": "A fern and a flowering plant on the sill, a pothos on the screen, basil and a terrarium on the desk."
       }
     },
     {

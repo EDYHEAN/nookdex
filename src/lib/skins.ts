@@ -26,6 +26,9 @@ export interface Placed extends Box {
   shadow?: boolean;
   /** flames that dance over the painted ones: the bottom of each, and its height (scene px) */
   flames?: { x: number; y: number; h: number }[];
+  /** painted into the room (build-skins SPOTS): its night picture, and it stays still (no hand-drawn wobble) */
+  srcNight?: string;
+  still?: boolean;
 }
 
 /** What a skin paints over the room: pictures cut by scripts/build-skins, placed in src/data/skin-art.json */

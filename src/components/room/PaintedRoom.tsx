@@ -536,8 +536,8 @@ function PaintedRoomView({
               {d.glow && !daytime && <span className={styles.skinGlow} style={glow(d, 60)} aria-hidden />}
               {d.shadow && <span className={styles.skinShadow} style={{ left: d.x + d.w * 0.08, top: d.y + d.h - 12, width: d.w * 0.84, height: 22 }} aria-hidden />}
               <img
-                className={`${styles.sprite} ${styles.skinThing}`}
-                src={d.src}
+                className={`${styles.sprite} ${d.still ? "" : styles.skinThing}`}
+                src={!daytime && d.srcNight ? d.srcNight : d.src}
                 style={{ ...place(d), transform: d.rot ? `rotate(${d.rot}deg)` : undefined }}
                 alt=""
                 draggable={false}
@@ -556,8 +556,8 @@ function PaintedRoomView({
           {/* the Soutien pack's plaque, the player's name engraved on it: there whatever is worn */}
           {patron && PLAQUE && (
             <span>
-              <span className={styles.skinShadow} style={{ left: PLAQUE.x + PLAQUE.w * 0.08, top: PLAQUE.y + PLAQUE.h - 10, width: PLAQUE.w * 0.84, height: 16 }} aria-hidden />
-              <img className={`${styles.sprite} ${styles.skinThing}`} src={PLAQUE.src} style={place(PLAQUE)} alt="" draggable={false} />
+              {PLAQUE.shadow && <span className={styles.skinShadow} style={{ left: PLAQUE.x + PLAQUE.w * 0.08, top: PLAQUE.y + PLAQUE.h - 10, width: PLAQUE.w * 0.84, height: 16 }} aria-hidden />}
+              <img className={`${styles.sprite} ${PLAQUE.still ? "" : styles.skinThing}`} src={!daytime && PLAQUE.srcNight ? PLAQUE.srcNight : PLAQUE.src} style={place(PLAQUE)} alt="" draggable={false} />
               <span className={styles.plaqueText} style={{ ...place(PLAQUE.text), fontSize: Math.round(PLAQUE.text.h * 0.36) }} aria-hidden>
                 <small>{tr("Mécène", "Patron")}</small>
                 {patronName.slice(0, 24)}
