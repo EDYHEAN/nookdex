@@ -549,6 +549,15 @@ function PaintedRoomView({
             <div className={`${styles.skyGlass} ${daytime ? styles.skyGlassDay : ""}`} />
           </div>
 
+          {/* rain running down the window: under a skin's things, a plant on the sill stays dry */}
+          <canvas
+            ref={rain}
+            className={`${styles.rain} ${daytime ? styles.off : ""}`}
+            width={Math.round(SCENE.window.w / 2)}
+            height={Math.round(SCENE.window.h / 2)}
+            style={{ ...place(SCENE.window), maskImage: windowMask, WebkitMaskImage: windowMask }}
+          />
+
           {/* a skin's decorations standing in the room (lib/shop), a warm glow flickering round the lit ones at night */}
           {skin?.art.decor?.map((d, i) => (
             <span key={i}>
@@ -591,15 +600,6 @@ function PaintedRoomView({
           })()}
 
           {skin?.art.spider && <SkinSpider spider={skin.art.spider} paused={paused} />}
-
-          {/* rain running down the window */}
-          <canvas
-            ref={rain}
-            className={`${styles.rain} ${daytime ? styles.off : ""}`}
-            width={Math.round(SCENE.window.w / 2)}
-            height={Math.round(SCENE.window.h / 2)}
-            style={{ ...place(SCENE.window), maskImage: windowMask, WebkitMaskImage: windowMask }}
-          />
 
           {/* steam: the painted wisp, boiling like a hand-drawn loop. One per backdrop, each fading with its
               own room, so the switch never shows a patch of the other one. */}

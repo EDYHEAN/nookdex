@@ -99,7 +99,9 @@ const SPOTS = {
     // (the jar, the boombox's edges), nothing outside it is taken
     // `window`: over the window's panes, where the live sky shows through: the gaps between its leaves stay open there
     // (Johan, 2026-11-16: Gemini's sky between the fern's fronds hid the night's); the keep ends before the honey jar
-    sill: { box: [240, 300, 760, 560], keep: [130, 200, 480, 475], window: true },
+    // `move`: Gemini slid the honey jar right and set the kalanchoe where the jar was: the thing right of `from` (crop px) is
+    // moved `dx` px, back in front of the sill's free space (Johan, 2026-11-16: it ran over the jar)
+    sill: { box: [240, 300, 760, 560], keep: [130, 200, 480, 475], window: true, move: { from: 379, dx: -16 } },
     desk: { box: [380, 820, 760, 540], keep: [180, 285, 398, 490] },
     monitor: { box: [900, 380, 620, 560], keep: [78, 236, 252, 512] },
     // `sharp`: a crisp outline (a wooden board's edge, not leaves): no halo kept, barely feathered
@@ -353,6 +355,11 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
     // a hole mostly over a pane, bigger than a speck, is sky between leaves: left open
     const open = spot.window ? (px) => px.length > 120 && px.filter((j) => pane[j]).length > px.length / 2 : undefined;
     mask = morph(fillHoles(morph(mask, W, H, 3, true), W, H, open), W, H, spot.sharp ? 3 : 2, false);
+    // over the panes, a pixel more taken off the edge: the fringe there is Gemini's day sky, a light halo against the night's
+    if (spot.window) {
+      const tight = morph(mask, W, H, 1, false);
+      for (let i = 0; i < N; i++) if (pane[i]) mask[i] = tight[i];
+    }
     const alpha = await sharp(Buffer.from(mask.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(spot.sharp ? 0.6 : 2).extractChannel(0).raw().toBuffer();
     // day: Gemini's pixels; night: the same, darkened and tinted as the night plate is from the day one there
     const day = Buffer.alloc(N * 4), night = Buffer.alloc(N * 4);
@@ -363,6 +370,26 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
         night[i * 4 + c] = Math.min(255, Math.round(edit[i * 3 + c] * ratio));
         day[i * 4 + 3] = night[i * 4 + 3] = alpha[i];
       }
+    if (spot.move) {
+      // the biggest patch right of the cut (its shadow on the sill with it), its pixels moved: where it was, the room again
+      const cut = new Uint8Array(N);
+      for (let i = 0; i < N; i++) cut[i] = alpha[i] > 8 && Math.abs((i % W) - spot.move.from) > 2 ? 1 : 0;
+      const right = patches(cut, W, H)
+        .filter((px) => px.reduce((n, j) => n + (j % W), 0) / px.length > spot.move.from)
+        .sort((a, b) => b.length - a.length)[0] ?? [];
+      const moved = right.map((j) => [j + spot.move.dx, [...day.subarray(j * 4, j * 4 + 4)], [...night.subarray(j * 4, j * 4 + 4)]]);
+      for (const j of right) {
+        alpha[j] = 0;
+        day[j * 4 + 3] = night[j * 4 + 3] = 0;
+      }
+      for (const [k, d, n] of moved) {
+        if (k % W > W - 1 || k < 0) continue;
+        // over what's there (a fern frond's tip), as it stands in front of it
+        alpha[k] = Math.max(alpha[k], d[3]);
+        day.set(d, k * 4);
+        night.set(n, k * 4);
+      }
+    }
     // trimmed to what's painted in
     let x0 = W, y0 = H, x1 = -1, y1 = -1;
     for (let i = 0; i < N; i++)
@@ -377,14 +404,27 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
     await out(night, `spot-${name}-night.webp`);
     const placed = { src: `/skins/${skin}/spot-${name}.webp`, srcNight: `/skins/${skin}/spot-${name}-night.webp`, x: L + x0, y: T + y0, w: box.width, h: box.height, still: true };
     if (spot.plaque) {
-      // its brass face: the biggest light patch inside the dark wooden board (a sunbeam shades part of the brass, so not
-      // by its gold), the light around the board left out: it touches the painted-in edge
-      const light = new Uint8Array(N);
-      for (let i = 0; i < N; i++) light[i] = alpha[i] > 200 && 0.3 * edit[i * 3] + 0.59 * edit[i * 3 + 1] + 0.11 * edit[i * 3 + 2] > 115 ? 1 : 0;
-      const inner = (px) => px.every((j) => alpha[j - 1] > 200 && alpha[j + 1] > 200 && alpha[j - W] > 200 && alpha[j + W] > 200);
-      const face = patches(light, W, H).filter(inner).sort((a, b) => b.length - a.length)[0] ?? [];
-      const xs = face.map((j) => j % W), ys = face.map((j) => Math.floor(j / W));
-      const fx = Math.min(...xs), fy = Math.min(...ys), fw = Math.max(...xs) - fx + 1, fh = Math.max(...ys) - fy + 1;
+      // its brass face, measured across the board's middle lines (Johan, 2026-11-16: a patch of light pixels took in the
+      // frame's lit rim and the name sat left): along a line, the brass is the light run between the dark frame's two sides
+      const lum = (x, y) => 0.3 * edit[(y * W + x) * 3] + 0.59 * edit[(y * W + x) * 3 + 1] + 0.11 * edit[(y * W + x) * 3 + 2];
+      // the light runs along the line; the brass is the longest one that touches neither end (the wall around the board)
+      const brass = (at, from, to) => {
+        const runs = [];
+        for (let i = from, start = -1; i <= to + 1; i++) {
+          const lit = i <= to && at(i) >= 125;
+          if (lit && start < 0) start = i;
+          if (!lit && start >= 0) (runs.push([start, i - 1]), (start = -1));
+        }
+        const inner = runs.filter(([a, b]) => a > from && b < to);
+        return inner.sort((p, q) => q[1] - q[0] - (p[1] - p[0]))[0] ?? [from, to];
+      };
+      const median = (v) => v.sort((a, b) => a - b)[v.length >> 1];
+      const mid = (a, b) => Math.round((a + b) / 2);
+      const [cx, cy] = [mid(x0, x1), mid(y0, y1)];
+      const rows = [-12, -6, 0, 6, 12].map((d) => brass((x) => lum(x, cy + d), x0, x1));
+      const cols = [-30, -15, 0, 15, 30].map((d) => brass((y) => lum(cx + d, y), y0, y1));
+      const fx = median(rows.map((r) => r[0])), fw = median(rows.map((r) => r[1])) - fx + 1;
+      const fy = median(cols.map((c) => c[0])), fh = median(cols.map((c) => c[1])) - fy + 1;
       const text = { x: L + fx + Math.round(fw * 0.08), y: T + fy + Math.round(fh * 0.1), w: Math.round(fw * 0.84), h: Math.round(fh * 0.8) };
       art[skin].plaque = { ...placed, text };
     } else decor.push(placed);

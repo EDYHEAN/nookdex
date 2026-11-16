@@ -1083,6 +1083,8 @@
   display: grid;
   place-items: center;
   text-align: center;
+  /* capitals centred by the maths look high: a hair lower */
+  padding-top: 0.14em;
   overflow: hidden;
   font-family: Georgia, "Times New Roman", serif;
   font-weight: bold;
