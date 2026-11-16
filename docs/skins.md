@@ -183,6 +183,18 @@ little yellow stars and a white pompom`.
 Edit the attached image at the highest resolution. Keep EVERYTHING exactly as it is: same framing, same lines, same colours, same light, same grain; do not move or redraw anything. Only add delicate white frost patterns in the corners of each window pane, like ferns of ice on the glass, the centre of the panes left clear. Same hand-drawn style. No text.
 ```
 
+### Lot 2 : le pack d'hiver (payant, 1er déc. → 6 janv.)
+
+Ciel « Première neige », décor « Bureau cocooning » (guirlande à la fenêtre, chocolat chaud et bougie), Warwick « Pull de
+Noël », ambiance « Coin du feu », radio « Coin du feu », horloge « Couronne de houx » (un emplacement de plus). Les
+morceaux de pièce sont dans `img/hiver/spots/` ; même début de prompt que P1 bis pour B2 à B4.
+
+- **B1. Ciels** → `img/hiver/sky.jpg` (joindre `img/sky.jpg`) et `img/hiver/sky-day.jpg` (joindre `img/sky-day.jpg`).
+- **B2. Guirlande à la fenêtre** → `img/hiver/spots/window-lights-edit.png` (joindre `window-lights.png`).
+- **B3. Chocolat chaud et bougie** → `img/hiver/spots/mug-edit.png` (joindre `mug.png`).
+- **B4. Couronne de houx** → `img/hiver/spots/clock-edit.png` (joindre `clock.png`).
+- **B5. Warwick en pull** → `img/hiver/cat-pull.jpg` (joindre `img/halloween/cat-sheet.jpg`, même texte que A3).
+
 **A5. Trois trophées → `img/trophies-avent.jpg`** (joindre `img/trophies-plus.jpg` comme modèle de style)
 
 ```text
