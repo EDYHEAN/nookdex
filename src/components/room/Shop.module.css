@@ -307,6 +307,29 @@
   color: #2b2230;
 }
 
+.badgePast {
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-family: var(--font-press), monospace;
+  font-size: 10px;
+  line-height: 1.2;
+  transform: rotate(-3deg);
+  background: #3a3348;
+  color: #cdbff0;
+}
+
+/* a past collection: greyed, its colours back on hover */
+.past img,
+.past .rays {
+  filter: grayscale(0.85) brightness(0.85);
+  transition: filter 0.3s;
+}
+
+.past:hover img,
+.past:hover .rays {
+  filter: none;
+}
+
 .badgeDeal {
   background: #ff4d6d;
   color: #fff;

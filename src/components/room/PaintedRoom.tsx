@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import POSTERS from "@/data/posters.json";
 import { type CSSProperties, memo, useEffect, useMemo, useRef, useState } from "react";
-import { MAX_BINDERS, SHELF_LEAD, boxOf, shelfPlace, pocketsOf, shelfBinders, shelfPageCount, wantsOf } from "@/lib/binders";
+import { MAX_BINDERS, SHELF_LEAD, boxOf, spineName, shelfPlace, pocketsOf, shelfBinders, shelfPageCount, wantsOf } from "@/lib/binders";
 import { catalogSet, loadSet, useSets } from "@/lib/catalog";
 import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
@@ -114,6 +114,17 @@ const readPage = () => {
     return 0;
   }
 };
+/** A binder's name down its spine: as big as it fits, smaller the longer it is (whole up to BINDER_NAME_MAX letters) */
+function SpineText({ text, color }: { text: string; color: string }) {
+  // the label holds ~13 letters at 13cqh; past that each letter gets its share of ~170cqh
+  const size = `min(70cqw, 13cqh, ${Math.floor(170 / Math.max(1, text.length))}cqh)`;
+  return (
+    <span className={styles.labelText} style={{ color, fontSize: size }}>
+      {text}
+    </span>
+  );
+}
+
 /**
  * The poster above the desk (Johan, 2026-10-19): the player's pick, clicked through like the lava lamp. Each one is pasted
  * into the painted poster by scripts/build-posters.mjs (its torn corner and tape kept, lit like the paper around it), for
@@ -257,7 +268,6 @@ function PaintedRoomView({
   // the plaque shows to whoever bought the pack, and while it is tried on from the shop
   const tryingPack = useSkins((s) => s.trying === SUPPORT_BUNDLE);
   const patron = usePatron() || tryingPack;
-  const patronName = useStore((s) => s.profile?.name ?? "");
   const skinLava = skin?.lava;
   const lavaThemes = useMemo<LavaTheme[]>(() => (skinLava ? [skinLava, ...LAVA_THEMES] : LAVA_THEMES), [skinLava]);
   const themesRef = useRef(lavaThemes);
@@ -559,14 +569,17 @@ function PaintedRoomView({
             </span>
           ))}
 
-          {/* the Soutien pack's plaque, the player's name engraved on it: there whatever is worn */}
+          {/* the Soutien pack's plaque, « Bienfaiteur » engraved on it (Johan, 2026-11-16: the word alone): there whatever is worn */}
           {patron && PLAQUE && (
             <span>
               {PLAQUE.shadow && <span className={styles.skinShadow} style={{ left: PLAQUE.x + PLAQUE.w * 0.08, top: PLAQUE.y + PLAQUE.h - 10, width: PLAQUE.w * 0.84, height: 16 }} aria-hidden />}
               <img className={`${styles.sprite} ${PLAQUE.still ? "" : styles.skinThing}`} src={!daytime && PLAQUE.srcNight ? PLAQUE.srcNight : PLAQUE.src} style={place(PLAQUE)} alt="" draggable={false} />
-              <span className={styles.plaqueText} style={{ ...place(PLAQUE.text), fontSize: Math.round(PLAQUE.text.h * 0.36) }} aria-hidden>
-                <small>{tr("Bienfaiteur", "Benefactor")}</small>
-                {patronName.slice(0, 24)}
+              <span
+                className={styles.plaqueText}
+                style={{ ...place(PLAQUE.text), fontSize: Math.round(Math.min(PLAQUE.text.h * 0.42, PLAQUE.text.w / 10.5)) }}
+                aria-hidden
+              >
+                {tr("Bienfaiteur", "Benefactor")}
               </span>
             </span>
           )}
@@ -734,9 +747,7 @@ function PaintedRoomView({
                     {b.logo ? (
                       <img src={`${b.logo}.png`} alt="" draggable={false} />
                     ) : (
-                      <span className={styles.labelText} style={{ color: b.kind === "free" ? "#2b2230" : b.ink }}>
-                        {b.wish ? `★ ${b.name}` : b.kind === "free" ? b.name : b.code}
-                      </span>
+                      <SpineText text={b.wish ? `★ ${spineName(b.name)}` : b.kind === "free" ? spineName(b.name) : b.code} color={b.kind === "free" ? "#2b2230" : b.ink} />
                     )}
                     {langTag(b) && <span className={styles.langTag}>{langTag(b)}</span>}
                     {sum.pct != null && (

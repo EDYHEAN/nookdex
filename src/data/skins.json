@@ -77,7 +77,6 @@
       "particles": "spooky",
       "price": 1.49,
       "icon": "/skins/halloween/lantern.webp",
-      "cutout": true,
       "name": {
         "fr": "Bureau hanté",
         "en": "Haunted desk"
@@ -85,7 +84,8 @@
       "blurb": {
         "fr": "Guirlande de fantômes, citrouille, bougies qui dansent, toiles et une araignée qui descend de sa toile.",
         "en": "A ghost garland, a pumpkin, dancing candles, cobwebs and a spider that drops from its web."
-      }
+      },
+      "cutout": true
     },
     {
       "id": "halloween-cat",
@@ -112,12 +112,12 @@
       "price": 1.49,
       "icon": "/skins/halloween/icon-lamp.webp",
       "name": {
-        "fr": "Lueur citrouille",
-        "en": "Pumpkin glow"
+        "fr": "Ambiance citrouille",
+        "en": "Pumpkin mood"
       },
       "blurb": {
-        "fr": "La lampe à lave orange citrouille et une lumière chaude sur toute la pièce.",
-        "en": "The pumpkin orange lava lamp and a warm light over the whole room."
+        "fr": "La lampe à lave vire à l'orange citrouille et toute la pièce prend sa lueur, coins violets compris.",
+        "en": "The lava lamp turns pumpkin orange and the whole room takes its glow, purple corners and all."
       },
       "tint": "rgba(255, 110, 20, 0.5)",
       "vignette": "rgba(44, 8, 70, 0.78)",
@@ -169,8 +169,7 @@
       "slot": "decor",
       "rarity": "rare",
       "price": 1.49,
-      "icon": "/skins/soutien/spot-sill.webp",
-      "cutout": true,
+      "icon": "/skins/soutien/icon-decor.webp",
       "name": {
         "fr": "Coin jungle",
         "en": "Jungle corner"
@@ -205,12 +204,12 @@
       "price": 1.49,
       "icon": "/skins/soutien/icon-lamp.webp",
       "name": {
-        "fr": "Lampe menthe",
-        "en": "Mint lamp"
+        "fr": "Ambiance menthe",
+        "en": "Mint mood"
       },
       "blurb": {
-        "fr": "La lampe à lave vert menthe et une lumière fraîche sur toute la pièce.",
-        "en": "The mint green lava lamp and a fresh light over the whole room."
+        "fr": "La lampe à lave vire au vert menthe et toute la pièce baigne dans sa lumière fraîche.",
+        "en": "The lava lamp turns mint green and the whole room bathes in its fresh light."
       },
       "tint": "rgba(70, 225, 185, 0.5)",
       "vignette": "rgba(10, 55, 70, 0.7)",
@@ -248,6 +247,10 @@
       "price": 5.99,
       "icon": "/skins/halloween/preview.webp",
       "until": "2026-11-03",
+      "returns": {
+        "fr": "De retour pour Halloween 2027",
+        "en": "Back for Halloween 2027"
+      },
       "items": [
         "halloween-sky",
         "halloween-decor",

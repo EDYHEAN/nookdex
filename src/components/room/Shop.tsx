@@ -77,6 +77,8 @@ export function Shop({ onClose }: { onClose: () => void }) {
   }, [open, onClose]);
 
   const featured = BUNDLES.filter(onSale);
+  // the packs gone (Halloween): further down, greyed, to show there's been more and it comes back
+  const past = BUNDLES.filter((b) => !onSale(b));
   const items = ITEMS.filter(onSale);
   const until = featured[0]?.until;
   const thing = open ? (BUNDLE.get(open) ?? ITEM.get(open)) : undefined;
@@ -135,6 +137,16 @@ export function Shop({ onClose }: { onClose: () => void }) {
                   <Tile key={it.id} thing={it} index={i + featured.length} onOpen={() => setOpen(it.id)} />
                 ))}
               </div>
+              {past.length > 0 && (
+                <>
+                  <h3 className={styles.section}>{t("Collections passées", "Past collections")}</h3>
+                  <div className={styles.grid}>
+                    {past.map((b, i) => (
+                      <Tile key={b.id} thing={b} index={i + featured.length + items.length} past onOpen={() => setOpen(b.id)} />
+                    ))}
+                  </div>
+                </>
+              )}
               <p className={styles.small}>
                 {t(
                   "Contenus numériques NookDex, achat unique, gardés avec ton compte. Paiement et reçus par Stripe. Tout ce qui touche à Pokémon reste gratuit.",
@@ -157,7 +169,7 @@ export function Shop({ onClose }: { onClose: () => void }) {
 }
 
 /** A tile of the shop: its art on its rarity's colours, its name and price on a strip */
-function Tile({ thing, index, big, onOpen }: { thing: Thing; index: number; big?: boolean; onOpen: () => void }) {
+function Tile({ thing, index, big, past, onOpen }: { thing: Thing; index: number; big?: boolean; past?: boolean; onOpen: () => void }) {
   const t = useT();
   const lang = useLang();
   const owned = useSkins((s) => s.owned);
@@ -165,7 +177,7 @@ function Tile({ thing, index, big, onOpen }: { thing: Thing; index: number; big?
   const worth = isBundle(thing) ? worthOf(thing) : null;
   return (
     <motion.button
-      className={`${styles.tile} ${styles[thing.rarity]} ${big ? styles.big : ""} ${mine ? styles.mine : ""}`}
+      className={`${styles.tile} ${styles[thing.rarity]} ${big ? styles.big : ""} ${mine ? styles.mine : ""} ${past && !mine ? styles.past : ""}`}
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: 0.08 + index * 0.06, type: "spring", stiffness: 320, damping: 22 }}
@@ -181,13 +193,14 @@ function Tile({ thing, index, big, onOpen }: { thing: Thing; index: number; big?
       <img className={thing.cutout ? styles.cutout : styles.framed} src={thing.icon} alt="" draggable={false} />
       {big && thing.until && <span className={styles.ribbon}>{t("Édition limitée", "Limited edition")}</span>}
       <span className={styles.badges}>
-        {!mine && <span className={styles.badgeNew}>{t("NOUVEAU", "NEW")}</span>}
-        {worth && !mine && <span className={styles.badgeDeal}>−{Math.round((1 - thing.price / worth) * 100)} %</span>}
+        {!mine && !past && <span className={styles.badgeNew}>{t("NOUVEAU", "NEW")}</span>}
+        {past && !mine && <span className={styles.badgePast}>{t("Plus en vente", "Gone")}</span>}
+        {worth && !mine && !past && <span className={styles.badgeDeal}>−{Math.round((1 - thing.price / worth) * 100)} %</span>}
       </span>
       <span className={styles.strip}>
         <span className={styles.name}>{t(thing.name.fr, thing.name.en)}</span>
         <span className={styles.rarity}>{t(RARITY[thing.rarity].fr, RARITY[thing.rarity].en)}</span>
-        {!mine && (
+        {!mine && !past && (
           <span className={styles.price}>
             {worth && <s>{formatEuros(worth, lang)}</s>}
             <b>{formatEuros(thing.price, lang)}</b>
@@ -258,7 +271,11 @@ function Card({ thing, onBack, onClose }: { thing: Thing; onBack: () => void; on
               })}
             </ul>
           )}
-          {!mine && !onSale(thing) && <p className={styles.note}>{t("Plus en vente pour l'instant.", "Not for sale right now.")}</p>}
+          {!mine && !onSale(thing) && (
+            <p className={styles.note}>
+              {isBundle(thing) && thing.returns ? t(`${thing.returns.fr}.`, `${thing.returns.en}.`) : t("Plus en vente pour l'instant.", "Not for sale right now.")}
+            </p>
+          )}
           {!mine && onSale(thing) && (
             <p className={styles.cardPrice}>
               {worth && <s>{formatEuros(worth, lang)}</s>} <b>{formatEuros(thing.price, lang)}</b>
@@ -320,7 +337,8 @@ const SLOTS: { slot: Slot; fr: string; en: string }[] = [
   { slot: "sky", fr: "Fenêtre", en: "Window" },
   { slot: "decor", fr: "Déco", en: "Decor" },
   { slot: "cat", fr: "Warwick", en: "Warwick" },
-  { slot: "lamp", fr: "Lumière", en: "Light" },
+  // the lava lamp brings the whole room's light: what a pack's mood is (Johan, 2026-11-16)
+  { slot: "lamp", fr: "Ambiance", en: "Mood" },
   { slot: "radio", fr: "Radio", en: "Radio" },
 ];
 

@@ -96,6 +96,8 @@ export interface Bundle {
   cutout?: boolean;
   /** last day in the shop (ISO) */
   until?: string;
+  /** once gone: when it comes back (the shop's past collections say it) */
+  returns?: { fr: string; en: string };
   items: string[];
   name: { fr: string; en: string };
   blurb: { fr: string; en: string };

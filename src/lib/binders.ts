@@ -24,6 +24,13 @@ export const SHELF_SLOTS = SCENE.slots.length;
 /** The player's binders at most (Johan, 2026-10-16: big collections, the Pokécardex import): 5 pages' worth of 12. */
 export const MAX_BINDERS = SHELF_SLOTS * 5;
 /**
+ * A free binder's name, at most (Johan, 2026-11-16: a long wishlist name didn't fit its spine): the shelf writes it
+ * smaller the longer it is, whole up to this.
+ */
+export const BINDER_NAME_MAX = 16;
+/** The name as the spine shows it: an older, longer one ends in « … » */
+export const spineName = (name: string) => (name.length > BINDER_NAME_MAX ? name.slice(0, BINDER_NAME_MAX - 1) + "…" : name);
+/**
  * Places the trade binder takes at the start of the shelf (Johan, 2026-10-23: every player has it, it stands first, top
  * shelf, page 1). The player's binders follow it: page 1 holds 11 of them, the others 12.
  */

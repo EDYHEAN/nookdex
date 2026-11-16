@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MAX_BINDERS, boxOf, pocketsOf, shelfBinders, wantsOf, wishBinders } from "@/lib/binders";
+import { BINDER_NAME_MAX, MAX_BINDERS, boxOf, pocketsOf, shelfBinders, wantsOf, wishBinders } from "@/lib/binders";
 import { loadSets, neededSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { resolveConflict, signIn, signInWithGoogle, signOut, useCloud } from "@/lib/cloud";
 import { setMailOptin, useMailOptin } from "@/lib/mailOptin";
@@ -577,7 +577,7 @@ function Wishlist({
             <span>★</span>
             <input
               value={name}
-              maxLength={28}
+              maxLength={BINDER_NAME_MAX}
               placeholder={tr("son nom : Cartes de rêve, Mes Évoli…", "its name: Dream cards, My Eevees…")}
               onChange={(e) => {
                 setName(e.target.value);

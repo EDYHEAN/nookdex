@@ -157,16 +157,16 @@
     "plaque": {
       "src": "/skins/soutien/spot-wall.webp",
       "srcNight": "/skins/soutien/spot-wall-night.webp",
-      "x": 1474,
-      "y": 532,
-      "w": 210,
-      "h": 141,
+      "x": 1477,
+      "y": 535,
+      "w": 204,
+      "h": 135,
       "still": true,
       "text": {
-        "x": 1503,
-        "y": 560,
-        "w": 137,
-        "h": 74
+        "x": 1496,
+        "y": 553,
+        "w": 144,
+        "h": 81
       }
     }
   }

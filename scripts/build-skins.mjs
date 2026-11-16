@@ -91,7 +91,7 @@ const PLACES = {
  * perspective nor its light). img/<skin>/spots/<name>.png is the crop of public/scene/day.webp at `box` (scene px: left,
  * top, width, height), <name>-edit.png Gemini's edit of it (any size, same shape). What changed is kept, its edge
  * feathered, and lit for the night by how the night plate differs from the day one around it. `plaque`: the Mécène
- * plaque (shown to patrons only), its brass face found by its colour for the name.
+ * plaque (shown to patrons only), its brass face found inside its board for the engraving.
  */
 const SPOTS = {
   soutien: {
@@ -100,7 +100,8 @@ const SPOTS = {
     sill: { box: [240, 300, 760, 560], keep: [130, 200, 492, 475] },
     desk: { box: [380, 820, 760, 540], keep: [180, 285, 398, 490] },
     monitor: { box: [900, 380, 620, 560], keep: [78, 236, 252, 512] },
-    wall: { box: [1340, 420, 520, 420], keep: [110, 96, 350, 268], plaque: true },
+    // `sharp`: a crisp outline (a wooden board's edge, not leaves): no halo kept, barely feathered
+    wall: { box: [1340, 420, 520, 420], keep: [104, 90, 400, 290], plaque: true, sharp: true },
   },
 };
 /** how far (0-255, the largest channel) an edited pixel must be from the room's to count as painted in */
@@ -338,8 +339,8 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
     }
     // specks (Gemini's grain, a dust mote moved) dropped, then the patches closed: grown, holes filled, shrunk back
     for (const px of patches(mask, W, H)) if (px.length < N * 0.003) for (const j of px) mask[j] = 0;
-    mask = morph(fillHoles(morph(mask, W, H, 3, true), W, H), W, H, 2, false);
-    const alpha = await sharp(Buffer.from(mask.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(2).extractChannel(0).raw().toBuffer();
+    mask = morph(fillHoles(morph(mask, W, H, 3, true), W, H), W, H, spot.sharp ? 3 : 2, false);
+    const alpha = await sharp(Buffer.from(mask.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(spot.sharp ? 0.6 : 2).extractChannel(0).raw().toBuffer();
     // day: Gemini's pixels; night: the same, darkened and tinted as the night plate is from the day one there
     const day = Buffer.alloc(N * 4), night = Buffer.alloc(N * 4);
     for (let i = 0; i < N; i++)
@@ -363,13 +364,12 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
     await out(night, `spot-${name}-night.webp`);
     const placed = { src: `/skins/${skin}/spot-${name}.webp`, srcNight: `/skins/${skin}/spot-${name}-night.webp`, x: L + x0, y: T + y0, w: box.width, h: box.height, still: true };
     if (spot.plaque) {
-      // its brass face: the biggest golden patch painted in, a little inside it
-      const gold = new Uint8Array(N);
-      for (let i = 0; i < N; i++) {
-        const [r, g, b] = [edit[i * 3], edit[i * 3 + 1], edit[i * 3 + 2]];
-        gold[i] = mask[i] && r > 150 && g > 115 && r - b > 45 && b < g ? 1 : 0;
-      }
-      const face = patches(gold, W, H).sort((a, b) => b.length - a.length)[0] ?? [];
+      // its brass face: the biggest light patch inside the dark wooden board (a sunbeam shades part of the brass, so not
+      // by its gold), the light around the board left out: it touches the painted-in edge
+      const light = new Uint8Array(N);
+      for (let i = 0; i < N; i++) light[i] = alpha[i] > 200 && 0.3 * edit[i * 3] + 0.59 * edit[i * 3 + 1] + 0.11 * edit[i * 3 + 2] > 115 ? 1 : 0;
+      const inner = (px) => px.every((j) => alpha[j - 1] > 200 && alpha[j + 1] > 200 && alpha[j - W] > 200 && alpha[j + W] > 200);
+      const face = patches(light, W, H).filter(inner).sort((a, b) => b.length - a.length)[0] ?? [];
       const xs = face.map((j) => j % W), ys = face.map((j) => Math.floor(j / W));
       const fx = Math.min(...xs), fy = Math.min(...ys), fw = Math.max(...xs) - fx + 1, fh = Math.max(...ys) - fy + 1;
       const text = { x: L + fx + Math.round(fw * 0.08), y: T + fy + Math.round(fh * 0.1), w: Math.round(fw * 0.84), h: Math.round(fh * 0.8) };
