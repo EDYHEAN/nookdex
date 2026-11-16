@@ -580,4 +580,13 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
   if (decor.length || art[skin].decor) art[skin].decor = decor;
 }
 
+// the greeting card's background (the Advent calendar's 23rd box, app/share/voeux): the room by night with the whole
+// tree, star lit, cut in portrait round it
+if (art.hiver?.tree) {
+  const t = art.hiver.tree;
+  const parts = [t.base, ...["gifts", "snow", "candy", "garland", "socks", "lights"].map((k) => t.layers[k]), ...t.baubles, t.layers.star].filter(Boolean);
+  const room = await sharp("public/scene/plate.webp").composite(parts.map((q) => ({ input: `public${q.srcNight ?? q.src}`, left: q.x, top: q.y }))).png().toBuffer();
+  await sharp(room).extract({ left: 0, top: 186, width: 1080, height: 1350 }).jpeg({ quality: 84 }).toFile("src/assets/voeux-desk.jpg");
+  console.log("hiver: voeux-desk.jpg");
+}
 fs.writeFileSync("src/data/skin-art.json", JSON.stringify(art, null, 2) + "\n");

@@ -225,6 +225,24 @@ doesn't show.
   list) and makes a wishlist of a set binder's missing cards. Wishlists share the 12 shelf slots (an idea for later: a
   Collection / Wishlist switch of the shelf).
 
+## The shop and the Advent calendar
+
+- Skins (docs/skins.md, `src/data/skins.json`, `lib/skins`, `lib/shop`, `room/Shop`): collections sold item by item and as a
+  pack on Stripe (`scripts/stripe-skins.mjs`, run with a live restricted key, Products + Prices: `nookdex-produits`; Vercel's
+  `nookdex-site` is never rotated without updating Vercel). Nothing Pokémon in a paid skin, nothing paid in Nook Survivors.
+  A pack's `from` / `until` set its days in the shop; gone, it shows greyed under « Collections passées ». Soutien
+  (permanent, 4.99 €, 2026-11-16): its pack alone gives Warwick's patron poster and the ★ on shared lists. Every pack has
+  its lamp mood (`tint` + `vignette`), the slots: sky, decor, cat, lamp, radio, plaque, clock. A try-on ends when anything
+  opens, and after 60 s.
+- Skin art (Johan, 2026-11-16: white-sheet cut-outs looked pasted on): Gemini paints into a crop of the room
+  (`img/<set>/spots/`), `scripts/build-skins.mjs` SPOTS keeps what changed in a hand-set zone, relit for the night; the
+  shop's tiles are room snapshots and day / night loops (`node scripts/skin-icons.mjs <set>`, dev server running).
+- Advent calendar 2026 (`lib/advent`, `room/Advent`, `room/AdventBar`): December 1-24, only the day's box (the server's
+  date), the boxes kept among the trophies (`advent:<day>`). The first box opened, whatever its day, brings a fir in place
+  of the monstera and the code NOEL20 (−20 % on the winter pack until December 31st); then a bauble a day and gifts
+  (winter posters, three Warwicks, frost, Silent Night radio, season trophies, a greeting card `/share/voeux`). Dev:
+  `?adventDay=5` (it's December 5th), `?advent=12` (the first 12 shown open). The winter pack sells December 1st → January 6th.
+
 ## Trophies
 
 - `lib/trophies.ts` (the 100: 60 for the desk and the collection, 40 for Nook Survivors won in the game and not needed

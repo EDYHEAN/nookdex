@@ -3,7 +3,8 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { ADVENT_PROMO, DAYS, type Gift, giftsOfDay, goldOf, openDay, useAdvent, useAdventToday } from "@/lib/advent";
-import { useT } from "@/lib/lang";
+import { useLang, useT } from "@/lib/lang";
+import { useStore } from "@/lib/store";
 import { sfx } from "@/lib/sound";
 import styles from "./Advent.module.css";
 
@@ -79,6 +80,37 @@ export function Advent({ onClose }: { onClose: () => void }) {
   const [copied, setCopied] = useState(false);
   // the box being shown was the first opened (it brought the tree): kept for its card
   const [first, setFirst] = useState(false);
+  const lang = useLang();
+  const nickname = useStore((s) => s.profile?.name ?? "");
+  // the greeting card (the 23rd's): fetched as soon as its box shows, Safari refuses a share after a wait
+  const [card, setCard] = useState<File | null>(null);
+  const hasCard = !!reveal && DAYS[reveal - 1].some((g) => g.kind === "card");
+  useEffect(() => {
+    if (!hasCard) return;
+    let live = true;
+    void fetch(`/share/voeux?p=${encodeURIComponent(nickname)}&l=${lang}`)
+      .then((r) => r.blob())
+      .then((b) => live && setCard(new File([b], "nookdex-joyeuses-fetes.png", { type: "image/png" })))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [hasCard, nickname, lang]);
+  const sendCard = async () => {
+    if (!card) return;
+    sfx.click();
+    if (typeof navigator.canShare === "function" && navigator.canShare({ files: [card] })) {
+      try {
+        await navigator.share({ files: [card], text: t("Joyeuses fêtes ! 🎄 nookdex.com", "Happy holidays! 🎄 nookdex.com") });
+        return;
+      } catch {
+        return;
+      }
+    }
+    // no share sheet (a computer): the picture is saved
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(card), download: card.name });
+    a.click();
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && (reveal ? setReveal(null) : onClose());
@@ -176,6 +208,11 @@ export function Advent({ onClose }: { onClose: () => void }) {
                     </motion.li>
                   ))}
                 </ul>
+                {hasCard && (
+                  <button className={styles.code} disabled={!card} onClick={() => void sendCard()}>
+                    💌 {card ? t("Envoyer ma carte", "Send my card") : t("Ta carte arrive…", "Your card is coming…")}
+                  </button>
+                )}
                 {giftsOfDay(reveal, first).some((g) => g.kind === "promo") && (
                   <button
                     className={styles.code}
