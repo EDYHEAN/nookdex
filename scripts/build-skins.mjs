@@ -162,7 +162,10 @@ SPOTS.hiver = {
   // over the cactus's green made no difference, the room's cactus came back over the tree)
   tree: {
     box: TREE_BOX, keep: [0, 0, 800, 1156], edit: "tree-0.jpg", tree: "base", window: true,
-    cover: [{ rect: [0, 470, 500, 1156], pot: [60, 960, 400, 1156] }, { rect: [235, 140, 370, 300], pot: [245, 270, 370, 385], grow: 2, dark: true }],
+    cover: [{ rect: [0, 470, 500, 1156], pot: [60, 960, 400, 1156] }],
+    // its top, before the window and the cactus: Gemini's own tree on flat magenta (tree-key.png), its silhouette as is
+    // (Johan, 2026-11-16: pixel perfect; the greens of the tree and the cactus told nothing apart)
+    key: { file: "tree-key.png", rect: [0, 0, 800, 470] },
   },
   "tree-baubles": layer("baubles", { split: true }),
   // the winter pack's decorations: nothing on the window's panes (Johan, 2026-11-16: too fiddly, never seen), a fir
@@ -173,6 +176,19 @@ SPOTS.hiver = {
   mug: { box: [1480, 880, 400, 320], keep: [60, 60, 260, 300], speck: 20, glowIf: (r, g, b) => r > 235 && g > 170 && b < 150 },
   // the Advent calendar's sleigh (its 17th box), hanging high on the wall
   sleigh: { box: [1000, 0, 900, 300], keep: [0, 0, 900, 300], edit: "sleigh-edit.png", into: "sleigh" },
+  "tree-lights": layer("lights", { glow: true }),
+  "tree-gifts": layer("gifts"),
+  "tree-snow": layer("snow"),
+  "tree-candy": layer("candy"),
+  "tree-garland": layer("garland"),
+  "tree-socks": layer("socks"),
+  // the star: its own outline traced by hand (crop px, its 5 tips and the 5 corners between), as its gold is the window's
+  // and Gemini lit the frame round it: no difference tells it apart
+  "tree-star": layer("star", {
+    glow: true,
+    keep: [180, 90, 300, 210],
+    polygon: [[244, 99], [259, 130], [292, 136], [270, 163], [278, 195], [244, 178], [211, 192], [218, 160], [195, 137], [228, 130]],
+  }),
   // the holly round the clock: not its face (the code draws the hands on the room's own)
   clock: { box: [1400, 230, 300, 300], keep: [0, 0, 300, 300], into: "clock", hole: { cx: 147, cy: 143, rx: 80, ry: 102 } },
 };
@@ -466,6 +482,18 @@ for (const [skin, spots] of Object.entries(SPOTS)) {
       for (let i = 0; i < N; i++) if (pane[i]) mask[i] = tight[i];
     }
     const alpha = await sharp(Buffer.from(mask.map((v) => v * 255)), { raw: { width: W, height: H, channels: 1 } }).blur(spot.sharp || spot.polygon ? 0.6 : 2).extractChannel(0).raw().toBuffer();
+    if (spot.key) {
+      // the silhouette: what isn't magenta, the edge's blend of the two as its softness
+      const key = await sharp(`img/${skin}/spots/${spot.key.file}`).resize(W, H, { fit: "fill", kernel: "lanczos3" }).removeAlpha().raw().toBuffer();
+      const [kx0, ky0, kx1, ky1] = spot.key.rect;
+      for (let i = 0; i < N; i++) {
+        const x = i % W, y = (i - x) / W;
+        if (x < kx0 || x >= kx1 || y < ky0 || y >= ky1) continue;
+        const [rr, gg, bb] = [key[i * 3], key[i * 3 + 1], key[i * 3 + 2]];
+        const magenta = Math.min(1, Math.max(0, (Math.min(rr, bb) - gg - 60) / 110));
+        alpha[i] = Math.round(255 * (1 - magenta));
+      }
+    }
     if (spot.outline) {
       // inside the rect, the painting's own outlines decide: a fill from what Gemini left as the room was (the sky in the
       // panes, the cactus the tree doesn't hide) and from the rect's top and sides, through all but the dark lines; what

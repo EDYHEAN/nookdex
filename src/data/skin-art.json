@@ -219,14 +219,80 @@
       }
     },
     "tree": {
-      "layers": {},
+      "layers": {
+        "lights": {
+          "src": "/skins/hiver/spot-tree-lights.webp",
+          "srcNight": "/skins/hiver/spot-tree-lights-night.webp",
+          "x": 7,
+          "y": 590,
+          "w": 474,
+          "h": 736,
+          "still": true,
+          "glow": true
+        },
+        "gifts": {
+          "src": "/skins/hiver/spot-tree-gifts.webp",
+          "srcNight": "/skins/hiver/spot-tree-gifts-night.webp",
+          "x": 0,
+          "y": 1419,
+          "w": 542,
+          "h": 117,
+          "still": true
+        },
+        "snow": {
+          "src": "/skins/hiver/spot-tree-snow.webp",
+          "srcNight": "/skins/hiver/spot-tree-snow-night.webp",
+          "x": 0,
+          "y": 532,
+          "w": 550,
+          "h": 871,
+          "still": true
+        },
+        "candy": {
+          "src": "/skins/hiver/spot-tree-candy.webp",
+          "srcNight": "/skins/hiver/spot-tree-candy-night.webp",
+          "x": 89,
+          "y": 741,
+          "w": 374,
+          "h": 580,
+          "still": true
+        },
+        "garland": {
+          "src": "/skins/hiver/spot-tree-garland.webp",
+          "srcNight": "/skins/hiver/spot-tree-garland-night.webp",
+          "x": 12,
+          "y": 662,
+          "w": 513,
+          "h": 712,
+          "still": true
+        },
+        "socks": {
+          "src": "/skins/hiver/spot-tree-socks.webp",
+          "srcNight": "/skins/hiver/spot-tree-socks-night.webp",
+          "x": 69,
+          "y": 1202,
+          "w": 398,
+          "h": 164,
+          "still": true
+        },
+        "star": {
+          "src": "/skins/hiver/spot-tree-star.webp",
+          "srcNight": "/skins/hiver/spot-tree-star-night.webp",
+          "x": 194,
+          "y": 479,
+          "w": 99,
+          "h": 97,
+          "still": true,
+          "glow": true
+        }
+      },
       "base": {
         "src": "/skins/hiver/spot-tree.webp",
         "srcNight": "/skins/hiver/spot-tree-night.webp",
         "x": 0,
-        "y": 515,
+        "y": 531,
         "w": 554,
-        "h": 1021,
+        "h": 1005,
         "still": true
       },
       "baubles": [
