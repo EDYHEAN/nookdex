@@ -94,6 +94,27 @@ Row 2, left to right: a small copper watering can; a little pot of fresh basil; 
 No text, no letters, no logos, nothing engraved on the plaque.
 ```
 
+### P1 bis. Les décos peintes dans la pièce (2026-11-16, remplace P1)
+
+P1 (objets seuls sur fond blanc) a donné des objets sans la perspective, la lumière ni le grain de la pièce, et le blanc
+enfermé (macramé) restait (Johan : « c'est naze »). Désormais Gemini peint l'objet **dans un morceau de la pièce**
+(`img/soutien/spots/<nom>.png`, coupé du plateau de jour `public/scene/day.webp` à l'échelle 1) ; le script garde ce qui
+a changé, le recolle sans tremblement, et l'éclaire pour la nuit d'après le plateau de nuit. Jamais sur les étagères
+(classeurs), jamais sur ce qui est animé ou cliquable. Enregistrer le résultat à côté : `<nom>-edit.png`.
+
+Le début de chaque prompt (joindre `img/soutien/spots/<nom>.png`) :
+
+```text
+Edit the attached image at the highest resolution. It is a crop of a painted cozy bedroom. Keep EVERYTHING exactly as it is: same framing, same lines, same colours, same light, same grain; do not move, redraw or clean anything. Only add what is described below, painted in exactly the same hand-drawn style, the same perspective and the same warm afternoon light (the sun comes from the window on the left), with soft contact shadows.
+```
+
+Puis, selon le morceau :
+
+- `sill` : `Add, standing on the wooden window sill between the cactus and the glass jar: a lush Boston fern in a small woven basket, and a small pink flowering kalanchoe in a speckled cream ceramic pot. No text.`
+- `desk` : `Add, on the free wooden desk surface in front of the boombox, near the front corner of the desk: a small terracotta pot of fresh basil, and beside it a tiny glass dome terrarium with moss and a little fern. Nothing touches the boombox or the lava lamp. No text.`
+- `monitor` : `Add a small pothos plant in a little white pot standing on top of the beige CRT monitor, at its left corner; a few leafy vines drape down over the top left corner of the monitor case only, never over its screen, never reaching the lava lamp. No text.`
+- `wall` : `Add a small blank brass plaque screwed on a dark wooden board, hung flat on the wall in the middle of the empty area below the clock, facing the viewer, about as wide as the clock. Its brass face is completely empty and smooth: no text, no letters, no engraving.`
+
 ### P2. Warwick à l'écharpe → `img/soutien/cat-sheet.jpg` (joindre `img/halloween/cat-sheet.jpg`)
 
 ```text
