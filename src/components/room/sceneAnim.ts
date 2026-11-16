@@ -56,7 +56,7 @@ export function drawRain(c: Ctx, t: number) {
 }
 
 /** Snow instead of the rain (the winter sky, the Advent calendar's 14th box): flakes drifting down, small and big */
-const flakes = Array.from({ length: 70 }, () => ({ x: Math.random() * 400, y: Math.random() * 400, r: 0.8 + Math.random() * 1.9, v: 0.25 + Math.random() * 0.55, p: Math.random() * 6.28 }));
+const flakes = Array.from({ length: 90 }, () => ({ x: Math.random() * 400, y: Math.random() * 400, r: 1.2 + Math.random() * 2.2, v: 0.25 + Math.random() * 0.55, p: Math.random() * 6.28 }));
 export function drawSnow(c: Ctx, t: number) {
   const { width: w, height: h } = c.canvas;
   c.clearRect(0, 0, w, h);
@@ -69,10 +69,14 @@ export function drawSnow(c: Ctx, t: number) {
     }
     if (f.x < -4) f.x = w + 2;
     if (f.x > w + 4) f.x = -2;
-    c.fillStyle = `rgba(255,255,255,${0.55 + f.r * 0.15})`;
+    c.fillStyle = `rgba(255,255,255,${0.6 + f.r * 0.12})`;
     c.beginPath();
     c.arc(f.x, f.y, f.r, 0, Math.PI * 2);
     c.fill();
+    // a soft blue-grey edge: white on a bright day sky would vanish
+    c.strokeStyle = "rgba(110,130,165,0.35)";
+    c.lineWidth = 0.7;
+    c.stroke();
   }
 }
 

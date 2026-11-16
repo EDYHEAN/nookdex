@@ -63,7 +63,7 @@ export interface LavaTheme {
 
 export type Rarity = "uncommon" | "rare" | "epic" | "legendary";
 /** where an item goes: one of each worn at a time */
-export type Slot = "sky" | "decor" | "cat" | "lamp" | "radio" | "plaque" | "clock";
+export type Slot = "sky" | "decor" | "cat" | "lamp" | "radio" | "plaque" | "clock" | "season";
 
 /** A thing sold on its own (src/data/skins.json): a part of a set's art, or a colour, or a tune */
 export interface Item {
@@ -126,6 +126,8 @@ export interface Look {
   particles?: "spooky" | "fairy";
   music?: AmbientMood;
   weather?: "snow";
+  /** the season's decoration (the Advent calendar's: the tree, its snow, its sleigh, as its boxes made them) */
+  season?: boolean;
   /** the plaque on the wall, the player's name engraved (the Soutien collection's) */
   plaque?: boolean;
 }
@@ -203,6 +205,7 @@ export function lookOf(ids: string[]): Look | null {
     if (it.music) look.music = it.music;
     if (it.weather) look.weather = it.weather;
     if (it.slot === "plaque") look.plaque = true;
+    if (it.slot === "season") look.season = true;
   }
   return any ? look : null;
 }

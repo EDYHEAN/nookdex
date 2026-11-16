@@ -82,6 +82,14 @@
         "fr": "Horloge",
         "en": "Clock"
       }
+    },
+    {
+      "slot": "season",
+      "icon": "/skins/base/season.webp",
+      "name": {
+        "fr": "Le monstera",
+        "en": "The monstera"
+      }
     }
   ],
   "items": [
@@ -468,6 +476,23 @@
         "en": "« Silent Night » on a music box, December 24th's present."
       },
       "music": "noel"
+    },
+    {
+      "id": "avent-noel",
+      "set": "hiver",
+      "slot": "season",
+      "rarity": "legendary",
+      "price": 0,
+      "gift": 1,
+      "icon": "/skins/hiver/icon-season.webp",
+      "name": {
+        "fr": "Noël 2026",
+        "en": "Christmas 2026"
+      },
+      "blurb": {
+        "fr": "Le sapin de l'Avent avec tout ce que ton calendrier y a accroché, la neige dehors et le traîneau.",
+        "en": "The Advent tree with all your calendar hung on it, the snow outside and the sleigh."
+      }
     }
   ],
   "bundles": [

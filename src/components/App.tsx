@@ -261,9 +261,12 @@ export function App() {
     const q = new URLSearchParams(window.location.search);
     // the Soutien pack worn makes the player a patron too (its plaque)
     // ?advent=12: the Advent calendar's first 12 boxes shown opened (?advent alone: none); ?adventDay=5: it's December 5th
-    if (q.has("advent")) useAdventDev.setState({ opened: Array.from({ length: Number(q.get("advent")) || 0 }, (_, i) => i + 1) });
     if (q.has("adventDay")) useAdventDev.setState({ day: Number(q.get("adventDay")) || null });
     if (q.has("skin")) useSkins.setState({ equipped: itemsOf(q.get("skin") ?? ""), patron: q.get("skin") === "soutien" });
+    if (q.has("advent")) {
+      useAdventDev.setState({ opened: Array.from({ length: Number(q.get("advent")) || 0 }, (_, i) => i + 1) });
+      if (Number(q.get("advent"))) useSkins.setState((s) => ({ equipped: [...s.equipped.filter((id) => id !== "avent-noel"), "avent-noel"] }));
+    }
     /**
      * ?demo=big: a big collector's shelf, for the public list's pickers (Johan, 2026-10-23: 1,200 doubles): 30 set binders
      * across the series, two cards in three owned, a third of them two to four times.

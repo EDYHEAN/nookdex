@@ -30,11 +30,13 @@ export function AdventBar({ compact, calm, onOpen }: { compact: boolean; calm: b
   const t = useT();
   const pathname = usePathname();
   const profile = useStore((s) => !!s.profile);
+  // a newcomer's first steps come first (the welcome, the tour, a binder and a card): the calendar after
+  const settled = useStore((s) => s.binders.length > 0 && Object.keys(s.collection).length > 0);
   const today = useAdventToday();
   const opened = useAdvent();
   const [shown, setShown] = useState(false);
   const waiting = !!today && !opened.includes(today) && !closedToday(today);
-  const eligible = calm && profile && waiting && (pathname === "/" || pathname === "/en");
+  const eligible = calm && profile && settled && waiting && (pathname === "/" || pathname === "/en");
   useWantAsk("advent", eligible && !shown);
   const free = useAskFree("advent");
   useAskUp("advent", shown && eligible);

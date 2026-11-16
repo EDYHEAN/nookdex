@@ -155,6 +155,11 @@ export async function openDay(day: number) {
       const it = ITEMS.find((i) => i.gift === day && i.slot === "cat");
       if (it) wear(it.id, true);
     }
+    if (g.kind === "tree") {
+      // the tree (and later its snow and sleigh) is the locker's « Noël 2026 »: up at once
+      syncGifts();
+      wear("avent-noel", true);
+    }
     if (g.kind === "poster") {
       // hung at once (the room listens: PaintedRoom), kept as the player's pick
       try {

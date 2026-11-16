@@ -165,7 +165,9 @@ export async function buySkin(id: string): Promise<"ok" | "soon" | "error"> {
 /** The items the Advent calendar gave (each its box's: lib/advent, the boxes kept among the trophies) */
 export const giftedItems = () => {
   const got = useTrophyStore.getState().got;
-  return ITEMS.filter((i) => i.gift && got[`advent:${i.gift}`]).map((i) => i.id);
+  const any = Object.keys(got).some((k) => k.startsWith("advent:"));
+  // the 1st's (the tree) comes with the first box opened, whatever its day
+  return ITEMS.filter((i) => i.gift && (got[`advent:${i.gift}`] || (i.gift === 1 && any))).map((i) => i.id);
 };
 /** The calendar's gifts among the items owned (a box opened, on this device or another) */
 export function syncGifts() {

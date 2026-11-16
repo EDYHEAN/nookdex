@@ -10,7 +10,7 @@ import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, NICKNAME_MAX, OS_NAME } from "@/lib/site";
 import { radioBed, setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
-import { treeOf, useAdvent } from "@/lib/advent";
+import { treeOf, useAdvent, useAdventDev } from "@/lib/advent";
 import { PLAQUE, SLEIGH, SUPPORT_BUNDLE, TREE, useLook, usePatron, useSkins, type LavaTheme } from "@/lib/shop";
 import { useAskUp, useWantAsk } from "@/lib/calm";
 import { useTradeShelf } from "@/lib/share";
@@ -281,9 +281,11 @@ function PaintedRoomView({
   // the Advent tree as the opened boxes made it (lib/advent)
   const advent = useAdvent();
   const tree = useMemo(() => treeOf(advent), [advent]);
-  // snow outside instead of the rain: the winter sky, or the calendar's 14th box from December to February
-  const winterMonths = [11, 0, 1].includes(new Date().getMonth());
-  const snowing = skin?.weather === "snow" || (tree.snow && winterMonths);
+  // snow outside instead of the rain: the winter sky, or the calendar's 14th box (with « Noël 2026 » on) from December
+  // to February, or any day the calendar is played in dev (?adventDay)
+  const devDay = useAdventDev((s) => s.day);
+  const winterMonths = [11, 0, 1].includes(new Date().getMonth()) || !!devDay;
+  const snowing = skin?.weather === "snow" || (!!skin?.season && tree.snow && winterMonths);
   const snowRef = useRef(snowing);
   // which particles the skin's canvas draws (Halloween's embers, winter's fairy sparkles)
   const particlesRef = useRef(skin?.particles);
@@ -600,7 +602,7 @@ function PaintedRoomView({
           />
 
           {/* the Advent calendar's sleigh hanging on the wall (its 17th box) */}
-          {SLEIGH && tree.sleigh && (
+          {SLEIGH && tree.sleigh && skin?.season && (
             <img className={`${styles.sprite} ${styles.sway}`} src={!daytime && SLEIGH.srcNight ? SLEIGH.srcNight : SLEIGH.src} style={place(SLEIGH)} alt="" draggable={false} aria-hidden />
           )}
 
@@ -646,7 +648,7 @@ function PaintedRoomView({
           })()}
 
           {/* the Advent tree, in place of the monstera: the bare fir, then what each opened box hung on it, the star last */}
-          {TREE && tree.tree && (
+          {TREE && tree.tree && skin?.season && (
             <span aria-hidden>
               {[
                 TREE.base,
@@ -660,7 +662,7 @@ function PaintedRoomView({
                 ))}
             </span>
           )}
-          {TREE && tree.tree && (
+          {TREE && tree.tree && skin?.season && (
             <button
               className={styles.hotspot}
               style={place({ x: TREE.base.x + TREE.base.w * 0.1, y: TREE.base.y, w: TREE.base.w * 0.8, h: TREE.base.h })}

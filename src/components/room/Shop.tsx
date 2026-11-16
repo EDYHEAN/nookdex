@@ -342,6 +342,7 @@ const SLOTS: { slot: Slot; fr: string; en: string }[] = [
   { slot: "radio", fr: "Radio", en: "Radio" },
   { slot: "plaque", fr: "Plaque", en: "Plaque" },
   { slot: "clock", fr: "Horloge", en: "Clock" },
+  { slot: "season", fr: "Saison", en: "Season" },
 ];
 
 /**

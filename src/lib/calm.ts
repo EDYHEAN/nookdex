@@ -42,9 +42,10 @@ const ZONE: Record<Ask, "strip" | "desk" | "middle"> = {
 const clash = (a: Ask, b: Ask) => ZONE[a] === ZONE[b] || ZONE[a] === "middle" || ZONE[b] === "middle";
 
 /** the order: the first ready one has the room */
-// the account first (once 10 cards are in), the gifts, then the asks; the Monday mail's offer (room/MailAsk) after the road
+// the account first (once 10 cards are in), the gifts, then the asks, the Advent calendar last of all (Johan, 2026-11-16:
+// a newcomer's welcome, tour and quest first); the Monday mail's offer (room/MailAsk) after the road
 // log that announces it
-const PRIORITY: Record<Ask, number> = { save: 0, courrier: 0.5, "trade-note": 1, roadlog: 1.5, release: 1.8, advent: 1.9, quest: 2, mail: 3.5, cat: 4 };
+const PRIORITY: Record<Ask, number> = { save: 0, courrier: 0.5, "trade-note": 1, roadlog: 1.5, release: 1.8, quest: 2, mail: 3.5, cat: 4, advent: 5 };
 
 const DAYS_KEY = "nookdex:visit-days";
 /** a third day of visits, or this many cards: the site has given something, it may ask */

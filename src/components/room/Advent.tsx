@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ADVENT_PROMO, DAYS, type Gift, giftsOfDay, goldOf, openDay, useAdvent, useAdventToday } from "@/lib/advent";
 import { useLang, useT } from "@/lib/lang";
 import { useStore } from "@/lib/store";
@@ -87,31 +87,32 @@ export function Advent({ onClose }: { onClose: () => void }) {
   // the greeting card (the 23rd's): fetched as soon as its box shows, Safari refuses a share after a wait
   const [card, setCard] = useState<File | null>(null);
   const hasCard = !!reveal && DAYS[reveal - 1].some((g) => g.kind === "card");
+  const cardUrl = `/share/voeux?p=${encodeURIComponent(nickname)}&l=${lang}`;
+  const canShare = typeof navigator !== "undefined" && typeof navigator.canShare === "function" && !!card && navigator.canShare({ files: [card] });
   useEffect(() => {
     if (!hasCard) return;
     let live = true;
-    void fetch(`/share/voeux?p=${encodeURIComponent(nickname)}&l=${lang}`)
+    void fetch(cardUrl)
       .then((r) => r.blob())
       .then((b) => live && setCard(new File([b], "nookdex-joyeuses-fetes.png", { type: "image/png" })))
       .catch(() => {});
     return () => {
       live = false;
     };
-  }, [hasCard, nickname, lang]);
+  }, [hasCard, cardUrl]);
   const sendCard = async () => {
     if (!card) return;
     sfx.click();
-    if (typeof navigator.canShare === "function" && navigator.canShare({ files: [card] })) {
-      try {
-        await navigator.share({ files: [card], text: t("Joyeuses fêtes ! 🎄 nookdex.com", "Happy holidays! 🎄 nookdex.com") });
-        return;
-      } catch {
-        return;
-      }
-    }
-    // no share sheet (a computer): the picture is saved
-    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(card), download: card.name });
-    a.click();
+    try {
+      await navigator.share({ files: [card], text: t("Joyeuses fêtes ! 🎄 nookdex.com", "Happy holidays! 🎄 nookdex.com") });
+    } catch {}
+  };
+  // the card's picture, one address for it
+  const cardSrc = useMemo(() => (card ? URL.createObjectURL(card) : null), [card]);
+  const saveCard = () => {
+    if (!card) return;
+    sfx.click();
+    if (cardSrc) Object.assign(document.createElement("a"), { href: cardSrc, download: card.name }).click();
   };
 
   useEffect(() => {
@@ -211,9 +212,21 @@ export function Advent({ onClose }: { onClose: () => void }) {
                   ))}
                 </ul>
                 {hasCard && (
-                  <button className={styles.code} disabled={!card} onClick={() => void sendCard()}>
-                    💌 {card ? t("Envoyer ma carte", "Send my card") : t("Ta carte arrive…", "Your card is coming…")}
-                  </button>
+                  <div className={styles.cardBox}>
+                    <a href={cardUrl} target="_blank" rel="noopener" className={styles.cardThumb} onClick={() => sfx.pop()} title={t("Voir ma carte", "See my card")}>
+                      {cardSrc ? <img src={cardSrc} alt={t("Ta carte de vœux", "Your greeting card")} /> : <span>💌</span>}
+                    </a>
+                    <div className={styles.cardActions}>
+                      {canShare && (
+                        <button className={styles.code} disabled={!card} onClick={() => void sendCard()}>
+                          {t("Partager", "Share")}
+                        </button>
+                      )}
+                      <button className={styles.code} disabled={!card} onClick={saveCard}>
+                        {t("Enregistrer", "Save")}
+                      </button>
+                    </div>
+                  </div>
                 )}
                 {giftsOfDay(reveal, first).some((g) => g.kind === "promo") && (
                   <button
