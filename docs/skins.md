@@ -140,7 +140,55 @@ Edit the attached image at the highest resolution. Keep the same painting style 
 No text, no letters, no logos.
 ```
 
-## Où on en est (2026-10-16) : **la boutique est ouverte**
+## Calendrier de l'Avent 2026 (gratuit) et pack d'hiver (décidé le 2026-11-16)
+
+Du 1er au 24 décembre, une case par jour (`lib/advent.ts` : `DAYS`). Le 1er, un sapin remplace le monstera ; chaque case
+y ajoute une boule (22 boules, du 2 au 23) et l'étoile le 24, plus un cadeau : posters, tenues de Warwick, or, givre,
+carte de vœux, radio de Noël, trophées, et le 1er un code −20 % sur le pack d'hiver jusqu'au 31/12. Seule la case du jour
+s'ouvre (heure du serveur). Téléphone : un bandeau en bas. Le sapin reste après Noël (« Sapin 2026 »).
+
+Le sapin : `img/hiver/spots/tree.png` (coupé de `day.webp` en 0,380, 800×1156) → `tree-0.jpg` (sapin nu, Gemini), puis une
+retouche de `tree-0.jpg` par décoration (`tree-<nom>.png`), découpées par `scripts/build-skins.mjs` (SPOTS hiver).
+
+### Lot 1 : les cadeaux du calendrier
+
+**A1. Le sapin devant le cactus → `img/hiver/spots/tree-front.png`** (joindre `img/hiver/spots/tree-0.jpg`)
+
+```text
+Edit the attached image at the highest resolution. Keep EVERYTHING exactly as it is: same framing, same lines, same colours, same light, same grain; do not move or redraw anything else. The fir tree stands in front of the window sill, closer to the viewer: repaint only the top of the tree so its branches pass in front of the cactus and its pot, hiding part of them, instead of behind them. Same hand-drawn style and light. No text.
+```
+
+**A2. Six posters → `img/hiver/posters.jpg`** (joindre `img/scene.jpg` pour le style, format paysage, le plus grand possible)
+
+```text
+A sheet of 6 small painted posters, arranged in a neat grid of 3 columns and 2 rows on a plain pure white background, with even white gaps between them. Each poster is a flat rectangle seen perfectly from the front, portrait format 3:4, all exactly the same size, its painting filling it edge to edge: no paper border, no frame, no tape, no shadow, no perspective. Each one is a winter art print a teenager would pin above the desk, painted in the same gouache style and the same palette as the attached room (deep night blues, warm peach lights, honey woods, muted lavender and teal).
+Row 1, left to right: a small village under the snow at dusk, warm lit windows, smoke from the chimneys; a cozy Christmas market at night, wooden stalls with string lights, people with mugs; a wooden chalet in a snowy pine forest at night, one lit window, stars.
+Row 2, left to right: an outdoor ice rink at dusk with a few skaters and garlands of lights; a cheerful snowman with a red scarf in a snowy garden, soft snowfall; green and violet northern lights over a frozen lake and snowy mountains.
+No text, no letters, no logos, nothing Pokémon.
+```
+
+**A3. Trois tenues de Warwick → `img/hiver/cat-renne.jpg`, `cat-lutin.jpg`, `cat-bonnet.jpg`** (joindre `img/halloween/cat-sheet.jpg`)
+
+```text
+Edit the attached image at the highest resolution. Keep exactly the same painting style, the same white background, the same layout, the same two cats in the same poses and at the same places and sizes (the sleeping one and the sitting one). Remove the witch hats and the spider. Give each cat <TENUE>. Nothing else changes.
+No text, no letters, no logos.
+```
+`<TENUE>` : renne `a soft brown reindeer antler headband with tiny felt antlers and a small red bell collar` ; lutin
+`a pointy green elf hat with a red trim and a little golden bell at its tip` ; bonnet `a cozy midnight-blue nightcap with
+little yellow stars and a white pompom`.
+
+**A4. Le givre → `img/hiver/spots/window-frost.png`** (joindre `img/hiver/spots/window.png`)
+
+```text
+Edit the attached image at the highest resolution. Keep EVERYTHING exactly as it is: same framing, same lines, same colours, same light, same grain; do not move or redraw anything. Only add delicate white frost patterns in the corners of each window pane, like ferns of ice on the glass, the centre of the panes left clear. Same hand-drawn style. No text.
+```
+
+**A5. Trois trophées → `img/trophies-avent.jpg`** (joindre `img/trophies-plus.jpg` comme modèle de style)
+
+```text
+A sheet of 3 small painted trinkets in one row on a plain pure white background, evenly spaced, each centered, nothing touching, no shadow on the background, in exactly the same painted style as the attached sheet. Left to right: a tiny wrapped present with a red ribbon; a little wooden advent calendar house with seven of its small doors open; a shiny golden star Christmas ornament on a ribbon. No text, no letters, no logos.
+```
+
 
 **Depuis le 2026-11-04 (pack Halloween fini) : plus rien en vente.** Entre deux collections (`selling()` faux dans
 `lib/shop`), pas de vitrine : le bouton du coin devient « Mon casier », seulement pour qui possède un skin, et le casier ne
