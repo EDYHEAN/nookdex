@@ -78,7 +78,9 @@ export function Shop({ onClose }: { onClose: () => void }) {
 
   const featured = BUNDLES.filter(onSale);
   // the packs gone (Halloween): further down, greyed, to show there's been more and it comes back
-  const past = BUNDLES.filter((b) => !onSale(b));
+  // ended ones only (its last day gone by): a pack still to come (the winter pack before December 1st) isn't « past »
+  const today = new Date().toISOString().slice(0, 10);
+  const past = BUNDLES.filter((b) => !!b.until && b.until < today);
   const items = ITEMS.filter(onSale);
   const until = featured[0]?.until;
   const thing = open ? (BUNDLE.get(open) ?? ITEM.get(open)) : undefined;
