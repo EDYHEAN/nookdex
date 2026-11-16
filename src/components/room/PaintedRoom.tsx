@@ -10,7 +10,7 @@ import { copiesTotals, formatMoney, setStats } from "@/lib/price";
 import { SCENE, quadMatrix, sceneImg } from "@/lib/scene";
 import { NAME_PARTS, OS_NAME } from "@/lib/site";
 import { radioBed, setAmbientMood, sfx, startAmbient, stopAmbient } from "@/lib/sound";
-import { useLook, type LavaTheme } from "@/lib/shop";
+import { PLAQUE, SUPPORT_BUNDLE, useLook, usePatron, useSkins, type LavaTheme } from "@/lib/shop";
 import { useAskUp, useWantAsk } from "@/lib/calm";
 import { useTradeShelf } from "@/lib/share";
 import { useStore } from "@/lib/store";
@@ -252,6 +252,10 @@ function PaintedRoomView({
   const lavaTheme = useRef(0);
   /** the shop's items worn (lib/shop): their pictures over the room, a lava colour first in the lamp's cycle */
   const skin = useLook();
+  // the plaque shows to whoever bought the pack, and while it is tried on from the shop
+  const tryingPack = useSkins((s) => s.trying === SUPPORT_BUNDLE);
+  const patron = usePatron() || tryingPack;
+  const patronName = useStore((s) => s.profile?.name ?? "");
   const skinLava = skin?.lava;
   const lavaThemes = useMemo<LavaTheme[]>(() => (skinLava ? [skinLava, ...LAVA_THEMES] : LAVA_THEMES), [skinLava]);
   const themesRef = useRef(lavaThemes);
@@ -548,6 +552,18 @@ function PaintedRoomView({
               ))}
             </span>
           ))}
+
+          {/* the Soutien pack's plaque, the player's name engraved on it: there whatever is worn */}
+          {patron && PLAQUE && (
+            <span>
+              <span className={styles.skinShadow} style={{ left: PLAQUE.x + PLAQUE.w * 0.08, top: PLAQUE.y + PLAQUE.h - 10, width: PLAQUE.w * 0.84, height: 16 }} aria-hidden />
+              <img className={`${styles.sprite} ${styles.skinThing}`} src={PLAQUE.src} style={place(PLAQUE)} alt="" draggable={false} />
+              <span className={styles.plaqueText} style={{ ...place(PLAQUE.text), fontSize: Math.round(PLAQUE.text.h * 0.36) }} aria-hidden>
+                <small>{tr("Mécène", "Patron")}</small>
+                {patronName.slice(0, 24)}
+              </span>
+            </span>
+          )}
 
           {skin?.art.spider && <SkinSpider spider={skin.art.spider} paused={paused} />}
 

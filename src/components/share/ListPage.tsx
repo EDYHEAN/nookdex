@@ -20,6 +20,8 @@ interface Props {
   slug: string;
   gone?: boolean;
   name?: string;
+  /** the owner bought the Soutien pack: a gold ★ by the name */
+  patron?: boolean;
   updatedAt?: string;
   prices?: boolean;
   want?: ListCard[];
@@ -49,7 +51,7 @@ function ago(iso: string, en: boolean) {
 const money = (n: number | null, currency: string, en: boolean) =>
   n == null ? "—" : new Intl.NumberFormat(en ? "en-US" : "fr-FR", { style: "currency", currency, maximumFractionDigits: n >= 100 ? 0 : 2 }).format(n);
 
-export function ListPage({ en, slug, gone, name = "", updatedAt = "", prices = true, want = [], give = [] }: Props) {
+export function ListPage({ en, slug, gone, name = "", patron = false, updatedAt = "", prices = true, want = [], give = [] }: Props) {
   const t = (fr: string, english: string) => (en ? english : fr);
   const site = en ? "en" : "fr";
   const home = `${en ? "/en" : "/"}?utm_source=share`;
@@ -134,7 +136,14 @@ export function ListPage({ en, slug, gone, name = "", updatedAt = "", prices = t
           <a className={styles.brand} href={home}>
             {SITE_NAME}
           </a>
-          <h1>{t(`La liste de ${name}`, `${name}'s list`)}</h1>
+          <h1>
+            {t(`La liste de ${name}`, `${name}'s list`)}
+            {patron && (
+              <span className={styles.patron} title={t("Mécène de NookDex", "NookDex patron")}>
+                ★
+              </span>
+            )}
+          </h1>
           <p className={styles.fresh} suppressHydrationWarning>
             {updatedAt && ago(updatedAt, en)}
           </p>

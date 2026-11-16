@@ -1230,3 +1230,27 @@ grant execute on function public.amazon_click(text, text) to anon, authenticated
 grant execute on function public.amazon_click(text) to anon, authenticated;
 grant execute on function public.amazon_sources(date) to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------------------------------------------------------
+-- The Soutien pack (2026-11-16, docs/skins.md): a list whose owner bought it shows a ★ by the name. share_get gains
+-- `patron` (a new column in its result: dropped and made again, same grants).
+-- ---------------------------------------------------------------------------------------------------------------
+drop function if exists public.share_get(text, boolean);
+create function public.share_get(p_slug text, p_view boolean default false)
+returns table (name text, lang text, prices boolean, data jsonb, updated_at timestamptz, patron boolean)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+begin
+  if p_view then update public.shares s set views = s.views + 1 where s.slug = p_slug; end if;
+  return query
+    select s.name, s.lang, s.prices, s.data, s.updated_at,
+      exists (select 1 from public.purchases p where p.user_id = s.user_id and p.skin = 'soutien')
+    from public.shares s
+    where s.slug = p_slug and (s.user_id is not null or s.updated_at > now() - interval '6 months');
+end $$;
+revoke all on function public.share_get(text, boolean) from public;
+grant execute on function public.share_get(text, boolean) to anon, authenticated;
+notify pgrst, 'reload schema';

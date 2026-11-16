@@ -51,6 +51,7 @@ export default async function SharePage({ params }: PageProps<"/c/[slug]">) {
       en={en}
       slug={slug}
       name={who(row.name, en)}
+      patron={!!row.patron}
       updatedAt={row.updated_at}
       prices={row.prices}
       want={sortList(want)}

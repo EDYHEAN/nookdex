@@ -6,7 +6,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { supabase, useCloud } from "./cloud";
 import { funnelStep } from "./funnel";
 import { STUDIO_EMAIL_HASHES } from "./site";
-import { BUNDLES, ITEM, ITEMS, itemsOf, lookOf, onSale, type Look, type Slot } from "./skins";
+import { BUNDLES, ITEM, ITEMS, itemsOf, lookOf, onSale, SUPPORT_BUNDLE, type Look, type Slot } from "./skins";
 
 export * from "./skins";
 
@@ -53,22 +53,24 @@ interface SkinState {
   equipped: string[];
   /** items bought (from the server: a bundle counts as its items) */
   owned: string[];
+  /** the Soutien pack bought (the pack itself, not its items one by one): the Mécène plaque and the ★ on shared lists */
+  patron: boolean;
   /** an item or a bundle tried on from the shop: shown over what's worn, not kept */
   trying: string | null;
 }
 
 export const useSkins = create<SkinState>()(
-  persist(() => ({ equipped: [], owned: [], trying: null }) as SkinState, {
+  persist(() => ({ equipped: [], owned: [], patron: false, trying: null }) as SkinState, {
     name: "nookdex:skins",
     version: 1,
     storage: createJSONStorage(() => localStorage),
-    partialize: (s) => ({ equipped: s.equipped, owned: s.owned }),
+    partialize: (s) => ({ equipped: s.equipped, owned: s.owned, patron: s.patron }),
     // v0 wore one whole skin: its items now
     migrate: (old, v) => {
       const o = old as { equipped?: string | string[] | null; owned?: string[] };
       if (v >= 1) return o as SkinState;
       const one = typeof o.equipped === "string" ? itemsOf(o.equipped) : [];
-      return { equipped: one, owned: (o.owned ?? []).flatMap(itemsOf), trying: null };
+      return { equipped: one, owned: (o.owned ?? []).flatMap(itemsOf), patron: false, trying: null };
     },
   }),
 );
@@ -164,10 +166,18 @@ export async function refreshOwned() {
   // Johan's accounts own the whole shop (Johan, 2026-10-16)
   const email = useCloud.getState().email;
   if (email && STUDIO_EMAIL_HASHES.includes(await sha256(email))) {
-    useSkins.setState({ owned: ITEMS.map((i) => i.id) });
+    useSkins.setState({ owned: ITEMS.map((i) => i.id), patron: true });
     return;
   }
   const { data, error } = await supabase.from("purchases").select("skin");
   if (error) return;
-  useSkins.setState({ owned: [...new Set((data ?? []).flatMap((r: { skin: string }) => itemsOf(r.skin)))] });
+  const rows = (data ?? []) as { skin: string }[];
+  useSkins.setState({ owned: [...new Set(rows.flatMap((r) => itemsOf(r.skin)))], patron: rows.some((r) => r.skin === SUPPORT_BUNDLE) });
+}
+
+/** The Soutien pack bought, while the shop is there (its plaque in the room) */
+export function usePatron() {
+  const open = useShopOpen();
+  const patron = useSkins((s) => s.patron);
+  return open && patron;
 }

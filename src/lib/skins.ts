@@ -39,6 +39,8 @@ export interface SkinArt {
   cat?: { sleep: Placed; awake: Placed };
   /** a spider that drops down its thread from (x, top) to `drop` now and then, and climbs back */
   spider?: { src: string; w: number; h: number; x: number; top: number; drop: number };
+  /** the Soutien pack's Mécène plaque (shown to whoever bought the pack, whatever is worn): the player's name engraved in `text` */
+  plaque?: Placed & { text: Box };
 }
 
 export interface LavaTheme {
@@ -122,11 +124,23 @@ const CAT = catalogue as {
   bundles: Bundle[];
 };
 export const BASE: BaseItem[] = CAT.base;
+/**
+ * A collection whose art isn't cut yet (scripts/build-skins) stays out of the shop in production: its catalogue can be
+ * merged before its pictures (the Soutien pack, 2026-11-16, would have reopened the shop with empty tiles).
+ */
+const ready = (set: string) => process.env.NODE_ENV !== "production" || !!ART[set];
+const READY_ITEMS = CAT.items.filter((i) => ready(i.set));
 /** The collections, in the catalogue's order: each set's name and items */
-export const COLLECTIONS = Object.entries(CAT.sets).map(([id, name]) => ({ id, name, items: CAT.items.filter((i) => i.set === id).map((i) => i.id) }));
+export const COLLECTIONS = Object.entries(CAT.sets)
+  .filter(([id]) => ready(id))
+  .map(([id, name]) => ({ id, name, items: READY_ITEMS.filter((i) => i.set === id).map((i) => i.id) }));
 
-export const BUNDLES: Bundle[] = CAT.bundles;
-export const ITEMS: Item[] = CAT.items.map((i) => ({ ...i, until: BUNDLES.find((b) => b.items.includes(i.id))?.until }));
+export const BUNDLES: Bundle[] = CAT.bundles.filter((b) => b.items.every((id) => READY_ITEMS.some((i) => i.id === id)));
+/** The permanent pack that supports the site (Johan, 2026-11-16): bought as a pack, it adds the plaque and the ★ */
+export const SUPPORT_BUNDLE = "soutien";
+/** The Mécène plaque, once its art is cut (scripts/build-skins) */
+export const PLAQUE = ART[SUPPORT_BUNDLE]?.plaque;
+export const ITEMS: Item[] = READY_ITEMS.map((i) => ({ ...i, until: BUNDLES.find((b) => b.items.includes(i.id))?.until }));
 export const ITEM = new Map(ITEMS.map((i) => [i.id, i]));
 export const BUNDLE = new Map(BUNDLES.map((b) => [b.id, b]));
 

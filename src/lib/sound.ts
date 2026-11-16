@@ -317,7 +317,16 @@ const SPOOKY = [
   [52, 56, 59, 65],
 ];
 const HARMONIC = [69, 71, 72, 76, 77, 80, 81, 84];
-export type AmbientMood = "lofi" | "spooky";
+// The Soutien pack's radio: "jazz", a swung ii-V-I-VI in C (Dm9 - G13 - Cmaj9 - A7b9), walking bass, vibes
+const JAZZ = [
+  [53, 57, 60, 64],
+  [53, 59, 64, 69],
+  [52, 55, 59, 62],
+  [55, 61, 65, 70],
+];
+const JAZZ_ROOTS = [50, 43, 48, 45];
+const VIBES = [72, 74, 76, 79, 81, 83, 84];
+export type AmbientMood = "lofi" | "spooky" | "jazz";
 let mood: AmbientMood = "lofi";
 /** The radio's tune: taken up from the next beat */
 export const setAmbientMood = (m: AmbientMood) => {
@@ -328,6 +337,7 @@ const midi = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
 function schedule() {
   if (!ctx || !ambientGain) return;
   if (mood === "spooky") return scheduleSpooky();
+  if (mood === "jazz") return scheduleJazz();
   const spb = 60 / 72;
   while (nextBeat < ctx.currentTime + 0.4) {
     const t = nextBeat - ctx.currentTime;
@@ -388,6 +398,51 @@ function scheduleSpooky() {
     // the theremin, once in a while: a long slide up over the chord
     if (inBar === 0 && bar === 3 && Math.random() < 0.5) {
       tone({ freq: midi(chord[1] + 12), to: midi(chord[3] + 12), type: "sine", dur: spb * 3, vol: 0.018, delay: t + spb * 0.5, attack: 0.4, dest: g });
+    }
+    nextBeat += spb;
+    beat++;
+  }
+}
+
+/** The Soutien pack's radio: a café trio, swung (the off-beat two thirds into the beat), brushes and a ride */
+function scheduleJazz() {
+  if (!ctx || !ambientGain) return;
+  const spb = 60 / 84;
+  const swing = spb * 0.66;
+  const g = ambientGain;
+  while (nextBeat < ctx.currentTime + 0.4) {
+    const t = nextBeat - ctx.currentTime;
+    const bar = Math.floor(beat / 4) % JAZZ.length;
+    const inBar = beat % 4;
+    const chord = JAZZ[bar];
+    const root = JAZZ_ROOTS[bar];
+    // walking bass: the root, a step, the fifth, then a half step into the next bar's root
+    const next = JAZZ_ROOTS[(bar + 1) % JAZZ_ROOTS.length];
+    const walk = [root, root + (Math.random() < 0.5 ? 2 : 3), root + 7, next + (Math.random() < 0.5 ? 1 : -1)][inBar];
+    tone({ freq: midi(walk), type: "triangle", dur: spb * 0.9, vol: 0.11, delay: t, attack: 0.01, dest: g });
+    tone({ freq: midi(walk), type: "sine", dur: spb * 0.7, vol: 0.06, delay: t, dest: g });
+    // the keys: the chord on the bar, a short stab on a swung off-beat now and then
+    if (inBar === 0) {
+      chord.forEach((n, i) => {
+        tone({ freq: midi(n), type: "sine", dur: spb * 2.5, vol: 0.04, delay: t + i * 0.015, attack: 0.02, dest: g });
+        tone({ freq: midi(n) * 1.003, type: "triangle", dur: spb, vol: 0.01, delay: t + i * 0.015, dest: g });
+      });
+    } else if (Math.random() < 0.3) {
+      chord.forEach((n) => tone({ freq: midi(n), type: "sine", dur: spb * 0.4, vol: 0.03, delay: t + swing, attack: 0.01, dest: g }));
+    }
+    // drums: the ride on every beat and the swung off-beat of 2 and 4, brushes on 2 and 4, a soft kick on 1
+    noise({ dur: 0.12, vol: 0.022, type: "highpass", freq: 6000, delay: t, dest: g });
+    if (inBar === 1 || inBar === 3) {
+      noise({ dur: 0.06, vol: 0.016, type: "highpass", freq: 6500, delay: t + swing, dest: g });
+      noise({ dur: 0.25, vol: 0.04, freq: 2200, q: 0.5, delay: t, attack: 0.04, dest: g });
+    }
+    if (inBar === 0) tone({ freq: 90, to: 45, type: "sine", dur: 0.2, vol: 0.12, delay: t, dest: g });
+    // the vibes: a note of the scale, on the beat or swung, with a faint octave shimmer
+    if (Math.random() < 0.32) {
+      const n = VIBES[Math.floor(Math.random() * VIBES.length)];
+      const at = t + (Math.random() < 0.5 ? 0 : swing);
+      tone({ freq: midi(n), type: "sine", dur: 0.7, vol: 0.03, delay: at, attack: 0.005, dest: g });
+      tone({ freq: midi(n + 12), type: "sine", dur: 0.35, vol: 0.008, delay: at, attack: 0.005, dest: g });
     }
     nextBeat += spb;
     beat++;

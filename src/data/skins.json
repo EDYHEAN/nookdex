@@ -3,6 +3,10 @@
     "halloween": {
       "fr": "Halloween",
       "en": "Halloween"
+    },
+    "soutien": {
+      "fr": "Soutien",
+      "en": "Supporter"
     }
   },
   "base": [
@@ -142,6 +146,98 @@
         "en": "A Halloween lofi: minor chords, a music box and a theremin."
       },
       "music": "spooky"
+    },
+    {
+      "id": "soutien-sky",
+      "set": "soutien",
+      "slot": "sky",
+      "rarity": "epic",
+      "price": 1.49,
+      "icon": "/skins/soutien/icon-sky.webp",
+      "name": {
+        "fr": "Aube rose",
+        "en": "Rose dawn"
+      },
+      "blurb": {
+        "fr": "Le premier rose de l'aube derrière la fenêtre, et un matin de printemps le jour.",
+        "en": "Dawn's first pink through the window, and a spring morning by day."
+      }
+    },
+    {
+      "id": "soutien-decor",
+      "set": "soutien",
+      "slot": "decor",
+      "rarity": "rare",
+      "price": 1.49,
+      "icon": "/skins/soutien/fern.webp",
+      "cutout": true,
+      "name": {
+        "fr": "Coin jungle",
+        "en": "Jungle corner"
+      },
+      "blurb": {
+        "fr": "Une suspension en macramé, une fougère, un terrarium, du basilic et une pile de vieux livres.",
+        "en": "A macramé hanger, a fern, a terrarium, some basil and a pile of old books."
+      }
+    },
+    {
+      "id": "soutien-cat",
+      "set": "soutien",
+      "slot": "cat",
+      "rarity": "epic",
+      "price": 1.49,
+      "icon": "/skins/soutien/cat-sleep.webp",
+      "cutout": true,
+      "name": {
+        "fr": "Warwick écharpe dorée",
+        "en": "Golden-scarf Warwick"
+      },
+      "blurb": {
+        "fr": "Warwick dans une grosse écharpe tricotée couleur moutarde, qu'il dorme ou qu'on le caresse.",
+        "en": "Warwick in a chunky mustard knitted scarf, asleep or purring."
+      }
+    },
+    {
+      "id": "soutien-lamp",
+      "set": "soutien",
+      "slot": "lamp",
+      "rarity": "uncommon",
+      "price": 1.49,
+      "icon": "/skins/soutien/icon-lamp.webp",
+      "name": {
+        "fr": "Lampe menthe",
+        "en": "Mint lamp"
+      },
+      "blurb": {
+        "fr": "La lampe à lave vert menthe et une lumière fraîche sur toute la pièce.",
+        "en": "The mint green lava lamp and a fresh light over the whole room."
+      },
+      "tint": "rgba(110, 230, 190, 0.32)",
+      "lava": {
+        "name": "menthe",
+        "nameEn": "mint",
+        "fill": "#5fe0b4",
+        "light": "#c8f7e6",
+        "line": "#0f4a3a",
+        "glow": "rgba(90,230,180,0.32)"
+      }
+    },
+    {
+      "id": "soutien-radio",
+      "set": "soutien",
+      "slot": "radio",
+      "rarity": "uncommon",
+      "price": 1.49,
+      "icon": "/skins/soutien/icon-radio.webp",
+      "name": {
+        "fr": "Café jazz",
+        "en": "Jazz café"
+      },
+      "blurb": {
+        "fr": "Un trio de café : contrebasse qui marche, balais, vibraphone.",
+        "en": "A café trio: walking bass, brushes and vibes."
+      },
+      "music": "jazz"
     }
   ],
   "bundles": [
@@ -165,6 +261,27 @@
       "blurb": {
         "fr": "Tout Halloween d'un coup : le bureau se déguise de la fenêtre à la radio.",
         "en": "All of Halloween at once: the desk dresses up from the window to the radio."
+      }
+    },
+    {
+      "id": "soutien",
+      "rarity": "legendary",
+      "price": 4.99,
+      "icon": "/skins/soutien/preview.webp",
+      "items": [
+        "soutien-sky",
+        "soutien-decor",
+        "soutien-cat",
+        "soutien-lamp",
+        "soutien-radio"
+      ],
+      "name": {
+        "fr": "Pack Soutien",
+        "en": "Supporter pack"
+      },
+      "blurb": {
+        "fr": "Les cinq objets, plus la plaque « Mécène » gravée à ton pseudo et une ★ sur ta liste partagée. Il aide NookDex à rester gratuit.",
+        "en": "All five items, plus a « Patron » plaque engraved with your name and a ★ on your shared list. It keeps NookDex free."
       }
     }
   ]

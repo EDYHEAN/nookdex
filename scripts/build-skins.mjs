@@ -30,6 +30,23 @@ const SHEETS = [
     /** the views through the window, made like the room's (scripts/build-scene) */
     skies: { sky: "img/halloween/sky.jpg", "sky-day": "img/halloween/sky-day.jpg" },
   },
+  {
+    // the Soutien pack (2026-11-16): prompts P1-P4 in docs/skins.md
+    skin: "soutien",
+    src: "img/soutien/decor-sheet.jpg",
+    cols: 4,
+    rows: 2,
+    names: ["macrame", "fern", "books", "terrarium", "can", "basil", "plaque", "kalanchoe"],
+    light: [],
+    // Gemini's edit of the Halloween cats keeps their places: the same boxes first, measured again on the sheet
+    crops: {
+      "img/soutien/cat-sheet.jpg": {
+        "cat-sleep": { box: [55, 647, 1101, 729] },
+        "cat-awake": { box: [1100, 255, 1026, 1114], erase: [[1100, 798, 56, 571], [1100, 255, 90, 70]] },
+      },
+    },
+    skies: { sky: "img/soutien/sky.jpg", "sky-day": "img/soutien/sky-day.jpg" },
+  },
 ];
 
 /**
@@ -55,6 +72,23 @@ const PLACES = {
     },
     // the spider of the corner's cobweb: its thread hangs from (x, top), it drops down to `drop` now and then
     spider: { name: "spider", x: 1150, top: 30, drop: 560, w: 84 },
+  },
+  // first guesses from the Halloween places: to check in the room once the art is cut
+  soutien: {
+    decor: [
+      { name: "kalanchoe", cx: 523, bottom: 746, w: 110, shadow: true }, // on the window sill, between the cactus and the jar
+      { name: "basil", cx: 752, bottom: 1256, w: 96, shadow: true }, // on the desk, in front of the boombox
+      { name: "books", cx: 1741, bottom: 1212, w: 120, shadow: true }, // on the desk, by the mouse pad
+      { name: "terrarium", cx: 640, bottom: 746, w: 92, shadow: true }, // on the sill
+      { name: "macrame", x: 1150, y: 40, w: 150 }, // hanging from the corner, its vines down the wall
+      { name: "fern", cx: 2560, bottom: 1500, w: 300, shadow: true }, // on the floor, the right corner
+    ],
+    cat: {
+      sleep: { name: "cat-sleep", cx: 2148, bottom: 1243, w: 400 },
+      awake: { name: "cat-awake", cx: 2163, bottom: 1250, w: 412 },
+    },
+    // the Mécène plaque, on the desk; `text`: where the name is engraved, as parts of the picture (left, top, width, height)
+    plaque: { name: "plaque", cx: 1560, bottom: 1222, w: 150, shadow: true, text: [0.16, 0.2, 0.68, 0.42] },
   },
 };
 
@@ -117,8 +151,13 @@ async function cutCell(file, left, top, width, height, light, erase = []) {
   return sharp(out, { raw: { width: W, height: H, channels: 4 } }).extract(box);
 }
 
-const art = {};
+// the sheets not painted yet keep what they had
+const art = fs.existsSync("src/data/skin-art.json") ? JSON.parse(fs.readFileSync("src/data/skin-art.json", "utf8")) : {};
 for (const sheet of SHEETS) {
+  if (!fs.existsSync(sheet.src)) {
+    console.log(sheet.skin, "skipped: no", sheet.src);
+    continue;
+  }
   const { width, height } = await sharp(sheet.src).metadata();
   const cw = Math.floor(width / sheet.cols), ch = Math.floor(height / sheet.rows);
   const dir = `public/skins/${sheet.skin}`;
@@ -127,7 +166,7 @@ for (const sheet of SHEETS) {
   const cells = [
     ...sheet.names.map((name, k) => ({ name, file: sheet.src, left: (k % sheet.cols) * cw, top: Math.floor(k / sheet.cols) * ch, width: cw, height: ch })),
     ...(await Promise.all(Object.entries(sheet.singles ?? {}).map(async ([name, file]) => ({ name, file, left: 0, top: 0, ...(await sharp(file).metadata()) })))),
-    ...Object.entries(sheet.crops ?? {}).flatMap(([file, things]) =>
+    ...Object.entries(sheet.crops ?? {}).filter(([file]) => fs.existsSync(file)).flatMap(([file, things]) =>
       Object.entries(things).map(([name, { box: [left, top, width, height], erase }]) => ({ name, file, left, top, width, height, erase })),
     ),
   ];
@@ -139,7 +178,7 @@ for (const sheet of SHEETS) {
     fs.writeFileSync(`${dir}/${name}.webp`, data);
     sizes[name] = { w: info.width, h: info.height };
   }
-  for (const [name, file] of Object.entries(sheet.skies ?? {})) await sharp(file).resize(1600).webp({ quality: 80 }).toFile(`${dir}/${name}.webp`);
+  for (const [name, file] of Object.entries(sheet.skies ?? {})) if (fs.existsSync(file)) await sharp(file).resize(1600).webp({ quality: 80 }).toFile(`${dir}/${name}.webp`);
   const place = (p) => {
     const s = sizes[p.name];
     const w = p.w, h = Math.round((p.w * s.h) / s.w);
@@ -153,8 +192,17 @@ for (const sheet of SHEETS) {
     ...(fs.existsSync(`public/skins/${sheet.skin}/sky.webp`) ? { sky: `/skins/${sheet.skin}/sky.webp` } : {}),
     ...(fs.existsSync(`public/skins/${sheet.skin}/sky-day.webp`) ? { skyDay: `/skins/${sheet.skin}/sky-day.webp` } : {}),
     decor: pl.decor.map(place),
-    cat: { sleep: place(pl.cat.sleep), awake: place(pl.cat.awake) },
-    spider: (({ src, w, h }) => ({ src, w, h, x: pl.spider.x, top: pl.spider.top, drop: pl.spider.drop }))(place({ ...pl.spider, cx: 0, bottom: 0 })),
+    ...(pl.cat && sizes[pl.cat.sleep.name] ? { cat: { sleep: place(pl.cat.sleep), awake: place(pl.cat.awake) } } : {}),
+    ...(pl.spider ? { spider: (({ src, w, h }) => ({ src, w, h, x: pl.spider.x, top: pl.spider.top, drop: pl.spider.drop }))(place({ ...pl.spider, cx: 0, bottom: 0 })) } : {}),
+    ...(pl.plaque
+      ? {
+          plaque: (() => {
+            const b = place(pl.plaque);
+            const [tx, ty, tw, th] = pl.plaque.text;
+            return { ...b, text: { x: Math.round(b.x + tx * b.w), y: Math.round(b.y + ty * b.h), w: Math.round(tw * b.w), h: Math.round(th * b.h) } };
+          })(),
+        }
+      : {}),
   };
   console.log(sheet.skin, Object.entries(sizes).map(([n, s]) => `${n} ${s.w}x${s.h}`).join(", "));
 }

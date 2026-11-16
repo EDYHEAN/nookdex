@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { catalogSet, loadSets, setIdOfCard, useSets } from "@/lib/catalog";
 import { useLang, useT } from "@/lib/lang";
 import { DENSITIES, type Density, type ListItem, densityFor, drawPage, sortItems } from "@/lib/listImages";
+import { usePatron } from "@/lib/shop";
 import { sfx } from "@/lib/sound";
 import { useStore } from "@/lib/store";
 import { unlock } from "@/lib/trophyStore";
@@ -66,7 +67,9 @@ export function ExportImages({ start, want, give, onClose }: { start: Side; want
   }, [items]);
 
   /** the pictures drawn, for the choice `sig` (those of a former choice aren't shown) */
-  const sig = `${side}|${density}|${prices}|${only.join()}|${items.map((i) => (i.card ? i.key : "")).join()}`;
+  // the Soutien pack's ★ by the name
+  const patron = usePatron();
+  const sig = `${side}|${patron}|${density}|${prices}|${only.join()}|${items.map((i) => (i.card ? i.key : "")).join()}`;
   const [run, setRun] = useState<{ sig: string; shots: Shot[]; done: number }>({ sig: "", shots: [], done: 0 });
   const shots = useMemo(() => (run.sig === sig ? run.shots : []), [run, sig]);
   const done = run.sig === sig ? run.done : 0;
@@ -82,7 +85,7 @@ export function ExportImages({ start, want, give, onClose }: { start: Side; want
         const blob = await drawPage(items.slice(p * density, (p + 1) * density), density, prices, {
           title: side === "want" ? tr("JE CHERCHE", "WANTED") : tr("J'ÉCHANGE", "FOR TRADE"),
           color: side === "want" ? "#7cc4ff" : "#ffd35a",
-          sub: [name, oneSet?.name ?? (only.length > 1 ? tr(`${only.length} extensions`, `${only.length} sets`) : ""), `${items.length} ${tr(items.length > 1 ? "cartes" : "carte", items.length > 1 ? "cards" : "card")}`].filter(Boolean).join(" · "),
+          sub: [name && patron ? `★ ${name}` : name, oneSet?.name ?? (only.length > 1 ? tr(`${only.length} extensions`, `${only.length} sets`) : ""), `${items.length} ${tr(items.length > 1 ? "cartes" : "carte", items.length > 1 ? "cards" : "card")}`].filter(Boolean).join(" · "),
           page: pages > 1 ? `${p + 1}/${pages}` : "",
           logo: oneSet?.logo ? `${oneSet.logo}.png` : undefined,
           note: tr(`Prix du ${date} · Cardmarket / TCGplayer`, `Prices of ${date} · Cardmarket / TCGplayer`),
