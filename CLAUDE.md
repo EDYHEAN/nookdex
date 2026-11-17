@@ -67,7 +67,7 @@ doesn't show.
   its catalog entry is made by hand (name, code, date, TCGCSV group), each number TCGdex lacks comes from TCGplayer's group
   (`earlyFromTcgcsv`: rarity, prints, $ price; French names from PokéAPI for Pokémon, trainers in English), the euro
   price from Cardmarket's expansion in number order (`CM_EXPANSIONS`), the picture once TCGplayer has one (a card back
-  « Image à venir » before). The FR logo is Poképédia's, put in `public/logos/` by hand. TCGdex's cards and entry win the
+  « Image à venir » before). The FR logo is Poképédia's, put in `public/logos/` by hand; the EN one in `public/logos/en/` (pokemontcg.io's API lists it: `images.scrydex.com/pokemon/<id>-logo/large`; Bulbapedia is behind a bot wall), with its `-sm`/`-md` webp. TCGdex's cards and entry win the
   day it lists them (same ids): then drop the set from `EARLY`. A new set: same again on its release day.
 
 ## Languages: the site, the cards, the money (three separate things)
