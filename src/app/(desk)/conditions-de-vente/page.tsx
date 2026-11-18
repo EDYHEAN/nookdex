@@ -56,7 +56,8 @@ function Fr() {
           <h2>Médiation</h2>
           <p>
             En cas de litige que nous n&apos;arrivons pas à régler ensemble, tu peux saisir gratuitement le médiateur de la consommation :{" "}
-            <a href={LEGAL.mediator.url}>{LEGAL.mediator.name}</a> ({LEGAL.mediator.address}), en déposant ta demande sur son site.
+            <a href={LEGAL.mediator.url}>{LEGAL.mediator.name}</a>, en déposant ta demande sur son site ou par courrier à{" "}
+            {LEGAL.mediator.address}. Écris-nous d&apos;abord à {LEGAL.email} : le médiateur ne peut être saisi qu&apos;après une réclamation écrite.
           </p>
         </>
       )}
