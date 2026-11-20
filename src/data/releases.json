@@ -1,6 +1,6 @@
 {
   "_": "Upcoming Pokémon TCG releases for the calendar page (lib/releases.ts). Only what an official source confirmed, with that source. Released sets come from the catalogs by themselves: an entry can go once its set is in the catalog. Kept up to date by the blog routine (docs/blog.md).",
-  "updated": "2026-11-17",
+  "updated": "2026-11-20",
   "items": [
     {
       "date": "2026-10-16",
@@ -44,6 +44,28 @@
       "noteFr": "Annoncée aux États-Unis à 59,99 $ : 4 promos (Zekrom-ex, Reshiram-ex, Victini, Zoroark), une promo oversize, 6 boosters Black Bolt et 6 boosters White Flare. Pas de date française confirmée.",
       "noteEn": "$59.99: four foil promos (Zekrom ex, Reshiram ex, Victini, Zoroark), an oversize promo, six Black Bolt and six White Flare packs, and a Pokémon TCG Live code.",
       "source": "https://icv2.com/print/article/63405"
+    },
+    {
+      "date": "2027-01-23",
+      "region": "intl",
+      "kind": "event",
+      "fr": "Avant-premières Flowing Fists",
+      "en": "Flowing Fists prerelease events",
+      "noteFr": "Tournois d'avant-première chez les détaillants indépendants Play! Pokémon, deux semaines avant la sortie.",
+      "noteEn": "Prerelease tournaments at independent Play! Pokémon retailers, two weeks before the release.",
+      "source": "https://www.pokemon.com/us/news/the-pokemon-tcg-mega-evolution-flowing-fists-expansion-arrives-february-6-2027"
+    },
+    {
+      "date": "2027-02-06",
+      "region": "intl",
+      "kind": "set",
+      "fr": "Méga-Évolution : Flowing Fists",
+      "en": "Mega Evolution: Flowing Fists",
+      "noteFr": "Plus de 110 cartes dont 15 illustrations spéciales, avec Méga-Lucario-Z-ex en tête : les premiers Pokémon Z Méga-Évolution du JCC. Le nom français n'est pas encore annoncé.",
+      "noteEn": "Over 110 cards including 15 special illustrations, led by Mega Lucario Z ex: the first Z Mega Evolution Pokémon in the TCG. Available as Elite Trainer Boxes, Build & Battle Boxes, 3-Booster Blisters, Booster Displays and Hanger Packs.",
+      "source": "https://www.pokemon.com/us/news/the-pokemon-tcg-mega-evolution-flowing-fists-expansion-arrives-february-6-2027",
+      "setId": "me07"
     }
+
   ]
 }
