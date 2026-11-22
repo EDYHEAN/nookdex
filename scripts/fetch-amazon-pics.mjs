@@ -40,6 +40,13 @@ async function api(params) {
 /** the picture's address, a 960 px thumbnail (the originals weigh up to 30 MB): a file's own, or a page's main image */
 async function sourceOf(title) {
   if (title.startsWith("tp:")) return `https://product-images.tcgplayer.com/fit-in/960x960/${title.slice(3)}.jpg`;
+  // the gear's makers (Ultra PRO, Vault X: Shopify stores, their public product JSON): the product's first picture
+  if (title.startsWith("shop:")) {
+    const r = await fetch(`https://${title.slice(5).replace("/", "/products/")}.json`, { headers: { "User-Agent": UA } });
+    if (!r.ok) throw new Error(`${r.status} ${title}`);
+    const src = (await r.json()).product?.image?.src;
+    return src ? `${src}${src.includes("?") ? "&" : "?"}width=960` : null;
+  }
   if (title.startsWith("Fichier:")) {
     const j = await api({ action: "query", prop: "imageinfo", iiprop: "url", iiurlwidth: "960", titles: title });
     const i = j.query.pages[0]?.imageinfo?.[0];
@@ -210,6 +217,13 @@ async function seedSetBoxes() {
 await seedSetBoxes().catch((e) => console.warn("set boxes:", String(e)));
 const setBoxes = JSON.parse(await fs.readFile(BOXES, "utf8").catch(() => "{}"));
 
+// the accessories page's picks: their makers' pictures (AccessoriesPage GEAR's `pic`)
+const GEAR_PICS = [
+  "shop:www.vaultx.com/9-pocket-exo-tec-zip-binder",
+  "shop:ultrapro.com/pikachu-65ct-deck-protector-sleeves-for-pokemon-2025",
+  "shop:ultrapro.com/3-inch-x-4-inch-clear-regular-toploaders-25ct-for-standard-size-cards",
+  "shop:ultrapro.com/35pt-uv-one-touch-magnetic-holder",
+];
 // the gift guide's boxes (src/data/amazon-gifts.json) too
 const gifts = JSON.parse(await fs.readFile(path.join(ROOT, "src/data/amazon-gifts.json"), "utf8"));
 const titles = new Set(
@@ -217,6 +231,8 @@ const titles = new Set(
     .flatMap((g) => [g.pic, ...g.products.map((p) => p.pic)])
     .concat(Object.values(setBoxes).flatMap((b) => Object.values(b)))
     .concat(gifts.budgets.flatMap((b) => b.products.map((p) => p.pic)))
+    // the accessories page's picks (src/components/AccessoriesPage GEAR, kept here by hand)
+    .concat(GEAR_PICS)
     .filter(Boolean),
 );
 const missing = [];
@@ -245,7 +261,7 @@ for (const title of titles) {
     continue;
   }
   // a product shot on its own (transparent around it), 480 px at most: sharp on a card at twice its size
-  const img = sharp(title.startsWith("tp:") ? await cutOut(buf, title) : buf).trim({ threshold: 4 }).resize(480, 480, { fit: "inside", withoutEnlargement: true });
+  const img = sharp(/^(tp|shop):/.test(title) ? await cutOut(buf, title) : buf).trim({ threshold: 4 }).resize(480, 480, { fit: "inside", withoutEnlargement: true });
   const info = await img.webp({ quality: 82 }).toFile(path.join(OUT, file));
   pics[title] = { src: `/amazon/${file}`, w: info.width, h: info.height };
   console.log("ok", title, `${info.width}x${info.height}`);

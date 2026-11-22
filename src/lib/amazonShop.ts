@@ -104,8 +104,8 @@ export const stickyLabel = (p: ShopProduct | undefined, soon: boolean, lang: Lan
   lang === "en"
     ? soon ? "Pre-orders" : "On Amazon"
     : soon ? "Précommandes" : p?.asin && p.buy === "now" ? "Voir le prix" : p?.asin && p.buy === "invite" ? "L'invitation" : "Sur Amazon";
-/** the chip on its picture (French pages, once out): « Sans invitation » or « Sur invitation »; unknown: none */
-export const buyChip = (p: ShopProduct, soon: boolean, lang: Lang = "fr") => (lang === "fr" && !soon && p.asin && p.buy ? p.buy : null);
+/** the chip on its picture (French pages, once out): « Sur invitation » only (a box sold at once: its button says it) */
+export const buyChip = (p: ShopProduct, soon: boolean, lang: Lang = "fr") => (lang === "fr" && !soon && p.asin && p.buy === "invite" ? p.buy : null);
 
 /**
  * its page on Amazon (else a search), with the tracking id of the place it shows on; on the invitations page a box sold at
@@ -181,10 +181,11 @@ export const shortSetName = (name: string) =>
     .replace(/^(Méga-Évolution|Mega Evolution)(\s*[—–-]\s*|\s+)/, "");
 
 /**
- * the products to show first: what can be bought at once (Johan, 2026-11-22: an invitation's click never pays), then the
- * boxes people look for (ETB, display, bundle), then the rest; the invitation-only ones last. The first one stands under
- * the lamp (the heroes, the sticky bars)
+ * the products to show first: the boxes people look for (ETB, display, bundle), then the rest. The first stands under the
+ * lamp (the heroes, the sticky bars): the most looked-for, even by invitation (Johan, 2026-11-22: « autant afficher l'item
+ * le plus populaire, donc l'ETB »); what sells at once comes as the second button (firstNow)
  */
 const ORDER: ShopKind[] = ["etb", "display", "bundle", "box", "collection", "pokebox", "tripack", "tin", "blister"];
-const buyRank = (p: ShopProduct) => (p.buy === "now" ? 0 : p.buy === "invite" ? 2 : 1);
-export const byInterest = (ps: ShopProduct[]) => [...ps].sort((a, b) => buyRank(a) - buyRank(b) || ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind));
+export const byInterest = (ps: ShopProduct[]) => [...ps].sort((a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind));
+/** the first of a set's products sold at once (amazon.fr), the most looked-for first */
+export const firstNow = (ps: ShopProduct[]) => byInterest(ps).find((p) => p.buy === "now" && p.asin);

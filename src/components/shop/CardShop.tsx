@@ -43,8 +43,7 @@ export function SealedBlock({ lang, setId, setName, releaseDate }: { lang: Lang;
   if (g) {
     const soon = !!g.date && g.date > new Date().toISOString().slice(0, 10);
     const all = byInterest(g.products);
-    // what can be bought at once first (Johan, 2026-11-22), else the bundle (six boosters), else the most looked-for
-    const first = (!soon && all.find((x) => x.buy === "now" && x.asin)) || all.find((x) => x.kind === "bundle" && x.buy !== "invite") || all[0];
+    const first = all.find((x) => x.kind === "bundle") ?? all[0];
     items = [first, ...all.filter((x) => x !== first)].slice(0, 3).map((x) => ({
       href: productHref(x, "carte", lang),
       name: x.name,

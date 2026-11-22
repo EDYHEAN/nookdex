@@ -379,22 +379,25 @@ doesn't show.
   Poképédia has it. A booster standing in as a tripack's or bundle's own `pic` comes after the real (English) box.
 - **What a click leads to** (Johan, 2026-11-22; FR clicks per visitor equal the US's, but « Demander l'invitation » made 134
   clicks and 0 sales: the invited buy days later from Amazon's own mail, out of the 24 h cookie; FR links to what sells at
-  once sold like the US's): each amazon.fr product's `buy` (`"now"` / `"invite"`, unknown: no promise). `byInterest` puts
-  `now` first and `invite` last, so heroes and sticky bars stand a buyable box under the lamp after the release; buttons
-  say « Voir le prix sur Amazon » / « Demander l'invitation » (quiet, `alt`) / « Voir sur Amazon », with a chip on the
-  picture (« Sans invitation », « ✉ Sur invitation », `BuyChip`). /invitations-amazon: the hero's product page (never a
-  search), the invitation second, « Sans invitation, tout de suite » (every set's `now`), « ✉ Invitation reçue ? » (the
+  once sold like the US's): each amazon.fr product's `buy` (`"now"` / `"invite"`, unknown: no promise). The hero still
+  stands the most looked-for box under the lamp, its Elite Trainer Box (Johan, same day: « autant afficher l'item le plus
+  populaire »); buttons say « Voir le prix sur Amazon » / « Demander l'invitation » / « Voir sur Amazon », in rails an
+  invitation's is the quiet one (`alt`), and only « ✉ Sur invitation » is chipped on the picture (`BuyChip`: a box sold at
+  once, its button says it). /invitations-amazon: product pages (never a search), the set's first box sold at once as the
+  hero's second button (`firstNow`), « Sans invitation, tout de suite » (every set's `now`), « ✉ Invitation reçue ? » (the
   invited open the product from us, place `invit-recue`; practical words only, the program forbids pushing clicks). A
   `now` box there goes to `nookdex-achat-21` (place `invit-achat`). Only Johan's check on the product's page (or a sale of
   it in Amazon's orders report) sets `now`; the routines set `invite` for new ETB, display, bundle and never `now`.
 - The collector's gear (2026-11-10): `/accessoires-pokemon` and `/en/card-accessories` (`AccessoriesPage`, a shop page in the
   footer's first row, not a tab): binders, sleeves, toploaders, magnetic holders, boxes (place `accessoires`), drawn by
   `lib/gearArt`, and each set's binder pages from the catalogs (the page's own content). On amazon.fr one pick's product page
-  each (`fr` in `GEAR`, 2026-11-22), the search of every brand under the rail; amazon.com: searches. The card pages'
-  « Protège-la » links to it (FR: the toploader pick).
+  each (`fr` in `GEAR`, 2026-11-22) with its maker's photo, the search of every brand under the rail; amazon.com:
+  searches, drawn. The card pages' « Protège-la » links to it (FR: the toploader pick). Makers' photos: `pic`
+  `"shop:<Shopify store>/<handle>"` (Ultra PRO, Vault X: their public product JSON), cut out of their white by
+  fetch-amazon-pics (Amazon's own pictures need its product API: none). A pick needs a photo of that very product.
 - **Gift guide** `/cadeaux-pokemon` (2026-11-22, French only, a shop page): « Cadeaux Pokémon à moins de 20 € et 50 € »,
-  `src/data/amazon-gifts.json` by budget, only `buy: "now"` (a sealed gift also needs its picture, the gear is drawn),
-  place `cadeaux`. Its tab « 🎁 Cadeaux » (after « Sorties ») and a strip on the calendar and /invitations-amazon from
+  `src/data/amazon-gifts.json` by budget, only `buy: "now"` and with a real picture (Johan: a drawing holds the sale back),
+  the budgets as aisles (their products on a shelf, the price band big), place `cadeaux`. Its tab « 🎁 Cadeaux » (after « Sorties ») and a strip on the calendar and /invitations-amazon from
   November 20th to Christmas (`giftSeason`); in the footer always.
 - **Release alert** (Johan, 2026-11-10: the Amazon pages' visitors read, then leave): « Préviens-moi à la prochaine sortie »
   (`shop/ReleaseAlert`) on /invitations-amazon, /en/amazon-invites and the calendars. `/api/alert` sends a confirmation mail

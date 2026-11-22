@@ -16,7 +16,8 @@
 .bar {
   position: sticky;
   top: 0;
-  z-index: 2;
+  /* above everything that scrolls under it (the hero's product, a card's chips: 1-3), under the phone's sticky bar (30) */
+  z-index: 20;
   display: flex;
   align-items: center;
   gap: 18px;

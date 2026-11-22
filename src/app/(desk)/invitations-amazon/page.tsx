@@ -14,6 +14,7 @@ import {
   SHOP_PATH_EN,
   boosterPics,
   byInterest,
+  kindLabel,
   goLabel,
   productHref,
   productPic,
@@ -21,6 +22,7 @@ import {
   shopUpdated,
   shortSetName,
   stickyLabel,
+  firstNow,
   GIFTS_PATH,
   giftSeason,
 } from "@/lib/amazonShop";
@@ -100,20 +102,19 @@ export default function InvitationsAmazon() {
   const first = newest ? shopGroups.find((g) => g.id === newest.id)! : shopGroups[0];
   const rest = shopGroups.filter((g) => g !== first);
   /**
-   * Once the set is out, what can be bought straight away stands under the lamp, the invitation second (Johan, 2026-11-15
-   * and 11-22: Amazon's report gave nookdex-invit-21 134 clicks and no sale; the invited buy days later from Amazon's own
-   * mail, out of our 24 h cookie). A product page, never a search (a search's resellers sold nothing): byInterest puts
-   * the boxes sold at once first, their clicks go to nookdex-achat-21 (productHref).
+   * The most looked-for box under the lamp (its Elite Trainer Box, Johan 2026-11-22), and once the set is out what can be
+   * bought straight away as the second button (Johan, 2026-11-15: Amazon's report gave nookdex-invit-21 134 clicks and no
+   * sale; the invited buy days later from Amazon's own mail, out of our 24 h cookie). Product pages, never a search (a
+   * search's resellers sold nothing); a box sold at once goes to nookdex-achat-21 (productHref).
    */
   const top = first ? byInterest(first.products)[0] : undefined;
   const pic = top ? productPic(top, first) : null;
   const fan = first ? boosterPics(first) : [];
   const buyNow = !soon && top?.buy === "now" && !!top.asin;
-  // the invitation, second: the newest set's first box by invitation (its Elite Trainer Box, mostly)
-  const inv = first ? byInterest(first.products.filter((p) => p.asin && p.buy === "invite"))[0] : undefined;
   const heroHref = top ? productHref(top, "invit") : null;
-  // its button beside the hero's, the quiet one, once the set is out and the hero isn't it
-  const second = !soon && inv && inv !== top ? inv : null;
+  // its quiet button beside the hero's: the set's first box sold at once, when the hero isn't
+  const nowOfSet = first ? firstNow(first.products) : undefined;
+  const second = !soon && nowOfSet && nowOfSet !== top ? nowOfSet : null;
   // what can be bought at once, every set's, newest first (the hero's apart): « Sans invitation, tout de suite »
   const nowAll = [...shopGroups]
     .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
@@ -161,8 +162,8 @@ export default function InvitationsAmazon() {
               {goLabel(top, soon)}
             </AmazonButton>
             {second ? (
-              <AmazonButton href={productHref(second, "invit")} place="invit" alt>
-                ✉ {goLabel(second, soon)}
+              <AmazonButton href={productHref(second, "invit")} place="invit-achat" alt>
+                {kindLabel(second.kind)} sans invitation
               </AmazonButton>
             ) : (
               page && (

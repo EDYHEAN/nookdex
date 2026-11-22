@@ -67,13 +67,11 @@ export function ProductArt({ pic, kind, alt, eager, art }: { pic: ProductPic | n
 }
 
 /**
- * what a product's click leads to, on its picture (French pages, once the set is out; Johan 2026-11-22): « Sans
- * invitation », a green dot that pulses once, or « Sur invitation », a wax seal. Unknown: nothing promised
+ * « ✉ Sur invitation » on a product's picture (French pages, once the set is out; Johan 2026-11-22): a box sold at once
+ * gets none, its button says it
  */
 export function BuyChip({ p, soon, lang = "fr" }: { p: ShopProduct; soon: boolean; lang?: Lang }) {
-  const chip = buyChip(p, soon, lang);
-  if (!chip) return null;
-  return chip === "now" ? <span className={`${s.chip} ${s.chipNow}`}>Sans invitation</span> : <span className={`${s.chip} ${s.chipInvite}`}>✉ Sur invitation</span>;
+  return buyChip(p, soon, lang) ? <span className={`${s.chip} ${s.chipInvite}`}>✉ Sur invitation</span> : null;
 }
 
 /** a sealed product of a set on Amazon: the whole card is the link */

@@ -2085,7 +2085,7 @@
   color: var(--ink-soft);
 }
 
-/* the gift guide: its two budgets, big; a tap goes to its shelf */
+/* the gift guide's budgets, as a shop's aisles: their products on a lit shelf, the price band big, how many ideas */
 .budgets {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2098,13 +2098,11 @@
 .budgets a {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 14px 8px 12px;
+  height: 100%;
+  overflow: hidden;
   border: 3px solid var(--ink);
   border-radius: 16px;
-  background:
-    radial-gradient(80% 70% at 50% 30%, rgba(var(--lamp), 0.35), transparent 70%),
-    var(--card);
+  background: var(--card);
   color: var(--ink) !important;
   text-decoration: none !important;
   box-shadow: 4px 5px 0 var(--ink);
@@ -2114,33 +2112,90 @@
 }
 
 .budgets a:hover {
-  transform: translate(-2px, -3px) rotate(-0.6deg);
+  transform: translate(-2px, -3px);
   box-shadow: 6px 8px 0 var(--ink);
 }
 
-.budgets small {
+/* the products fanned on the shelf, under the lamp's glow */
+.budgetShelf {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 118px;
+  padding: 0 8px 14px;
+  background:
+    radial-gradient(70% 80% at 50% 70%, rgba(var(--lamp), 0.5), transparent 70%),
+    linear-gradient(180deg, #2c2140, #1a1327);
+}
+
+.budgetShelf::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 12px;
+  background: linear-gradient(180deg, #e0a868 0 3px, var(--wood) 3px 8px, var(--wood-2) 8px);
+  border-top: 2px solid var(--ink);
+}
+
+.budgetShelf img {
+  position: relative;
+  z-index: 1;
+  width: auto;
+  max-width: 44%;
+  height: auto;
+  max-height: 86px;
+  margin: 0 -7%;
+  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.5));
+  transition: transform 0.3s var(--spring);
+}
+
+.budgetShelf img:nth-child(2) {
+  z-index: 2;
+  max-height: 98px;
+}
+
+.budgets a:hover .budgetShelf img:nth-child(1) {
+  transform: translate(-4px, -4px) rotate(-4deg);
+}
+
+.budgets a:hover .budgetShelf img:nth-child(2) {
+  transform: translateY(-7px);
+}
+
+.budgets a:hover .budgetShelf img:nth-child(3) {
+  transform: translate(4px, -4px) rotate(4deg);
+}
+
+.budgetText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 8px 12px;
+}
+
+.budgetText small {
   font-family: var(--vt);
   font-size: 18px;
   color: var(--ink-soft);
 }
 
-.budgets b {
+.budgetText b {
   font-family: var(--pixel);
-  font-size: clamp(26px, 8vw, 40px);
-  line-height: 1.2;
-  color: #b8433d;
+  font-size: clamp(24px, 7.5vw, 38px);
+  line-height: 1.25;
 }
 
-.budgets span {
+.budgetText span {
+  margin-top: 4px;
+  padding: 3px 10px 2px;
+  border-radius: 999px;
+  background: var(--cta);
+  border: 2px solid var(--ink);
   font-family: var(--vt);
-  font-size: 19px;
+  font-size: 18px;
 }
 
-/* the gear drawn under the lamp (a gift without a photo) */
-.gift svg {
-  width: 150px;
-  height: 150px;
-}
 
 /* the gift guide's strip, from the calendar and the invitations (lib/amazonShop giftSeason) */
 .giftStrip {

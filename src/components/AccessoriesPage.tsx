@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
+import pics from "@/data/amazon-pics.json";
 import { amazonProduct, amazonSearch, inShops } from "@/lib/amazon";
 import { formatDate } from "@/lib/blog";
 import { type GearKind, gearArt } from "@/lib/gearArt";
@@ -56,8 +57,11 @@ interface Gear {
   what: [string, string];
   tips: [string, string][];
   q: [string, string];
-  /** our pick on amazon.fr: its ASIN and its name (a web search of amazon.fr, never a script there) */
-  fr?: { asin: string; pick: string };
+  /**
+   * our pick on amazon.fr: its ASIN and its name (a web search of amazon.fr, never a script there), its maker's picture
+   * (scripts/fetch-amazon-pics.mjs GEAR_PICS: a photo sells better than a drawing, Johan 2026-11-22)
+   */
+  fr?: { asin: string; pick: string; pic?: string };
 }
 
 const GEAR: Gear[] = [
@@ -71,7 +75,7 @@ const GEAR: Gear[] = [
       ["Une fermeture zip contre la poussière.", "A zip keeps the dust out."],
     ],
     q: ["classeur pokemon 9 cases zip", "pokemon 9 pocket binder side loading zipper"],
-    fr: { asin: "B071V91LGC", pick: "Vault X Exo-Tec, zip, 360 cartes" },
+    fr: { asin: "B071V91LGC", pick: "Vault X Exo-Tec, zip, 360 cartes", pic: "shop:www.vaultx.com/9-pocket-exo-tec-zip-binder" },
   },
   {
     kind: "sleeves",
@@ -83,7 +87,7 @@ const GEAR: Gear[] = [
       ["Une « perfect fit » dessous pour un double sleeve.", "A perfect fit underneath to double-sleeve."],
     ],
     q: ["sleeves pokemon 66x91", "pokemon card sleeves 66x91"],
-    fr: { asin: "B0DTQBPDMC", pick: "Ultra PRO Pikachu, 65 pochettes" },
+    fr: { asin: "B0DTQBPDMC", pick: "Ultra PRO Pikachu, 65 pochettes", pic: "shop:ultrapro.com/pikachu-65ct-deck-protector-sleeves-for-pokemon-2025" },
   },
   {
     kind: "toploader",
@@ -95,7 +99,7 @@ const GEAR: Gear[] = [
       ["Indispensable pour envoyer une carte par la poste.", "A must to ship a card."],
     ],
     q: ["toploader 35pt cartes pokemon", "toploaders 35pt card holders"],
-    fr: { asin: "B00095M5C2", pick: "Ultra PRO 35 pt, lot de 25" },
+    fr: { asin: "B00095M5C2", pick: "Ultra PRO 35 pt, lot de 25", pic: "shop:ultrapro.com/3-inch-x-4-inch-clear-regular-toploaders-25ct-for-standard-size-cards" },
   },
   {
     kind: "magnet",
@@ -106,7 +110,7 @@ const GEAR: Gear[] = [
       ["Filtre UV : les couleurs ne passent pas au soleil.", "UV protection keeps the colours from fading."],
     ],
     q: ["étui magnétique 35pt carte pokemon", "magnetic card holder 35pt one touch"],
-    fr: { asin: "B000WBNRES", pick: "Ultra PRO One-Touch 35 pt, anti-UV" },
+    fr: { asin: "B000WBNRES", pick: "Ultra PRO One-Touch 35 pt, anti-UV", pic: "shop:ultrapro.com/35pt-uv-one-touch-magnetic-holder" },
   },
   {
     kind: "box",
@@ -166,7 +170,13 @@ const FAQ: { q: [string, string]; a: (n: { name: string; cards: number; sheets: 
 const nb = (s: string) => s.replace(/ ([?!:;»])/g, "\u202f$1").replace(/« /g, "«\u202f");
 
 const ld = (data: object) => <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
-const Art = ({ kind }: { kind: GearKind }) => <span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: gearArt(kind) }} />;
+const PICS = pics as Record<string, { src: string; w: number; h: number }>;
+/** its maker's photo (French page, our pick), else its drawing */
+function GearPic({ g, lang, eager }: { g: Gear; lang: PageLang; eager?: boolean }) {
+  const p = lang === "fr" && g.fr?.pic ? PICS[g.fr.pic] : undefined;
+  if (p) return <img src={p.src} width={p.w} height={p.h} alt={g.fr!.pick} loading={eager ? undefined : "lazy"} fetchPriority={eager ? "high" : undefined} />;
+  return <span role="img" aria-label={g.name[lang === "fr" ? 0 : 1]} style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: gearArt(g.kind) }} />;
+}
 /** its link: our pick's page on amazon.fr, else a search of every brand */
 const gearHref = (g: Gear, lang: PageLang) =>
   lang === "fr" && g.fr ? amazonProduct(g.fr.asin, "accessoires", lang) : amazonSearch(g.q[lang === "fr" ? 0 : 1], "accessoires", lang);
@@ -203,7 +213,7 @@ export function AccessoriesPage({ lang }: { lang: PageLang }) {
           <div className={s.stage}>
             <span className={s.glow} />
             <div className={s.solo}>
-              <span role="img" aria-label={binder.name[i]} style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: gearArt("binder") }} />
+              <GearPic g={binder} lang={lang} eager />
             </div>
           </div>
           <div className={s.desk} />
@@ -274,7 +284,7 @@ export function AccessoriesPage({ lang }: { lang: PageLang }) {
           <li key={g.kind} id={g.kind}>
             <a className={s.pcard} href={gearHref(g, lang)} target="_blank" rel="sponsored noopener" data-amazon-place="accessoires">
               <span className={s.pic}>
-                <span role="img" aria-label={g.name[i]} style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: gearArt(g.kind) }} />
+                <GearPic g={g} lang={lang} />
               </span>
               <span className={s.body}>
                 <span className={`${s.name} ${s.gearName}`}>{g.name[i]}</span>
@@ -380,7 +390,7 @@ export function AccessoriesPage({ lang }: { lang: PageLang }) {
         target="hero-cta"
         href={heroHref}
         place="accessoires-bar"
-        thumb={<Art kind="binder" />}
+        thumb={<GearPic g={binder} lang={lang} />}
         title={fr && binder.fr ? binder.fr.pick : binder.name[i]}
         sub={t("Chargement latéral, sans anneaux", "Side-loading, no rings")}
         label={fr && binder.fr ? "Voir le prix" : t("Sur Amazon", "On Amazon")}

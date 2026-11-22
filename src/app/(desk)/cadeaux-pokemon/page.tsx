@@ -9,14 +9,14 @@ import gifts from "@/data/amazon-gifts.json";
 import pics from "@/data/amazon-pics.json";
 import { amazonProduct } from "@/lib/amazon";
 import { GIFTS_PATH, SHOP_PATH } from "@/lib/amazonShop";
-import { GEAR_KINDS, gearArt, type GearKind } from "@/lib/gearArt";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 /**
  * Pokémon gifts under 20 € and 50 € (Johan, 2026-11-22: December is the month, the buyers are often the parents): only
  * what amazon.fr sells at once (an invitation's click never pays, our 24 h cookie is gone when Amazon's mail comes), by
- * budget, who it's for, no price (they move). src/data/amazon-gifts.json; a sealed box without its picture isn't shown
- * (never a drawn box), the gear is drawn (lib/gearArt). French only, a shop page (« Sous la lampe », drawn without the room).
+ * budget, who it's for, no price (they move). src/data/amazon-gifts.json; nothing without its real picture (a box's
+ * Poképédia one, the gear's maker's: Johan 2026-11-22, a drawing holds the sale back). French only, a shop page (« Sous la
+ * lampe », drawn without the room).
  */
 interface Gift {
   asin: string;
@@ -28,12 +28,12 @@ interface Gift {
   why: string;
 }
 const PICS = pics as Record<string, { src: string; w: number; h: number }>;
-const isGear = (k: string): k is GearKind => (GEAR_KINDS as readonly string[]).includes(k);
 const picOf = (g: Gift) => (g.pic ? PICS[g.pic] : undefined);
-/** shown: sold at once, and a picture (a box) or drawn (the gear) */
-const shown = (g: Gift) => g.buy === "now" && (isGear(g.kind) || !!picOf(g));
+/** shown: sold at once, with its picture */
+const shown = (g: Gift) => g.buy === "now" && !!picOf(g);
 const budgets = gifts.budgets.map((b) => ({ ...b, products: (b.products as Gift[]).filter(shown) })).filter((b) => b.products.length > 0);
-const star = budgets.flatMap((b) => b.products).find((g) => picOf(g)) ?? budgets[0]?.products[0];
+// under the lamp: the dearer budget's first (a binder, a box), the most giftable
+const star = budgets.at(-1)?.products[0];
 const year = new Date().getUTCFullYear();
 
 const TITLE = `Cadeaux Pokémon à moins de 20 € et 50 € : idées pour Noël ${year}`;
@@ -64,10 +64,9 @@ const FAQ = [
 
 const ld = (data: object) => <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 
-function GiftArt({ g, eager }: { g: Gift; eager?: boolean }) {
-  const p = picOf(g);
-  if (p) return <img src={p.src} width={p.w} height={p.h} alt={g.name} loading={eager ? undefined : "lazy"} fetchPriority={eager ? "high" : undefined} />;
-  return isGear(g.kind) ? <span role="img" aria-label={g.name} style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: gearArt(g.kind) }} /> : null;
+function GiftArt({ g, eager, alt = g.name }: { g: Gift; eager?: boolean; alt?: string }) {
+  const p = picOf(g)!;
+  return <img src={p.src} width={p.w} height={p.h} alt={alt} loading={eager ? undefined : "lazy"} fetchPriority={eager ? "high" : undefined} />;
 }
 
 export default function CadeauxPokemon() {
@@ -89,7 +88,7 @@ export default function CadeauxPokemon() {
           <div className={s.stageW}>
             <div className={s.stage}>
               <span className={s.glow} />
-              <div className={`${s.solo} ${s.gift}`}>
+              <div className={s.solo}>
                 <GiftArt g={star} eager />
               </div>
             </div>
@@ -137,14 +136,23 @@ export default function CadeauxPokemon() {
         mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
       })}
 
-      {/* the two budgets, big: a tap goes to its shelf */}
+      {/* the two budgets as a shop's aisles: their products fanned on the shelf, the price band big, how many ideas */}
       <ul className={s.budgets}>
         {budgets.map((b) => (
           <li key={b.id}>
             <a href={`#${b.id}`}>
-              <small>moins de</small>
-              <b>{b.max} €</b>
-              <span>{b.tag}</span>
+              <span className={s.budgetShelf}>
+                {b.products.slice(0, 3).map((g) => (
+                  <GiftArt key={g.asin} g={g} alt="" />
+                ))}
+              </span>
+              <span className={s.budgetText}>
+                <small>Moins de</small>
+                <b>{b.max} €</b>
+                <span>
+                  {b.products.length} idée{b.products.length > 1 ? "s" : ""} ↓
+                </span>
+              </span>
             </a>
           </li>
         ))}
@@ -158,14 +166,11 @@ export default function CadeauxPokemon() {
 
       {budgets.map((b) => (
         <section key={b.id} id={b.id}>
-          <h2>
-            Moins de {b.max} € · {b.tag}
-          </h2>
+          <h2>Cadeaux Pokémon à moins de {b.max} €</h2>
           <ul className={s.rail}>
             {b.products.map((g) => (
               <li key={g.asin}>
                 <a className={s.pcard} href={amazonProduct(g.asin, "cadeaux")} target="_blank" rel="sponsored noopener" data-amazon-place="cadeaux">
-                  <span className={`${s.chip} ${s.chipNow}`}>Sans invitation</span>
                   <span className={s.pic}>
                     <GiftArt g={g} />
                   </span>
