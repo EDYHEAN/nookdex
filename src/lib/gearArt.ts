@@ -2,7 +2,8 @@
  * The collector's gear, drawn (the accessories page, /accessoires-pokemon): ink on the NookDex colours like lib/kindArt,
  * no product pictures (these are Amazon searches, any brand). SVG markup for dangerouslySetInnerHTML.
  */
-export type GearKind = "binder" | "sleeves" | "toploader" | "magnet" | "box";
+export const GEAR_KINDS = ["binder", "sleeves", "toploader", "magnet", "box"] as const;
+export type GearKind = (typeof GEAR_KINDS)[number];
 
 const S = 'stroke="#2b2230" stroke-width="3" stroke-linejoin="round"';
 const card = (x: number, y: number, w: number, h: number, fill = "#ffd35a") =>

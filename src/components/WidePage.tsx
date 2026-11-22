@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { GIFTS_PATH, giftSeason } from "@/lib/amazonShop";
 import { SITE_NAME } from "@/lib/site";
 import shopStyles from "./shop/Shop.module.css";
 import styles from "./WidePage.module.css";
@@ -12,8 +13,14 @@ const SHOP_TABS = [
   { href: ["/marche", "/en/market"], label: ["Marché", "Market"] },
   { href: ["/blog", "/blog"], label: ["Blog", "Blog"] },
 ] as const;
-/** in the footer's first row only (five tabs fill a phone's width): the collector's gear */
-const FOOT_MORE = [{ href: ["/accessoires-pokemon", "/en/card-accessories"], label: ["Classeurs et sleeves", "Binders & sleeves"] }] as const;
+/** in the footer's first row only (five tabs fill a phone's width): the collector's gear, the gift guide (French) */
+const FOOT_MORE = [
+  { href: ["/accessoires-pokemon", "/en/card-accessories"], label: ["Classeurs et sleeves", "Binders & sleeves"] },
+  { href: [GIFTS_PATH, ""], label: ["Idées cadeaux", ""] },
+] as const;
+/** the gift guide's tab, French pages, from November 20th to Christmas (Johan, 2026-11-22), after « Sorties » */
+const GIFT_TAB = { href: [GIFTS_PATH, ""], label: ["🎁 Cadeaux", ""] } as const;
+const shopTabs = () => (giftSeason() ? [...SHOP_TABS.slice(0, 2), GIFT_TAB, ...SHOP_TABS.slice(2)] : SHOP_TABS);
 /** the footer says them in full (the tabs are short) */
 const FOOT_LABEL: Record<string, string> = {
   "/extensions": "Toutes les extensions",
@@ -98,7 +105,7 @@ export function WidePage({
       </header>
       {shop && (
         <nav className={styles.tabs} aria-label="Pages">
-          {SHOP_TABS.map((tab) => {
+          {shopTabs().map((tab) => {
             const href = t(tab.href[0], tab.href[1]);
             if (!href) return null;
             const on = shop === href || shop.startsWith(`${href}/`);

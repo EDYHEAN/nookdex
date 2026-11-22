@@ -2,7 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { formatDate } from "@/lib/blog";
 import { amazonOn, amazonSearch, inShops } from "@/lib/amazon";
-import { boosterPics, byInterest, goLabel, kindLabel, productHref, productPic, shopFor, shopPath, shortSetName } from "@/lib/amazonShop";
+import {
+  GIFTS_PATH,
+  boosterPics,
+  byInterest,
+  giftSeason,
+  goLabel,
+  kindLabel,
+  productHref,
+  productPic,
+  setBoxPic,
+  shopFor,
+  shopPath,
+  shortSetName,
+  stickyLabel,
+} from "@/lib/amazonShop";
 import { keyOf } from "@/lib/cardLang";
 import { kindArt } from "@/lib/kindArt";
 import { daysLeft } from "@/lib/parisTime";
@@ -144,7 +158,8 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
       ? productHref(top, "calendrier", lang)
       : amazonSearch(fr ? `Pokémon ${heroSet.name}` : `Pokemon TCG ${heroName}`, "calendrier", lang);
   const heroLabel = top ? goLabel(top, coming, lang) : coming ? t("Voir les précommandes", "See pre-orders on Amazon") : t("Voir sur Amazon", "See it on Amazon");
-  const pic = top && group ? productPic(top, group) : null;
+  // no product of ours yet (the next set, weeks before any ASIN): TCGplayer's picture of its box (Johan, 2026-11-22: never a drawing)
+  const pic = top && group ? productPic(top, group) : setBoxPic(heroSet?.setId, "etb");
   // the set's French boosters on the French page only: the English one draws the box (Johan, 2026-10-31: no French
   // packaging on the English pages)
   const fan = group && fr ? boosterPics(group) : [];
@@ -174,7 +189,12 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
         </>
       }
       stage={
-        <Stage pic={pic} kind={top?.kind ?? (fan.length ? null : "etb")} fan={fan} alt={t(`Boosters ${heroName}`, `${heroName} Elite Trainer Box`)} />
+        <Stage
+          pic={pic}
+          kind={top?.kind ?? (fan.length && !pic ? null : "etb")}
+          fan={fan}
+          alt={pic ? `${kindLabel(top?.kind ?? "etb", lang)} ${heroName}` : t(`Boosters ${heroName}`, `${heroName} Elite Trainer Box`)}
+        />
       }
       buy={
         <>
@@ -198,7 +218,8 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
             )}
           </div>
           <ul className={s.reassure}>
-            {group && fr && <li>Sur invitation, au prix public</li>}
+            {group && fr && !coming && top?.buy === "invite" && <li>Sur invitation, au prix public</li>}
+            {group && fr && !coming && top?.buy === "now" && <li>Sans invitation</li>}
             <li>{t("Vérifie « Expédié et vendu par Amazon »", "Check “Ships from and sold by Amazon”")}</li>
           </ul>
           {heroHref && <Affiliate lang={lang} />}
@@ -298,6 +319,17 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
 
       {/* the alert before the list: a visitor who came for a date leaves with it (Johan, 2026-11-10) */}
       {amazonOn(lang) && <ReleaseAlert lang={lang} next={nextSet ? shortSetName(nextSet.name) : null} when={nextSet ? formatDate(nextSet.date, lang) : null} />}
+      {/* before Christmas, French page: what can be given now, while the next set is weeks away */}
+      {fr && giftSeason() && (
+        <Link prefetch={false} href={GIFTS_PATH} className={s.giftStrip}>
+          <span aria-hidden>🎁</span>
+          <span>
+            <b>Un cadeau Pokémon pour Noël ?</b>
+            Moins de 20 € ou 50 €, sans invitation
+          </span>
+          <span aria-hidden>→</span>
+        </Link>
+      )}
 
       {!upcoming.length && (
         <>
@@ -346,7 +378,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
                       )}
                     </p>
                     {onAmazon && g && <ProductRail group={g} place="calendrier" max={4} lang={lang} />}
-                    {onAmazon && !g && !fr && r.kind === "set" && <KindTiles name={shortSetName(r.name)} place="calendrier" soon />}
+                    {onAmazon && !g && !fr && r.kind === "set" && <KindTiles name={shortSetName(r.name)} setId={r.setId} place="calendrier" soon />}
                     {onAmazon && !g && (fr || r.kind !== "set") && (
                       <div className={s.btns}>
                         <AmazonButton href={amazonSearch(fr ? `Pokémon ${r.name}` : `Pokemon TCG ${r.name}`, "calendrier", lang)} place="calendrier" alt>
@@ -469,7 +501,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           thumb={thumb ? <img src={thumb.src} width={thumb.w} height={thumb.h} alt="" loading="lazy" /> : <span dangerouslySetInnerHTML={{ __html: kindArt("etb") }} />}
           title={coming ? t(`${heroName} · J-${days}`, `${heroName} · in ${days} days`) : heroName}
           sub={coming ? t(`Sort le ${formatDate(heroSet.date, "fr")}`, `Out ${formatDate(heroSet.date, "en")}`) : t("Sur Amazon", "On Amazon")}
-          label={coming ? t("Précommandes", "Pre-orders") : fr && top?.asin ? "L'invitation" : t("Sur Amazon", "On Amazon")}
+          label={stickyLabel(top, coming, lang)}
         />
       )}
     </WidePage>

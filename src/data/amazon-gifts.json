@@ -1,0 +1,30 @@
+{
+  "_": "The gift guide /cadeaux-pokemon (amazon.fr, lib/amazonGifts): by budget, only what can be bought at once (buy: \"now\", checked on the product's page; a box by invitation never shows). A product: its ASIN (amazon.fr/dp, found by a web search, never a script on amazon.fr), its kind (a sealed box: its Poképédia picture in `pic`, hidden without one; gear: drawn, lib/gearArt), who it's for, one line. No prices on the page (they move): the budget is the public price's band.",
+  "updated": "2026-11-22",
+  "budgets": [
+    {
+      "id": "moins-20",
+      "max": 20,
+      "tag": "pour la chaussette",
+      "products": [
+        { "asin": "B0G4NR3ZMC", "kind": "tin", "name": "Mini-boîte Pikachu et Gruikui", "pic": "Fichier:Mini-boîte Méga-Évolution Héros Transcendants Pikachu.png", "for": "Il débute", "why": "2 boosters, une page d'autocollants et une carte illustrée." },
+        { "asin": "B0GZLFCR67", "kind": "tripack", "name": "Tripack Nuit Noire Opermine", "pic": "Tripack ME05 Opermine", "for": "Il ouvre tout", "why": "3 boosters d'une extension récente et une carte promo brillante." },
+        { "asin": "B0GGJ11H9Y", "kind": "tripack", "name": "Tripack Équilibre Parfait Germignon", "pic": "Tripack ME03 Germignon", "for": "Il ouvre tout", "why": "3 boosters et une carte promo brillante." },
+        { "asin": "B0DTQBPDMC", "kind": "sleeves", "name": "Pochettes Ultra PRO Pikachu (65)", "buy": "now", "for": "Il collectionne", "why": "Pour protéger ses plus belles cartes, sous licence Pokémon." },
+        { "asin": "B0DTQ9CJPP", "kind": "binder", "name": "Portfolio 9 cases Ultra PRO Pikachu", "buy": "now", "for": "Il débute", "why": "Un premier classeur, pour ranger ses 90 premières cartes." }
+      ]
+    },
+    {
+      "id": "moins-50",
+      "max": 50,
+      "tag": "sous le sapin",
+      "products": [
+        { "asin": "B0H5K8QGTL", "kind": "pokebox", "name": "Pokébox Méga-Darkrai-ex", "pic": "Fichier:Boîte Méga Puissances Méga-Darkrai-ex.png", "for": "Il ouvre tout", "why": "4 boosters et une carte promo brillante, dans une boîte métal." },
+        { "asin": "B0G7HTRNP1", "kind": "box", "name": "Coffret Méga-Méganium-ex", "pic": "Coffret Méga-Évolution Héros Transcendants Méga-Méganium-ex", "for": "Il collectionne", "why": "Des boosters, une promo et une grande carte lenticulaire." },
+        { "asin": "B0D14S9SPW", "kind": "starter", "name": "Académie de Combat 2024", "pic": "Académie de Combat (2024)", "buy": "now", "for": "Il débute", "why": "3 decks, un tapis et les règles : pour apprendre à jouer à deux." },
+        { "asin": "B0GVK1THSV", "kind": "deck", "name": "Deck Combat de Ligue Méga-Lucario-ex", "pic": "Deck Combat de Ligue Méga-Lucario-ex", "buy": "now", "for": "Il joue", "why": "Un deck de 60 cartes prêt à jouer en tournoi." },
+        { "asin": "B0DTQCYG1L", "kind": "binder", "name": "Classeur 9 cases Ultra PRO Pikachu (360 cartes)", "buy": "now", "for": "Il collectionne", "why": "De quoi ranger une extension entière, sous licence Pokémon." }
+      ]
+    }
+  ]
+}

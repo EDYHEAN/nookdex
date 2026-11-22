@@ -1,0 +1,90 @@
+{
+  "30th": {
+    "etb": "tp:704143",
+    "bundle": "tp:704171",
+    "booster": "tp:696613"
+  },
+  "me01": {
+    "display": "tp:644298",
+    "bundle": "tp:644362",
+    "booster": "tp:644352",
+    "etb": "tp:644279",
+    "tripack": "tp:644356"
+  },
+  "me02": {
+    "etb": "tp:654136",
+    "display": "tp:654137",
+    "bundle": "tp:654160",
+    "booster": "tp:654144",
+    "tripack": "tp:654154"
+  },
+  "me02.5": {
+    "etb": "tp:668496",
+    "bundle": "tp:668541",
+    "booster": "tp:672434"
+  },
+  "me03": {
+    "etb": "tp:672401",
+    "display": "tp:672394",
+    "bundle": "tp:672396",
+    "booster": "tp:672398",
+    "tripack": "tp:672393"
+  },
+  "me04": {
+    "etb": "tp:684450",
+    "display": "tp:684444",
+    "bundle": "tp:684456",
+    "tripack": "tp:684458",
+    "booster": "tp:684446"
+  },
+  "me05": {
+    "etb": "tp:692947",
+    "display": "tp:692939",
+    "bundle": "tp:692942",
+    "tripack": "tp:692938",
+    "booster": "tp:692944"
+  },
+  "me06": {
+    "etb": "tp:712102",
+    "display": "tp:712094",
+    "bundle": "tp:712097",
+    "tripack": "tp:712093",
+    "booster": "tp:712099"
+  },
+  "me07": {
+    "etb": "tp:735050",
+    "display": "tp:735045",
+    "bundle": "tp:735066",
+    "tripack": "tp:735058",
+    "booster": "tp:735046"
+  },
+  "sv08.5": {
+    "etb": "tp:593355",
+    "bundle": "tp:600518",
+    "booster": "tp:593294"
+  },
+  "sv09": {
+    "etb": "tp:610930",
+    "display": "tp:610931",
+    "bundle": "tp:610953",
+    "booster": "tp:610935",
+    "tripack": "tp:610940"
+  },
+  "sv10": {
+    "etb": "tp:624676",
+    "display": "tp:624679",
+    "bundle": "tp:625670",
+    "booster": "tp:624683",
+    "tripack": "tp:625683"
+  },
+  "sv10.5b": {
+    "etb": "tp:630686",
+    "bundle": "tp:630431",
+    "booster": "tp:630434"
+  },
+  "sv10.5w": {
+    "etb": "tp:630689",
+    "bundle": "tp:630696",
+    "booster": "tp:630699"
+  }
+}

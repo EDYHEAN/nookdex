@@ -345,7 +345,7 @@ doesn't show.
   a line on the set pages of sets out within two years, one link at most in a French blog post (docs/blog.md; the tag and
   `rel="sponsored"` added by `tagAmazonLinks`). By each group of Amazon links only a small grey « Lien affilié » /
   "Affiliate link" (`affiliateLabel`, Johan 2026-10-31: no "I earn…" by the buttons); the programs' sentences
-  (`AMAZON_NOTICE`, `AMAZON_NOTICE_EN`) are on /conditions (its "Amazon" section) and /a-propos. The account closes without 3 sales in its first 180 days (3 shipped in October 2026: kept). Never for single cards (Cardmarket).
+  (`AMAZON_NOTICE`, `AMAZON_NOTICE_EN`) are on /conditions (its "Amazon" section) and /a-propos. The account closes without 3 sales in its first 180 days (2 by 2026-11-22: not validated yet). Never for single cards (Cardmarket).
 - English pages (Johan, 2026-10-31: the /en pages get English traffic, the US most of it): Amazon Associates US, tag
   `nookdex-20` (`AMAZON_US_TAG`, `amazonOn(lang)`): « See pre-orders on Amazon » on the English calendar, a line on the English
   set pages of sets out within two years (amazon.com searches, no product cards: those are amazon.fr's), per-place US ids in
@@ -372,12 +372,30 @@ doesn't show.
   of their white by fetch-amazon-pics. The buttons promise no invitation (not every amazon.com listing has one).
 - A box still without its official picture (Poképédia uploads an Elite Trainer Box weeks late, displays never; pokemon.com
   turns scripts away: never get round its bot wall) shows the English set's same box (`twinPic` in lib/amazonShop, TCGplayer's
-  picture, the English logo on it: Johan 2026-11-10, « les EN plutôt qu'un placeholder »; the alert mails too); no English
-  picture either: drawn with the set's real logo on its face (`boxArt` in lib/kindArt, `productArt`).
+  picture, the English logo on it: Johan 2026-11-10, « les EN plutôt qu'un placeholder »; the alert mails too), then
+  TCGplayer's box of that kind for the set (`setBoxPic`, `src/data/set-boxes.json`: fetch-amazon-pics seeds it daily from
+  TCGCSV for the calendar's sets and the English catalog's last two years, weeks before any ASIN, Flowing Fists 76 days out).
+  Never a drawn box (Johan, 2026-11-22: « un ETB vecteur ça marche pas »): the French picture wins by itself the day
+  Poképédia has it. A booster standing in as a tripack's or bundle's own `pic` comes after the real (English) box.
+- **What a click leads to** (Johan, 2026-11-22; FR clicks per visitor equal the US's, but « Demander l'invitation » made 134
+  clicks and 0 sales: the invited buy days later from Amazon's own mail, out of the 24 h cookie; FR links to what sells at
+  once sold like the US's): each amazon.fr product's `buy` (`"now"` / `"invite"`, unknown: no promise). `byInterest` puts
+  `now` first and `invite` last, so heroes and sticky bars stand a buyable box under the lamp after the release; buttons
+  say « Voir le prix sur Amazon » / « Demander l'invitation » (quiet, `alt`) / « Voir sur Amazon », with a chip on the
+  picture (« Sans invitation », « ✉ Sur invitation », `BuyChip`). /invitations-amazon: the hero's product page (never a
+  search), the invitation second, « Sans invitation, tout de suite » (every set's `now`), « ✉ Invitation reçue ? » (the
+  invited open the product from us, place `invit-recue`; practical words only, the program forbids pushing clicks). A
+  `now` box there goes to `nookdex-achat-21` (place `invit-achat`). Only Johan's check on the product's page (or a sale of
+  it in Amazon's orders report) sets `now`; the routines set `invite` for new ETB, display, bundle and never `now`.
 - The collector's gear (2026-11-10): `/accessoires-pokemon` and `/en/card-accessories` (`AccessoriesPage`, a shop page in the
-  footer's first row, not a tab): binders, sleeves, toploaders, magnetic holders, boxes as Amazon searches (place
-  `accessoires`), drawn by `lib/gearArt`, and each set's binder pages from the catalogs (the page's own content). The card
-  pages' « Protège-la » links to it.
+  footer's first row, not a tab): binders, sleeves, toploaders, magnetic holders, boxes (place `accessoires`), drawn by
+  `lib/gearArt`, and each set's binder pages from the catalogs (the page's own content). On amazon.fr one pick's product page
+  each (`fr` in `GEAR`, 2026-11-22), the search of every brand under the rail; amazon.com: searches. The card pages'
+  « Protège-la » links to it (FR: the toploader pick).
+- **Gift guide** `/cadeaux-pokemon` (2026-11-22, French only, a shop page): « Cadeaux Pokémon à moins de 20 € et 50 € »,
+  `src/data/amazon-gifts.json` by budget, only `buy: "now"` (a sealed gift also needs its picture, the gear is drawn),
+  place `cadeaux`. Its tab « 🎁 Cadeaux » (after « Sorties ») and a strip on the calendar and /invitations-amazon from
+  November 20th to Christmas (`giftSeason`); in the footer always.
 - **Release alert** (Johan, 2026-11-10: the Amazon pages' visitors read, then leave): « Préviens-moi à la prochaine sortie »
   (`shop/ReleaseAlert`) on /invitations-amazon, /en/amazon-invites and the calendars. `/api/alert` sends a confirmation mail
   (Brevo transactional, a link signed with an HMAC of the Brevo key, nothing stored), `/api/alert/confirm` adds the address to

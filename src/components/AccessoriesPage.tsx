@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import rawEn from "@/data/catalog-en.json";
 import rawFr from "@/data/catalog.json";
-import { amazonSearch, inShops } from "@/lib/amazon";
+import { amazonProduct, amazonSearch, inShops } from "@/lib/amazon";
 import { formatDate } from "@/lib/blog";
 import { type GearKind, gearArt } from "@/lib/gearArt";
 import { type PageLang, setPagePath } from "@/lib/setPath";
@@ -16,8 +16,9 @@ import { WidePage } from "./WidePage";
 
 /**
  * The collector's gear (Johan, 2026-11-10: a page that sells between two releases, the invitations only sell around
- * them): binders, sleeves, toploaders, magnetic cases, storage boxes. Amazon searches, any brand (no ASIN to keep up to
- * date, always buyable, no invitation), place `accessoires`. What no shop page says: how many binder pages each set takes,
+ * them): binders, sleeves, toploaders, magnetic cases, storage boxes, always buyable, no invitation, place `accessoires`.
+ * On amazon.fr one product page each (Johan, 2026-11-22: a search's page of resellers sells less than a product's), its
+ * pick named; the search of every brand stays under the rail. amazon.com: the searches. What no shop page says: how many binder pages each set takes,
  * from our own catalogs. French page /accessoires-pokemon (amazon.fr), English /en/card-accessories (amazon.com).
  */
 export const GEAR_PATH: Record<PageLang, string> = { fr: "/accessoires-pokemon", en: "/en/card-accessories" };
@@ -55,6 +56,8 @@ interface Gear {
   what: [string, string];
   tips: [string, string][];
   q: [string, string];
+  /** our pick on amazon.fr: its ASIN and its name (a web search of amazon.fr, never a script there) */
+  fr?: { asin: string; pick: string };
 }
 
 const GEAR: Gear[] = [
@@ -68,6 +71,7 @@ const GEAR: Gear[] = [
       ["Une fermeture zip contre la poussière.", "A zip keeps the dust out."],
     ],
     q: ["classeur pokemon 9 cases zip", "pokemon 9 pocket binder side loading zipper"],
+    fr: { asin: "B071V91LGC", pick: "Vault X Exo-Tec, zip, 360 cartes" },
   },
   {
     kind: "sleeves",
@@ -79,6 +83,7 @@ const GEAR: Gear[] = [
       ["Une « perfect fit » dessous pour un double sleeve.", "A perfect fit underneath to double-sleeve."],
     ],
     q: ["sleeves pokemon 66x91", "pokemon card sleeves 66x91"],
+    fr: { asin: "B0DTQBPDMC", pick: "Ultra PRO Pikachu, 65 pochettes" },
   },
   {
     kind: "toploader",
@@ -90,6 +95,7 @@ const GEAR: Gear[] = [
       ["Indispensable pour envoyer une carte par la poste.", "A must to ship a card."],
     ],
     q: ["toploader 35pt cartes pokemon", "toploaders 35pt card holders"],
+    fr: { asin: "B00095M5C2", pick: "Ultra PRO 35 pt, lot de 25" },
   },
   {
     kind: "magnet",
@@ -100,6 +106,7 @@ const GEAR: Gear[] = [
       ["Filtre UV : les couleurs ne passent pas au soleil.", "UV protection keeps the colours from fading."],
     ],
     q: ["étui magnétique 35pt carte pokemon", "magnetic card holder 35pt one touch"],
+    fr: { asin: "B000WBNRES", pick: "Ultra PRO One-Touch 35 pt, anti-UV" },
   },
   {
     kind: "box",
@@ -110,6 +117,7 @@ const GEAR: Gear[] = [
       ["Des intercalaires pour les ranger par type ou par numéro.", "Dividers to sort them by type or number."],
     ],
     q: ["boite rangement cartes pokemon 1000", "trading card storage box 800 count"],
+    fr: { asin: "B0G4PSCB5N", pick: "BCW 800 cartes, lot de 4" },
   },
 ];
 
@@ -159,6 +167,9 @@ const nb = (s: string) => s.replace(/ ([?!:;»])/g, "\u202f$1").replace(/« /g, 
 
 const ld = (data: object) => <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 const Art = ({ kind }: { kind: GearKind }) => <span style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: gearArt(kind) }} />;
+/** its link: our pick's page on amazon.fr, else a search of every brand */
+const gearHref = (g: Gear, lang: PageLang) =>
+  lang === "fr" && g.fr ? amazonProduct(g.fr.asin, "accessoires", lang) : amazonSearch(g.q[lang === "fr" ? 0 : 1], "accessoires", lang);
 
 export function AccessoriesPage({ lang }: { lang: PageLang }) {
   const fr = lang === "fr";
@@ -173,7 +184,7 @@ export function AccessoriesPage({ lang }: { lang: PageLang }) {
   const newest = sets[0] ? { name: sets[0].name, cards: sets[0].cards, sheets: sets[0].sheets } : null;
   const faq = FAQ.map((f) => ({ q: nb(f.q[i]), a: nb(f.a(newest)[i]) }));
   const binder = GEAR[0];
-  const heroHref = amazonSearch(binder.q[i], "accessoires", lang);
+  const heroHref = gearHref(binder, lang);
 
   const hero = (
     <ShopHero
@@ -201,16 +212,16 @@ export function AccessoriesPage({ lang }: { lang: PageLang }) {
       buy={
         <>
           <p className={s.what}>
-            <b>{binder.name[i]}</b> · {binder.what[i]}
+            <b>{fr && binder.fr ? binder.fr.pick : binder.name[i]}</b> · {binder.what[i]}
           </p>
           <div className={s.btns}>
             <AmazonButton id="hero-cta" href={heroHref} place="accessoires" size="lg" nudge>
-              {t("Les classeurs sur Amazon", "Binders on Amazon")}
+              {fr && binder.fr ? "Voir le prix sur Amazon" : t("Les classeurs sur Amazon", "Binders on Amazon")}
             </AmazonButton>
           </div>
           <ul className={s.reassure}>
-            <li>{t("Toujours en stock, sans invitation", "Always in stock, no invite")}</li>
-            <li>{t("Toutes les marques", "Every brand")}</li>
+            <li>{t("Toujours sans invitation", "Always in stock, no invite")}</li>
+            <li>{fr ? "Chargement latéral, sans anneaux" : "Every brand"}</li>
           </ul>
           <Affiliate lang={lang} />
         </>
@@ -261,12 +272,13 @@ export function AccessoriesPage({ lang }: { lang: PageLang }) {
       <ul className={`${s.rail} ${s.gearRail}`}>
         {GEAR.map((g) => (
           <li key={g.kind} id={g.kind}>
-            <a className={s.pcard} href={amazonSearch(g.q[i], "accessoires", lang)} target="_blank" rel="sponsored noopener" data-amazon-place="accessoires">
+            <a className={s.pcard} href={gearHref(g, lang)} target="_blank" rel="sponsored noopener" data-amazon-place="accessoires">
               <span className={s.pic}>
                 <span role="img" aria-label={g.name[i]} style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: gearArt(g.kind) }} />
               </span>
               <span className={s.body}>
                 <span className={`${s.name} ${s.gearName}`}>{g.name[i]}</span>
+                {fr && g.fr && <span className={s.gearPick}>Notre choix : {g.fr.pick}</span>}
                 <span className={s.gearWhat}>{nb(g.what[i])}</span>
                 <span className={s.tips}>
                   {g.tips.map((tip) => (
@@ -274,13 +286,28 @@ export function AccessoriesPage({ lang }: { lang: PageLang }) {
                   ))}
                 </span>
                 <span className={`${s.btn} ${s.sm} ${s.block}`}>
-                  {t("Voir sur Amazon", "See on Amazon")} <span className={s.arr}>↗</span>
+                  {fr && g.fr ? "Voir le prix" : t("Voir sur Amazon", "See on Amazon")} <span className={s.arr}>↗</span>
                 </span>
               </span>
             </a>
           </li>
         ))}
       </ul>
+      {/* our picks are one brand each: every other one, a search away */}
+      {fr && (
+        <p className={s.allBrands}>
+          Toutes les marques :{" "}
+          {GEAR.map((g, n) => (
+            <span key={g.kind}>
+              {n > 0 && " · "}
+              <a href={amazonSearch(g.q[0], "accessoires", lang)} target="_blank" rel="sponsored noopener" data-amazon-place="accessoires">
+                {g.name[0].replace(/ \(.*\)$/, "").toLowerCase()}
+              </a>
+            </span>
+          ))}{" "}
+          ↗
+        </p>
+      )}
       <Affiliate lang={lang} many />
 
       {sets.length > 0 && (
@@ -354,9 +381,9 @@ export function AccessoriesPage({ lang }: { lang: PageLang }) {
         href={heroHref}
         place="accessoires-bar"
         thumb={<Art kind="binder" />}
-        title={binder.name[i]}
+        title={fr && binder.fr ? binder.fr.pick : binder.name[i]}
         sub={t("Chargement latéral, sans anneaux", "Side-loading, no rings")}
-        label={t("Sur Amazon", "On Amazon")}
+        label={fr && binder.fr ? "Voir le prix" : t("Sur Amazon", "On Amazon")}
       />
     </WidePage>
   );

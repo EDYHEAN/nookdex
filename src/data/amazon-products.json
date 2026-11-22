@@ -10,9 +10,9 @@
       "date": "2026-11-06",
       "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Rayquaza.png",
       "products": [
-        { "asin": "B0HGG3XXSX", "kind": "etb", "name": "Coffret Dresseur d'élite Méga-Rayquaza", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Règne Delta.png" },
-        { "asin": "B0HGG5MTS5", "kind": "display", "name": "Display 36 boosters" },
-        { "asin": "B0HGG4KWKD", "kind": "bundle", "name": "Bundle 6 boosters", "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Sarmuraï.png" },
+        { "asin": "B0HGG3XXSX", "kind": "etb", "name": "Coffret Dresseur d'élite Méga-Rayquaza", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Règne Delta.png", "buy": "invite" },
+        { "asin": "B0HGG5MTS5", "kind": "display", "name": "Demi-display 18 boosters", "buy": "invite" },
+        { "asin": "B0HGG4KWKD", "kind": "bundle", "name": "Bundle 6 boosters", "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Sarmuraï.png", "buy": "invite" },
         { "asin": "B0HGG7GKDJ", "kind": "tripack", "name": "Tripack Otaria", "pic": "Fichier:Booster Méga-Évolution Règne Delta Méga-Golemastoc.png" }
       ]
     },
@@ -24,27 +24,27 @@
       "date": "2026-09-16",
       "pic": "Fichier:Booster 30e Anniversaire.png",
       "products": [
-        { "asin": "B0H8SVJL9F", "kind": "etb", "name": "Coffret Dresseur d'élite 30 ans", "pic": "Coffret Dresseur d'élite 30e Anniversaire" },
-        { "asin": "B0H8T1LY94", "kind": "bundle", "name": "Bundle 6 boosters" },
-        { "asin": "B0H8T2SB33", "kind": "box", "name": "Coffret Amphinobi-ex", "pic": "Coffret 30e Anniversaire Amphinobi-ex" },
-        { "asin": "B0H8SZN9HV", "kind": "box", "name": "Coffret Nymphali-ex", "pic": "Coffret 30e Anniversaire Nymphali-ex" },
-        { "asin": "B0H8T2L8BL", "kind": "collection", "name": "Collection Poster 30 ans", "pic": "Collection poster 30e Anniversaire" },
-        { "asin": "B0H8SRZH3N", "kind": "collection", "name": "Collection Classeur 30 ans", "pic": "Fichier:Collection classeur 30e Anniversaire.png" },
-        { "asin": "B0H8T8M5WW", "kind": "blister", "name": "Blister 2 boosters Évoli" },
-        { "asin": "B0H8T3VGFN", "kind": "pokebox", "name": "Pokébox Amphinobi", "pic": "Fichier:Boîte 30e Anniversaire Amphinobi-ex.png" },
-        { "asin": "B0H8SYBZKN", "kind": "pokebox", "name": "Pokébox Nymphali", "pic": "Fichier:Boîte 30e Anniversaire Nymphali-ex.png" },
-        { "asin": "B0H8SVLTJ9", "kind": "collection", "name": "Collection Autocollant Lucario", "pic": "Fichier:Collection Autocollant Réajustable 30e Anniversaire Lucario.png" },
-        { "asin": "B0H8T4N6PP", "kind": "collection", "name": "Collection Autocollant Noadkoko", "pic": "Fichier:Collection Autocollant Réajustable 30e Anniversaire Noadkoko d'Alola.png" },
-        { "asin": "B0H8T2YD2S", "kind": "tin", "name": "Mini Tin Pikachu (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Prismillon.png" },
-        { "asin": "B0H8T6L1SF", "kind": "tin", "name": "Mini Tin Mentali (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Mentali.png" },
-        { "asin": "B0H8TF4B9B", "kind": "tin", "name": "Mini Tin Mew (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Mew.png" },
-        { "asin": "B0H8SYFCS2", "kind": "tin", "name": "Mini Tin Lokhlass (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Lokhlass.png" },
-        { "asin": "B0H8T8W4T2", "kind": "tin", "name": "Mini Tin Sulfura (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Sulfura.png" },
-        { "asin": "B0H8T5GX22", "kind": "tin", "name": "Mini Tin Pikachu (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Salarsen.png" },
-        { "asin": "B0H8T86JNR", "kind": "tin", "name": "Mini Tin Noctali (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Noctali.png" },
-        { "asin": "B0H8SX7LQH", "kind": "tin", "name": "Mini Tin Mewtwo (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Mewtwo.png" },
-        { "asin": "B0H8T1XPT2", "kind": "tin", "name": "Mini Tin Électhor (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Électhor.png" },
-        { "asin": "B0H8T3Y1FJ", "kind": "tin", "name": "Mini Tin Amphinobi (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Amphinobi.png" }
+        { "asin": "B0H8SVJL9F", "kind": "etb", "name": "Coffret Dresseur d'élite 30 ans", "pic": "Coffret Dresseur d'élite 30e Anniversaire", "buy": "invite" },
+        { "asin": "B0H8T1LY94", "kind": "bundle", "name": "Bundle 6 boosters", "buy": "invite" },
+        { "asin": "B0H8T2SB33", "kind": "box", "name": "Coffret Amphinobi-ex", "pic": "Coffret 30e Anniversaire Amphinobi-ex", "buy": "invite" },
+        { "asin": "B0H8SZN9HV", "kind": "box", "name": "Coffret Nymphali-ex", "pic": "Coffret 30e Anniversaire Nymphali-ex", "buy": "invite" },
+        { "asin": "B0H8T2L8BL", "kind": "collection", "name": "Collection Poster 30 ans", "pic": "Collection poster 30e Anniversaire", "buy": "invite" },
+        { "asin": "B0H8SRZH3N", "kind": "collection", "name": "Collection Classeur 30 ans", "pic": "Fichier:Collection classeur 30e Anniversaire.png", "buy": "invite" },
+        { "asin": "B0H8T8M5WW", "kind": "blister", "name": "Blister 2 boosters Évoli", "buy": "invite" },
+        { "asin": "B0H8T3VGFN", "kind": "pokebox", "name": "Pokébox Amphinobi", "pic": "Fichier:Boîte 30e Anniversaire Amphinobi-ex.png", "buy": "invite" },
+        { "asin": "B0H8SYBZKN", "kind": "pokebox", "name": "Pokébox Nymphali", "pic": "Fichier:Boîte 30e Anniversaire Nymphali-ex.png", "buy": "invite" },
+        { "asin": "B0H8SVLTJ9", "kind": "collection", "name": "Collection Autocollant Lucario", "pic": "Fichier:Collection Autocollant Réajustable 30e Anniversaire Lucario.png", "buy": "invite" },
+        { "asin": "B0H8T4N6PP", "kind": "collection", "name": "Collection Autocollant Noadkoko", "pic": "Fichier:Collection Autocollant Réajustable 30e Anniversaire Noadkoko d'Alola.png", "buy": "invite" },
+        { "asin": "B0H8T2YD2S", "kind": "tin", "name": "Mini Tin Pikachu (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Prismillon.png", "buy": "invite" },
+        { "asin": "B0H8T6L1SF", "kind": "tin", "name": "Mini Tin Mentali (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Mentali.png", "buy": "invite" },
+        { "asin": "B0H8TF4B9B", "kind": "tin", "name": "Mini Tin Mew (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Mew.png", "buy": "invite" },
+        { "asin": "B0H8SYFCS2", "kind": "tin", "name": "Mini Tin Lokhlass (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Lokhlass.png", "buy": "invite" },
+        { "asin": "B0H8T8W4T2", "kind": "tin", "name": "Mini Tin Sulfura (Jour)", "pic": "Fichier:Mini-boîte 30e Anniversaire Sulfura.png", "buy": "invite" },
+        { "asin": "B0H8T5GX22", "kind": "tin", "name": "Mini Tin Pikachu (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Salarsen.png", "buy": "invite" },
+        { "asin": "B0H8T86JNR", "kind": "tin", "name": "Mini Tin Noctali (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Noctali.png", "buy": "invite" },
+        { "asin": "B0H8SX7LQH", "kind": "tin", "name": "Mini Tin Mewtwo (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Mewtwo.png", "buy": "invite" },
+        { "asin": "B0H8T1XPT2", "kind": "tin", "name": "Mini Tin Électhor (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Électhor.png", "buy": "invite" },
+        { "asin": "B0H8T3Y1FJ", "kind": "tin", "name": "Mini Tin Amphinobi (Nuit)", "pic": "Fichier:Mini-boîte 30e Anniversaire Amphinobi.png", "buy": "invite" }
       ]
     },
     {
@@ -66,9 +66,9 @@
       "date": "2026-07-17",
       "pic": "Fichier:Booster Méga-Évolution Nuit Noire Méga-Darkrai.png",
       "products": [
-        { "asin": "B0GZL4L9DS", "kind": "etb", "name": "Coffret Dresseur d'élite", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Nuit Noire.png" },
-        { "asin": "B0GZL2NT3Q", "kind": "display", "name": "Display 18 boosters" },
-        { "asin": "B0GZL5Y3P6", "kind": "bundle", "name": "Bundle 6 boosters", "pic": "Fichier:Booster Méga-Évolution Nuit Noire Méga-Zeraora.png" },
+        { "asin": "B0GZL4L9DS", "kind": "etb", "name": "Coffret Dresseur d'élite", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Nuit Noire.png", "buy": "invite" },
+        { "asin": "B0GZL2NT3Q", "kind": "display", "name": "Display 18 boosters", "buy": "invite" },
+        { "asin": "B0GZL5Y3P6", "kind": "bundle", "name": "Bundle 6 boosters", "pic": "Fichier:Booster Méga-Évolution Nuit Noire Méga-Zeraora.png", "buy": "invite" },
         { "asin": "B0GZLFCR67", "kind": "tripack", "name": "Tripack Opermine", "pic": "Tripack ME05 Opermine" }
       ]
     },
@@ -80,9 +80,9 @@
       "date": "2026-05-22",
       "pic": "Fichier:Booster Méga-Évolution Chaos Ascendant Méga-Amphinobi.png",
       "products": [
-        { "asin": "B0GSST5GW1", "kind": "etb", "name": "Coffret Dresseur d'élite", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Chaos Ascendant.png" },
-        { "asin": "B0GSSCWMTV", "kind": "display", "name": "Demi-display 18 boosters" },
-        { "asin": "B0GSSH754N", "kind": "bundle", "name": "Bundle 6 boosters", "pic": "Fichier:Booster Méga-Évolution Chaos Ascendant Méga-Floette.png" },
+        { "asin": "B0GSST5GW1", "kind": "etb", "name": "Coffret Dresseur d'élite", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Chaos Ascendant.png", "buy": "invite" },
+        { "asin": "B0GSSCWMTV", "kind": "display", "name": "Demi-display 18 boosters", "buy": "invite" },
+        { "asin": "B0GSSH754N", "kind": "bundle", "name": "Bundle 6 boosters", "pic": "Fichier:Booster Méga-Évolution Chaos Ascendant Méga-Floette.png", "buy": "invite" },
         { "asin": "B0GSSW2HQJ", "kind": "tripack", "name": "Tripack Reptincel", "pic": "Tripack ME04 Reptincel" }
       ]
     },
@@ -94,8 +94,8 @@
       "date": "2026-03-27",
       "pic": "Fichier:Booster Méga-Évolution Équilibre Parfait Méga-Zygarde.png",
       "products": [
-        { "asin": "B0GGJ29HSD", "kind": "etb", "name": "Coffret Dresseur d'élite", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Équilibre Parfait.png" },
-        { "asin": "B0GGJ7JF7J", "kind": "bundle", "name": "Bundle 6 boosters" },
+        { "asin": "B0GGJ29HSD", "kind": "etb", "name": "Coffret Dresseur d'élite", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Équilibre Parfait.png", "buy": "invite" },
+        { "asin": "B0GGJ7JF7J", "kind": "bundle", "name": "Bundle 6 boosters", "buy": "invite" },
         { "asin": "B0GGJ11H9Y", "kind": "tripack", "name": "Tripack Germignon", "pic": "Tripack ME03 Germignon" }
       ]
     },
@@ -118,9 +118,9 @@
       "date": "2026-01-30",
       "pic": "Fichier:Booster Méga-Évolution Héros Transcendants.png",
       "products": [
-        { "asin": "B0G3YH3QN4", "kind": "etb", "name": "Coffret Dresseur d'élite", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Héros Transcendants.png" },
-        { "asin": "B0G4NRRK4H", "kind": "bundle", "name": "Bundle 6 boosters" },
-        { "asin": "B0FX1C7CCY", "kind": "collection", "name": "Collection Poster Premium Méga-Gardevoir", "pic": "Collection poster Premium Méga-Évolution Héros Transcendants Méga-Gardevoir" },
+        { "asin": "B0G3YH3QN4", "kind": "etb", "name": "Coffret Dresseur d'élite", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Héros Transcendants.png", "buy": "invite" },
+        { "asin": "B0G4NRRK4H", "kind": "bundle", "name": "Bundle 6 boosters", "buy": "invite" },
+        { "asin": "B0FX1C7CCY", "kind": "collection", "name": "Collection Poster Premium Méga-Gardevoir", "pic": "Collection poster Premium Méga-Évolution Héros Transcendants Méga-Gardevoir", "buy": "invite" },
         { "asin": "B0G7HTRNP1", "kind": "box", "name": "Coffret Méga-Méganium-ex", "pic": "Coffret Méga-Évolution Héros Transcendants Méga-Méganium-ex" },
         { "asin": "B0G7HH545R", "kind": "box", "name": "Coffret Méga-Aligatueur-ex", "pic": "Coffret Méga-Évolution Héros Transcendants Méga-Aligatueur-ex" },
         { "asin": "B0G4NRBTVC", "kind": "tripack", "name": "Tripack Autocollant Fantominus", "pic": "Collection autocollant réajustable Méga-Évolution Héros Transcendants Fantominus" },
@@ -135,7 +135,7 @@
       "date": "2025-11-14",
       "pic": "Fichier:Booster Méga-Évolution Flammes Fantasmagoriques Méga-Dracaufeu X.png",
       "products": [
-        { "asin": "B0FTFZMJGG", "kind": "bundle", "name": "Bundle 6 boosters" }
+        { "asin": "B0FTFZMJGG", "kind": "bundle", "name": "Bundle 6 boosters", "buy": "invite" }
       ]
     },
     {
@@ -146,7 +146,7 @@
       "date": "2025-09-26",
       "pic": "Coffret Dresseur d'élite Méga-Évolution",
       "products": [
-        { "asin": "B0FL7RXXKN", "kind": "etb", "name": "Coffret Dresseur d'élite Méga-Gardevoir", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Méga-Gardevoir.png" }
+        { "asin": "B0FL7RXXKN", "kind": "etb", "name": "Coffret Dresseur d'élite Méga-Gardevoir", "pic": "Fichier:Coffret Dresseur d'élite Méga-Évolution Méga-Gardevoir.png", "buy": "invite" }
       ]
     }
   ]

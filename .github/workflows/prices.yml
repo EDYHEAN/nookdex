@@ -66,7 +66,8 @@ jobs:
       - name: Hausses et baisses du marché
         run: node scripts/market-moves.mjs
 
-      # les visuels officiels des produits Amazon (src/data/amazon-products.json) : ceux qui manquent, depuis Poképédia
+      # les visuels officiels des produits Amazon (src/data/amazon-products.json) : ceux qui manquent, depuis Poképédia ; et les
+      # boîtes de chaque set (src/data/set-boxes.json, TCGCSV) pour ne jamais dessiner une boîte
       - name: Visuels des produits Amazon
         run: node scripts/fetch-amazon-pics.mjs
         continue-on-error: true
@@ -75,7 +76,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/sets public/history public/market public/logos public/scans src/data/catalog.json src/data/catalog-en.json src/data/catalog-ja.json src/data/eur-usd.json src/data/pokemon-names.json public/amazon src/data/amazon-pics.json
+          git add public/sets public/history public/market public/logos public/scans src/data/catalog.json src/data/catalog-en.json src/data/catalog-ja.json src/data/eur-usd.json src/data/pokemon-names.json public/amazon src/data/amazon-pics.json src/data/set-boxes.json
           if git diff --cached --quiet; then
             echo "Aucun prix n'a bougé aujourd'hui."
             exit 0

@@ -1,6 +1,19 @@
 import type { ReactNode } from "react";
 import { affiliateLabel, amazonSearch, type AmazonPlace } from "@/lib/amazon";
-import { byInterest, goLabel, kindLabel, productArt, productHref, productPic, type ProductPic, type ShopGroup, type ShopKind } from "@/lib/amazonShop";
+import {
+  buyChip,
+  byInterest,
+  goLabel,
+  kindLabel,
+  productArt,
+  productHref,
+  productPic,
+  setBoxPic,
+  type ProductPic,
+  type ShopGroup,
+  type ShopKind,
+  type ShopProduct,
+} from "@/lib/amazonShop";
 import { kindArt } from "@/lib/kindArt";
 import s from "./Shop.module.css";
 
@@ -53,6 +66,16 @@ export function ProductArt({ pic, kind, alt, eager, art }: { pic: ProductPic | n
   );
 }
 
+/**
+ * what a product's click leads to, on its picture (French pages, once the set is out; Johan 2026-11-22): « Sans
+ * invitation », a green dot that pulses once, or « Sur invitation », a wax seal. Unknown: nothing promised
+ */
+export function BuyChip({ p, soon, lang = "fr" }: { p: ShopProduct; soon: boolean; lang?: Lang }) {
+  const chip = buyChip(p, soon, lang);
+  if (!chip) return null;
+  return chip === "now" ? <span className={`${s.chip} ${s.chipNow}`}>Sans invitation</span> : <span className={`${s.chip} ${s.chipInvite}`}>✉ Sur invitation</span>;
+}
+
 /** a sealed product of a set on Amazon: the whole card is the link */
 export function ProductCard({
   group,
@@ -67,16 +90,19 @@ export function ProductCard({
   soon: boolean;
   lang?: Lang;
 }) {
+  const counted = place === "invit" && lang === "fr" && p.buy === "now" ? "invit-achat" : place;
   return (
-    <a className={s.pcard} href={productHref(p, place, lang)} target="_blank" rel="sponsored noopener" data-amazon-place={place}>
+    <a className={s.pcard} href={productHref(p, place, lang)} target="_blank" rel="sponsored noopener" data-amazon-place={counted}>
       {soon && <span className={s.ribbon}>{lang === "fr" ? "Précommande" : "Pre-order"}</span>}
+      <BuyChip p={p} soon={soon} lang={lang} />
       <span className={s.pic}>
         <ProductArt pic={productPic(p, group)} kind={p.kind} art={productArt(p, group, lang)} alt={`${kindLabel(p.kind, lang)} ${group.name}`} />
       </span>
       <span className={s.body}>
         <span className={s.kind}>{kindLabel(p.kind, lang)}</span>
         <span className={s.name}>{p.name}</span>
-        <span className={`${s.btn} ${s.sm} ${s.block}`}>
+        {/* the yellow goes to what can be bought: an invitation's button is the quiet one */}
+        <span className={[s.btn, s.sm, s.block, !soon && lang === "fr" && p.buy === "invite" && s.alt].filter(Boolean).join(" ")}>
           {goLabel(p, soon, lang)} <span className={s.arr}>↗</span>
         </span>
       </span>
@@ -103,7 +129,10 @@ export function ProductRail({ group, place, max, lang = "fr" }: { group: ShopGro
   );
 }
 
-/** what people look for, drawn: no product pictures of ours on amazon.com (nor for an older French set), a search each */
+/**
+ * what people look for, a search each, when we list no product of the set: TCGplayer's picture of the set's box
+ * (setBoxPic, the English packaging), else its kind drawn
+ */
 const KINDS: { kind: ShopKind; fr: string; en: string; q: { fr: string; en: string } }[] = [
   { kind: "etb", fr: "Coffret Dresseur d'élite", en: "Elite Trainer Box", q: { fr: "Coffret Dresseur d'élite", en: "Elite Trainer Box" } },
   { kind: "display", fr: "Display", en: "Booster Box", q: { fr: "Display", en: "Booster Box" } },
@@ -112,12 +141,14 @@ const KINDS: { kind: ShopKind; fr: string; en: string; q: { fr: string; en: stri
 ];
 
 /** a set's four kinds of products, drawn, each a search on amazon.fr (amazon.com on an English page) */
-export function KindTiles({ name, place, soon, lang = "en" }: { name: string; place: AmazonPlace; soon: boolean; lang?: Lang }) {
+export function KindTiles({ name, setId, place, soon, lang = "en" }: { name: string; setId?: string | null; place: AmazonPlace; soon: boolean; lang?: Lang }) {
   const fr = lang === "fr";
   return (
     <>
       <ul className={s.kinds}>
-        {KINDS.map((k) => (
+        {KINDS.map((k) => {
+          const pic = setBoxPic(setId, k.kind);
+          return (
           <li key={k.kind}>
             <a
               href={amazonSearch(fr ? `Pokémon ${name} ${k.q.fr}` : `Pokemon TCG ${name} ${k.q.en}`, place, lang)}
@@ -125,14 +156,19 @@ export function KindTiles({ name, place, soon, lang = "en" }: { name: string; pl
               rel="sponsored noopener"
               data-amazon-place={place}
             >
-              <span dangerouslySetInnerHTML={{ __html: kindArt(k.kind) }} style={{ display: "contents" }} />
+              {pic ? (
+                <img src={pic.src} width={pic.w} height={pic.h} alt="" loading="lazy" />
+              ) : (
+                <span dangerouslySetInnerHTML={{ __html: kindArt(k.kind) }} style={{ display: "contents" }} />
+              )}
               <b>{fr ? k.fr : k.en}</b>
               <span className={`${s.btn} ${s.sm}`}>
                 {soon ? (fr ? "Précommandes" : "Pre-orders") : fr ? "Sur Amazon" : "On Amazon"} <span className={s.arr}>↗</span>
               </span>
             </a>
           </li>
-        ))}
+          );
+        })}
       </ul>
       <Affiliate lang={lang} many />
     </>

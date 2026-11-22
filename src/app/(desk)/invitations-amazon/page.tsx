@@ -3,7 +3,7 @@ import Link from "next/link";
 import { WidePage } from "@/components/WidePage";
 import { Countdown } from "@/components/shop/Countdown";
 import { OpenHash } from "@/components/shop/OpenHash";
-import { Affiliate, AmazonButton, ProductRail, Stage } from "@/components/shop/ShopBits";
+import { Affiliate, AmazonButton, ProductCard, ProductRail, Stage } from "@/components/shop/ShopBits";
 import { ReleaseAlert } from "@/components/shop/ReleaseAlert";
 import { ShopHero } from "@/components/shop/ShopHero";
 import { StickyBuy } from "@/components/shop/StickyBuy";
@@ -20,8 +20,10 @@ import {
   shopGroups,
   shopUpdated,
   shortSetName,
+  stickyLabel,
+  GIFTS_PATH,
+  giftSeason,
 } from "@/lib/amazonShop";
-import { amazonSearch } from "@/lib/amazon";
 import { formatDate } from "@/lib/blog";
 import { kindArt } from "@/lib/kindArt";
 import { daysLeft } from "@/lib/parisTime";
@@ -73,6 +75,10 @@ const FAQ = [
     a: "Non, c'est gratuit et ça ne t'engage à rien : tu achètes seulement si tu es invité et que tu le veux toujours.",
   },
   {
+    q: "J'ai reçu mon invitation, comment acheter ?",
+    a: "Ouvre la fiche du produit sur Amazon.fr, connecté au même compte que ta demande : le bouton « Acheter » a remplacé la demande d'invitation. L'e-mail d'Amazon dit jusqu'à quand.",
+  },
+  {
     q: "Comment éviter de payer trop cher ?",
     a: "Vérifie que le produit est « Expédié et vendu par Amazon » : d'autres vendeurs proposent souvent le même coffret bien au-dessus de son prix.",
   },
@@ -93,17 +99,28 @@ export default function InvitationsAmazon() {
   // the newest set first (the page's searches are about it), then the file's order
   const first = newest ? shopGroups.find((g) => g.id === newest.id)! : shopGroups[0];
   const rest = shopGroups.filter((g) => g !== first);
+  /**
+   * Once the set is out, what can be bought straight away stands under the lamp, the invitation second (Johan, 2026-11-15
+   * and 11-22: Amazon's report gave nookdex-invit-21 134 clicks and no sale; the invited buy days later from Amazon's own
+   * mail, out of our 24 h cookie). A product page, never a search (a search's resellers sold nothing): byInterest puts
+   * the boxes sold at once first, their clicks go to nookdex-achat-21 (productHref).
+   */
   const top = first ? byInterest(first.products)[0] : undefined;
   const pic = top ? productPic(top, first) : null;
   const fan = first ? boosterPics(first) : [];
-  const inviteHref = top ? productHref(top, "invit") : null;
-  /**
-   * Once the set is out, what can be bought straight away comes first, the invitation second (Johan, 2026-11-15: Amazon's
-   * report gave nookdex-invit-21 134 clicks and no sale; the invited buy days later from Amazon's own mail, out of our
-   * 24 h cookie). A search of the set: the main tag (nookdex-21), so Amazon's report tells its sales apart.
-   */
-  const nowHref = first && !soon ? amazonSearch(`Pokémon ${first.name}`) : null;
-  const heroHref = nowHref ?? inviteHref;
+  const buyNow = !soon && top?.buy === "now" && !!top.asin;
+  // the invitation, second: the newest set's first box by invitation (its Elite Trainer Box, mostly)
+  const inv = first ? byInterest(first.products.filter((p) => p.asin && p.buy === "invite"))[0] : undefined;
+  const heroHref = top ? productHref(top, "invit") : null;
+  // its button beside the hero's, the quiet one, once the set is out and the hero isn't it
+  const second = !soon && inv && inv !== top ? inv : null;
+  // what can be bought at once, every set's, newest first (the hero's apart): « Sans invitation, tout de suite »
+  const nowAll = [...shopGroups]
+    .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
+    .flatMap((g) => byInterest(g.products).filter((p) => p.buy === "now" && p.asin && !(g === first && p === top)).map((p) => ({ g, p })))
+    .slice(0, 8);
+  // « Invitation reçue ? »: the newest set's boxes by invitation, once it's out (the invited come back through our link)
+  const invites = first && !soon ? byInterest(first.products).filter((p) => p.asin && p.buy === "invite") : [];
   const page = first?.setId ? setPagePath("fr", first.setId) : null;
   const days = first?.date ? daysUntil(first.date) : 0;
   // the h1 says the title, its set's name big
@@ -139,46 +156,47 @@ export default function InvitationsAmazon() {
             {/* its kind, unless its name says it */}
             {!top.name.startsWith(KIND_LABEL[top.kind]) && ` · ${KIND_LABEL[top.kind]}`}
           </p>
-          {nowHref ? (
-            <>
-              <div className={s.btns}>
-                <AmazonButton id="hero-cta" href={nowHref} place="invit-dispo" size="lg" nudge>
-                  Voir ce qui est dispo
-                </AmazonButton>
-                <AmazonButton href={inviteHref!} place="invit" alt>
-                  {goLabel(top, soon)}
-                </AmazonButton>
-              </div>
-              <ul className={s.reassure}>
-                <li>Sans attendre</li>
-                <li>Invitation gratuite</li>
-              </ul>
-              {page && (
-                <Link prefetch={false} href={page} className={s.alertJump}>
-                  Les cartes et leurs prix →
+          <div className={s.btns}>
+            <AmazonButton id="hero-cta" href={heroHref!} place={buyNow ? "invit-achat" : "invit"} size="lg" nudge>
+              {goLabel(top, soon)}
+            </AmazonButton>
+            {second ? (
+              <AmazonButton href={productHref(second, "invit")} place="invit" alt>
+                ✉ {goLabel(second, soon)}
+              </AmazonButton>
+            ) : (
+              page && (
+                <Link prefetch={false} href={page} className={`${s.btn} ${s.alt}`}>
+                  Les cartes et leurs prix
                 </Link>
-              )}
-            </>
-          ) : (
-            <>
-              <div className={s.btns}>
-                <AmazonButton id="hero-cta" href={inviteHref!} place="invit" size="lg" nudge>
-                  {goLabel(top, soon)}
-                </AmazonButton>
-                {page && (
-                  <Link prefetch={false} href={page} className={`${s.btn} ${s.alt}`}>
-                    Les cartes et leurs prix
-                  </Link>
-                )}
-              </div>
-              <ul className={s.reassure}>
+              )
+            )}
+          </div>
+          <ul className={s.reassure}>
+            {soon || top.buy === "invite" ? (
+              <>
                 <li>Gratuit</li>
                 <li>Sans engagement</li>
                 <li>Au prix public</li>
-              </ul>
-            </>
+              </>
+            ) : (
+              <>
+                {top.buy === "now" && <li>Sans invitation</li>}
+                <li>Vérifie « Expédié et vendu par Amazon »</li>
+              </>
+            )}
+          </ul>
+          {second && page && (
+            <Link prefetch={false} href={page} className={s.alertJump}>
+              Les cartes et leurs prix →
+            </Link>
           )}
           <Affiliate lang="fr" />
+          {invites.length > 0 && (
+            <a href="#invitation-recue" className={s.alertJump}>
+              ✉ Invitation reçue ? Ouvre ta fiche ↓
+            </a>
+          )}
           {/* the alert on the first screen, as a quiet link: one yellow button per screen */}
           <a href="#alerte" className={s.alertJump}>
             ✉ Préviens-moi à la prochaine sortie ↓
@@ -209,10 +227,25 @@ export default function InvitationsAmazon() {
 
       <p className={s.answer}>
         <b>En bref</b>
-        Demande ton invitation sur la fiche Amazon (c&apos;est gratuit) : Amazon t&apos;écrit si tu peux acheter, au prix public.
-        {nowHref && " Sans attendre, ce qui est en stock s'achète tout de suite (vérifie « Expédié et vendu par Amazon »)."} {count} produits, mis à
-        jour le {formatDate(shopUpdated, "fr")}.
+        {nowAll.length > 0 || buyNow
+          ? "Deux façons d'acheter : ce qui est marqué « Sans invitation » s'achète tout de suite. Le reste, tu demandes l'invitation (c'est gratuit) et Amazon t'écrit si c'est ton tour, au prix public."
+          : "Demande ton invitation sur la fiche Amazon (c'est gratuit) : Amazon t'écrit si tu peux acheter, au prix public."}{" "}
+        {count} produits, mis à jour le {formatDate(shopUpdated, "fr")}.
       </p>
+
+      {nowAll.length > 0 && (
+        <section id="sans-invitation">
+          <h2>Sans invitation, tout de suite</h2>
+          <ul className={s.rail}>
+            {nowAll.map(({ g, p }) => (
+              <li key={p.asin}>
+                <ProductCard group={g} product={p} place="invit" soon={false} />
+              </li>
+            ))}
+          </ul>
+          <Affiliate lang="fr" many={nowAll.length > 1} />
+        </section>
+      )}
 
       <h2>Comment marche l&apos;invitation ?</h2>
       <ol className={s.steps}>
@@ -235,6 +268,31 @@ export default function InvitationsAmazon() {
           </span>
         </li>
       </ol>
+
+      {/* step 4 (Johan, 2026-11-22): practical only, never "buy through us" (the program forbids pushing clicks) */}
+      {first && invites.length > 0 && (
+        <section id="invitation-recue" className={s.recue}>
+          <h2>✉ Invitation reçue ?</h2>
+          <p>Ouvre la fiche depuis ici, connecté au même compte Amazon que ta demande : le bouton « Acheter » remplace la demande.</p>
+          <ul>
+            {invites.map((p) => {
+              const ip = productPic(p, first);
+              return (
+                <li key={p.asin}>
+                  <a href={productHref(p, "invit")} target="_blank" rel="sponsored noopener" data-amazon-place="invit-recue">
+                    {ip && <img src={ip.src} width={ip.w} height={ip.h} alt="" loading="lazy" />}
+                    <span>
+                      <b>{KIND_LABEL[p.kind]}</b>
+                      Ouvrir la fiche ↗
+                    </span>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+          <Affiliate lang="fr" many={invites.length > 1} />
+        </section>
+      )}
 
       {first && (
         <section id={first.id}>
@@ -291,6 +349,17 @@ export default function InvitationsAmazon() {
         );
       })}
 
+      {giftSeason() && (
+        <Link prefetch={false} href={GIFTS_PATH} className={s.giftStrip}>
+          <span aria-hidden>🎁</span>
+          <span>
+            <b>Un cadeau sans attendre d&apos;invitation ?</b>
+            Les idées à moins de 20 € et 50 €
+          </span>
+          <span aria-hidden>→</span>
+        </Link>
+      )}
+
       <section className={s.faq} data-sticky-stop>
         <h2>Questions fréquentes</h2>
         {FAQ.map((f) => (
@@ -310,7 +379,7 @@ export default function InvitationsAmazon() {
         <StickyBuy
           target="hero-cta"
           href={heroHref}
-          place={nowHref ? "invit-dispo-bar" : "invit-bar"}
+          place={buyNow ? "invit-achat-bar" : "invit-bar"}
           thumb={
             (pic ?? fan[0]) ? (
               <img src={(pic ?? fan[0])!.src} width={(pic ?? fan[0])!.w} height={(pic ?? fan[0])!.h} alt="" loading="lazy" />
@@ -320,7 +389,7 @@ export default function InvitationsAmazon() {
           }
           title={days > 0 ? `${shortSetName(first.name)} · J-${days}` : shortSetName(first.name)}
           sub={top.name}
-          label={soon ? "Précommandes" : nowHref ? "Dispo" : top.asin ? "L'invitation" : "Sur Amazon"}
+          label={stickyLabel(top, soon)}
         />
       )}
     </WidePage>

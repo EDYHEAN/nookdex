@@ -55,6 +55,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // the collector's gear (binders, sleeves, toploaders), with each set's binder pages
     { url: `${SITE_URL}/accessoires-pokemon`, changeFrequency: "monthly", priority: 0.6, alternates: gear },
     { url: `${SITE_URL}/en/card-accessories`, changeFrequency: "monthly", priority: 0.6, alternates: gear },
+    // the gift guide (French only): buyable at once, kept up to date before Christmas
+    { url: `${SITE_URL}/cadeaux-pokemon`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${SITE_URL}/a-propos`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE_URL}/blog`, lastModified: posts[0]?.date, changeFrequency: "weekly", priority: 0.7 },
     ...posts.map((p) => {

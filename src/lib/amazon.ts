@@ -3,7 +3,7 @@
  * cards (those stay on Cardmarket). French pages only: the tag only pays on amazon.fr. Links are marked `rel="sponsored"`,
  * each group of them says « Lien affilié » in small grey (`affiliateLabel`), the program's sentence is on /conditions and
  * /a-propos (`AMAZON_NOTICE`, Johan 2026-10-31: no "I earn…" by the buttons). The account closes if it makes no 3 sales in
- * 180 days (3 shipped in October 2026: kept).
+ * 180 days (2 by 2026-11-22: not validated yet).
  */
 export const AMAZON_TAG = "nookdex-21";
 
@@ -20,7 +20,7 @@ export const amazonOn = (lang: "fr" | "en") => lang === "fr" || !!AMAZON_US_TAG;
  * a phone's sticky bar): the weekly report counts the clicks by it (lib/funnel watchAmazonClicks), Amazon's reports the
  * sales by its tracking id.
  */
-export type AmazonPlace = "invit" | "extension" | "calendrier" | "blog" | "carte" | "accessoires";
+export type AmazonPlace = "invit" | "extension" | "calendrier" | "blog" | "carte" | "accessoires" | "achat" | "cadeaux";
 
 /**
  * A tracking id per place on amazon.fr (Johan's Amazon account, 2026-10-19). The card pages and the accessories have none
@@ -33,6 +33,10 @@ export const AMAZON_TAGS: Record<AmazonPlace, string> = {
   blog: "nookdex-blog-21",
   carte: "nookdex-carte-21",
   accessoires: "nookdex-accessoires-21",
+  /** a box sold at once on the invitations page (Johan, 2026-11-22), apart from the invitations' */
+  achat: "nookdex-achat-21",
+  /** the gift guide: no id of its own yet, the main tag */
+  cadeaux: "nookdex-21",
 };
 /**
  * The same on amazon.com: the per-place ids Johan created in Associates Central (2026-11-01); the invites page
@@ -45,6 +49,8 @@ export const AMAZON_US_TAGS: Record<AmazonPlace, string> = {
   blog: "nookdex-blog-20",
   carte: "nookdex-card-20",
   accessoires: "nookdex-20",
+  achat: "nookdex-20",
+  cadeaux: "nookdex-20",
 };
 const tagOf = (place?: AmazonPlace) => (place ? AMAZON_TAGS[place] : AMAZON_TAG);
 const usTagOf = (place?: AmazonPlace) => (place ? AMAZON_US_TAGS[place] : AMAZON_US_TAG);

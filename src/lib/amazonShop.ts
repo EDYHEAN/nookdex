@@ -1,6 +1,7 @@
 import data from "@/data/amazon-products.json";
 import dataUs from "@/data/amazon-products-us.json";
 import pics from "@/data/amazon-pics.json";
+import setBoxes from "@/data/set-boxes.json";
 import catalogEn from "@/data/catalog-en.json";
 import catalogFr from "@/data/catalog.json";
 import { amazonProduct, amazonSearch, type AmazonPlace } from "./amazon";
@@ -22,6 +23,13 @@ export interface ShopProduct {
   q?: string;
   /** its Poképédia page or file, else the group's picture */
   pic?: string;
+  /**
+   * how amazon.fr sells it (Johan, 2026-11-22: « Demander l'invitation » made 134 clicks and no sale, the invited buy days
+   * later from Amazon's own mail, out of our 24 h cookie; the links to what can be bought at once sold like the US's):
+   * "now" in the cart straight away, "invite" by invitation only; unknown: neither promised. Kept up to date by the
+   * release-watch routine (docs/release-watch.md).
+   */
+  buy?: "now" | "invite";
 }
 export interface ShopGroup {
   id: string;
@@ -37,6 +45,13 @@ export interface ShopGroup {
 type Lang = "fr" | "en";
 
 export const SHOP_PATH = "/invitations-amazon";
+/** the gift guide (amazon.fr, French only): src/app/(desk)/cadeaux-pokemon, src/data/amazon-gifts.json */
+export const GIFTS_PATH = "/cadeaux-pokemon";
+/** its season: a tab in the shop pages and a link from the calendar and the invitations, from November 20th to Christmas */
+export const giftSeason = (d = new Date()) => {
+  const md = d.toISOString().slice(5, 10);
+  return md >= "11-20" && md <= "12-25";
+};
 export const SHOP_PATH_EN = "/en/amazon-invites";
 export const shopPath = (lang: Lang) => (lang === "fr" ? SHOP_PATH : SHOP_PATH_EN);
 export const shopGroups = data.groups as ShopGroup[];
@@ -72,18 +87,34 @@ const KIND_LABEL_EN: Record<ShopKind, string> = {
 export const kindLabel = (kind: ShopKind, lang: Lang = "fr") => (lang === "fr" ? KIND_LABEL : KIND_LABEL_EN)[kind];
 
 /**
- * its button: Amazon sells the sealed Pokémon products by invitation; before the release its page takes pre-orders, and
- * before it's listed a search, which only shows pre-orders (Johan, 2026-10-31: a search isn't a pre-order). On amazon.com
- * not every listing is by invitation: the button doesn't promise one.
+ * its button: before the release its page takes pre-orders, and before it's listed a search, which only shows pre-orders
+ * (Johan, 2026-10-31: a search isn't a pre-order). Then what it promises: the price of a box sold at once (no price of
+ * ours: Amazon's page says it), or the invitation. On amazon.com not every listing is by invitation: no promise there.
  */
 export const goLabel = (p: ShopProduct, soon: boolean, lang: Lang = "fr") =>
   lang === "en"
     ? soon ? (p.asin ? "Pre-order" : "See pre-orders") : "See on Amazon"
-    : p.asin ? (soon ? "Précommander" : "Demander l'invitation") : soon ? "Voir les précommandes" : "Voir sur Amazon";
+    : soon
+      ? p.asin ? "Précommander" : "Voir les précommandes"
+      : p.asin && p.buy === "now"
+        ? "Voir le prix sur Amazon"
+        : p.asin && p.buy === "invite" ? "Demander l'invitation" : "Voir sur Amazon";
+/** the same in a phone's sticky bar, a few words */
+export const stickyLabel = (p: ShopProduct | undefined, soon: boolean, lang: Lang = "fr") =>
+  lang === "en"
+    ? soon ? "Pre-orders" : "On Amazon"
+    : soon ? "Précommandes" : p?.asin && p.buy === "now" ? "Voir le prix" : p?.asin && p.buy === "invite" ? "L'invitation" : "Sur Amazon";
+/** the chip on its picture (French pages, once out): « Sans invitation » or « Sur invitation »; unknown: none */
+export const buyChip = (p: ShopProduct, soon: boolean, lang: Lang = "fr") => (lang === "fr" && !soon && p.asin && p.buy ? p.buy : null);
 
-/** its page on Amazon (else a search), with the tracking id of the place it shows on */
-export const productHref = (p: ShopProduct, place: AmazonPlace, lang: Lang = "fr") =>
-  p.asin ? amazonProduct(p.asin, place, lang) : amazonSearch(p.q ?? `Pokémon ${p.name}`, place, lang);
+/**
+ * its page on Amazon (else a search), with the tracking id of the place it shows on; on the invitations page a box sold at
+ * once has its own id (nookdex-achat-21, Johan 2026-11-22), so Amazon's report tells it from the invitations
+ */
+export const productHref = (p: ShopProduct, place: AmazonPlace, lang: Lang = "fr") => {
+  const tagged: AmazonPlace = place === "invit" && lang === "fr" && p.buy === "now" ? "achat" : place;
+  return p.asin ? amazonProduct(p.asin, tagged, lang) : amazonSearch(p.q ?? `Pokémon ${p.name}`, tagged, lang);
+};
 
 const PICS = pics as Record<string, { src: string; w: number; h: number }>;
 export type ProductPic = { src: string; w: number; h: number };
@@ -100,12 +131,33 @@ function twinPic(p: ShopProduct, g: ShopGroup) {
   return twin ? PICS[twin.pic!] : null;
 }
 /**
- * its official picture; none yet: the English set's same box (twinPic), the set's booster for a bundle, a tripack or a
- * blister, else nothing (its box drawn with the set's logo, lib/kindArt: Règne Delta's Elite Trainer Box and display
- * showed a booster, Johan 2026-10-31)
+ * A set's boxes as TCGplayer shows them (src/data/set-boxes.json, scripts/fetch-amazon-pics.mjs: TCGCSV lists them weeks
+ * before the release, long before our products have an ASIN), the English packaging: a set with no product of ours yet
+ * (the calendar's next set, the kinds of an older set) still shows real boxes (Johan, 2026-11-22: « un ETB vecteur ça
+ * marche pas »).
  */
-export const productPic = (p: ShopProduct, g: ShopGroup): ProductPic | null =>
-  (p.pic && PICS[p.pic]) || twinPic(p, g) || (OF_BOOSTERS.includes(p.kind) && g.pic && PICS[g.pic]) || null;
+const BOXES = setBoxes as Record<string, Partial<Record<ShopKind | "booster", string>>>;
+export const setBoxPic = (setId: string | null | undefined, kind: ShopKind | "booster"): ProductPic | null => {
+  const k = setId ? BOXES[setId]?.[kind] : undefined;
+  return (k && PICS[k]) || null;
+};
+/**
+ * its official picture; none yet: the English set's same box (twinPic, then TCGplayer's of the set: setBoxPic; the
+ * French one wins the day Poképédia has it, Johan 2026-11-22), the set's booster for a bundle, a tripack or a blister,
+ * else nothing (never a booster for a box: Johan 2026-10-31)
+ */
+export const productPic = (p: ShopProduct, g: ShopGroup): ProductPic | null => {
+  const own = (p.pic && PICS[p.pic]) || null;
+  // a tripack's or a bundle's own picture is often its booster, standing in: the box itself, even English, says more
+  if (own && !/\/booster-/.test(own.src)) return own;
+  return (
+    twinPic(p, g) ||
+    setBoxPic(g.setId, p.kind) ||
+    own ||
+    (OF_BOOSTERS.includes(p.kind) && ((g.pic && PICS[g.pic]) || setBoxPic(g.setId, "booster"))) ||
+    null
+  );
+};
 /** a group's set logo in that language (the site's 320 px one), for a box drawn while its picture is missing (lib/kindArt boxArt) */
 export function groupLogo(g: ShopGroup, lang: Lang = "fr") {
   if (!g.setId) return null;
@@ -128,6 +180,11 @@ export const shortSetName = (name: string) =>
     // "Mega Evolution—Ascended Heroes" too (no colon, a dash)
     .replace(/^(Méga-Évolution|Mega Evolution)(\s*[—–-]\s*|\s+)/, "");
 
-/** the products to show first: the boxes people look for (ETB, display, bundle), then the rest */
+/**
+ * the products to show first: what can be bought at once (Johan, 2026-11-22: an invitation's click never pays), then the
+ * boxes people look for (ETB, display, bundle), then the rest; the invitation-only ones last. The first one stands under
+ * the lamp (the heroes, the sticky bars)
+ */
 const ORDER: ShopKind[] = ["etb", "display", "bundle", "box", "collection", "pokebox", "tripack", "tin", "blister"];
-export const byInterest = (ps: ShopProduct[]) => [...ps].sort((a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind));
+const buyRank = (p: ShopProduct) => (p.buy === "now" ? 0 : p.buy === "invite" ? 2 : 1);
+export const byInterest = (ps: ShopProduct[]) => [...ps].sort((a, b) => buyRank(a) - buyRank(b) || ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind));
