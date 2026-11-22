@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-23",
+  "time": "18:30",
+  "platforms": ["instagram"],
+  "kind": "news",
+  "format": "post",
+  "title": "Flowing Fists : sortie le 6 février 2027",
+  "note": "Les cartes de Flowing Fists ne sont pas encore connues : les visuels montrent les Méga-Lucario-ex et Méga-Absol-ex de Méga-Évolution (ME01), pour patienter. Source : pokemon.com, annonce du 19 novembre. Prix redessinés la veille et le jour même.",
+  "prices": true,
+  "caption": "Nouvelle extension annoncée : Méga-Évolution Flowing Fists arrive le 6 février 2027 🥊\nPlus de 110 cartes, avec Mega Lucario Z ex en tête (annonce officielle du 19 novembre, pokemon.com).\n\nEn attendant, les Méga-Lucario et Méga-Absol de la première extension Méga-Évolution : Méga-Lucario-ex Méga Hyper Rare à {price:me01-188} (prix tendance Cardmarket du {day:me01}).\n\nTu vises quelle carte ? 👇\nPrépare ta wishlist sur nookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #flowingfists #lucario #pokemonfr",
+  "slides": [
+    { "type": "cover", "kicker": "NOUVEAU SET", "title": "Flowing<br>Fists", "size": 110, "cards": ["me01-179", "me01-188", "me01-180"], "banner": "6 FEVRIER 2027" },
+    { "type": "paper", "kicker": "ANNONCE OFFICIELLE", "title": "Mega Lucario Z ex", "em": "en tete", "lead": "Plus de 110 cartes, avec aussi Mega Absol Z ex, Mega Garchomp Z ex et Mega Glimmora ex.", "list": ["Sortie le 6 février 2027", "Série Méga-Évolution"] },
+    { "type": "price", "kicker": "EN ATTENDANT", "card": "me01-188", "rank": 1 },
+    { "type": "price", "kicker": "EN ATTENDANT", "card": "me01-179", "rank": 2 },
+    { "type": "price", "kicker": "EN ATTENDANT", "card": "me01-180", "rank": 3 },
+    { "type": "end", "kicker": "ET TOI ?", "title": "Quelle carte<br>tu vises ?", "lead": "Prépare ta wishlist sur NookDex" }
+  ]
+}

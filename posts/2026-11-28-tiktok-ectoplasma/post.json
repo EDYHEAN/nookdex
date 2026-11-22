@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-28",
+  "time": "18:30",
+  "platforms": ["tiktok", "reels"],
+  "kind": "fact",
+  "format": "post",
+  "title": "TikTok : les 5 Ectoplasma les plus chers",
+  "note": "Vidéo TikTok + Reel. Prix redessinés la veille et le jour même : le n°5 (Fossile, 199 €) n'a que 21 € d'avance sur un autre Ectoplasma (Triomphant, 178 €), vérifie l'ordre ; et que le n°1 reste l'Ectoplasma ex de 2004.",
+  "prices": true,
+  "caption": "Les 5 Ectoplasma les plus chers 👻 Le n°1 a plus de 20 ans.\n\nTu en as un ? 👇\n\n#pokemontcg #ectoplasma #cartespokemon #pokemonfr #gengar",
+  "slides": [
+    { "type": "cover", "kicker": "TOP 5", "title": "Ectoplasma", "size": 100, "cards": ["neo4-6", "ex6-108", "swsh8-271"], "banner": "LES 5 PLUS CHERS" },
+    { "type": "price", "card": "base3-5", "rank": 5, "name": "FOSSILE · 1999" },
+    { "type": "price", "card": "sm9-53", "rank": 4, "name": "DUO DE CHOC · 2019" },
+    { "type": "price", "card": "neo4-6", "rank": 3, "name": "NEO DESTINY · 2002" },
+    { "type": "price", "card": "swsh8-271", "rank": 2, "name": "POING DE FUSION · 2021" },
+    { "type": "price", "card": "ex6-108", "rank": 1, "name": "EX ROUGE FEU · 2004" },
+    { "type": "paper", "kicker": "LE TWIST", "title": "Le n°1 a plus de", "em": "20 ans", "lead": "Un Ectoplasma ex de 2004 devant les cartes récentes.", "cards": ["ex6-108"] },
+    { "type": "end", "title": "Tu le<br>savais ?", "lead": "La cote de tes cartes, chaque jour" }
+  ]
+}
