@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-21T19:41:16.252Z",
+ "updated": "2026-11-22T06:16:51.560Z",
  "posts": [
   {
    "id": "2026-10-08-bienvenue",
@@ -1102,6 +1102,79 @@
    "tiktokAs": "video",
    "video": null,
    "tiktok": "2026-11-22-tiktok-ronflex/tiktok.mp4"
+  },
+  {
+   "id": "2026-11-23-flowing-fists",
+   "date": "2026-11-23",
+   "time": "18:30",
+   "platforms": [
+    "instagram"
+   ],
+   "kind": "news",
+   "format": "post",
+   "title": "Flowing Fists : sortie le 6 février 2027",
+   "note": "Les cartes de Flowing Fists ne sont pas encore connues : les visuels montrent les Méga-Lucario-ex et Méga-Absol-ex de Méga-Évolution (ME01), pour patienter. Source : pokemon.com, annonce du 19 novembre. Prix redessinés la veille et le jour même.",
+   "caption": "Nouvelle extension annoncée : Méga-Évolution Flowing Fists arrive le 6 février 2027 🥊\nPlus de 110 cartes, avec Mega Lucario Z ex en tête (annonce officielle du 19 novembre, pokemon.com).\n\nEn attendant, les Méga-Lucario et Méga-Absol de la première extension Méga-Évolution : Méga-Lucario-ex Méga Hyper Rare à 165,97 € (prix tendance Cardmarket du 20 novembre).\n\nTu vises quelle carte ? 👇\nPrépare ta wishlist sur nookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #flowingfists #lucario #pokemonfr",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [
+    "2026-11-23-flowing-fists/slide-01.jpg",
+    "2026-11-23-flowing-fists/slide-02.jpg",
+    "2026-11-23-flowing-fists/slide-03.jpg",
+    "2026-11-23-flowing-fists/slide-04.jpg",
+    "2026-11-23-flowing-fists/slide-05.jpg",
+    "2026-11-23-flowing-fists/slide-06.jpg"
+   ],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": null
+  },
+  {
+   "id": "2026-11-26-devine-le-prix-vieux-nouveau",
+   "date": "2026-11-26",
+   "time": "18:30",
+   "platforms": [
+    "instagram"
+   ],
+   "kind": "fun",
+   "format": "post",
+   "title": "Jeu : le vieux ou le nouveau ?",
+   "note": "Prix redessinés la veille et le jour même : la dernière slide suit les prix du jour. Manche 3 : Tortank de Base 128 € contre Tortank-ex 110 €, écart serré, vérifie la réponse.",
+   "caption": "Petit jeu : le vieux ou le nouveau ? 💸\n\n3 manches, à chaque fois le même Pokémon : une carte d'avant contre une illustration spéciale récente. A ou B, laquelle vaut le plus ?\nLa solution est sur la dernière slide.\n\nDis-nous ton score en commentaire 👇 (3/3 = expert certifié)\nPrix tendance Cardmarket du 20 novembre, ceux de toutes tes cartes sur nookdex.com (lien en bio)\n\n#pokemontcg #cartespokemon #quiz #pokemonfr #tortank",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [
+    "2026-11-26-devine-le-prix-vieux-nouveau/slide-01.jpg",
+    "2026-11-26-devine-le-prix-vieux-nouveau/slide-02.jpg",
+    "2026-11-26-devine-le-prix-vieux-nouveau/slide-03.jpg",
+    "2026-11-26-devine-le-prix-vieux-nouveau/slide-04.jpg"
+   ],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": null
+  },
+  {
+   "id": "2026-11-28-tiktok-ectoplasma",
+   "date": "2026-11-28",
+   "time": "18:30",
+   "platforms": [
+    "tiktok",
+    "reels"
+   ],
+   "kind": "fact",
+   "format": "post",
+   "title": "TikTok : les 5 Ectoplasma les plus chers",
+   "note": "Vidéo TikTok + Reel. Prix redessinés la veille et le jour même : le n°5 (Fossile, 199 €) n'a que 21 € d'avance sur un autre Ectoplasma (Triomphant, 178 €), vérifie l'ordre ; et que le n°1 reste l'Ectoplasma ex de 2004.",
+   "caption": "Les 5 Ectoplasma les plus chers 👻 Le n°1 a plus de 20 ans.\n\nTu en as un ? 👇\n\n#pokemontcg #ectoplasma #cartespokemon #pokemonfr #gengar",
+   "captionTiktok": null,
+   "prices": true,
+   "slides": [],
+   "photos": [],
+   "tiktokAs": "video",
+   "video": null,
+   "tiktok": "2026-11-28-tiktok-ectoplasma/tiktok.mp4"
   }
  ]
 }
