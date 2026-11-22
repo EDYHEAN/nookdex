@@ -30,6 +30,12 @@ promise to people's inboxes: only a real, official listing.
 7. Something changed: `npx tsc --noEmit`, then commit on `main` as `Veille sorties: <what>` (e.g. « Veille sorties: me07
    ETB et display sur amazon.fr ») and push.
 
+## How each amazon.fr product sells (`buy`)
+
+`"invite"` (by invitation) or `"now"` (in the cart at once) drives the buttons and what stands under the lamp (CLAUDE.md
+« What a click leads to »). A search result doesn't show Amazon's button: a new Elite Trainer Box, display or bundle gets
+`"buy": "invite"`, anything else no `buy` at all. **Never set `"now"`**: only Johan's check on the product's page does.
+
 ## What not to do
 
 - No blog post, no change to the code, no other file than the three above.

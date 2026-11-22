@@ -40,6 +40,13 @@ async function api(params) {
 /** the picture's address, a 960 px thumbnail (the originals weigh up to 30 MB): a file's own, or a page's main image */
 async function sourceOf(title) {
   if (title.startsWith("tp:")) return `https://product-images.tcgplayer.com/fit-in/960x960/${title.slice(3)}.jpg`;
+  // the gear's makers (Ultra PRO, Vault X: Shopify stores, their public product JSON): the product's first picture
+  if (title.startsWith("shop:")) {
+    const r = await fetch(`https://${title.slice(5).replace("/", "/products/")}.json`, { headers: { "User-Agent": UA } });
+    if (!r.ok) throw new Error(`${r.status} ${title}`);
+    const src = (await r.json()).product?.image?.src;
+    return src ? `${src}${src.includes("?") ? "&" : "?"}width=960` : null;
+  }
   if (title.startsWith("Fichier:")) {
     const j = await api({ action: "query", prop: "imageinfo", iiprop: "url", iiurlwidth: "960", titles: title });
     const i = j.query.pages[0]?.imageinfo?.[0];
@@ -143,7 +150,91 @@ const data = JSON.parse(await fs.readFile(DATA, "utf8"));
 const us = JSON.parse(await fs.readFile(DATA.replace(/\.json$/, "-us.json"), "utf8"));
 const pics = JSON.parse(await fs.readFile(PICS, "utf8").catch(() => "{}"));
 await fs.mkdir(OUT, { recursive: true });
-const titles = new Set([...data.groups, ...us.groups].flatMap((g) => [g.pic, ...g.products.map((p) => p.pic)]).filter(Boolean));
+
+/**
+ * Every set's boxes, pictured (Johan, 2026-11-22: « un ETB vecteur ça marche pas, faut récupérer à chaque fois du
+ * visuel »): src/data/set-boxes.json, set id -> kind -> "tp:<TCGplayer product>", the English packaging, from TCGCSV's
+ * sealed products. TCGplayer lists a set's boxes with their pictures weeks before the release (Flowing Fists, 76 days
+ * out), long before anyone has an ASIN for them; lib/amazonShop shows them when no product of ours has its own picture
+ * (a French one wins the day Poképédia has it). The sets: those announced in the calendar, from 60 days back, and the
+ * English catalog's of the last two years; a set with all its kinds is never looked up again.
+ */
+const BOXES = path.join(ROOT, "src/data/set-boxes.json");
+const TCGCSV_UA = "NookDex (nookdex.com; contact@nookdex.com)";
+const KIND_OF = [
+  // "Mega Evolution Elite Trainer Box [Mega Gardevoir]": a set's two ETBs, the first one listed
+  ["etb", (n) => /Elite Trainer Box( \[[^\]]*\])?$/.test(n) && !/Pokemon Center|Case|Code Card/.test(n)],
+  ["display", (n) => /Booster (Box|Display)( \(\d+ packs\))?$/.test(n) && !/Half|Case|Mini|Enhanced|Code Card/.test(n)],
+  ["bundle", (n) => /Booster Bundle$/.test(n) && !/Code Card/.test(n)],
+  ["tripack", (n) => /3[- ]Pack Blister/.test(n) && !/Case|Code Card/.test(n)],
+  ["booster", (n) => /Booster Pack$/.test(n) && !/Sleeved|Code Card/.test(n)],
+];
+/** "ME06: Delta Reign", "Mega Evolution: Delta Reign (ME06)" -> "delta reign" */
+const plainName = (n) =>
+  n
+    .replace(/\s*\([^)]*\)\s*$/, "")
+    .replace(/^.*?:\s*/, "")
+    .replace(/^Mega Evolution\s*[—–-]\s*/, "")
+    .toLowerCase()
+    .trim();
+async function seedSetBoxes() {
+  const boxes = JSON.parse(await fs.readFile(BOXES, "utf8").catch(() => "{}"));
+  const today = new Date().toISOString().slice(0, 10);
+  const back = (days) => new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
+  const releases = JSON.parse(await fs.readFile(path.join(ROOT, "src/data/releases.json"), "utf8")).items;
+  const catalogEn = JSON.parse(await fs.readFile(path.join(ROOT, "src/data/catalog-en.json"), "utf8"));
+  const wanted = new Map();
+  for (const r of releases) if (r.kind === "set" && r.region === "intl" && r.setId && r.date >= back(60)) wanted.set(r.setId, r.en);
+  for (const s of catalogEn) {
+    const date = s.releaseDate ?? s.date;
+    if (!s.extra && date && date >= back(730) && date <= today && !wanted.has(s.id)) wanted.set(s.id, s.name);
+  }
+  const todo = [...wanted].filter(([id]) => KIND_OF.some(([k]) => !boxes[id]?.[k]));
+  if (!todo.length) return;
+  const groups = await fetch("https://tcgcsv.com/tcgplayer/3/groups", { headers: { "User-Agent": TCGCSV_UA } }).then((r) => r.json()).then((j) => j.results);
+  let changed = false;
+  for (const [id, name] of todo) {
+    const g = groups.find((x) => plainName(x.name) === plainName(name));
+    if (!g) continue;
+    await wait(150);
+    const products = await fetch(`https://tcgcsv.com/tcgplayer/3/${g.groupId}/products`, { headers: { "User-Agent": TCGCSV_UA } })
+      .then((r) => r.json())
+      .then((j) => j.results)
+      .catch(() => []);
+    // sealed only (no card number), with a picture, its plain name without the set's ("Flowing Fists Elite Trainer Box")
+    const sealed = products.filter((p) => p.imageCount > 0 && !(p.extendedData ?? []).some((e) => e.name === "Number"));
+    for (const [kind, test] of KIND_OF) {
+      if (boxes[id]?.[kind]) continue;
+      const p = sealed.find((x) => test(x.name));
+      if (!p) continue;
+      (boxes[id] ??= {})[kind] = `tp:${p.productId}`;
+      changed = true;
+      console.log("box", id, kind, p.name);
+    }
+  }
+  if (changed) await fs.writeFile(BOXES, JSON.stringify(Object.fromEntries(Object.entries(boxes).sort(([a], [b]) => a.localeCompare(b))), null, 2) + "\n");
+}
+await seedSetBoxes().catch((e) => console.warn("set boxes:", String(e)));
+const setBoxes = JSON.parse(await fs.readFile(BOXES, "utf8").catch(() => "{}"));
+
+// the accessories page's picks: their makers' pictures (AccessoriesPage GEAR's `pic`)
+const GEAR_PICS = [
+  "shop:www.vaultx.com/9-pocket-exo-tec-zip-binder",
+  "shop:ultrapro.com/pikachu-65ct-deck-protector-sleeves-for-pokemon-2025",
+  "shop:ultrapro.com/3-inch-x-4-inch-clear-regular-toploaders-25ct-for-standard-size-cards",
+  "shop:ultrapro.com/35pt-uv-one-touch-magnetic-holder",
+];
+// the gift guide's boxes (src/data/amazon-gifts.json) too
+const gifts = JSON.parse(await fs.readFile(path.join(ROOT, "src/data/amazon-gifts.json"), "utf8"));
+const titles = new Set(
+  [...data.groups, ...us.groups]
+    .flatMap((g) => [g.pic, ...g.products.map((p) => p.pic)])
+    .concat(Object.values(setBoxes).flatMap((b) => Object.values(b)))
+    .concat(gifts.budgets.flatMap((b) => b.products.map((p) => p.pic)))
+    // the accessories page's picks (src/components/AccessoriesPage GEAR, kept here by hand)
+    .concat(GEAR_PICS)
+    .filter(Boolean),
+);
 const missing = [];
 for (const title of titles) {
   const file = `${slug(title)}.webp`;
@@ -170,7 +261,7 @@ for (const title of titles) {
     continue;
   }
   // a product shot on its own (transparent around it), 480 px at most: sharp on a card at twice its size
-  const img = sharp(title.startsWith("tp:") ? await cutOut(buf, title) : buf).trim({ threshold: 4 }).resize(480, 480, { fit: "inside", withoutEnlargement: true });
+  const img = sharp(/^(tp|shop):/.test(title) ? await cutOut(buf, title) : buf).trim({ threshold: 4 }).resize(480, 480, { fit: "inside", withoutEnlargement: true });
   const info = await img.webp({ quality: 82 }).toFile(path.join(OUT, file));
   pics[title] = { src: `/amazon/${file}`, w: info.width, h: info.height };
   console.log("ok", title, `${info.width}x${info.height}`);

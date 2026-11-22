@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Fr() {
   return (
-    <ShellTextPage path="/mentions-legales" title="Mentions légales" updated="16 octobre 2026">
+    <ShellTextPage path="/mentions-legales" title="Mentions légales" updated="18 novembre 2026">
       <h2>Éditeur</h2>
       <p>
         {SITE_DOMAIN} est édité par {LEGAL.name}, entrepreneur individuel (micro-entreprise).
@@ -36,6 +36,11 @@ function Fr() {
         {`Les objets de décoration de la boutique sont vendus par ${LEGAL.name} (TVA non applicable, article 293 B du CGI), paiement par Stripe.`}{" "}
         Voir les <Link href="/conditions-de-vente">conditions de vente</Link>.
       </p>
+      {LEGAL.mediator && (
+        <p>
+          Médiateur de la consommation : <a href={LEGAL.mediator.url}>{LEGAL.mediator.name}</a>, {LEGAL.mediator.address}.
+        </p>
+      )}
 
       <h2>Propriété</h2>
       <p>
@@ -52,7 +57,7 @@ function Fr() {
 
 function En() {
   return (
-    <ShellTextPage path="/mentions-legales" title="Legal notice" updated="16 October 2026" en>
+    <ShellTextPage path="/mentions-legales" title="Legal notice" updated="18 November 2026" en>
       <h2>Publisher</h2>
       <p>
         {SITE_DOMAIN} is published by {LEGAL.name}, sole trader (French micro-entreprise).
@@ -77,6 +82,11 @@ function En() {
         {`The shop's decorations are sold by ${LEGAL.name} (VAT not applicable, article 293 B of the French tax code), payment by Stripe.`}{" "}
         See the <Link href="/conditions-de-vente">terms of sale</Link>.
       </p>
+      {LEGAL.mediator && (
+        <p>
+          Consumer mediator: <a href={LEGAL.mediator.url}>{LEGAL.mediator.name}</a>, {LEGAL.mediator.address}.
+        </p>
+      )}
 
       <h2>Ownership</h2>
       <p>

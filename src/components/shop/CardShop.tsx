@@ -1,5 +1,5 @@
-import { affiliateLabel, amazonOn, amazonSearch, inShops } from "@/lib/amazon";
-import { byInterest, goLabel, kindLabel, productArt, productHref, productPic, shopFor, type ProductPic, type ShopKind } from "@/lib/amazonShop";
+import { affiliateLabel, amazonOn, amazonProduct, amazonSearch, inShops } from "@/lib/amazon";
+import { byInterest, goLabel, kindLabel, productArt, productHref, productPic, setBoxPic, shopFor, type ProductPic, type ShopKind } from "@/lib/amazonShop";
 import { ProductArt } from "./ShopBits";
 import s from "./Shop.module.css";
 import cs from "./CardShop.module.css";
@@ -59,7 +59,7 @@ export function SealedBlock({ lang, setId, setName, releaseDate }: { lang: Lang;
       name: `${fr ? k.fr : k.en} ${setName}`,
       kind: k.kind,
       label: fr ? k.fr : k.en,
-      pic: null,
+      pic: setBoxPic(setId, k.kind),
       go: t("Voir sur Amazon", "See it on Amazon"),
     }));
   }
@@ -105,13 +105,14 @@ export function ProtectIt({ lang, price }: { lang: Lang; price: number | null | 
     <p className={cs.protect}>
       <b>{fr ? "Protège-la" : "Protect it"}</b>
       <span>{fr ? "Une pochette et un toploader, pour qu'elle garde sa cote." : "A sleeve and a toploader, so it keeps its value."}</span>
+      {/* amazon.fr: our pick's page (AccessoriesPage, Johan 2026-11-22: a product sells better than a search) */}
       <a
-        href={amazonSearch(fr ? "protège-cartes toploader Pokémon" : "Pokemon card sleeves toploaders", "accessoires", lang)}
+        href={fr ? amazonProduct("B00095M5C2", "accessoires", lang) : amazonSearch("Pokemon card sleeves toploaders", "accessoires", lang)}
         target="_blank"
         rel="sponsored noopener"
         data-amazon-place="accessoires"
       >
-        {fr ? "Sleeves et toploaders sur Amazon" : "Sleeves & toploaders on Amazon"} ↗
+        {fr ? "Des toploaders Ultra PRO 35 pt sur Amazon" : "Sleeves & toploaders on Amazon"} ↗
       </a>
       <small>
         {affiliateLabel(lang)} ·{" "}

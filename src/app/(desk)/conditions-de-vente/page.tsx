@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Fr() {
   return (
-    <ShellTextPage path="/conditions-de-vente" title="Conditions de vente" updated="16 octobre 2026">
+    <ShellTextPage path="/conditions-de-vente" title="Conditions de vente" updated="18 novembre 2026">
       <p>
         {SITE_NAME} reste gratuit. La boutique vend en option des objets de décoration pour ton bureau : tout ce qui touche à tes cartes et à
         Pokémon reste gratuit.
@@ -56,7 +56,9 @@ function Fr() {
           <h2>Médiation</h2>
           <p>
             En cas de litige que nous n&apos;arrivons pas à régler ensemble, tu peux saisir gratuitement le médiateur de la consommation :{" "}
-            <a href={LEGAL.mediator.url}>{LEGAL.mediator.name}</a> ({LEGAL.mediator.address}), en déposant ta demande sur son site.
+            <a href={LEGAL.mediator.url}>{LEGAL.mediator.name}</a>, en déposant ta demande sur son site ou par courrier à{" "}
+            {LEGAL.mediator.address}. Écris-nous d&apos;abord à {LEGAL.email} : le médiateur peut être saisi si cette réclamation écrite n&apos;a pas
+            trouvé d&apos;accord, ou n&apos;a pas eu de réponse sous un mois.
           </p>
         </>
       )}
@@ -81,7 +83,7 @@ function Fr() {
 
 function En() {
   return (
-    <ShellTextPage path="/conditions-de-vente" title="Terms of sale" updated="16 October 2026" en>
+    <ShellTextPage path="/conditions-de-vente" title="Terms of sale" updated="18 November 2026" en>
       <p>
         {SITE_NAME} stays free. The shop sells optional decorations for your desk: everything about your cards and Pokémon stays free.
       </p>
@@ -120,7 +122,8 @@ function En() {
           <h2>Mediation</h2>
           <p>
             For a dispute we can&apos;t settle together, you can turn to the consumer mediator, free of charge:{" "}
-            <a href={LEGAL.mediator.url}>{LEGAL.mediator.name}</a> ({LEGAL.mediator.address}), by filing your request on its site.
+            <a href={LEGAL.mediator.url}>{LEGAL.mediator.name}</a> ({LEGAL.mediator.address}), by filing your request on its site. Write to us
+            first at {LEGAL.email}: the mediator can be reached once that written complaint found no agreement, or got no answer within a month.
           </p>
         </>
       )}

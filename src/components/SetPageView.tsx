@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatDate, num } from "@/lib/blog";
 import { amazonOn, amazonSearch, inShops } from "@/lib/amazon";
-import { boosterPics, byInterest, goLabel, kindLabel, productArt, productHref, productPic, shopFor, shopPath } from "@/lib/amazonShop";
+import { boosterPics, byInterest, goLabel, kindLabel, productArt, productHref, productPic, setBoxPic, shopFor, shopPath, stickyLabel } from "@/lib/amazonShop";
 import { kindArt } from "@/lib/kindArt";
 import { currencyOf, keyOf } from "@/lib/cardLang";
 import { type PageLang, SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
@@ -101,7 +101,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
   const jackpot = p.top.filter((c) => c.img).slice(0, 8);
   const best = jackpot[0];
   const bestPrice = p.top[0] ? trendOf(p.top[0]) : null;
-  const thumb = pic ?? fan[0] ?? null;
+  const thumb = pic ?? fan[0] ?? setBoxPic(p.set.id, "etb");
 
   const hero = (
     <ShopHero
@@ -178,14 +178,17 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
               </AmazonButton>
             </div>
             <ul className={s.reassure}>
-              {fr && product?.asin && !soon ? (
+              {fr && product?.asin && !soon && product.buy === "invite" ? (
                 <>
                   <li>Gratuit</li>
                   <li>Au prix public</li>
                   <li>Amazon t&apos;écrit si c&apos;est ton tour</li>
                 </>
               ) : (
-                <li>{t("Vérifie « Expédié et vendu par Amazon »", "Check “Ships from and sold by Amazon”")}</li>
+                <>
+                  {fr && product?.asin && !soon && product.buy === "now" && <li>Sans invitation</li>}
+                  <li>{t("Vérifie « Expédié et vendu par Amazon »", "Check “Ships from and sold by Amazon”")}</li>
+                </>
               )}
             </ul>
             <Affiliate lang={lang} />
@@ -263,7 +266,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
                 )
               : t("Ses boîtes et ses boosters, sur Amazon.", "Its boxes and booster packs, on Amazon.")}
           </p>
-          {shop ? <ProductRail group={shop} place="extension" max={4} lang={lang} /> : <KindTiles name={name} place="extension" soon={false} lang={lang} />}
+          {shop ? <ProductRail group={shop} place="extension" max={4} lang={lang} /> : <KindTiles name={name} setId={p.set.id} place="extension" soon={false} lang={lang} />}
           {shop && (
             <p className={c.other}>
               <Link prefetch={false} href={`${shopPath(lang)}#${shop.id}`}>
@@ -440,7 +443,7 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
           thumb={thumb ? <img src={thumb.src} width={thumb.w} height={thumb.h} alt="" loading="lazy" /> : <span dangerouslySetInnerHTML={{ __html: kindArt("etb") }} />}
           title={name}
           sub={product ? product.name : t("Boosters et coffrets", "Packs and boxes")}
-          label={fr && product?.asin && !soon ? "L'invitation" : t("Sur Amazon", "On Amazon")}
+          label={stickyLabel(product, soon, lang)}
         />
       )}
     </WidePage>
