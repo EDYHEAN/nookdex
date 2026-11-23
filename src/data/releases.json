@@ -1,6 +1,6 @@
 {
   "_": "Upcoming Pokémon TCG releases for the calendar page (lib/releases.ts). Only what an official source confirmed, with that source. Released sets come from the catalogs by themselves: an entry can go once its set is in the catalog. Kept up to date by the blog routine (docs/blog.md).",
-  "updated": "2026-11-20",
+  "updated": "2026-11-23",
   "items": [
     {
       "date": "2026-10-16",
@@ -54,6 +54,16 @@
       "noteFr": "Tournois d'avant-première chez les détaillants indépendants Play! Pokémon, deux semaines avant la sortie.",
       "noteEn": "Prerelease tournaments at independent Play! Pokémon retailers, two weeks before the release.",
       "source": "https://www.pokemon.com/us/news/the-pokemon-tcg-mega-evolution-flowing-fists-expansion-arrives-february-6-2027"
+    },
+    {
+      "date": "2027-01-29",
+      "region": "intl",
+      "kind": "product",
+      "fr": "Collection Pokémon Day 2027 (version américaine)",
+      "en": "Pokémon Day 2027 Collection",
+      "noteFr": "Annoncée aux États-Unis à 14,99 $ : une promo Pikachu holo tamponnée Pokémon Day (Ascended Heroes), une pièce, 3 boosters et un code Pokémon TCG Live. Pas de date française confirmée.",
+      "noteEn": "$14.99: a foil Pikachu promo with a Pokémon Day 2027 stamp (Ascended Heroes), a coin, three booster packs and a Pokémon TCG Live code.",
+      "source": "https://icv2.com/print/article/63870"
     },
     {
       "date": "2027-02-06",
