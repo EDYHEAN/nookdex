@@ -1,0 +1,1570 @@
+{
+  "date": "2026-11-23",
+  "funnel": {
+    "week": [
+      {
+        "source": "chatgpt.com",
+        "devices": 71,
+        "profile": 3,
+        "binder": 3,
+        "cards10": 1,
+        "account": 0,
+        "game": 0,
+        "share": 1,
+        "returned": 1
+      },
+      {
+        "source": "bing",
+        "devices": 30,
+        "profile": 2,
+        "binder": 2,
+        "cards10": 1,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "duckduckgo",
+        "devices": 27,
+        "profile": 1,
+        "binder": 1,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "google",
+        "devices": 17,
+        "profile": 2,
+        "binder": 2,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "direct",
+        "devices": 13,
+        "profile": 4,
+        "binder": 4,
+        "cards10": 3,
+        "account": 1,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "ecosia.org",
+        "devices": 8,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "search.yahoo.com",
+        "devices": 3,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "qwant.com",
+        "devices": 2,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "sg.search.yahoo.com",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "instagram-story",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "facebook",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "ig",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "existing",
+        "devices": 1,
+        "profile": 1,
+        "binder": 1,
+        "cards10": 0,
+        "account": 0,
+        "game": 1,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "nz.search.yahoo.com",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      }
+    ],
+    "all": [
+      {
+        "source": "direct",
+        "devices": 464,
+        "profile": 33,
+        "binder": 30,
+        "cards10": 15,
+        "account": 10,
+        "game": 6,
+        "share": 0,
+        "returned": 16
+      },
+      {
+        "source": "chatgpt.com",
+        "devices": 293,
+        "profile": 17,
+        "binder": 15,
+        "cards10": 4,
+        "account": 2,
+        "game": 1,
+        "share": 1,
+        "returned": 8
+      },
+      {
+        "source": "google",
+        "devices": 127,
+        "profile": 23,
+        "binder": 22,
+        "cards10": 13,
+        "account": 7,
+        "game": 6,
+        "share": 2,
+        "returned": 11
+      },
+      {
+        "source": "bing",
+        "devices": 119,
+        "profile": 11,
+        "binder": 11,
+        "cards10": 8,
+        "account": 3,
+        "game": 5,
+        "share": 1,
+        "returned": 6
+      },
+      {
+        "source": "duckduckgo",
+        "devices": 112,
+        "profile": 6,
+        "binder": 6,
+        "cards10": 2,
+        "account": 1,
+        "game": 3,
+        "share": 0,
+        "returned": 5
+      },
+      {
+        "source": "existing",
+        "devices": 29,
+        "profile": 29,
+        "binder": 28,
+        "cards10": 17,
+        "account": 20,
+        "game": 16,
+        "share": 2,
+        "returned": 13
+      },
+      {
+        "source": "ecosia.org",
+        "devices": 16,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 1
+      },
+      {
+        "source": "search.yahoo.com",
+        "devices": 16,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "ig",
+        "devices": 10,
+        "profile": 2,
+        "binder": 2,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "facebook",
+        "devices": 9,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "linkedin",
+        "devices": 4,
+        "profile": 3,
+        "binder": 3,
+        "cards10": 2,
+        "account": 2,
+        "game": 2,
+        "share": 0,
+        "returned": 1
+      },
+      {
+        "source": "sg.search.yahoo.com",
+        "devices": 3,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "qwant.com",
+        "devices": 3,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "ca.search.yahoo.com",
+        "devices": 2,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "nz.search.yahoo.com",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "search.brave.com",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "instagram-story",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "nl.search.yahoo.com",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "at.search.yahoo.com",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      },
+      {
+        "source": "au.search.yahoo.com",
+        "devices": 1,
+        "profile": 0,
+        "binder": 0,
+        "cards10": 0,
+        "account": 0,
+        "game": 0,
+        "share": 0,
+        "returned": 0
+      }
+    ]
+  },
+  "landings": [
+    {
+      "source": "chatgpt.com",
+      "kind": "autre",
+      "example": "/en/amazon-invites",
+      "devices": 28,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "duckduckgo",
+      "kind": "calendrier",
+      "example": "/en/release-calendar",
+      "devices": 26,
+      "profile": 1,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "bing",
+      "kind": "calendrier",
+      "example": "/en/release-calendar",
+      "devices": 25,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "chatgpt.com",
+      "kind": "calendrier",
+      "example": "/en/release-calendar",
+      "devices": 21,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "chatgpt.com",
+      "kind": "extension",
+      "example": "/en/sets/delta-reign",
+      "devices": 16,
+      "profile": 1,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "google",
+      "kind": "carte",
+      "example": "/extensions/aquapolis/azumarill-h04",
+      "devices": 13,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "ecosia.org",
+      "kind": "calendrier",
+      "example": "/en/release-calendar",
+      "devices": 6,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "chatgpt.com",
+      "kind": "carte",
+      "example": "/en/sets/pitch-black/mega-darkrai-ex-048",
+      "devices": 4,
+      "profile": 1,
+      "cards10": 1,
+      "account": 0
+    },
+    {
+      "source": "google",
+      "kind": "accueil",
+      "example": "/",
+      "devices": 4,
+      "profile": 2,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "direct",
+      "kind": "calendrier",
+      "example": "/en/release-calendar",
+      "devices": 4,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "direct",
+      "kind": "accueil",
+      "example": "/",
+      "devices": 4,
+      "profile": 3,
+      "cards10": 3,
+      "account": 1
+    },
+    {
+      "source": "search.yahoo.com",
+      "kind": "calendrier",
+      "example": "/en/release-calendar",
+      "devices": 3,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "direct",
+      "kind": "autre",
+      "example": "/en/amazon-invites",
+      "devices": 3,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "bing",
+      "kind": "carte",
+      "example": "/en/sets/30th-celebration/mew-ex-066",
+      "devices": 3,
+      "profile": 1,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "chatgpt.com",
+      "kind": "accueil",
+      "example": "/",
+      "devices": 2,
+      "profile": 1,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "ecosia.org",
+      "kind": "carte",
+      "example": "/en/sets/30th-celebration/mew-ex-066",
+      "devices": 2,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "qwant.com",
+      "kind": "calendrier",
+      "example": "/en/release-calendar",
+      "devices": 2,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "sg.search.yahoo.com",
+      "kind": "calendrier",
+      "example": "/en/release-calendar",
+      "devices": 1,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "bing",
+      "kind": "extension",
+      "example": "/en/sets/mep-black-star-promos",
+      "devices": 1,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "direct",
+      "kind": "carte",
+      "example": "/en/sets/prismatic-evolutions/umbreon-ex-161",
+      "devices": 1,
+      "profile": 1,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "direct",
+      "kind": "extension",
+      "example": "/en/sets/phantasmal-flames",
+      "devices": 1,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "duckduckgo",
+      "kind": "blog",
+      "example": "/blog/regne-delta-guide-avant-sortie-me06",
+      "devices": 1,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "facebook",
+      "kind": "accueil",
+      "example": "/",
+      "devices": 1,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "ig",
+      "kind": "accueil",
+      "example": "/",
+      "devices": 1,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "instagram-story",
+      "kind": "accueil",
+      "example": "/",
+      "devices": 1,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "nz.search.yahoo.com",
+      "kind": "calendrier",
+      "example": "/en/release-calendar",
+      "devices": 1,
+      "profile": 0,
+      "cards10": 0,
+      "account": 0
+    },
+    {
+      "source": "bing",
+      "kind": "accueil",
+      "example": "/en",
+      "devices": 1,
+      "profile": 1,
+      "cards10": 1,
+      "account": 0
+    }
+  ],
+  "steps": [
+    {
+      "kind": "accueil",
+      "step": "profile",
+      "devices": 49
+    },
+    {
+      "kind": "accueil",
+      "step": "binder",
+      "devices": 48
+    },
+    {
+      "kind": "accueil",
+      "step": "tour_done",
+      "devices": 39
+    },
+    {
+      "kind": "accueil",
+      "step": "cards10",
+      "devices": 30
+    },
+    {
+      "kind": "accueil",
+      "step": "account",
+      "devices": 18
+    },
+    {
+      "kind": "accueil",
+      "step": "game",
+      "devices": 13
+    },
+    {
+      "kind": "accueil",
+      "step": "card1",
+      "devices": 12
+    },
+    {
+      "kind": "accueil",
+      "step": "cards5",
+      "devices": 9
+    },
+    {
+      "kind": "accueil",
+      "step": "courrier",
+      "devices": 4
+    },
+    {
+      "kind": "accueil",
+      "step": "market",
+      "devices": 3
+    },
+    {
+      "kind": "accueil",
+      "step": "share",
+      "devices": 2
+    },
+    {
+      "kind": "accueil",
+      "step": "shop",
+      "devices": 1
+    },
+    {
+      "kind": "accueil",
+      "step": "desk",
+      "devices": 1
+    },
+    {
+      "kind": "blog",
+      "step": "profile",
+      "devices": 1
+    },
+    {
+      "kind": "calendrier",
+      "step": "binder",
+      "devices": 5
+    },
+    {
+      "kind": "calendrier",
+      "step": "tour_done",
+      "devices": 5
+    },
+    {
+      "kind": "calendrier",
+      "step": "profile",
+      "devices": 5
+    },
+    {
+      "kind": "calendrier",
+      "step": "cards10",
+      "devices": 2
+    },
+    {
+      "kind": "calendrier",
+      "step": "card1",
+      "devices": 2
+    },
+    {
+      "kind": "calendrier",
+      "step": "game",
+      "devices": 1
+    },
+    {
+      "kind": "calendrier",
+      "step": "desk",
+      "devices": 1
+    },
+    {
+      "kind": "calendrier",
+      "step": "courrier",
+      "devices": 1
+    },
+    {
+      "kind": "calendrier",
+      "step": "shop",
+      "devices": 1
+    },
+    {
+      "kind": "calendrier",
+      "step": "cards5",
+      "devices": 1
+    },
+    {
+      "kind": "carte",
+      "step": "tour_done",
+      "devices": 6
+    },
+    {
+      "kind": "carte",
+      "step": "binder",
+      "devices": 6
+    },
+    {
+      "kind": "carte",
+      "step": "profile",
+      "devices": 6
+    },
+    {
+      "kind": "carte",
+      "step": "desk",
+      "devices": 4
+    },
+    {
+      "kind": "carte",
+      "step": "card1",
+      "devices": 3
+    },
+    {
+      "kind": "carte",
+      "step": "cards10",
+      "devices": 2
+    },
+    {
+      "kind": "carte",
+      "step": "cards5",
+      "devices": 1
+    },
+    {
+      "kind": "carte",
+      "step": "share",
+      "devices": 1
+    },
+    {
+      "kind": "extension",
+      "step": "profile",
+      "devices": 3
+    },
+    {
+      "kind": "extension",
+      "step": "tour_done",
+      "devices": 3
+    },
+    {
+      "kind": "extension",
+      "step": "binder",
+      "devices": 3
+    },
+    {
+      "kind": "extension",
+      "step": "desk",
+      "devices": 2
+    },
+    {
+      "kind": "extension",
+      "step": "card1",
+      "devices": 1
+    },
+    {
+      "kind": "invitations",
+      "step": "tour_done",
+      "devices": 1
+    },
+    {
+      "kind": "invitations",
+      "step": "binder",
+      "devices": 1
+    },
+    {
+      "kind": "invitations",
+      "step": "cards10",
+      "devices": 1
+    },
+    {
+      "kind": "invitations",
+      "step": "game",
+      "devices": 1
+    },
+    {
+      "kind": "invitations",
+      "step": "profile",
+      "devices": 1
+    }
+  ],
+  "accounts": {
+    "byDay": [
+      {
+        "day": "2026-09-30",
+        "accounts": 2,
+        "saves": 2,
+        "returned": 2
+      },
+      {
+        "day": "2026-10-01",
+        "accounts": 2,
+        "saves": 2,
+        "returned": 1
+      },
+      {
+        "day": "2026-10-05",
+        "accounts": 3,
+        "saves": 2,
+        "returned": 0
+      },
+      {
+        "day": "2026-10-06",
+        "accounts": 69,
+        "saves": 58,
+        "returned": 4
+      },
+      {
+        "day": "2026-10-07",
+        "accounts": 8,
+        "saves": 6,
+        "returned": 0
+      },
+      {
+        "day": "2026-10-08",
+        "accounts": 7,
+        "saves": 7,
+        "returned": 2
+      },
+      {
+        "day": "2026-10-09",
+        "accounts": 4,
+        "saves": 4,
+        "returned": 3
+      },
+      {
+        "day": "2026-10-10",
+        "accounts": 3,
+        "saves": 3,
+        "returned": 1
+      },
+      {
+        "day": "2026-10-12",
+        "accounts": 2,
+        "saves": 2,
+        "returned": 1
+      },
+      {
+        "day": "2026-10-13",
+        "accounts": 5,
+        "saves": 4,
+        "returned": 1
+      },
+      {
+        "day": "2026-10-14",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 0
+      },
+      {
+        "day": "2026-10-19",
+        "accounts": 2,
+        "saves": 2,
+        "returned": 2
+      },
+      {
+        "day": "2026-10-20",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 0
+      },
+      {
+        "day": "2026-10-23",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 1
+      },
+      {
+        "day": "2026-10-26",
+        "accounts": 2,
+        "saves": 1,
+        "returned": 0
+      },
+      {
+        "day": "2026-10-27",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 1
+      },
+      {
+        "day": "2026-10-30",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 0
+      },
+      {
+        "day": "2026-11-01",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 1
+      },
+      {
+        "day": "2026-11-02",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 1
+      },
+      {
+        "day": "2026-11-05",
+        "accounts": 2,
+        "saves": 2,
+        "returned": 0
+      },
+      {
+        "day": "2026-11-08",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 0
+      },
+      {
+        "day": "2026-11-09",
+        "accounts": 2,
+        "saves": 2,
+        "returned": 1
+      },
+      {
+        "day": "2026-11-10",
+        "accounts": 1,
+        "saves": 1,
+        "returned": 0
+      },
+      {
+        "day": "2026-11-15",
+        "accounts": 1,
+        "saves": 0,
+        "returned": 0
+      }
+    ],
+    "totals": [
+      {
+        "accounts": 123,
+        "saves": 106,
+        "active_7d": 5,
+        "active_30d": 22
+      }
+    ]
+  },
+  "amazon": {
+    "week": [
+      {
+        "place": "invit-us",
+        "clicks": 64
+      },
+      {
+        "place": "calendrier-us",
+        "clicks": 14
+      },
+      {
+        "place": "calendrier",
+        "clicks": 2
+      },
+      {
+        "place": "extension-bar",
+        "clicks": 2
+      },
+      {
+        "place": "extension",
+        "clicks": 1
+      },
+      {
+        "place": "carte-us",
+        "clicks": 1
+      },
+      {
+        "place": "blog",
+        "clicks": 1
+      },
+      {
+        "place": "extension-us",
+        "clicks": 1
+      }
+    ],
+    "all": [
+      {
+        "place": "invit-us",
+        "clicks": 153
+      },
+      {
+        "place": "calendrier-us",
+        "clicks": 62
+      },
+      {
+        "place": "invit",
+        "clicks": 57
+      },
+      {
+        "place": "invitations-amazon",
+        "clicks": 48
+      },
+      {
+        "place": "extension",
+        "clicks": 5
+      },
+      {
+        "place": "calendrier",
+        "clicks": 4
+      },
+      {
+        "place": "extension-us",
+        "clicks": 3
+      },
+      {
+        "place": "extension-bar",
+        "clicks": 3
+      },
+      {
+        "place": "carte-us",
+        "clicks": 2
+      },
+      {
+        "place": "blog",
+        "clicks": 2
+      },
+      {
+        "place": "extensions",
+        "clicks": 2
+      },
+      {
+        "place": "calendrier-bar-us",
+        "clicks": 1
+      },
+      {
+        "place": "invit-bar-us",
+        "clicks": 1
+      },
+      {
+        "place": "extension-bar-us",
+        "clicks": 1
+      }
+    ],
+    "places": [
+      {
+        "place": "invit",
+        "store": "amazon.com",
+        "week": 64,
+        "before": 87,
+        "all": 154
+      },
+      {
+        "place": "calendrier",
+        "store": "amazon.com",
+        "week": 14,
+        "before": 24,
+        "all": 63
+      },
+      {
+        "place": "extension",
+        "store": "amazon.fr",
+        "week": 3,
+        "before": 0,
+        "all": 10
+      },
+      {
+        "place": "calendrier",
+        "store": "amazon.fr",
+        "week": 2,
+        "before": 0,
+        "all": 4
+      },
+      {
+        "place": "extension",
+        "store": "amazon.com",
+        "week": 1,
+        "before": 1,
+        "all": 4
+      },
+      {
+        "place": "carte",
+        "store": "amazon.com",
+        "week": 1,
+        "before": 0,
+        "all": 2
+      },
+      {
+        "place": "blog",
+        "store": "amazon.fr",
+        "week": 1,
+        "before": 0,
+        "all": 2
+      },
+      {
+        "place": "invit",
+        "store": "amazon.fr",
+        "week": 0,
+        "before": 4,
+        "all": 105
+      }
+    ],
+    "totals": {
+      "amazon.fr": {
+        "week": 6,
+        "before": 4,
+        "all": 121
+      },
+      "amazon.com": {
+        "week": 80,
+        "before": 112,
+        "all": 223
+      }
+    }
+  },
+  "amazonSources": [
+    {
+      "place": "invit-us",
+      "source": "chatgpt.com",
+      "clicks": 60
+    },
+    {
+      "place": "calendrier-us",
+      "source": "chatgpt.com",
+      "clicks": 8
+    },
+    {
+      "place": "calendrier-us",
+      "source": "bing",
+      "clicks": 3
+    },
+    {
+      "place": "calendrier",
+      "source": "bing",
+      "clicks": 2
+    },
+    {
+      "place": "calendrier-us",
+      "source": "ecosia.org",
+      "clicks": 1
+    },
+    {
+      "place": "calendrier-us",
+      "source": "duckduckgo",
+      "clicks": 1
+    },
+    {
+      "place": "extension-us",
+      "source": "chatgpt.com",
+      "clicks": 1
+    },
+    {
+      "place": "extension-bar",
+      "source": "duckduckgo",
+      "clicks": 1
+    },
+    {
+      "place": "invit-us",
+      "source": "existing",
+      "clicks": 1
+    },
+    {
+      "place": "extension",
+      "source": "duckduckgo",
+      "clicks": 1
+    },
+    {
+      "place": "extension-bar",
+      "source": "chatgpt.com",
+      "clicks": 1
+    },
+    {
+      "place": "carte-us",
+      "source": "ecosia.org",
+      "clicks": 1
+    },
+    {
+      "place": "invit-us",
+      "source": "direct",
+      "clicks": 1
+    },
+    {
+      "place": "blog",
+      "source": "duckduckgo",
+      "clicks": 1
+    }
+  ],
+  "shares": [
+    {
+      "lists": 12,
+      "updated_7d": 3,
+      "with_account": 4,
+      "views": 155
+    }
+  ],
+  "search": {
+    "week": {
+      "start": "2026-11-14",
+      "end": "2026-11-20"
+    },
+    "before": {
+      "start": "2026-11-07",
+      "end": "2026-11-13"
+    },
+    "byDay": [
+      {
+        "key": "2026-11-07",
+        "clicks": 8,
+        "impressions": 564,
+        "position": 10
+      },
+      {
+        "key": "2026-11-08",
+        "clicks": 2,
+        "impressions": 63,
+        "position": 6.8
+      },
+      {
+        "key": "2026-11-09",
+        "clicks": 6,
+        "impressions": 23,
+        "position": 5.5
+      },
+      {
+        "key": "2026-11-10",
+        "clicks": 1,
+        "impressions": 1,
+        "position": 1
+      },
+      {
+        "key": "2026-11-11",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 1
+      },
+      {
+        "key": "2026-11-12",
+        "clicks": 0,
+        "impressions": 0,
+        "position": 0
+      },
+      {
+        "key": "2026-11-13",
+        "clicks": 0,
+        "impressions": 0,
+        "position": 0
+      },
+      {
+        "key": "2026-11-14",
+        "clicks": 0,
+        "impressions": 0,
+        "position": 0
+      },
+      {
+        "key": "2026-11-15",
+        "clicks": 1,
+        "impressions": 5,
+        "position": 1.2
+      },
+      {
+        "key": "2026-11-16",
+        "clicks": 1,
+        "impressions": 3,
+        "position": 3
+      },
+      {
+        "key": "2026-11-17",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 6
+      },
+      {
+        "key": "2026-11-18",
+        "clicks": 3,
+        "impressions": 4,
+        "position": 7.5
+      },
+      {
+        "key": "2026-11-19",
+        "clicks": 0,
+        "impressions": 0,
+        "position": 0
+      },
+      {
+        "key": "2026-11-20",
+        "clicks": 0,
+        "impressions": 0,
+        "position": 0
+      }
+    ],
+    "queries": [
+      {
+        "key": "nookdex",
+        "clicks": 5,
+        "impressions": 7,
+        "position": 1.9
+      }
+    ],
+    "queriesBefore": [
+      {
+        "key": "nookdex",
+        "clicks": 8,
+        "impressions": 9,
+        "position": 1
+      },
+      {
+        "key": "demande invitation amazon",
+        "clicks": 1,
+        "impressions": 3,
+        "position": 8
+      },
+      {
+        "key": "065/167",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 5
+      },
+      {
+        "key": "109 pikachu ex",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 4.5
+      },
+      {
+        "key": "95/115",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 9
+      },
+      {
+        "key": "a toto",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 2
+      },
+      {
+        "key": "amazon delta reign",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 8
+      },
+      {
+        "key": "amazon regne delta",
+        "clicks": 0,
+        "impressions": 5,
+        "position": 8
+      },
+      {
+        "key": "amazon règne delta",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 8
+      },
+      {
+        "key": "base 2 plus edition",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 63
+      },
+      {
+        "key": "black star promo cards pokemon",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 50
+      },
+      {
+        "key": "bot invitation amazon",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 8
+      },
+      {
+        "key": "bundle regne delta amazon",
+        "clicks": 0,
+        "impressions": 5,
+        "position": 8.4
+      },
+      {
+        "key": "check prices again",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 5
+      },
+      {
+        "key": "chimchar 024/172",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 9
+      },
+      {
+        "key": "combien vaut cette carte ?",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 4
+      },
+      {
+        "key": "combien vaut cette page",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 2
+      },
+      {
+        "key": "combien vaut-elle ?",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 9
+      },
+      {
+        "key": "comment avoir des invitations amazon",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 8.5
+      },
+      {
+        "key": "comment avoir une invitation amazon",
+        "clicks": 0,
+        "impressions": 7,
+        "position": 9
+      },
+      {
+        "key": "comment marche les invitations amazon",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 10
+      },
+      {
+        "key": "comment recevoir une invitation amazon",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 1
+      },
+      {
+        "key": "cuanto vale en dolares",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 21
+      },
+      {
+        "key": "delta reign amazon pokemon",
+        "clicks": 0,
+        "impressions": 2,
+        "position": 3
+      },
+      {
+        "key": "delta reign pokemon amazon",
+        "clicks": 0,
+        "impressions": 3,
+        "position": 9
+      }
+    ],
+    "pages": [
+      {
+        "key": "https://nookdex.com/",
+        "clicks": 5,
+        "impressions": 11,
+        "position": 1.6
+      },
+      {
+        "key": "https://nookdex.com/en/sets/mcdonald-s-collection-2021/chimchar-12",
+        "clicks": 0,
+        "impressions": 3,
+        "position": 9
+      },
+      {
+        "key": "https://nookdex.com/en/sets/mega-evolution/sobble-039",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 6
+      },
+      {
+        "key": "https://nookdex.com/extensions/30e-anniversaire/baggiguane-140",
+        "clicks": 0,
+        "impressions": 3,
+        "position": 2
+      },
+      {
+        "key": "https://nookdex.com/extensions/collection-mcdonald-s-2017/miaouss-d-alola-8",
+        "clicks": 0,
+        "impressions": 3,
+        "position": 10
+      },
+      {
+        "key": "https://nookdex.com/extensions/epee-et-bouclier/dolman-114",
+        "clicks": 0,
+        "impressions": 3,
+        "position": 5
+      },
+      {
+        "key": "https://nookdex.com/extensions/etincelles-deferlantes/lippouti-075",
+        "clicks": 0,
+        "impressions": 3,
+        "position": 3
+      },
+      {
+        "key": "https://nookdex.com/extensions/lumiere-interdite/dialga-gx-125",
+        "clicks": 0,
+        "impressions": 3,
+        "position": 6
+      },
+      {
+        "key": "https://nookdex.com/extensions/pouvoirs-emergents",
+        "clicks": 0,
+        "impressions": 1,
+        "position": 27
+      },
+      {
+        "key": "https://nookdex.com/extensions/promo-swsh/leopardus-swsh187",
+        "clicks": 0,
+        "impressions": 3,
+        "position": 4
+      },
+      {
+        "key": "https://nookdex.com/extensions/svp-black-star-promos/mashynn-124",
+        "clicks": 0,
+        "impressions": 3,
+        "position": 7
+      },
+      {
+        "key": "https://nookdex.com/extensions/xy/mascaiman-69",
+        "clicks": 0,
+        "impressions": 3,
+        "position": 8
+      }
+    ]
+  }
+}
