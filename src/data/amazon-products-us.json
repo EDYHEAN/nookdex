@@ -1,7 +1,21 @@
 {
   "_": "Sealed Pokémon TCG products on amazon.com (Associates US, lib/amazon, lib/amazonShop): /en/amazon-invites, the English set pages, card pages and calendar. A group per set (setId: its id in the English catalog). A product: its ASIN (amazon.com/dp/<asin>, official listings only, never a reseller's), else a search (q); pic: tp:<TCGplayer product id>, its English packaging, which scripts/fetch-amazon-pics.mjs downloads into public/amazon/.",
-  "updated": "2026-11-08",
+  "updated": "2026-11-26",
   "groups": [
+    {
+      "id": "me07",
+      "setId": "me07",
+      "name": "Flowing Fists",
+      "code": "FLO",
+      "date": "2027-02-06",
+      "pic": "tp:735046",
+      "products": [
+        { "kind": "etb", "name": "Elite Trainer Box", "q": "Pokemon TCG Mega Evolution Flowing Fists Elite Trainer Box", "pic": "tp:735050" },
+        { "kind": "display", "name": "Booster Box (36 packs)", "q": "Pokemon TCG Mega Evolution Flowing Fists Booster Box", "pic": "tp:735045" },
+        { "kind": "bundle", "name": "Booster Bundle (6 packs)", "q": "Pokemon TCG Mega Evolution Flowing Fists Booster Bundle", "pic": "tp:735066" },
+        { "kind": "tripack", "name": "3-Pack Blister", "q": "Pokemon TCG Mega Evolution Flowing Fists 3-Pack Blister", "pic": "tp:735058" }
+      ]
+    },
     {
       "id": "me06",
       "setId": "me06",
