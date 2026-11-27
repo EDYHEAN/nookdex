@@ -1,7 +1,20 @@
 {
   "_": "Sealed Pokémon TCG products on amazon.fr (affiliate, lib/amazon, lib/amazonShop): the /invitations-amazon page, the set pages and the release calendar show them. A group per set (setId: its FR catalog id) or per line of products. A product: its ASIN (amazon.fr/dp/<asin>), else a search (q) until Amazon lists it; pic: a Poképédia page or file (\"Fichier:…\") whose official picture scripts/fetch-amazon-pics.mjs downloads into public/amazon/ (src/data/amazon-pics.json), else the group's. Kept up to date by the blog routine (docs/blog.md).",
-  "updated": "2026-11-01",
+  "updated": "2026-11-27",
   "groups": [
+    {
+      "id": "me07",
+      "setId": "me07",
+      "name": "Méga-Évolution Flowing Fists",
+      "code": "ME07",
+      "date": "2027-02-06",
+      "products": [
+        { "kind": "etb", "name": "Coffret Dresseur d'élite", "q": "Pokémon Méga-Évolution Flowing Fists Coffret Dresseur d'élite", "buy": "invite" },
+        { "kind": "display", "name": "Display 36 boosters", "q": "Pokémon Méga-Évolution Flowing Fists Display 36 boosters", "buy": "invite" },
+        { "kind": "bundle", "name": "Bundle 6 boosters", "q": "Pokémon Méga-Évolution Flowing Fists Bundle 6 boosters", "buy": "invite" },
+        { "kind": "tripack", "name": "Tripack", "q": "Pokémon Méga-Évolution Flowing Fists Tripack" }
+      ]
+    },
     {
       "id": "me06",
       "setId": "me06",
