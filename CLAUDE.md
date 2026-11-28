@@ -313,10 +313,22 @@ doesn't show.
 - Sitemap lastmod and discovery (2026-10-29): a card page's lastmod is the last day its price moved > 10 % and ≥ 0.10 €/$
   from the price before it in `public/history` (`lastMoveOf`), else its first priced day; a set page's, the latest of its 8
   dearest cards'; extra sets (no history) get none. It used to be the day of the prices (every URL "changed today", ignored).
-  The card sitemaps are cut per language: `<lang>-top.xml` (> 5 €/$), `<lang>-recent.xml` (sets of the last 12 months),
-  `<lang>.xml` the rest (`CARD_SITEMAPS`; submit the new ones in Search Console to read each slice's indexing). Since
-  2026-11-15 the rest is served empty and left out of robots.txt (`listed: false`, business review: ~29,000 cheap cards, no
-  click, Google left even the dearest "crawled, not indexed"): the sitemaps put forward ~12,000 cards, the pages stay. `/extensions` and `/en/sets` end with 50 plain links to card pages (`topCards`, from the search index): the 25
+  The card sitemaps are cut per language: `<lang>-top.xml`, `<lang>-recent.xml`, `<lang>.xml` the rest (`CARD_SITEMAPS`),
+  served empty and out of robots.txt since 2026-11-15, out of Search Console since 2026-11-28.
+- **Google's deindexing** (from 2026-11-08: every page but the home "crawled, not indexed", no manual action, Bing fine;
+  not the November core update, which began on the 10th): read as ~45,000 templated, affiliate-heavy pages. 2026-11-28:
+  only the card pages worth a search ask to be indexed (`cardSliceOf`: ≥ 50 €/$ "top", ≥ 5 €/$ in a set out less than 120
+  days "recent", ~2,500 pages in the sitemaps), the others answer `noindex, follow` and stay on the site; a card page
+  shows one sealed product, not three; the set pages show the month's moves from our own history (`setMoves`), the
+  Amazon pages and the calendar the latest set's value (`shop/SetValue`); the blog posts only with our own figures
+  (docs/blog.md). Recovery shows at a core update, not in days. The Search Console service account
+  (`~/.config/gsc/nookdex-gsc.json`) has full access: it can inspect URLs and add or remove sitemaps through the API.
+- **Real 404s** (2026-11-28): under a `loading.tsx` a page streams a 200 before its own `notFound()` (a soft 404 for
+  Google). The set, card and post pages check their address in a layout above their loading boundary
+  (`lib/pageGuards`: a real 404, and a renamed card's old address a 308 to its new one, matched by its number); the index
+  pages' `loading.tsx` sit in `(index)` route groups for that, a set's in `(set)`. A new dynamic page: same pattern.
+  `app/not-found.tsx` is the 404 (« Carte égarée », Warwick under the lamp, the shop shell).
+- `/extensions` and `/en/sets` end with 50 plain links to card pages (`topCards`, from the search index): the 25
   dearest (2 per set at most) and the 25 dearest of the two latest series, so Google finds them one click from the index.
 - IndexNow (2026-11-02, once on Vercel Pro): the Action « IndexNow » (daily 14:30 UTC, `scripts/indexnow.mjs`) sends Bing the
   URLs whose sitemap lastmod is today or yesterday (a few hundred). Its key is `public/<key>.txt` (public by design): renaming
@@ -426,8 +438,8 @@ doesn't show.
   FAQ, posts, hreflang). A phone shows three of the facts (cards, one of each, release), the rest from a tablet up.
 - A card's page (`CardPageView`, roomless too: crawlers open ~45,000 of them, the room was 3 MB a visit): the desk's green
   « Ajouter à ma collection » first (`/?carte=`), then, while its set is in the shops, « Elle se cache dans les boosters
-  <set> » (`shop/CardShop` `SealedBlock`: one product up front, the bundle when listed, two small; FR products, else searches
-  by kind; place `carte`), and « Protège-la » for a card worth 20 €/$ or more, any set (sleeves and toploaders, place
+  <set> » (`shop/CardShop` `SealedBlock`: one product, the bundle when listed; FR products, else a search;
+  place `carte`), and « Protège-la » for a card worth 20 €/$ or more, any set (sleeves and toploaders, place
   `accessoires`). Never the single card. Server drawn, no script added.
 
 ## Sharing a binder

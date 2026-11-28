@@ -30,6 +30,7 @@ import { ShopHero } from "./shop/ShopHero";
 import { StickyBuy } from "./shop/StickyBuy";
 import s from "./shop/Shop.module.css";
 import { WidePage } from "./WidePage";
+import { SetValue, latestSetsOut } from "./shop/SetValue";
 
 /**
  * The release calendar: French page /calendrier-des-sorties, English one /en/release-calendar (hreflang twins). A shop page
@@ -423,6 +424,9 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
           </tbody>
         </table>
       </div>
+
+      {/* the latest set out, in our own figures (shop/SetValue) */}
+      <SetValue lang={lang} setIds={latestSetsOut(lang)} />
 
       <h2 className={s.month}>{t("Sorties de l'année", "This past year")}</h2>
       {shelf.length > 0 && (

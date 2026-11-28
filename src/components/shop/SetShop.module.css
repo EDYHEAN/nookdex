@@ -86,6 +86,93 @@
   color: var(--ink-soft);
 }
 
+/* the month's moves (lib/cardPages setMoves): two columns from a tablet up */
+.moveCols {
+  display: grid;
+  gap: 4px 32px;
+}
+
+@media (min-width: 760px) {
+  .moveCols {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.moveCols h3 {
+  margin: 6px 0 8px;
+  font-family: var(--pixel);
+  font-weight: normal;
+  font-size: 12px;
+}
+
+.moves {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.moves a {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 6px 14px 6px 8px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink) !important;
+  text-decoration: none !important;
+  transition: transform 0.15s var(--spring);
+}
+
+.moves a:hover {
+  transform: translateX(3px);
+}
+
+.moves img,
+.moveNo {
+  display: block;
+  width: 44px;
+  height: auto;
+  aspect-ratio: 245 / 342;
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.moveNo {
+  background: #2f58a8;
+}
+
+.moves b {
+  display: block;
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.moves small {
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.moves em {
+  font-family: var(--vt);
+  font-style: normal;
+  font-size: 26px;
+}
+
+.up {
+  color: var(--ink-green);
+}
+
+.down {
+  color: var(--ink-red);
+}
+
 /* « Elles se cachent dans les boosters »: the sealed products, quietly (no odds, no gamble: Johan 2026-10-31) */
 .hide {
   display: flex;

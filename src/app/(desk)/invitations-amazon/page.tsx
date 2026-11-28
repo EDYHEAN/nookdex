@@ -8,6 +8,7 @@ import { ReleaseAlert } from "@/components/shop/ReleaseAlert";
 import { ShopHero } from "@/components/shop/ShopHero";
 import { StickyBuy } from "@/components/shop/StickyBuy";
 import s from "@/components/shop/Shop.module.css";
+import { SetValue } from "@/components/shop/SetValue";
 import {
   KIND_LABEL,
   SHOP_PATH,
@@ -360,6 +361,9 @@ export default function InvitationsAmazon() {
           <span aria-hidden>→</span>
         </Link>
       )}
+
+      {/* our own figures beside the shop's: the newest set out, its cards' prices (shop/SetValue) */}
+      <SetValue lang="fr" setIds={shopGroups.map((g) => g.setId)} />
 
       <section className={s.faq} data-sticky-stop>
         <h2>Questions fréquentes</h2>

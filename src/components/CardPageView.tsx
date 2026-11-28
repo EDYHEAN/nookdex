@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatDate } from "@/lib/blog";
 import { keyOf } from "@/lib/cardLang";
-import { type CardPage, cardFaq, cardPage } from "@/lib/cardPages";
+import { type CardPage, cardFaq, cardPage, cardSliceOf } from "@/lib/cardPages";
 import { money } from "@/lib/setPages";
 import { type PageLang, SET_PAGES_ROOT } from "@/lib/setPath";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
@@ -42,8 +42,8 @@ export async function cardPageMetadata(lang: PageLang, set: string, slug: string
     title,
     description,
     alternates: { canonical: p.path, languages },
-    // a card taken out by TCGdex (shown as a card back): not worth a search result until it's back
-    robots: card.unavailable ? { index: false } : undefined,
+    // only the dear cards and a new set's ask to be indexed (cardSliceOf); a card taken out by TCGdex (a card back) neither
+    robots: card.unavailable || cardSliceOf(card, p.set) === "rest" ? { index: false, follow: true } : undefined,
     openGraph: {
       type: "website",
       url: p.path,

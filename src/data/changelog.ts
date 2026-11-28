@@ -20,6 +20,7 @@ export const CHANGELOG: Release[] = [
       { fr: "🛍️ Le pack Soutien, toute l'année : plantes, Warwick en écharpe, ambiance menthe, radio jazz, plaque à ton pseudo.", en: "🛍️ The Supporter pack, all year round: plants, Warwick in a scarf, a mint mood, jazz radio, a plaque with your name." },
       { fr: "Avec le pack : le poster de Warwick et une ★ sur ta liste.", en: "With the pack: Warwick's poster and a ★ on your list." },
       { fr: "Une quête pour tes 10 premières cartes, en bas à gauche.", en: "A quest for your first 10 cards, bottom left." },
+      { fr: "📈 Chaque page d'extension montre ce qui a monté et baissé ce mois-ci.", en: "📈 Every set page shows what went up and down this month." },
     ],
   },
   {

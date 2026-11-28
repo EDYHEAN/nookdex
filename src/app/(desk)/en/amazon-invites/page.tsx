@@ -7,6 +7,7 @@ import { ReleaseAlert } from "@/components/shop/ReleaseAlert";
 import { ShopHero } from "@/components/shop/ShopHero";
 import { StickyBuy } from "@/components/shop/StickyBuy";
 import s from "@/components/shop/Shop.module.css";
+import { SetValue } from "@/components/shop/SetValue";
 import { SHOP_PATH, SHOP_PATH_EN, byInterest, goLabel, kindLabel, productArt, productHref, productPic, shopGroupsUs, shopUpdatedUs } from "@/lib/amazonShop";
 import { formatDate } from "@/lib/blog";
 import { kindArt } from "@/lib/kindArt";
@@ -215,6 +216,9 @@ export default function AmazonInvites() {
           </details>
         );
       })}
+
+      {/* our own figures beside the shop's: the newest set out, its cards' prices (shop/SetValue) */}
+      <SetValue lang="en" setIds={groups.map((g) => g.setId)} />
 
       <section className={s.faq} data-sticky-stop>
         <h2>Frequently asked questions</h2>
