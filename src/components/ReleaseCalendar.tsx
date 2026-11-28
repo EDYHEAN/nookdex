@@ -6,6 +6,7 @@ import {
   GIFTS_PATH,
   boosterPics,
   byInterest,
+  firstNow,
   giftSeason,
   goLabel,
   kindLabel,
@@ -166,6 +167,16 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
   const fan = group && fr ? boosterPics(group) : [];
   const thumb = pic ?? fan[0] ?? null;
   const days = heroSet ? daysUntil(heroSet.date) : 0;
+  /**
+   * The next set without a product page on Amazon yet (weeks before its ASINs): its searches sold nothing (Amazon US report,
+   * 2026-11-28: the calendar's 206 clicks, 0 sales; the Delta Reign Elite Trainer Box's product page, 80 clicks, 6 orders).
+   * The latest set's box then comes first, « Disponible maintenant », the pre-orders second. French page: only a box sold at
+   * once (`buy: "now"`): an invitation is bought days later, out of our cookie. Gone the day the next set has an ASIN.
+   */
+  const nowGroup = coming && amazonOn(lang) && !top?.asin && lastSet?.setId ? shopFor(lastSet.setId, lang) : undefined;
+  const nowBox = nowGroup ? (fr ? firstNow(nowGroup.products) : byInterest(nowGroup.products).find((p) => p.asin)) : undefined;
+  const nowHref = nowBox ? productHref(nowBox, "calendrier", lang) : null;
+  const nowPic = nowBox && nowGroup ? productPic(nowBox, nowGroup) : null;
   const heroPost = heroSet?.post;
   // the desk, for those who came to read a date (weekly report, 2026-11-09: 78 arrivals here, 3 profiles). The latest set
   // out, never a coming one: ?classeur= ignores a set not in the catalog yet
@@ -199,17 +210,32 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
       }
       buy={
         <>
-          {top && (
+          {top && !nowBox && (
             <p className={s.what}>
               <b>{top.name}</b>
               {/* its kind, unless its name says it */}
               {!top.name.startsWith(kindLabel(top.kind, lang)) && ` · ${kindLabel(top.kind, lang)}`}
             </p>
           )}
+          {nowBox && nowHref && (
+            <a className={s.nowBox} href={nowHref} target="_blank" rel="sponsored noopener" data-amazon-place="calendrier">
+              {nowPic && <img src={nowPic.src} width={nowPic.w} height={nowPic.h} alt="" />}
+              <span>
+                <small>{t("Disponible maintenant", "Available now")}</small>
+                {/* « Elite Trainer Box » alone in the file: the set's name says which */}
+                <b>{lastSet && !nowBox.name.includes(shortSetName(lastSet.name)) ? `${shortSetName(lastSet.name)} ${nowBox.name}` : nowBox.name}</b>
+              </span>
+            </a>
+          )}
           <div className={s.btns}>
+            {nowHref && (
+              <AmazonButton id="hero-cta" href={nowHref} place="calendrier" size="lg" nudge>
+                {t("Voir le prix sur Amazon", "See it on Amazon")}
+              </AmazonButton>
+            )}
             {heroHref && (
-              <AmazonButton id="hero-cta" href={heroHref} place="calendrier" size="lg" nudge>
-                {heroLabel}
+              <AmazonButton id={nowHref ? undefined : "hero-cta"} href={heroHref} place="calendrier" size={nowHref ? undefined : "lg"} alt={!!nowHref} nudge={!nowHref}>
+                {nowHref ? t(`Précommandes ${heroName}`, `${heroName} pre-orders`) : heroLabel}
               </AmazonButton>
             )}
             {heroPost && (
@@ -223,7 +249,7 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
             {group && fr && !coming && top?.buy === "now" && <li>Sans invitation</li>}
             <li>{t("Vérifie « Expédié et vendu par Amazon »", "Check “Ships from and sold by Amazon”")}</li>
           </ul>
-          {heroHref && <Affiliate lang={lang} />}
+          {heroHref && <Affiliate lang={lang} many={!!nowHref} />}
           {amazonOn(lang) && (
             <a href="#alerte" className={s.alertJump}>
               {t("✉ Préviens-moi à la prochaine sortie ↓", "✉ Tell me when the next set is out ↓")}
@@ -497,7 +523,18 @@ export function ReleaseCalendar({ lang }: { lang: PageLang }) {
         <Link prefetch={false} href={SET_PAGES_ROOT[lang]}>{t("Toutes les extensions et leurs prix →", "Every set and its prices →")}</Link>
       </p>
 
-      {heroSet && heroHref && (
+      {heroSet && nowBox && nowHref && (
+        <StickyBuy
+          target="hero-cta"
+          href={nowHref}
+          place="calendrier-bar"
+          thumb={nowPic ? <img src={nowPic.src} width={nowPic.w} height={nowPic.h} alt="" loading="lazy" /> : <span dangerouslySetInnerHTML={{ __html: kindArt(nowBox.kind) }} />}
+          title={lastSet ? shortSetName(lastSet.name) : nowBox.name}
+          sub={t("Disponible maintenant", "Available now")}
+          label={t("Voir le prix", "See it")}
+        />
+      )}
+      {heroSet && heroHref && !nowHref && (
         <StickyBuy
           target="hero-cta"
           href={heroHref}
