@@ -382,6 +382,9 @@ doesn't show.
   Company as maker, never a reseller's « WAVE 2 … »), found by a web search limited to amazon.com: Amazon refuses scripts and its terms forbid scraping, so no
   crawler or headless browser there. No ASIN known: `q`, a search. Pictures: `tp:<TCGplayer product id>` (TCGCSV's sealed products), the English packaging, cut out
   of their white by fetch-amazon-pics. The buttons promise no invitation (not every amazon.com listing has one).
+  The calendar's hero, while the next set has no ASIN (2026-11-28, US report: its searches 206 clicks, 0 sales; the Delta
+  Reign ETB's product page 80 clicks, 6 orders): the latest set's box first, « Available now » (`nowBox` in ReleaseCalendar;
+  on the French page only a `buy: "now"` box), the pre-orders second; the sticky bar follows it.
 - A box still without its official picture (Poképédia uploads an Elite Trainer Box weeks late, displays never; pokemon.com
   turns scripts away: never get round its bot wall) shows the English set's same box (`twinPic` in lib/amazonShop, TCGplayer's
   picture, the English logo on it: Johan 2026-11-10, « les EN plutôt qu'un placeholder »; the alert mails too), then
