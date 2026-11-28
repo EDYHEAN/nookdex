@@ -249,15 +249,29 @@ export async function setLastmod(lang: PageLang, set: CatalogSet): Promise<strin
 
 /** The card sitemap's slices (app/cartes/sitemap.ts), so Search Console tells the indexing rate of each */
 export type CardSlice = "top" | "recent" | "rest";
-/** a card worth more than this (€ or $) goes in the "top" slice: the prices people search */
-const TOP_PRICE = 5;
-/** a set released less than this many days ago: the "recent" slice */
-const RECENT_DAYS = 365;
 /**
- * The card sitemaps, /cartes/sitemap/<id>.xml: "fr" and "en" had the rest (the addresses already submitted). Since
- * 2026-11-15 they're served empty and left out of robots.txt (`listed: false`): ~29,000 cheap cards had brought no click
- * in a month and Google left even the dearest "crawled, not indexed" (business review of 2026-11-14), so the sitemaps
- * only put forward the pages worth indexing (~12,000). The pages themselves stay, linked from their set's page.
+ * Which card pages ask to be indexed (2026-11-28). From 2026-11-08 Google dropped every page of the site but the home
+ * ("crawled, not indexed", no manual action): ~45,000 pages from one template read as scaled content. The cards people
+ * search a price for are the dear ones, and a new set's: those stay in the sitemaps and indexable (~2,500 pages); the
+ * others answer noindex (follow) and leave the sitemaps. They stay on the site, linked from their set's page.
+ */
+/** a card worth this much (€ or $) or more: "top" */
+const TOP_PRICE = 50;
+/** a set released less than this many days ago: its cards from RECENT_PRICE up are "recent" */
+const RECENT_DAYS = 120;
+const RECENT_PRICE = 5;
+
+export function cardSliceOf(card: CardData, set: Pick<CatalogSet, "releaseDate">): CardSlice {
+  const trend = trendOf(card) ?? 0;
+  if (trend >= TOP_PRICE) return "top";
+  const recentFrom = new Date(Date.now() - RECENT_DAYS * 86_400_000).toISOString().slice(0, 10);
+  return !!set.releaseDate && set.releaseDate >= recentFrom && trend >= RECENT_PRICE ? "recent" : "rest";
+}
+
+/**
+ * The card sitemaps, /cartes/sitemap/<id>.xml: "fr" and "en" had the rest (the addresses first submitted). Since
+ * 2026-11-15 they're served empty and left out of robots.txt (`listed: false`), and since 2026-11-28 taken out of Search
+ * Console: only the indexable slices are listed (cardSliceOf).
  */
 export const CARD_SITEMAPS: { id: string; lang: PageLang; slice: CardSlice; listed: boolean }[] = [
   { id: "fr-top", lang: "fr", slice: "top", listed: true },
@@ -271,14 +285,12 @@ export const CARD_SITEMAPS: { id: string; lang: PageLang; slice: CardSlice; list
 /** Every card page of a language, for the sitemap: set by set, with its lastmod (lastMoveOf) and its slice */
 export async function cardPageList(lang: PageLang, sets: { set: CatalogSet; slug: string }[]) {
   const out: { url: string; lastModified?: string; slice: CardSlice }[] = [];
-  const recentFrom = new Date(Date.now() - RECENT_DAYS * 86_400_000).toISOString().slice(0, 10);
   for (const { set, slug } of sets) {
     const [data, hist] = await Promise.all([setFile(lang, set.id), historyOf(lang, set)]);
     if (!data) continue;
-    const recent = !!set.releaseDate && set.releaseDate >= recentFrom;
     for (const c of data.cards) {
       if (c.unavailable) continue;
-      const slice: CardSlice = (trendOf(c) ?? 0) > TOP_PRICE ? "top" : recent ? "recent" : "rest";
+      const slice = cardSliceOf(c, set);
       // no history (an extra set): no lastmod rather than a made-up one
       const lastModified = hist?.days.length ? lastMoveOf(hist, c.id) : undefined;
       out.push({ url: `${SET_PAGES_ROOT[lang]}/${slug}/${cardSlug(c)}`, lastModified, slice });
@@ -288,3 +300,59 @@ export async function cardPageList(lang: PageLang, sets: { set: CatalogSet; slug
 }
 
 export { trendOf };
+
+export interface SetMove {
+  card: CardData;
+  from: number;
+  to: number;
+  /** % */
+  change: number;
+}
+
+/**
+ * What moved in a set over the last month, from our own daily history (public/history, since 2026-10-04): its "one of
+ * each" value then and now, its biggest risers and fallers. Figures no other page has (2026-11-28: Google had dropped the
+ * set pages as templated; this is the part only we can write). From the set's first day of prices when it's younger than
+ * that. Cards under 1 €/$ then are left out of the lists (a 0.10 → 0.30 card is noise), moves under 10 % too.
+ */
+export async function setMoves(lang: PageLang, set: CatalogSet, data: SetData): Promise<{
+  from: string;
+  to: string;
+  totalFrom: number;
+  totalTo: number;
+  up: SetMove[];
+  down: SetMove[];
+} | null> {
+  const hist = await historyOf(lang, set);
+  if (!hist || hist.days.length < 8) return null;
+  const last = hist.days.length - 1;
+  const monthAgo = new Date(Date.parse(hist.days[last]) - 30 * 86_400_000).toISOString().slice(0, 10);
+  const first = Math.max(0, hist.days.findIndex((d) => d >= monthAgo));
+  let totalFrom = 0;
+  let totalTo = 0;
+  const moves: SetMove[] = [];
+  for (const card of data.cards) {
+    const vals = hist.cards[card.id];
+    if (!vals) continue;
+    // a card's first and last known prices within the window (a day can be missing)
+    const k0 = vals.findIndex((v, k) => k >= first && v != null);
+    let k1 = last;
+    while (k1 > k0 && vals[k1] == null) k1--;
+    if (k0 < 0 || k1 <= k0) continue;
+    const from = vals[k0]!;
+    const to = vals[k1]!;
+    totalFrom += from;
+    totalTo += to;
+    if (from >= 1) moves.push({ card, from, to, change: (to / from - 1) * 100 });
+  }
+  if (!totalFrom) return null;
+  const byChange = moves.filter((m) => Math.abs(m.change) >= 10).sort((a, b) => b.change - a.change);
+  return {
+    from: hist.days[first],
+    to: hist.days[last],
+    totalFrom,
+    totalTo,
+    up: byChange.filter((m) => m.change > 0).slice(0, 4),
+    down: byChange.filter((m) => m.change < 0).reverse().slice(0, 4),
+  };
+}

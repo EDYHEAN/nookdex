@@ -7,7 +7,7 @@ import { boosterPics, byInterest, goLabel, kindLabel, productArt, productHref, p
 import { kindArt } from "@/lib/kindArt";
 import { currencyOf, keyOf } from "@/lib/cardLang";
 import { type PageLang, SET_PAGES_ROOT, setPageEntries } from "@/lib/setPath";
-import { cardSlug, topCards } from "@/lib/cardPages";
+import { type SetMove, cardSlug, setMoves, topCards } from "@/lib/cardPages";
 import { cardCount, money, setFaq, setPage, trendOf } from "@/lib/setPages";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import type { CardData } from "@/lib/types";
@@ -102,6 +102,32 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
   const best = jackpot[0];
   const bestPrice = p.top[0] ? trendOf(p.top[0]) : null;
   const thumb = pic ?? fan[0] ?? setBoxPic(p.set.id, "etb");
+  const moves = await setMoves(lang, p.set, p.data);
+  const pct = (x: number) => `${x > 0 ? "+" : x < 0 ? "−" : ""}${Math.abs(Math.round(x))}${fr ? " %" : "%"}`;
+  const moveList = (list: SetMove[]) => (
+    <ul className={c.moves}>
+      {list.map((m) => (
+        <li key={m.card.id}>
+          <Link prefetch={false} href={`${p.path}/${cardSlug(m.card)}`}>
+            {m.card.img ? (
+              <img src={`${m.card.img}/low.webp`} width={245} height={342} alt="" loading="lazy" decoding="async" />
+            ) : (
+              <span className={c.moveNo} />
+            )}
+            <span>
+              <b>
+                {m.card.name} {numOf(m.card)}
+              </b>
+              <small>
+                {money(m.from, p)} → {money(m.to, p)}
+              </small>
+            </span>
+            <em className={m.change > 0 ? c.up : c.down}>{pct(m.change)}</em>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
 
   const hero = (
     <ShopHero
@@ -322,6 +348,43 @@ export async function SetPageView({ lang, slug }: { lang: PageLang; slug: string
               <Affiliate lang={lang} />
             </>
           )}
+        </section>
+      )}
+
+      {/* our own daily prices (public/history): the month's moves, what no other page of the set has */}
+      {moves && (moves.up.length > 0 || moves.down.length > 0) && (
+        <section className={c.sec}>
+          <h2>
+            {fr ? (
+              <>
+                Ce qui a bougé dans <em>{name}</em> depuis le {formatDate(moves.from, lang)}
+              </>
+            ) : (
+              <>
+                What moved in <em>{name}</em> since {formatDate(moves.from, lang)}
+              </>
+            )}
+          </h2>
+          <p className={c.sub}>
+            {t(
+              `Une carte de chaque valait ${money(moves.totalFrom, p)} le ${formatDate(moves.from, lang)}, ${money(moves.totalTo, p)} le ${formatDate(moves.to, lang)} (${pct((moves.totalTo / moves.totalFrom - 1) * 100)}). Relevé chaque jour par ${SITE_NAME} sur le prix tendance ${market}.`,
+              `One of each card was worth ${money(moves.totalFrom, p)} on ${formatDate(moves.from, lang)}, ${money(moves.totalTo, p)} on ${formatDate(moves.to, lang)} (${pct((moves.totalTo / moves.totalFrom - 1) * 100)}). Logged every day by ${SITE_NAME} from ${market}'s market price.`,
+            )}
+          </p>
+          <div className={c.moveCols}>
+            {moves.up.length > 0 && (
+              <div>
+                <h3>{t("Ça monte", "Going up")}</h3>
+                {moveList(moves.up)}
+              </div>
+            )}
+            {moves.down.length > 0 && (
+              <div>
+                <h3>{t("Ça baisse", "Going down")}</h3>
+                {moveList(moves.down)}
+              </div>
+            )}
+          </div>
         </section>
       )}
 

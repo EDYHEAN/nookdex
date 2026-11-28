@@ -1,8 +1,22 @@
 # The blog: how a post is written (guide for the scheduled routine)
 
-The NookDex blog (`/blog`, opened from the cork board above the desk) gets two posts a week, written by a scheduled
+The NookDex blog (`/blog`, opened from the cork board above the desk) gets up to two posts a week, written by a scheduled
 Claude routine that follows this file. Its job is SEO and GEO: pages that Google and AI assistants can quote, about
 the Pokémon TCG, that lead collectors to the desk. Read the repo's CLAUDE.md first (site, languages, prices).
+
+## Fewer posts, each one ours (2026-11-28)
+
+From 2026-11-08 Google dropped every page of the site but the home from its index ("crawled, not indexed": read as
+templated, affiliate-heavy pages). A post that any site could write (a generic guide, sleeves, conditions) adds to that.
+So, on every run:
+
+- **Publish only when the post holds something only NookDex has**: our daily prices and their history
+  (`public/history`: what rose, what fell, a set's value since its release), a set's first prices, the calendar's
+  confirmed dates. A guide without our own figures is not a subject any more.
+- **No subject that clears this bar: no post.** Still do step 5 (the calendar) and the products, commit them as
+  `Veille sorties: …`, and stop. One good post a week beats two thin ones.
+- At most one `::amazon[…]` block per post, in its « Où acheter » section near the end (see Amazon below), never in its
+  first half.
 
 ## One run = one article, in French and English
 

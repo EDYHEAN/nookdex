@@ -22,29 +22,25 @@ interface Item {
   go: string;
 }
 
-/** the set's searches by kind, drawn (a set with no products listed) */
-const SEARCHES: { kind: ShopKind; fr: string; en: string }[] = [
-  { kind: "bundle", fr: "Bundle", en: "Booster Bundle" },
-  { kind: "etb", fr: "Coffret Dresseur d'élite", en: "Elite Trainer Box" },
-  { kind: "display", fr: "Display", en: "Booster Box" },
-];
+/** the set's search, drawn (a set with no products listed) */
+const SEARCH = { kind: "bundle" as ShopKind, fr: "Bundle", en: "Booster Bundle" };
 
 /**
- * « Elle se cache dans les boosters <set> »: one product up front (the bundle, six boosters, when listed), two small ones;
- * the set's products on amazon.fr or amazon.com, else searches by kind. No odds, no « instead of
- * N € » (teens read it, Johan 2026-10-31).
+ * « Elle se cache dans les boosters <set> »: one product, the bundle (six boosters) when listed. Two small ones stood beside
+ * it until 2026-11-28 (a card page is about the card: Google had dropped the site's affiliate-heavy pages). The set's
+ * products on amazon.fr or amazon.com, else a search. No odds, no « instead of N € » (teens read it, Johan 2026-10-31).
  */
 export function SealedBlock({ lang, setId, setName, releaseDate }: { lang: Lang; setId: string; setName: string; releaseDate: string | null }) {
   if (!amazonOn(lang) || !inShops(releaseDate)) return null;
   const fr = lang === "fr";
   const t = (f: string, e: string) => (fr ? f : e);
   const g = shopFor(setId, lang);
-  let items: Item[];
+  let feat: Item;
   if (g) {
     const soon = !!g.date && g.date > new Date().toISOString().slice(0, 10);
     const all = byInterest(g.products);
-    const first = all.find((x) => x.kind === "bundle") ?? all[0];
-    items = [first, ...all.filter((x) => x !== first)].slice(0, 3).map((x) => ({
+    const x = all.find((p) => p.kind === "bundle") ?? all[0];
+    feat = {
       href: productHref(x, "carte", lang),
       name: x.name,
       kind: x.kind,
@@ -52,18 +48,18 @@ export function SealedBlock({ lang, setId, setName, releaseDate }: { lang: Lang;
       pic: productPic(x, g),
       art: productArt(x, g, lang),
       go: goLabel(x, soon, lang),
-    }));
+    };
   } else {
-    items = SEARCHES.map((k) => ({
+    const k = SEARCH;
+    feat = {
       href: amazonSearch(fr ? `Pokémon ${setName} ${k.fr}` : `Pokemon TCG ${setName} ${k.en}`, "carte", lang),
       name: `${fr ? k.fr : k.en} ${setName}`,
       kind: k.kind,
       label: fr ? k.fr : k.en,
       pic: setBoxPic(setId, k.kind),
       go: t("Voir sur Amazon", "See it on Amazon"),
-    }));
+    };
   }
-  const [feat, ...rest] = items;
   return (
     <aside className={cs.sealed} aria-label={t(`Les produits scellés ${setName}`, `${setName} sealed products`)}>
       <p className={s.eyebrow}>{t("Le scellé", "Sealed")}</p>
@@ -80,19 +76,7 @@ export function SealedBlock({ lang, setId, setName, releaseDate }: { lang: Lang;
           {feat.go} <span className={s.arr}>↗</span>
         </span>
       </a>
-      {rest.length > 0 && (
-        <ul className={cs.others}>
-          {rest.map((x) => (
-            <li key={x.href}>
-              <a href={x.href} target="_blank" rel="sponsored noopener" data-amazon-place="carte">
-                <ProductArt pic={x.pic} kind={x.kind} art={x.art} alt="" />
-                <span>{x.name} ↗</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
-      <p className={`${s.aff} ${cs.aff}`}>{affiliateLabel(lang, items.length > 1)}</p>
+      <p className={`${s.aff} ${cs.aff}`}>{affiliateLabel(lang, false)}</p>
     </aside>
   );
 }
